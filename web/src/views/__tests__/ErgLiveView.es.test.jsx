@@ -13,6 +13,7 @@ import { messages as viewsEs } from '../../locales/views/es.po';
 const insertMock = vi.fn();
 const addToQueueMock = vi.fn();
 let pm5State;
+let pending = 2;
 
 vi.mock('../../supabaseClient', () => ({
   supabase: {
@@ -24,7 +25,7 @@ vi.mock('../../supabaseClient', () => ({
 }));
 vi.mock('../../hooks/usePM5', () => ({ usePM5: () => pm5State }));
 vi.mock('../../hooks/useOfflineQueue', () => ({
-  useOfflineQueue: () => ({ addToQueue: addToQueueMock, pending: 2 }),
+  useOfflineQueue: () => ({ addToQueue: addToQueueMock, pending }),
 }));
 
 import ErgLiveView from '../ErgLiveView.jsx';
@@ -102,6 +103,7 @@ beforeEach(() => {
   insertMock.mockReset();
   insertMock.mockResolvedValue({ error: null });
   addToQueueMock.mockReset();
+  pending = 2;
   Object.defineProperty(navigator, 'onLine', {
     value: true,
     configurable: true,
@@ -348,6 +350,53 @@ describe('the stored row stays English in Spanish (AC-T3)', () => {
     expect(row.exercises).toEqual([{ name: 'Notes', notes: 'piernas bien' }]);
     expect(row.duration).toBe('20:00');
   });
+
+  it('writes the same row in Spanish as in English, sRPE included', async () => {
+    pm5State = { ...pm5State, status: 'finished', summary: SUMMARY };
+    const save = async (pick, saveLabel) => {
+      const { unmount } = renderView();
+      fireEvent.click(screen.getByRole('button', { name: pick }));
+      fireEvent.click(screen.getByText(saveLabel));
+      await waitFor(() => expect(insertMock).toHaveBeenCalled());
+      const row = insertMock.mock.calls.at(-1)[0];
+      insertMock.mockClear();
+      unmount();
+      return row;
+    };
+    i18n.activate('en');
+    const english = await save(/^7 — /, 'SAVE SESSION');
+    inSpanish();
+    const spanish = await save('7 — Duro (umbral)', 'GUARDAR SESIÓN');
+    expect(spanish.srpe).toBe(7);
+    expect(spanish).toEqual(english);
+  });
+
+  it('queues the same English row when the insert is rejected', async () => {
+    insertMock.mockResolvedValue({ error: { code: '42501', message: 'no' } });
+    pm5State = { ...pm5State, status: 'finished', summary: SUMMARY };
+    inSpanish();
+    renderView();
+    fireEvent.click(screen.getByText('GUARDAR SESIÓN'));
+    await waitFor(() => expect(addToQueueMock).toHaveBeenCalledTimes(1));
+    expect(addToQueueMock.mock.calls[0][0].label).toBe('Erg Session 07:15');
+  });
+});
+
+describe('the rest of the erg path in Spanish', () => {
+  it('one pending session is singular', () => {
+    pending = 1;
+    inSpanish();
+    renderView();
+    expect(screen.getByText('1 SESIÓN POR SINCRONIZAR')).toBeInTheDocument();
+  });
+
+  it('DESCARTAR resets the monitor', () => {
+    pm5State = { ...pm5State, status: 'finished', summary: SUMMARY };
+    inSpanish();
+    renderView();
+    fireEvent.click(screen.getByRole('button', { name: 'DESCARTAR' }));
+    expect(pm5State.reset).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('WorkoutTarget (AC-T5, AC-T4)', () => {
@@ -383,6 +432,27 @@ describe('WorkoutTarget (AC-T5, AC-T4)', () => {
     expect(screen.getByText('26:00')).toBeInTheDocument();
     expect(document.body.textContent).not.toMatch(/26:00\s*min/);
     expect(document.body.textContent).toContain('sRPE target: 4');
+  });
+
+  it('shows a clock duration with no unit in Spanish too', () => {
+    inSpanish();
+    render(<WorkoutTarget session={{ ...PLANNED, duration: '26:00' }} />);
+    open();
+    expect(screen.getByText('26:00')).toBeInTheDocument();
+    expect(document.body.textContent).not.toMatch(/26:00\s*min/);
+  });
+
+  it.each([null, ''])('shows no duration for %j, in either language', (d) => {
+    for (const lang of ['en', 'es']) {
+      if (lang === 'es') inSpanish();
+      else i18n.activate('en');
+      const { unmount } = render(
+        <WorkoutTarget session={{ ...PLANNED, duration: d }} />
+      );
+      open();
+      expect(document.body.textContent).not.toMatch(/\bmin\b|null/);
+      unmount();
+    }
   });
 
   it('English minutes read "53 min" and the fallback is "easy"', () => {

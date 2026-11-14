@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseDurationMinutes } from '../duration.js';
+import { parseDurationMinutes, durationDisplay } from '../duration.js';
 
 describe('parseDurationMinutes', () => {
   it('parses mm:ss "45:00" as 45', () => {
@@ -57,5 +57,31 @@ describe('parseDurationMinutes', () => {
       }).not.toThrow();
       expect(Number.isNaN(out)).toBe(false);
     });
+  });
+});
+
+// AC-T4: what the session lists show, separate from what load maths reads.
+describe('durationDisplay', () => {
+  it.each([
+    ['53m', { kind: 'minutes', minutes: 53 }],
+    ['9min', { kind: 'minutes', minutes: 9 }],
+    ['1h4m', { kind: 'minutes', minutes: 64 }],
+    ['2h00m', { kind: 'minutes', minutes: 120 }],
+    ['1h', { kind: 'minutes', minutes: 60 }],
+    ['57', { kind: 'minutes', minutes: 57 }],
+    [' 57 ', { kind: 'minutes', minutes: 57 }],
+    ['57.5m', { kind: 'minutes', minutes: 57.5 }],
+    ['60MIN', { kind: 'minutes', minutes: 60 }],
+    [45, { kind: 'minutes', minutes: 45 }],
+    ['26:00', { kind: 'clock', text: '26:00' }],
+    ['1:02:03', { kind: 'clock', text: '1:02:03' }],
+    ['abc', { kind: 'raw', text: 'abc' }],
+    ['about an hour', { kind: 'raw', text: 'about an hour' }],
+  ])('%j → %j', (input, expected) => {
+    expect(durationDisplay(input)).toEqual(expected);
+  });
+
+  it.each([null, undefined, '', '   ', NaN])('%j renders nothing', (input) => {
+    expect(durationDisplay(input)).toBeNull();
   });
 });

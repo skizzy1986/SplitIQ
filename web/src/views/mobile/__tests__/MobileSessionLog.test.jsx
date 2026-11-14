@@ -74,7 +74,7 @@ it('preserves raw types, metrics and labels while keeping the rowing-name filter
   });
   render(<MobileSessionLog />);
   expect(screen.getByText('180w')).toBeInTheDocument();
-  expect(screen.getByText('45min')).toBeInTheDocument();
+  expect(screen.getByText('45 min')).toBeInTheDocument();
   expect(screen.getByText('RPE 6')).toBeInTheDocument();
   expect(screen.getByText('12.0km')).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'Erg', exact: true }));

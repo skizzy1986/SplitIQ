@@ -116,10 +116,20 @@ msgstr "{minutes, plural, one {# minuto de remo a un ritmo promedio de {pace} /5
 msgid "{minutes, plural, one {# minute of rowing.} other {# minutes of rowing.}}"
 msgstr "{minutes, plural, one {# minuto de remo.} other {# minutos de remo.}}"
 
+#. A duration in minutes
+#: src/utils/durationLabel.js
+msgid "{minutes} min"
+msgstr "{minutes} min"
+
 #. Splits table: the last split, shorter than the others
 #: src/components/session/SplitsTable.jsx
 msgid "{n} (partial)"
 msgstr "{n} (incompleto)"
+
+#. Erg sessions saved on the device, waiting to upload; all capitals
+#: src/views/ErgLiveView.jsx
+msgid "{pending, plural, one {# PENDING SYNC} other {# PENDING SYNC}}"
+msgstr "{pending, plural, one {# SESIÓN POR SINCRONIZAR} other {# SESIONES POR SINCRONIZAR}}"
 
 #: src/utils/stravaDisconnect.js
 msgid "{restore, plural, one {Strava power and heart rate removed from {restore} session you logged yourself.} other {Strava power and heart rate removed from {restore} sessions you logged yourself.}}"
@@ -200,6 +210,11 @@ msgstr "🔴 Fatiga alta: la carga reciente supera de lejos tu estado físico"
 #: src/views/mobile/MobileAnalytics.jsx
 msgid "30-DAY LOAD TREND"
 msgstr "TENDENCIA DE CARGA · 30 DÍAS"
+
+#. Live metric label: time per 500 metres; keep 500m
+#: src/views/ErgLiveView.jsx
+msgid "500m PACE"
+msgstr "RITMO 500m"
 
 #. Date field placeholder. The app stores month/day/year, so in Spanish write the format (mm/dd/aa) rather than a sample date a reader would take as day/month
 #: src/components/LogSessionForm.jsx
@@ -329,6 +344,21 @@ msgstr "Frecuencia de palada promedio"
 msgid "AVG HR"
 msgstr "FC PROM."
 
+#. Average time per 500 metres, all capitals
+#: src/views/ErgLiveView.jsx
+msgid "AVG PACE"
+msgstr "RITMO PROM."
+
+#. Average strokes per minute, all capitals; SPM stays as is
+#: src/views/ErgLiveView.jsx
+msgid "AVG SPM"
+msgstr "SPM PROM."
+
+#. Average power, all capitals
+#: src/views/ErgLiveView.jsx
+msgid "AVG WATT"
+msgstr "VATIOS PROM."
+
 #. Average power, all capitals
 #: src/components/LogEntry.jsx
 msgid "AVG WATTS"
@@ -379,6 +409,11 @@ msgstr "Cuerpo"
 msgid "BODYWEIGHT — 14 DAYS (kg)"
 msgstr "PESO CORPORAL — 14 DÍAS (kg)"
 
+#. Screen title, all capitals; C2 is Concept2, the rowing machine maker: keep it
+#: src/views/ErgLiveView.jsx
+msgid "C2 CONNECT"
+msgstr "CONEXIÓN C2"
+
 #. Session caption list item
 #: src/components/session/ProvenanceNote.jsx
 msgid "cadence"
@@ -407,6 +442,11 @@ msgstr "Calendario"
 msgid "Calories"
 msgstr "Calorías"
 
+#. All capitals
+#: src/views/ErgLiveView.jsx
+msgid "CALORIES"
+msgstr "CALORÍAS"
+
 #. Button
 #: src/components/StravaConnectPanel.jsx
 msgid "Cancel"
@@ -434,6 +474,11 @@ msgstr "PRECAUCIÓN"
 #: src/components/StravaConnectPanel.jsx
 msgid "Checking Strava connection…"
 msgstr "Verificando la conexión con Strava…"
+
+#. Where live rowing works: browser names, then device kinds
+#: src/views/ErgLiveView.jsx
+msgid "Chrome / Edge · Android or Desktop"
+msgstr "Chrome / Edge · Android o computador"
 
 #. Blood pressure reading taken under proper resting conditions
 #: src/views/RecoveryView.jsx
@@ -486,9 +531,24 @@ msgstr "Conecta Strava para importar automáticamente tus actividades de remo y 
 msgid "Connect the PM5 and row against a watt band"
 msgstr "Conecta el PM5 y rema dentro de una banda de vatios"
 
+#. Button, all capitals; PM5 is the rowing machine's monitor
+#: src/views/ErgLiveView.jsx
+msgid "CONNECT TO PM5"
+msgstr "CONECTAR AL PM5"
+
+#. Live status: the monitor is paired, all capitals
+#: src/views/ErgLiveView.jsx
+msgid "CONNECTED"
+msgstr "CONECTADO"
+
 #: src/utils/stravaStatus.js
 msgid "Connected · waiting for the first sync"
 msgstr "Conectado · esperando la primera sincronización"
+
+#. Button, busy, all capitals
+#: src/views/ErgLiveView.jsx
+msgid "CONNECTING…"
+msgstr "CONECTANDO…"
 
 #. sRPE scale, effort 1-2: the talk test
 #: src/constants/srpeGuideMessages.js
@@ -569,6 +629,16 @@ msgstr "Calculado aquí: {derivedText}."
 msgid "Device"
 msgstr "Dispositivo"
 
+#. SAVE SESSION is the button's label: match its translation
+#: src/views/ErgLiveView.jsx
+msgid "Device storage is full. Free some space, then tap SAVE SESSION again."
+msgstr "El almacenamiento del dispositivo está lleno. Libera espacio y vuelve a tocar GUARDAR SESIÓN."
+
+#. Button that throws the session away, all capitals
+#: src/views/ErgLiveView.jsx
+msgid "DISCARD"
+msgstr "DESCARTAR"
+
 #. Button
 #: src/components/StravaConnectPanel.jsx
 msgid "Disconnect"
@@ -593,6 +663,11 @@ msgstr "¿Desconectar Strava y eliminar sus datos?"
 msgid "Disconnecting…"
 msgstr "Desconectando…"
 
+#. Live metric label, short for distance
+#: src/views/ErgLiveView.jsx
+msgid "DIST"
+msgstr "DIST."
+
 #. Session caption list item
 #: src/components/session/ProvenanceNote.jsx
 msgid "distance"
@@ -604,10 +679,17 @@ msgstr "distancia"
 msgid "Distance"
 msgstr "Distancia"
 
+#. All capitals
 #. Metric, all capitals
 #: src/components/LogEntry.jsx
+#: src/views/ErgLiveView.jsx
 msgid "DISTANCE"
 msgstr "DISTANCIA"
+
+#. Button that closes the summary, all capitals
+#: src/views/ErgLiveView.jsx
+msgid "DONE"
+msgstr "LISTO"
 
 #: src/components/session/MoreDetail.jsx
 msgid "Drift"
@@ -628,6 +710,11 @@ msgstr "DURACIÓN"
 msgid "e1RM"
 msgstr "e1RM"
 
+#. sRPE target when the plan gives no number
+#: src/components/WorkoutTarget.jsx
+msgid "easy"
+msgstr "fácil"
+
 #: src/components/LogSessionForm.jsx
 msgid "easy · talk in sentences (UT2)"
 msgstr "fácil · hablas en oraciones (UT2)"
@@ -642,9 +729,19 @@ msgstr "Fácil (UT2)"
 msgid "Elapsed"
 msgstr "Tiempo total"
 
+#. Live metric label: time since the start
+#: src/views/ErgLiveView.jsx
+msgid "ELAPSED"
+msgstr "TRANSCURRIDO"
+
 #: src/components/session/SessionSummary.jsx
 msgid "Elevation gain"
 msgstr "Desnivel positivo"
+
+#. Button that ends the live session, all capitals
+#: src/views/ErgLiveView.jsx
+msgid "END"
+msgstr "TERMINAR"
 
 #. Cycling power level (Coggan Z2)
 #: src/components/session/zoneLabels.js
@@ -807,6 +904,16 @@ msgstr "Historial"
 msgid "HORMONE PANEL"
 msgstr "PERFIL HORMONAL"
 
+#. Placeholder in the session notes box
+#: src/views/ErgLiveView.jsx
+msgid "How did it feel? Technique notes…"
+msgstr "¿Cómo te sentiste? Notas de técnica…"
+
+#. All capitals; sRPE stays as is
+#: src/views/ErgLiveView.jsx
+msgid "HOW HARD DID IT FEEL? (sRPE)"
+msgstr "¿QUÉ TAN DURO SE SINTIÓ? (sRPE)"
+
 #. Chart title, all capitals; HRV stays as is
 #: src/views/mobile/MobileRecovery.jsx
 msgid "HRV TREND — 14 DAYS"
@@ -880,6 +987,11 @@ msgstr "límite {target} {unit}"
 #: src/App.jsx
 msgid "Live"
 msgstr "En vivo"
+
+#. Screen eyebrow, all capitals
+#: src/views/ErgLiveView.jsx
+msgid "LIVE ROWING"
+msgstr "REMO EN VIVO"
 
 #. Desktop Progress pane
 #. Progress sub-tab: training load
@@ -1065,6 +1177,11 @@ msgstr "Todavía no hay resultados del perfil lipídico."
 msgid "No metrics logged for this session."
 msgstr "No hay métricas registradas para esta sesión."
 
+#. All capitals
+#: src/components/WorkoutTarget.jsx
+msgid "NO PLANNED SESSION TODAY"
+msgstr "NO HAY SESIÓN PLANIFICADA HOY"
+
 #: src/components/session/SessionTrace.jsx
 msgid "No power or speed was recorded, so there is no pace trace."
 msgstr "No se registró potencia ni velocidad, así que no hay trazado de ritmo."
@@ -1150,6 +1267,11 @@ msgstr "Sin puntuar: no hay sRPE ni una referencia de CP de remo con la cual med
 #: src/components/session/SessionSummary.jsx
 msgid "Not scored: no sRPE, and this session type has no power model."
 msgstr "Sin puntuar: no hay sRPE, y este tipo de sesión no tiene modelo de potencia."
+
+#. Field label; NOTES in capitals, optional in lower case
+#: src/views/ErgLiveView.jsx
+msgid "NOTES (optional)"
+msgstr "NOTAS (opcional)"
 
 #: src/utils/stravaDisconnect.js
 msgid "Nothing in your log came from Strava; nothing will be removed."
@@ -1294,6 +1416,11 @@ msgstr "Potencia durante {over}, entre {lo} y {hi} W; promedio {avg} W."
 #: src/components/session/SessionTrace.jsx
 msgid "Power across {over}, between {lo} and {hi} W."
 msgstr "Potencia durante {over}, entre {lo} y {hi} W."
+
+#. PM5 is the rowing machine's monitor: keep it. Connect is the button below. The tags are line breaks
+#: src/views/ErgLiveView.jsx
+msgid "Power on your PM5.<0/>Tap Connect — your browser will<1/>ask you to select the device."
+msgstr "Enciende tu PM5.<0/>Toca Conectar: tu navegador te<1/>pedirá que elijas el dispositivo."
 
 #: src/components/session/MoreDetail.jsx
 msgid "Power over the moving time, averaged over each 30 s, each value raised to the fourth power, those averaged, then the fourth root taken. Hard stretches count for more than their share of the time."
@@ -1444,6 +1571,11 @@ msgstr "TENDENCIA DE FC EN REPOSO — 14 DÍAS"
 msgid "Retry"
 msgstr "Reintentar"
 
+#. Live status, all capitals
+#: src/views/ErgLiveView.jsx
+msgid "ROWING"
+msgstr "REMANDO"
+
 #: src/views/OverviewView.jsx
 msgid "Rowing CP {cp}W"
 msgstr "CP de remo {cp}W"
@@ -1452,10 +1584,30 @@ msgstr "CP de remo {cp}W"
 msgid "Rowing CP {cp}W · bike FTP {ftp}W"
 msgstr "CP de remo {cp}W · FTP de bici {ftp}W"
 
+#. The session could not be saved anywhere; all capitals
+#: src/views/ErgLiveView.jsx
+msgid "SAVE FAILED — NOT STORED"
+msgstr "NO SE PUDO GUARDAR: NO QUEDÓ ALMACENADA"
+
 #. {detail} is the server error message, shown as it came
 #: src/components/LogSessionForm.jsx
 msgid "Save failed: {detail}"
 msgstr "No se pudo guardar: {detail}"
+
+#. Button, all capitals
+#: src/views/ErgLiveView.jsx
+msgid "SAVE SESSION"
+msgstr "GUARDAR SESIÓN"
+
+#. Saved on the device while offline, uploads later; all capitals
+#: src/views/ErgLiveView.jsx
+msgid "SAVED LOCALLY — WILL SYNC"
+msgstr "GUARDADA EN EL DISPOSITIVO: SE SINCRONIZARÁ"
+
+#. Save succeeded, all capitals; Log is the session history
+#: src/views/ErgLiveView.jsx
+msgid "SAVED TO LOG"
+msgstr "GUARDADA EN EL HISTORIAL"
 
 #: src/components/LogSessionForm.jsx
 msgid "Saved! Session added to your log."
@@ -1463,6 +1615,7 @@ msgstr "¡Guardado! La sesión se agregó a tu historial."
 
 #. Button, busy, all capitals
 #: src/components/LogSessionForm.jsx
+#: src/views/ErgLiveView.jsx
 msgid "SAVING…"
 msgstr "GUARDANDO…"
 
@@ -1497,6 +1650,11 @@ msgstr "Sesión"
 #: src/components/LogEntry.jsx
 msgid "Session · {duration}"
 msgstr "Sesión · {duration}"
+
+#. Screen eyebrow after the row ends, all capitals
+#: src/views/ErgLiveView.jsx
+msgid "SESSION COMPLETE"
+msgstr "SESIÓN TERMINADA"
 
 #. Field label, all capitals
 #: src/components/LogSessionForm.jsx
@@ -1633,6 +1791,11 @@ msgstr "sRPE — según la prueba del habla"
 #: src/views/LogView.jsx
 msgid "sRPE SCALE · TALK-TEST ANCHORED (asked every session)"
 msgstr "ESCALA sRPE · SEGÚN LA PRUEBA DEL HABLA (se pregunta en cada sesión)"
+
+#. Followed by a number or the word easy; sRPE stays as is
+#: src/components/WorkoutTarget.jsx
+msgid "sRPE target:"
+msgstr "sRPE objetivo:"
 
 #. Heading, all capitals
 #: src/views/mobile/MobileTrain.jsx
@@ -1825,6 +1988,11 @@ msgstr "Hablas en oraciones pero notas la respiración. Trabajando, pero con con
 msgid "Tap any session to expand · Share Concept2 links or Fitbod screenshots to log sessions"
 msgstr "Toca cualquier sesión para ver el detalle · Comparte enlaces de Concept2 o capturas de pantalla de Fitbod para registrar sesiones"
 
+#. Label before today's planned session name, all capitals
+#: src/components/WorkoutTarget.jsx
+msgid "TARGET"
+msgstr "OBJETIVO"
+
 #: src/views/RecoveryView.jsx
 msgid "target 7h+"
 msgstr "meta 7h+"
@@ -1949,6 +2117,11 @@ msgstr "Umbral"
 #: src/components/session/SplitsTable.jsx
 msgid "Time"
 msgstr "Tiempo"
+
+#. Session total time, all capitals
+#: src/views/ErgLiveView.jsx
+msgid "TIME"
+msgstr "TIEMPO"
 
 #: src/views/SessionView.jsx
 msgid "Time in zone"
@@ -2103,6 +2276,16 @@ msgstr "Volumen"
 #: src/views/mobile/MobileRecovery.jsx
 msgid "vs {baselineLabel}"
 msgstr "vs. {baselineLabel}"
+
+#. Live metric label
+#: src/views/ErgLiveView.jsx
+msgid "WATTS"
+msgstr "VATIOS"
+
+#. Chrome and Edge are browser names: keep them
+#: src/constants/pm5ErrorMessages.js
+msgid "Web Bluetooth is not supported in this browser. Use Chrome or Edge."
+msgstr "Este navegador no es compatible con Web Bluetooth. Usa Chrome o Edge."
 
 #: src/components/session/MoreDetail.jsx
 msgid "Weighted power"

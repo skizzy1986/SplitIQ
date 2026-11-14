@@ -4,6 +4,8 @@ import {
   formatElapsed,
   parseRowingStatus,
   WorkoutState,
+  connectToPM5,
+  PM5_UNSUPPORTED,
 } from '../pm5Bluetooth.js';
 
 // ---------------------------------------------------------------------------
@@ -290,5 +292,33 @@ describe('parseRowingStatus — realistic rowing scenario', () => {
     expect(result.paceStr).toBe('1:58.0');
     expect(result.watts).toBe(190);
     expect(result.calories).toBe(35);
+  });
+});
+
+// AC-T2: the screen translates by code; the English message stays for logs.
+describe('connectToPM5 without Web Bluetooth', () => {
+  it('throws a coded error with the English message kept', async () => {
+    const had = 'bluetooth' in navigator;
+    const saved = navigator.bluetooth;
+    Object.defineProperty(navigator, 'bluetooth', {
+      value: undefined,
+      configurable: true,
+    });
+    try {
+      await expect(connectToPM5()).rejects.toMatchObject({
+        code: PM5_UNSUPPORTED,
+        message:
+          'Web Bluetooth is not supported in this browser. Use Chrome or Edge.',
+      });
+    } finally {
+      if (had) {
+        Object.defineProperty(navigator, 'bluetooth', {
+          value: saved,
+          configurable: true,
+        });
+      } else {
+        delete navigator.bluetooth;
+      }
+    }
   });
 });

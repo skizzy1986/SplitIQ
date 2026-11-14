@@ -11,6 +11,7 @@ import {
   isCancelledStatus,
 } from '../../utils/sessionStatus.js';
 import { canOpenSessionPage, sessionHref } from '../../utils/sessionPage.js';
+import { durationLabel } from '../../utils/durationLabel.js';
 
 function typeColor(type) {
   const t = (type ?? '').toLowerCase();
@@ -195,6 +196,7 @@ export default function MobileSessionLog() {
         // A completed rowing or cycling row is a real link to its page.
         const opens = canOpenSessionPage(s);
         const Row = opens ? 'a' : 'div';
+        const duration = durationLabel(s.duration, i18n);
         return (
           <Row
             key={s.id}
@@ -257,9 +259,9 @@ export default function MobileSessionLog() {
                 <span style={{ fontSize: 10, color: THEME.muted }}>
                   {s.date ? formatDate(s.date, i18n.locale) : ''}
                 </span>
-                {s.duration && (
+                {duration && (
                   <span style={{ fontSize: 10, color: THEME.muted }}>
-                    {s.duration}min
+                    {duration}
                   </span>
                 )}
                 {s.srpe != null && (

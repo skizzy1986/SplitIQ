@@ -716,6 +716,44 @@ describe('Mobile in Spanish', () => {
     expect(screen.getByText('FUERZA')).toBeInTheDocument();
   });
 
+  // AC-T4 (localisation PR 2): the unit comes from a message, once, and a
+  // clock keeps none. "53m" used to render "53mmin" and "26:00" "26:00min".
+  it('Today and Session log: durations read "53 min" / "26:00", never "mmin"', () => {
+    mocks.sessions = [
+      {
+        id: 1,
+        date: mdy(-1),
+        status: 'completed',
+        label: 'A',
+        duration: '53m',
+      },
+      {
+        id: 2,
+        date: mdy(-2),
+        status: 'completed',
+        label: 'B',
+        duration: '26:00',
+      },
+      {
+        id: 3,
+        date: mdy(-3),
+        status: 'completed',
+        label: 'C',
+        duration: '1h4m',
+      },
+    ];
+    for (const ui of [<MobileToday key="t" />, <MobileSessionLog key="l" />]) {
+      const { enText, esText } = both(ui);
+      for (const text of [enText, esText]) {
+        expect(text).toContain('53 min');
+        expect(text).toContain('64 min');
+        expect(text).toContain('26:00');
+        expect(text).not.toMatch(/mmin|26:00\s*min/);
+      }
+      i18n.activate('en');
+    }
+  });
+
   it('Session log: English chips and count are unchanged', () => {
     mocks.sessions = [
       {

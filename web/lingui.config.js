@@ -48,6 +48,11 @@ export const VIEWS_SOURCES = [
   'src/components/session/RangeSummary.jsx',
   'src/components/session/SplitsTable.jsx',
   'src/components/session/MoreDetail.jsx',
+  // Localisation PR 2: the erg path Train hands the screen to.
+  'src/views/ErgLiveView.jsx',
+  'src/components/WorkoutTarget.jsx',
+  'src/constants/pm5ErrorMessages.js',
+  'src/utils/durationLabel.js',
 ];
 
 const rooted = (f) => `<rootDir>/${f}`;

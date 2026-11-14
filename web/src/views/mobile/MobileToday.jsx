@@ -11,6 +11,7 @@ import {
   TSB_BAND_MESSAGES,
 } from '../../utils/trainingLoad.js';
 import { readinessStatusText } from '../../utils/recoveryAnalytics.js';
+import { durationLabel } from '../../utils/durationLabel.js';
 import { dateLocale } from '../../utils/displayLocale.js';
 import { toISODate, toLogDate } from '../../utils/dateFormat.js';
 import {
@@ -368,7 +369,7 @@ export default function MobileToday({ onStartSession, onOpenBody }) {
             <ListRow
               key={s.id}
               title={s.label ?? s.type}
-              meta={`${s.duration ? `${s.duration}min` : ''}${s.srpe ? ` · RPE ${s.srpe}` : ''}`}
+              meta={`${durationLabel(s.duration, i18n)}${s.srpe ? ` · RPE ${s.srpe}` : ''}`}
             />
           ))}
         </Card>

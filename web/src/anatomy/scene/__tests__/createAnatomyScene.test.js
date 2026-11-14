@@ -64,6 +64,18 @@ const buffer = raw.buffer.slice(
   raw.byteOffset,
   raw.byteOffset + raw.byteLength
 );
+// The squat's bar as captured from main before R12 (see the barbell describe).
+// Built by default so every test runs the scene the squat page ships; the
+// scene itself is movement-neutral and must not import the squat config.
+const fixture = JSON.parse(
+  readFileSync(
+    join(
+      process.cwd(),
+      'src/anatomy/scene/__tests__/fixtures/barbell-squat.json'
+    ),
+    'utf8'
+  )
+);
 
 const build = (container, extra = {}) =>
   createAnatomyScene({
@@ -72,6 +84,7 @@ const build = (container, extra = {}) =>
     buffer,
     palette: scenePalette('dark'),
     style: sceneStyle('dark'),
+    equipment: fixture.input,
     ...extra,
   });
 
@@ -476,16 +489,6 @@ describe('setActivation on a built scene', () => {
 // material and world matrix at three depths. `fixture.input` is the bar the
 // squat config now passes in; before the change the scene ignored it.
 describe('the barbell (characterisation)', () => {
-  const fixture = JSON.parse(
-    readFileSync(
-      join(
-        process.cwd(),
-        'src/anatomy/scene/__tests__/fixtures/barbell-squat.json'
-      ),
-      'utf8'
-    )
-  );
-
   it('draws the same cylinders in the same place at every pinned depth', () => {
     const q = [];
     vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
@@ -507,6 +510,40 @@ describe('the barbell (characterisation)', () => {
       expect(barCylinders(scene), `s = ${s}`).toEqual(cylinders);
     }
     ctl.dispose();
+  });
+
+  it('builds no bar without equipment, still adds the empty group, and repaints and disposes cleanly', () => {
+    const q = [];
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
+      q.push(cb);
+      return q.length;
+    });
+    vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {});
+    const ctl = build(container, { equipment: null });
+    for (const cb of q.splice(0)) cb(0);
+    const [scene] = fake.renderers[0].render.mock.calls[0];
+    expect(barCylinders(scene)).toEqual([]);
+    // sideR, sideL, axial, equipment, body: the order a bar would sit in.
+    const groups = scene.children.filter((o) => o.isGroup);
+    expect(groups).toHaveLength(5);
+    expect(groups[3].children).toEqual([]);
+    expect(() =>
+      ctl.setPalette(scenePalette('light'), sceneStyle('light'))
+    ).not.toThrow();
+    ctl.dispose();
+    expect(container.childElementCount).toBe(0);
+  });
+
+  it('refuses a bar the manifest has no placement for, and leaves nothing behind', () => {
+    const { bar: _bar, ...meta } = manifest.meta;
+    expect(() =>
+      build(container, {
+        manifest: { ...manifest, meta },
+        equipment: fixture.input,
+      })
+    ).toThrow('equipment.bar needs manifest meta.bar');
+    expect(container.childElementCount).toBe(0);
+    expect(fake.renderers[0].forceContextLoss).toHaveBeenCalledTimes(1);
   });
 });
 

@@ -45,10 +45,15 @@ describe('isSquatOnly', () => {
     expect(isSquatOnly([`${ROOT}/src/movementsX/squat/x.js`])).toBe(false);
   });
 
-  it('covers exactly the three trees', () => {
+  it('counts the movement configs as squat-only', () => {
+    expect(isSquatOnly([`${ROOT}/src/movements/squat/movement.js`])).toBe(true);
+  });
+
+  it('covers exactly the four trees', () => {
     expect(SQUAT_ONLY_DIRS).toEqual([
       '/src/squat/',
       '/src/anatomy/',
+      '/src/movements/',
       '/node_modules/three/',
     ]);
   });

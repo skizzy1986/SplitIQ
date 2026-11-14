@@ -65,19 +65,6 @@ const BASE = {
   // How far a muscle outside the strain focus or selection moves towards its
   // own grey (sceneColours.js emphasise, PR B).
   focusDim: 0.65,
-  bar: {
-    radius: 0.0145,
-    length: 2.2,
-    plateRadius: 0.225,
-    plateWidth: 0.06,
-    plateOffset: 0.8,
-    sleeveRadius: 0.025,
-    sleeveLength: 0.42,
-    // Facets around each cylinder (shaft, sleeves, plates).
-    segments: 24,
-    metalness: 0.6,
-    roughness: 0.35,
-  },
   camera: {
     fov: 35,
     near: 0.05,

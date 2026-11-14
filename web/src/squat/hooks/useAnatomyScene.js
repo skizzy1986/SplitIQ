@@ -28,6 +28,9 @@ const isOffline = () =>
  * `focus` is `{ top, selected }`: manifest indices of the muscles the strain
  * readout names (empty with the heatmap off) and the selected muscle's index
  * (or null). They are lifted out of the rest on the model (PR B).
+ *
+ * `equipment` is the movement config's implements (`{ bar }`, R12), handed to
+ * the scene as built. A module constant, so it never triggers a rebuild.
  */
 export function useAnatomyScene({
   containerRef,
@@ -43,6 +46,7 @@ export function useAnatomyScene({
   arrival = 0,
   onUserCamera,
   focus = null,
+  equipment = null,
 }) {
   const [state, setState] = useState({ status: 'idle', errorKind: null });
   const [attempt, setAttempt] = useState(0);
@@ -108,6 +112,7 @@ export function useAnatomyScene({
               reducedMotion: rm,
               coarsePointer,
               initialPose: p,
+              equipment,
               onUserCamera: () => latest.current.onUserCamera?.(),
               onFirstFrame: () => {
                 if (!cancelled) setState({ status: 'ready', errorKind: null });
@@ -166,6 +171,7 @@ export function useAnatomyScene({
     coarsePointer,
     loadScene,
     attempt,
+    equipment,
   ]);
 
   useEffect(() => {

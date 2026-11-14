@@ -392,6 +392,9 @@ export default defineConfig({
         // fixture-tested against the source page. Measured 2026-11-04: lines
         // 99.69 / functions 100 / branches 96.73.
         'src/anatomy/utils/**': { lines: 95, functions: 95, branches: 90 },
+        // The movement configs (R12, #440): plain data assembled from
+        // constants, so every line runs on import.
+        'src/movements/**': { lines: 100 },
         // Extracted from main.jsx so the boot decision is testable. main.jsx
         // itself stays excluded — it is bootstrap only now.
         'src/AuthGate.jsx': { lines: 80, functions: 80, branches: 70 },

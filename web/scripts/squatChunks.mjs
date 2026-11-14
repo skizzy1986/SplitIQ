@@ -9,6 +9,7 @@ import { I18N_CHUNK_NAME, isTranslatedCatalog } from './i18nChunks.mjs';
 export const SQUAT_ONLY_DIRS = [
   '/src/squat/',
   '/src/anatomy/',
+  '/src/movements/',
   '/node_modules/three/',
 ];
 

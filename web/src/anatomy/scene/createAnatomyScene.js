@@ -86,6 +86,14 @@ const debugEnabled = () => {
  * instead of the home view before the first frame, so a linked view never
  * flashes the default first. `onUserCamera` fires on every camera move the
  * user makes (a gesture, Reset, a preset, orbit, zoom), never on setPose.
+ *
+ * `equipment` is what the movement lifts, from its config (R12):
+ * `{ bar?: { frame, radius, length, plateRadius, plateWidth, plateOffset,
+ * sleeveRadius, sleeveLength, segments, metalness, roughness } } | null`.
+ * Lengths in metres; `frame` is the pose frame the bar rides on. Its offset
+ * from that frame (meta.bar.c) and its extracted shaft radius (meta.bar.r)
+ * come from the manifest, which must then carry meta.bar. Without a bar the
+ * equipment group is still added, empty, so the scene graph keeps its order.
  */
 export function createAnatomyScene({
   container,
@@ -100,6 +108,7 @@ export function createAnatomyScene({
   onContextRestored,
   initialPose = null,
   onUserCamera,
+  equipment = null,
 }) {
   const meta = manifest.meta;
   const A = (name) => viewArray(manifest, buffer, name);
@@ -193,12 +202,18 @@ export function createAnatomyScene({
       ...style.material,
     });
     const boneMat = new MeshStandardMaterial({ ...style.material });
-    const barMat = new MeshStandardMaterial({
-      metalness: style.bar.metalness,
-      roughness: style.bar.roughness,
-    });
+    const B = equipment?.bar ?? null;
+    if (B && !meta.bar)
+      throw new Error('equipment.bar needs manifest meta.bar');
+    const barMat = B
+      ? new MeshStandardMaterial({
+          metalness: B.metalness,
+          roughness: B.roughness,
+        })
+      : null;
     const groundMat = new ShadowMaterial({ transparent: true });
-    materials.push(muscleMat, boneMat, barMat, groundMat);
+    materials.push(muscleMat, boneMat, groundMat);
+    if (barMat) materials.push(barMat);
 
     // ── groups: right, mirrored left (z = 0 plane), axial ────────────
     const sideR = new Group();
@@ -216,8 +231,8 @@ export function createAnatomyScene({
     [sideR, sideL, axial].forEach((g, i) => {
       g.add(layers.skeleton[i], layers.muscles[i]);
     });
-    const equipment = new Group();
-    scene.add(sideR, sideL, axial, equipment, layers.body[0]);
+    const equipmentGroup = new Group();
+    scene.add(sideR, sideL, axial, equipmentGroup, layers.body[0]);
 
     const movers = [];
     const addMesh = (geo, mat, parent, frame) => {
@@ -292,35 +307,39 @@ export function createAnatomyScene({
       makeSet(geo, A(`${nm}_mid`), A(`${nm}_tw`), mirrored, 'thorax');
     }
 
-    // ── barbell, on the thorax frame (meta.bar.c in thorax rest space) ──
-    const B = style.bar;
-    const bar = new Group();
-    bar.matrixAutoUpdate = false;
-    movers.push({ mesh: bar, m: poser.matrixFor('thorax') });
-    const barInner = new Group();
-    barInner.position.set(...meta.bar.c);
-    bar.add(barInner);
-    const cylinder = (r, len) => {
-      const g = new CylinderGeometry(r, r, len, B.segments);
-      g.rotateX(Math.PI / 2);
-      geometries.push(g);
-      return g;
-    };
-    const shaft = new Mesh(cylinder(meta.bar.r ?? B.radius, B.length), barMat);
-    barInner.add(shaft);
-    const plateGeo = cylinder(B.plateRadius, B.plateWidth);
-    const sleeveGeo = cylinder(B.sleeveRadius, B.sleeveLength);
-    for (const side of [-1, 1]) {
-      const plate = new Mesh(plateGeo, barMat);
-      plate.position.z = side * B.plateOffset;
-      const sleeve = new Mesh(sleeveGeo, barMat);
-      sleeve.position.z = side * (B.length / 2 - B.sleeveLength / 2);
-      barInner.add(plate, sleeve);
+    // ── barbell, on its frame (meta.bar.c in that frame's rest space) ──
+    if (B) {
+      const bar = new Group();
+      bar.matrixAutoUpdate = false;
+      movers.push({ mesh: bar, m: poser.matrixFor(B.frame) });
+      const barInner = new Group();
+      barInner.position.set(...meta.bar.c);
+      bar.add(barInner);
+      const cylinder = (r, len) => {
+        const g = new CylinderGeometry(r, r, len, B.segments);
+        g.rotateX(Math.PI / 2);
+        geometries.push(g);
+        return g;
+      };
+      const shaft = new Mesh(
+        cylinder(meta.bar.r ?? B.radius, B.length),
+        barMat
+      );
+      barInner.add(shaft);
+      const plateGeo = cylinder(B.plateRadius, B.plateWidth);
+      const sleeveGeo = cylinder(B.sleeveRadius, B.sleeveLength);
+      for (const side of [-1, 1]) {
+        const plate = new Mesh(plateGeo, barMat);
+        plate.position.z = side * B.plateOffset;
+        const sleeve = new Mesh(sleeveGeo, barMat);
+        sleeve.position.z = side * (B.length / 2 - B.sleeveLength / 2);
+        barInner.add(plate, sleeve);
+      }
+      barInner.traverse((o) => {
+        o.castShadow = shadows;
+      });
+      equipmentGroup.add(bar);
     }
-    barInner.traverse((o) => {
-      o.castShadow = shadows;
-    });
-    equipment.add(bar);
 
     // ── ground ─────────────────────────────────────────────────────
     const groundGeo = new PlaneGeometry(style.groundSize, style.groundSize);
@@ -356,7 +375,7 @@ export function createAnatomyScene({
       fill.color.setRGB(...lt.fill.color);
       fill.intensity = lt.fill.intensity * LIGHT_UNIT;
       boneMat.color.setRGB(...p.bone);
-      barMat.color.setRGB(...p.bar);
+      barMat?.color.setRGB(...p.bar);
       groundMat.color.setRGB(...p.shadow);
       groundMat.opacity = style0.shadowOpacity;
     }

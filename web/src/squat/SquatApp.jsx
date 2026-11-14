@@ -19,6 +19,7 @@ import { activationOf, bandOf, peakBandOf } from './utils/activation.js';
 import { focusKey, regionMuscles, topActivated } from './utils/strainFocus.js';
 import { useStrainAnnouncement } from './hooks/useStrainAnnouncement.js';
 import { loadSceneModule } from '../anatomy/scene/loadScene.js';
+import { SQUAT_MOVEMENT } from '../movements/squat/movement.js';
 import SquatHeader, { HEADER_HEIGHT } from './components/SquatHeader.jsx';
 import SquatStage from './components/SquatStage.jsx';
 import StageControls from './components/StageControls.jsx';
@@ -37,9 +38,8 @@ import {
   touchLink,
 } from './components/ui.js';
 
-export const PAGE_TITLE = 'High-bar squat — SplitIQ';
-export const PAGE_DESCRIPTION =
-  'An interactive coaching model of the high-bar back squat: the five phases, what to look for, common faults and cues, and form targets from published research.';
+export const PAGE_TITLE = SQUAT_MOVEMENT.page.title;
+export const PAGE_DESCRIPTION = SQUAT_MOVEMENT.page.description;
 
 // The source page's phone breakpoint (max-width: 760px).
 const WIDE_QUERY = '(min-width: 761px)';
@@ -393,6 +393,7 @@ export default function SquatApp({ loadScene = loadSceneModule } = {}) {
     arrival,
     onUserCamera: clearCam,
     focus: { top: topIdx, selected: selection.muscle?.i ?? null },
+    equipment: SQUAT_MOVEMENT.equipment,
   });
   // Where the model is not drawn, the readout must not sit over the notice
   // or the error on the stage: it moves into the controls.

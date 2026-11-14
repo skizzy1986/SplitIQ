@@ -158,7 +158,9 @@ const CAMEL_VAR = /var\(--color-[a-z0-9-]*[A-Z]/g;
 // tokens like everything else, so a hex number under either is rejected.
 const HEX_NUMBER = /\b0x[0-9a-fA-F]{6}\b/g;
 const isSquat = (p) =>
-  p.startsWith('web/src/squat/') || p.startsWith('web/src/anatomy/');
+  p.startsWith('web/src/squat/') ||
+  p.startsWith('web/src/anatomy/') ||
+  p.startsWith('web/src/movements/');
 
 const failures = [];
 const seen = new Map();

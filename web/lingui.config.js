@@ -44,7 +44,11 @@ export default defineConfig({
   catalogs: [
     {
       path: '<rootDir>/src/squat/locales/{locale}',
-      include: ['<rootDir>/src/squat', '<rootDir>/src/anatomy'],
+      include: [
+        '<rootDir>/src/squat',
+        '<rootDir>/src/anatomy',
+        '<rootDir>/src/movements',
+      ],
     },
     {
       path: '<rootDir>/src/locales/views/{locale}',
@@ -56,6 +60,7 @@ export default defineConfig({
       exclude: [
         '<rootDir>/src/squat/**',
         '<rootDir>/src/anatomy/**',
+        '<rootDir>/src/movements/**',
         '**/__tests__/**',
         '**/*.test.*',
         ...VIEWS_SOURCES.map(rooted),

@@ -2,6 +2,14 @@ import js from '@eslint/js';
 import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 
+const NEUTRAL_MESSAGE =
+  'src/anatomy/ is movement-neutral: take movement data as an argument, never import squat/, movements/ or utils/squatRoute.';
+const ANATOMY_NEUTRAL = [
+  { group: ['**/squat/**'], message: NEUTRAL_MESSAGE },
+  { group: ['**/movements/**'], message: NEUTRAL_MESSAGE },
+  { group: ['**/utils/squatRoute*'], message: NEUTRAL_MESSAGE },
+];
+
 export default [
   {
     // Mirrors of files authored in the claude.ai/design project (see
@@ -131,12 +139,52 @@ export default [
     },
   },
   {
+    // The anatomy runtime is movement-neutral (R12): it is handed a movement's
+    // data, it never reaches for one. Flat config replaces a rule's options
+    // per block rather than merging them, so the three.js ban above is
+    // restated here or this block would lift it.
+    files: ['src/anatomy/**/*.{js,jsx}'],
+    ignores: ['src/anatomy/scene/**', '**/__tests__/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'three',
+              message:
+                'Import three.js only under src/anatomy/scene/ (loaded lazily via loadScene.js).',
+            },
+          ],
+          patterns: [
+            {
+              group: ['three/*'],
+              message:
+                'Import three.js only under src/anatomy/scene/ (loaded lazily via loadScene.js).',
+            },
+            ...ANATOMY_NEUTRAL,
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // The scene may import three.js, but it is movement-neutral too.
+    files: ['src/anatomy/scene/**/*.{js,jsx}'],
+    ignores: ['**/__tests__/**'],
+    rules: {
+      'no-restricted-imports': ['error', { patterns: ANATOMY_NEUTRAL }],
+    },
+  },
+  {
     // The squat tool's tests read its committed data files from disk and
     // drive browser events jsdom provides beyond the app-wide list above.
-    // The anatomy posing tests read the same files.
+    // The anatomy posing tests read the same files, and the movement config
+    // tests read its doc.
     files: [
       'src/squat/__tests__/**/*.{js,jsx}',
       'src/anatomy/**/__tests__/**/*.{js,jsx}',
+      'src/movements/**/__tests__/**/*.{js,jsx}',
     ],
     languageOptions: {
       globals: {

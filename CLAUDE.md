@@ -101,7 +101,7 @@ via `supabase/migrations/manifest.json`; never quote a count. **An MCP `execute_
 - **Tables with conventions:** `sessions`, `vitals`, `strength_workouts`, `strength_sets`,
   `templates`, `template_exercises`, `workout_assignments`, `exercises` (text ids),
   `exercise_media`, `exercise_prefs`, `coach_log`, `anchors`, `backup_snapshots`,
-  `bp_readings`, `lab_results`, `injuries`, `strava_*`.
+  `bp_readings`, `lab_results`, `injuries` (`strava_*`: migration 012, not applied).
 - **`sessions`:** `date` is **text `M/D/YY`, unpadded** — the write column. `date_iso` is
   a **generated `date`, read-only**, derived by `session_date_to_iso()`, indexed, and the
   only correct thing to `order by`; an insert that names it is rejected, and a `date`
@@ -113,8 +113,9 @@ via `supabase/migrations/manifest.json`; never quote a count. **An MCP `execute_
   completed; `"logged"` from the live PM5 save path, the others from imported history),
   `"planned"` (a prescription, never counted as done) or `"cancelled"`.
 - **`vitals`:** `date` is a real `date`; upsert on `(user_id, date)`. RHR/HRV/sleep/
-  bodyweight and the Google-Health columns (`steps_count`, `distance_m`,
-  `active_minutes`, `calories_kcal`) auto-fill via the `vitals-import` cron.
+  bodyweight auto-fill via the `vitals-import` cron (7-arg `upsert_vital`); the Google-Health
+  activity columns (`steps_count`, `distance_m`, `active_minutes`, `calories_kcal`) via
+  `vitals-sync` (the live-only 11-arg overload, #454).
   `readiness` + `soreness` are the only manual inputs (morning check-in).
 - **Strength sessions:** a completed session is a `strength_workouts` container with
   `status='completed'`, linked to the calendar via `session_id → sessions.id` and to

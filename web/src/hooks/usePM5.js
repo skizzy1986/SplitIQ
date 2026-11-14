@@ -15,6 +15,9 @@ export function usePM5() {
   const [metrics, setMetrics] = useState(null);
   const [summary, setSummary] = useState(null);
   const [error, setError] = useState(null);
+  // Set only for errors pm5Bluetooth.js throws with a string code; a browser
+  // DOMException's numeric legacy `code` is not one of ours.
+  const [errorCode, setErrorCode] = useState(null);
 
   const deviceRef = useRef(null);
   // Track peak metrics for end-of-session summary
@@ -53,6 +56,7 @@ export function usePM5() {
   const connect = useCallback(async () => {
     setStatus('connecting');
     setError(null);
+    setErrorCode(null);
     setSummary(null);
     peakMetrics.current = { maxWatts: 0, strokeCount: 0, samples: [] };
 
@@ -86,6 +90,7 @@ export function usePM5() {
       setStatus('connected');
     } catch (err) {
       setError(err.message);
+      setErrorCode(typeof err.code === 'string' ? err.code : null);
       setStatus('error');
     }
   }, []);
@@ -134,6 +139,7 @@ export function usePM5() {
     disconnect();
     setSummary(null);
     setError(null);
+    setErrorCode(null);
   }
 
   return {
@@ -141,6 +147,7 @@ export function usePM5() {
     metrics,
     summary,
     error,
+    errorCode,
     connect,
     disconnect,
     reset,

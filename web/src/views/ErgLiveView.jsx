@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Plural, Trans, useLingui } from '@lingui/react/macro';
 import { useSessionOwner } from '../hooks/useSessionOwner.js';
 import { privateSessionGeneration } from '../utils/privateSessionState.js';
 import { useQueryClient } from '@tanstack/react-query';
@@ -13,12 +14,15 @@ import { toISODate, toLogDate } from '../utils/dateFormat.js';
 import { invalidateSessionQueries } from '../utils/invalidateSessionQueries.js';
 import { FONT } from '../constants/type.js';
 import { SRPE_GUIDE } from '../constants/trainingConfig.js';
+import { SRPE_GUIDE_MESSAGES } from '../constants/srpeGuideMessages.js';
+import { PM5_ERROR_MESSAGES } from '../constants/pm5ErrorMessages.js';
 
+// Values only: the band's words are looked up at render, in the active language.
 const SRPE_BUTTONS = SRPE_GUIDE.flatMap((band) => {
   const [lo, hi] = band.range.split('-').map(Number);
   return Array.from({ length: hi - lo + 1 }, (_, i) => ({
     v: lo + i,
-    label: `${lo + i} — ${band.label}`,
+    range: band.range,
   }));
 });
 
@@ -27,9 +31,15 @@ function ConnectScreen({
   onConnect,
   connecting,
   error,
+  errorCode,
   todaySession,
   pending,
 }) {
+  const { i18n } = useLingui();
+  const errorText =
+    errorCode && Object.hasOwn(PM5_ERROR_MESSAGES, errorCode)
+      ? i18n._(PM5_ERROR_MESSAGES[errorCode])
+      : error;
   return (
     <div
       style={{
@@ -51,7 +61,7 @@ function ConnectScreen({
             marginBottom: 8,
           }}
         >
-          LIVE ROWING
+          <Trans comment="Screen eyebrow, all capitals">LIVE ROWING</Trans>
         </div>
         <div
           style={{
@@ -61,7 +71,9 @@ function ConnectScreen({
             fontFamily: FONT.mono,
           }}
         >
-          C2 CONNECT
+          <Trans comment="Screen title, all capitals; C2 is Concept2, the rowing machine maker: keep it">
+            C2 CONNECT
+          </Trans>
         </div>
       </div>
 
@@ -82,7 +94,12 @@ function ConnectScreen({
             padding: '6px 12px',
           }}
         >
-          {pending} PENDING SYNC
+          <Plural
+            value={pending}
+            one="# PENDING SYNC"
+            other="# PENDING SYNC"
+            comment="Erg sessions saved on the device, waiting to upload; all capitals"
+          />
         </div>
       )}
 
@@ -95,11 +112,13 @@ function ConnectScreen({
           maxWidth: 300,
         }}
       >
-        Power on your PM5.
-        <br />
-        Tap Connect — your browser will
-        <br />
-        ask you to select the device.
+        <Trans comment="PM5 is the rowing machine's monitor: keep it. Connect is the button below. The tags are line breaks">
+          Power on your PM5.
+          <br />
+          Tap Connect — your browser will
+          <br />
+          ask you to select the device.
+        </Trans>
       </div>
 
       {error && (
@@ -116,7 +135,7 @@ function ConnectScreen({
             textAlign: 'center',
           }}
         >
-          {error}
+          {errorText}
         </div>
       )}
 
@@ -136,11 +155,19 @@ function ConnectScreen({
           fontFamily: 'inherit',
         }}
       >
-        {connecting ? 'CONNECTING…' : 'CONNECT TO PM5'}
+        {connecting ? (
+          <Trans comment="Button, busy, all capitals">CONNECTING…</Trans>
+        ) : (
+          <Trans comment="Button, all capitals; PM5 is the rowing machine's monitor">
+            CONNECT TO PM5
+          </Trans>
+        )}
       </button>
 
       <div style={{ fontSize: 10, color: THEME.textDim, letterSpacing: 1 }}>
-        Chrome / Edge · Android or Desktop
+        <Trans comment="Where live rowing works: browser names, then device kinds">
+          Chrome / Edge · Android or Desktop
+        </Trans>
       </div>
     </div>
   );
@@ -148,6 +175,7 @@ function ConnectScreen({
 
 // ── SCREEN B: Live Rowing ─────────────────────────────────────────
 function RowingScreen({ metrics, status, todaySession, onEnd }) {
+  const { t } = useLingui();
   const isRowing = status === 'rowing';
 
   return (
@@ -191,7 +219,13 @@ function RowingScreen({ metrics, status, todaySession, onEnd }) {
               color: isRowing ? THEME.positive : THEME.muted,
             }}
           >
-            {isRowing ? 'ROWING' : 'CONNECTED'}
+            {isRowing ? (
+              <Trans comment="Live status, all capitals">ROWING</Trans>
+            ) : (
+              <Trans comment="Live status: the monitor is paired, all capitals">
+                CONNECTED
+              </Trans>
+            )}
           </span>
         </div>
         <button
@@ -208,7 +242,9 @@ function RowingScreen({ metrics, status, todaySession, onEnd }) {
             fontFamily: 'inherit',
           }}
         >
-          END
+          <Trans comment="Button that ends the live session, all capitals">
+            END
+          </Trans>
         </button>
       </div>
 
@@ -224,7 +260,10 @@ function RowingScreen({ metrics, status, todaySession, onEnd }) {
         }}
       >
         <LiveMetric
-          label="500m PACE"
+          label={t({
+            message: '500m PACE',
+            comment: 'Live metric label: time per 500 metres; keep 500m',
+          })}
           value={metrics?.paceStr ?? '--:--'}
           unit="/500m"
           accent={THEME.accent}
@@ -243,7 +282,7 @@ function RowingScreen({ metrics, status, todaySession, onEnd }) {
           }}
         >
           <LiveMetric
-            label="WATTS"
+            label={t({ message: 'WATTS', comment: 'Live metric label' })}
             value={metrics?.watts}
             unit="W"
             accent={THEME.caution}
@@ -257,7 +296,10 @@ function RowingScreen({ metrics, status, todaySession, onEnd }) {
             dimmed={!isRowing}
           />
           <LiveMetric
-            label="DIST"
+            label={t({
+              message: 'DIST',
+              comment: 'Live metric label, short for distance',
+            })}
             value={metrics?.distance}
             unit="m"
             accent={THEME.accent}
@@ -267,7 +309,10 @@ function RowingScreen({ metrics, status, todaySession, onEnd }) {
 
         {/* Elapsed time */}
         <LiveMetric
-          label="ELAPSED"
+          label={t({
+            message: 'ELAPSED',
+            comment: 'Live metric label: time since the start',
+          })}
           value={metrics?.elapsedStr ?? '00:00'}
           accent="#a0a0b8"
           size="normal"
@@ -287,6 +332,7 @@ function RowingScreen({ metrics, status, todaySession, onEnd }) {
 
 // ── SCREEN C: Session Summary + Save ─────────────────────────────
 function SummaryScreen({ summary, onSave, onDiscard, onDone, saveState }) {
+  const { t, i18n } = useLingui();
   const [srpe, setSrpe] = useState(5);
   const [notes, setNotes] = useState('');
   const saving = saveState === 'saving';
@@ -303,7 +349,9 @@ function SummaryScreen({ summary, onSave, onDiscard, onDone, saveState }) {
       }}
     >
       <div style={{ fontSize: 11, letterSpacing: 3, color: THEME.muted }}>
-        SESSION COMPLETE
+        <Trans comment="Screen eyebrow after the row ends, all capitals">
+          SESSION COMPLETE
+        </Trans>
       </div>
 
       {/* Totals */}
@@ -319,41 +367,54 @@ function SummaryScreen({ summary, onSave, onDiscard, onDone, saveState }) {
         }}
       >
         <LiveMetric
-          label="DISTANCE"
+          label={t({ message: 'DISTANCE', comment: 'All capitals' })}
           value={summary.distance}
           unit="m"
           accent={THEME.accent}
           size="normal"
         />
         <LiveMetric
-          label="TIME"
+          label={t({
+            message: 'TIME',
+            comment: 'Session total time, all capitals',
+          })}
           value={summary.elapsedStr}
           accent="#a0a0b8"
           size="normal"
         />
         <LiveMetric
-          label="AVG PACE"
+          label={t({
+            message: 'AVG PACE',
+            comment: 'Average time per 500 metres, all capitals',
+          })}
           value={summary.avgPace ? parsePace(summary.avgPace) : '--'}
           unit="/500m"
           accent={THEME.accent}
           size="normal"
         />
         <LiveMetric
-          label="AVG WATT"
+          label={t({
+            message: 'AVG WATT',
+            comment: 'Average power, all capitals',
+          })}
           value={summary.avgWatts}
           unit="W"
           accent={THEME.caution}
           size="normal"
         />
         <LiveMetric
-          label="AVG SPM"
+          label={t({
+            message: 'AVG SPM',
+            comment:
+              'Average strokes per minute, all capitals; SPM stays as is',
+          })}
           value={summary.avgSpm}
           unit="spm"
           accent={THEME.positive}
           size="normal"
         />
         <LiveMetric
-          label="CALORIES"
+          label={t({ message: 'CALORIES', comment: 'All capitals' })}
           value={summary.calories}
           unit="kcal"
           accent={THEME.muted}
@@ -371,7 +432,9 @@ function SummaryScreen({ summary, onSave, onDiscard, onDone, saveState }) {
             marginBottom: 8,
           }}
         >
-          HOW HARD DID IT FEEL? (sRPE)
+          <Trans comment="All capitals; sRPE stays as is">
+            HOW HARD DID IT FEEL? (sRPE)
+          </Trans>
         </div>
         <div
           style={{
@@ -380,7 +443,7 @@ function SummaryScreen({ summary, onSave, onDiscard, onDone, saveState }) {
             flexWrap: 'wrap',
           }}
         >
-          {SRPE_BUTTONS.map(({ v, label }) => (
+          {SRPE_BUTTONS.map(({ v, range }) => (
             <button
               key={v}
               onClick={() => setSrpe(v)}
@@ -398,7 +461,7 @@ function SummaryScreen({ summary, onSave, onDiscard, onDone, saveState }) {
                 fontFamily: 'inherit',
               }}
             >
-              {label}
+              {v} — {i18n._(SRPE_GUIDE_MESSAGES[range].label)}
             </button>
           ))}
         </div>
@@ -414,12 +477,17 @@ function SummaryScreen({ summary, onSave, onDiscard, onDone, saveState }) {
             marginBottom: 6,
           }}
         >
-          NOTES (optional)
+          <Trans comment="Field label; NOTES in capitals, optional in lower case">
+            NOTES (optional)
+          </Trans>
         </div>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder="How did it feel? Technique notes…"
+          placeholder={t({
+            message: 'How did it feel? Technique notes…',
+            comment: 'Placeholder in the session notes box',
+          })}
           rows={3}
           style={{
             width: '100%',
@@ -450,7 +518,9 @@ function SummaryScreen({ summary, onSave, onDiscard, onDone, saveState }) {
             textAlign: 'center',
           }}
         >
-          SAVED TO LOG
+          <Trans comment="Save succeeded, all capitals; Log is the session history">
+            SAVED TO LOG
+          </Trans>
         </div>
       )}
       {saveState === 'queued' && (
@@ -465,7 +535,9 @@ function SummaryScreen({ summary, onSave, onDiscard, onDone, saveState }) {
             textAlign: 'center',
           }}
         >
-          SAVED LOCALLY — WILL SYNC
+          <Trans comment="Saved on the device while offline, uploads later; all capitals">
+            SAVED LOCALLY — WILL SYNC
+          </Trans>
         </div>
       )}
       {saveState === 'failed' && (
@@ -481,11 +553,15 @@ function SummaryScreen({ summary, onSave, onDiscard, onDone, saveState }) {
             lineHeight: 1.6,
           }}
         >
-          SAVE FAILED — NOT STORED
+          <Trans comment="The session could not be saved anywhere; all capitals">
+            SAVE FAILED — NOT STORED
+          </Trans>
           <br />
           <span style={{ letterSpacing: 0, fontSize: 11 }}>
-            Device storage is full. Free some space, then tap SAVE SESSION
-            again.
+            <Trans comment="SAVE SESSION is the button's label: match its translation">
+              Device storage is full. Free some space, then tap SAVE SESSION
+              again.
+            </Trans>
           </span>
         </div>
       )}
@@ -507,7 +583,9 @@ function SummaryScreen({ summary, onSave, onDiscard, onDone, saveState }) {
             fontFamily: 'inherit',
           }}
         >
-          DONE
+          <Trans comment="Button that closes the summary, all capitals">
+            DONE
+          </Trans>
         </button>
       ) : (
         <div style={{ display: 'flex', gap: 12 }}>
@@ -528,7 +606,11 @@ function SummaryScreen({ summary, onSave, onDiscard, onDone, saveState }) {
               fontFamily: 'inherit',
             }}
           >
-            {saving ? 'SAVING…' : 'SAVE SESSION'}
+            {saving ? (
+              <Trans>SAVING…</Trans>
+            ) : (
+              <Trans comment="Button, all capitals">SAVE SESSION</Trans>
+            )}
           </button>
           <button
             onClick={onDiscard}
@@ -544,7 +626,9 @@ function SummaryScreen({ summary, onSave, onDiscard, onDone, saveState }) {
               fontFamily: 'inherit',
             }}
           >
-            DISCARD
+            <Trans comment="Button that throws the session away, all capitals">
+              DISCARD
+            </Trans>
           </button>
         </div>
       )}
@@ -563,7 +647,8 @@ function isDuplicate(dbError) {
 }
 
 export default function ErgLiveView({ plannedSessions = [], onSessionSaved }) {
-  const { status, metrics, summary, error, connect, reset, finish } = usePM5();
+  const { status, metrics, summary, error, errorCode, connect, reset, finish } =
+    usePM5();
   const { addToQueue, pending } = useOfflineQueue();
   const queryClient = useQueryClient();
   const [saveState, setSaveState] = useState('idle');
@@ -613,9 +698,11 @@ export default function ErgLiveView({ plannedSessions = [], onSessionSaved }) {
     const row = {
       date: toLogDate(now),
       type: 'erg',
-      // The time suffix keeps UNIQUE(date, label) satisfied for a second
-      // session on the same day. Computed once here so it stays stable if the
-      // row goes to the offline queue.
+      // Stays English in every language: this is the stored row, not the
+      // screen (i18n SPEC, amendment 2026-11-14). The time suffix keeps
+      // UNIQUE(date, label) satisfied for a second session on the same day.
+      // Computed once here so it stays stable if the row goes to the offline
+      // queue.
       label: `${todaySession?.label ?? 'Erg Session'} ${hhmm}`,
       duration: formatElapsed(summary.elapsedTime || 0),
       srpe,
@@ -624,6 +711,7 @@ export default function ErgLiveView({ plannedSessions = [], onSessionSaved }) {
       avg_watts: summary.avgWatts || null,
       status: 'logged',
       source: 'bluetooth',
+      // Stored data, so English like the label above.
       exercises: notes ? [{ name: 'Notes', notes }] : [],
       user_id: userId,
     };
@@ -674,6 +762,7 @@ export default function ErgLiveView({ plannedSessions = [], onSessionSaved }) {
         onConnect={connect}
         connecting={false}
         error={error}
+        errorCode={errorCode}
         todaySession={todaySession}
         pending={pending}
       />

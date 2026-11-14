@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
+import { Trans, useLingui } from '@lingui/react/macro';
 import { THEME } from '../constants/theme.js';
+import { durationLabel } from '../utils/durationLabel.js';
 
 export default function WorkoutTarget({ session }) {
+  const { t, i18n } = useLingui();
   const [open, setOpen] = useState(false);
 
   if (!session) {
@@ -14,10 +17,12 @@ export default function WorkoutTarget({ session }) {
           letterSpacing: 1,
         }}
       >
-        NO PLANNED SESSION TODAY
+        <Trans comment="All capitals">NO PLANNED SESSION TODAY</Trans>
       </div>
     );
   }
+
+  const duration = durationLabel(session.duration, i18n);
 
   return (
     <div
@@ -45,7 +50,9 @@ export default function WorkoutTarget({ session }) {
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 9, letterSpacing: 2, color: THEME.caution }}>
-            TARGET
+            <Trans comment="Label before today's planned session name, all capitals">
+              TARGET
+            </Trans>
           </span>
           <span style={{ fontSize: 12, fontWeight: 600 }}>{session.label}</span>
         </div>
@@ -61,14 +68,21 @@ export default function WorkoutTarget({ session }) {
             borderTop: `1px solid ${THEME.border}`,
           }}
         >
-          {session.duration && (
+          {duration && (
             <div style={{ fontSize: 11, color: THEME.muted, marginTop: 8 }}>
               <span style={{ color: THEME.text, fontWeight: 600 }}>
-                {session.duration} min
+                {duration}
               </span>
-              {' · '}sRPE target:{' '}
+              {' · '}
+              <Trans comment="Followed by a number or the word easy; sRPE stays as is">
+                sRPE target:
+              </Trans>{' '}
               <span style={{ color: THEME.text }}>
-                {session.srpe || 'easy'}
+                {session.srpe ||
+                  t({
+                    message: 'easy',
+                    comment: 'sRPE target when the plan gives no number',
+                  })}
               </span>
             </div>
           )}

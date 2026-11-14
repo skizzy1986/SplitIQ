@@ -26,3 +26,36 @@ export function parseDurationMinutes(value) {
 
   return 0;
 }
+
+// How to show the same free-text column. A clock ("26:00", "1:02:03") is
+// already readable and carries its own unit; minutes ("57m", "9min", "1h4m",
+// "57") are returned as a number so the view can put the unit in a translated
+// message; anything else is shown as entered. Empty input returns null, so
+// nothing renders.
+export function durationDisplay(value) {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? { kind: 'minutes', minutes: value } : null;
+  }
+  if (value == null) return null;
+  const text = String(value).trim();
+  if (!text) return null;
+  const s = text.toLowerCase();
+
+  if (/^\d+:\d{2}(?::\d{2})?$/.test(s)) return { kind: 'clock', text };
+
+  let m = s.match(/^(\d+)h(\d+)?m?$/);
+  if (m) {
+    return {
+      kind: 'minutes',
+      minutes: parseInt(m[1], 10) * 60 + (m[2] ? parseInt(m[2], 10) : 0),
+    };
+  }
+
+  m = s.match(/^(\d+(?:\.\d+)?)\s*(?:m|min)$/);
+  if (m) return { kind: 'minutes', minutes: parseFloat(m[1]) };
+
+  if (/^\d+(?:\.\d+)?$/.test(s))
+    return { kind: 'minutes', minutes: parseFloat(s) };
+
+  return { kind: 'raw', text };
+}

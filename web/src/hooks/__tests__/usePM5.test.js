@@ -152,3 +152,40 @@ describe('usePM5 finish() — manual END rescue', () => {
     expect(disconnectPM5Mock).toHaveBeenCalled();
   });
 });
+
+describe('usePM5 connect errors (AC-T2)', () => {
+  it('keeps a string code from pm5Bluetooth next to the message', async () => {
+    const err = new Error('Web Bluetooth is not supported');
+    err.code = 'PM5_UNSUPPORTED';
+    connectToPM5Mock.mockRejectedValue(err);
+    const { result } = renderHook(() => usePM5());
+    await act(async () => {
+      await result.current.connect();
+    });
+    expect(result.current.status).toBe('error');
+    expect(result.current.error).toBe('Web Bluetooth is not supported');
+    expect(result.current.errorCode).toBe('PM5_UNSUPPORTED');
+
+    await act(async () => {
+      result.current.reset();
+    });
+    expect(result.current.errorCode).toBeNull();
+  });
+
+  it("ignores a DOMException's numeric legacy code", async () => {
+    connectToPM5Mock.mockRejectedValue(
+      new globalThis.DOMException(
+        'User cancelled the requestDevice() chooser.',
+        'NotFoundError'
+      )
+    );
+    const { result } = renderHook(() => usePM5());
+    await act(async () => {
+      await result.current.connect();
+    });
+    expect(result.current.error).toBe(
+      'User cancelled the requestDevice() chooser.'
+    );
+    expect(result.current.errorCode).toBeNull();
+  });
+});

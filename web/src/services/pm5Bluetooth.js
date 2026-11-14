@@ -4,6 +4,10 @@ const PM5_ROW_SERVICE = 'ce060030-43e5-11e4-916c-0800200c9a66';
 const ROWING_GENERAL_STATUS = 'ce060031-43e5-11e4-916c-0800200c9a66';
 const WORKOUT_END_SUMMARY = 'ce060080-43e5-11e4-916c-0800200c9a66';
 
+// Error codes this module throws, mapped to on-screen words in
+// constants/pm5ErrorMessages.js.
+export const PM5_UNSUPPORTED = 'PM5_UNSUPPORTED';
+
 // Workout state values broadcast in byte 6 of the status packet
 export const WorkoutState = {
   IDLE: 0,
@@ -73,9 +77,12 @@ export function parseRowingStatus(dataView) {
 // Returns { device, chars: { rowingStatus, workoutSummary } }
 export async function connectToPM5() {
   if (!navigator.bluetooth) {
-    throw new Error(
+    // The English message is for logs and Sentry; the screen reads `code`.
+    const err = new Error(
       'Web Bluetooth is not supported in this browser. Use Chrome or Edge.'
     );
+    err.code = PM5_UNSUPPORTED;
+    throw err;
   }
 
   const device = await navigator.bluetooth.requestDevice({

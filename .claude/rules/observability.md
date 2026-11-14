@@ -138,7 +138,7 @@ measure it before counting on it.
 **Squat-only JS is `squat-` prefixed, never precached, and cached at runtime instead** — a
 reversal of squat PR1, which precached the tool's then-small chunks. `chunkFileNames` in
 `web/vite.config.js` names a chunk `squat-*` only when every module in it is under
-`src/squat/`, `src/anatomy/` or `three`; Workbox's `globIgnores` skips `assets/squat-*.js`;
+`src/squat/`, `src/anatomy/`, `src/movements/` or `three`; Workbox's `globIgnores` skips `assets/squat-*.js`;
 a `CacheFirst` `squat-code` rule caches them on first use; the Android build strips
 `dist/assets/squat-*`. Dashboard installs do not download them.
 

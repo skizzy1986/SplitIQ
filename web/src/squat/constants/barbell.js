@@ -3,7 +3,7 @@
 // that is the anatomyBar palette token, so it follows the theme. Its offset
 // from the frame (meta.bar.c) and the shaft radius the data was extracted with
 // (meta.bar.r, which wins over `radius`) stay in the manifest.
-export const BARBELL = {
+export const BARBELL = Object.freeze({
   // The pose frame the bar rides on.
   frame: 'thorax',
   radius: 0.0145,
@@ -17,4 +17,4 @@ export const BARBELL = {
   segments: 24,
   metalness: 0.6,
   roughness: 0.35,
-};
+});

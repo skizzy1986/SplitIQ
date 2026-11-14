@@ -21,6 +21,8 @@ import { camToPose } from '../utils/squatHash.js';
 import { regionMuscles, topActivated } from '../utils/strainFocus.js';
 import { directionAt, repInfo } from '../../anatomy/utils/rep.js';
 import { PHASES } from '../constants/phases.js';
+import { BARBELL } from '../constants/barbell.js';
+import { SQUAT_MOVEMENT } from '../../movements/squat/movement.js';
 
 // The 3D view's lifecycle inside the real app shell. three.js never loads
 // here: the `loadScene` seam hands SquatApp a fake scene factory that records
@@ -162,6 +164,9 @@ describe('SquatApp 3D stage', () => {
     const ctl = instances[0];
     expect(ctl.opts.manifest).toBe(manifest);
     expect(ctl.opts.buffer).toBe(buffer);
+    // A dropped hand-off would default to no equipment: no bar, no error.
+    expect(ctl.opts.equipment).toBe(SQUAT_MOVEMENT.equipment);
+    expect(ctl.opts.equipment.bar).toBe(BARBELL);
     expect(ctl.opts.palette).toEqual(scenePalette('light'));
     expect(screen.getByTestId('scene-host').querySelector('canvas')).toBe(
       ctl.canvas

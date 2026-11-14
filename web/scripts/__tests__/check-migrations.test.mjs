@@ -700,3 +700,158 @@ describe('014 static guard', () => {
     expect(/revoke[^;]*service_role/i.test(sql)).toBe(false);
   });
 });
+
+describe('017 static guard', () => {
+  // Same comment-stripping as the 014 guard: 017's header prose names tables,
+  // `revoke` and service_role, and none of that may satisfy or trip a check.
+  const strip = (text) =>
+    text.replace(/--.*$/gm, '').toLowerCase().replace(/\s+/g, ' ');
+  const sql = strip(
+    readFileSync(
+      join(migrationsDir, '017_backup_snapshot_coverage.sql'),
+      'utf8'
+    )
+  );
+  const rollback = strip(
+    readFileSync(
+      join(migrationsDir, '017_backup_snapshot_coverage_rollback.sql'),
+      'utf8'
+    )
+  );
+  // One function's full definition: from its CREATE to the closing $function$.
+  const fnDef = (text, name) => {
+    const start = text.indexOf(`create or replace function public.${name}()`);
+    if (start === -1) return '';
+    const end = text.indexOf('$function$;', start);
+    return end === -1 ? '' : text.slice(start, end);
+  };
+  const headerOf = (def) => def.slice(0, def.indexOf('$function$'));
+  const backupDef = fnDef(sql, 'backup_snapshot');
+  const runDef = fnDef(sql, 'run_backup_snapshot');
+  // Everything after the last function body: the grants and the self-test.
+  const tail = sql.slice(sql.lastIndexOf('$function$;'));
+  const TABLES = [
+    'sessions',
+    'vitals',
+    'strength_workouts',
+    'strength_sets',
+    'templates',
+    'template_exercises',
+    'workout_assignments',
+    'exercise_prefs',
+    'coach_log',
+    'anchors',
+    'exercises',
+    'exercise_media',
+    'bp_readings',
+    'lab_results',
+    'injuries',
+    'backup_snapshots',
+  ];
+  const V1_TABLES = TABLES.slice(0, 8);
+
+  it('captures both functions and the table, recorded under #428', () => {
+    expect(backupDef).not.toBe('');
+    expect(runDef).not.toBe('');
+    expect(sql).toContain(
+      'create table if not exists public.backup_snapshots ('
+    );
+    const manifest = JSON.parse(
+      readFileSync(join(migrationsDir, 'manifest.json'), 'utf8')
+    );
+    const entry = manifest.files.find(
+      (e) => e.file === '017_backup_snapshot_coverage.sql'
+    );
+    expect(entry?.issue).toBe(428);
+    expect(['pending', 'applied']).toContain(entry?.status);
+  });
+
+  it('derives coverage from the catalogue, excluding only backup_snapshots', () => {
+    const excluded = backupDef.match(
+      /v_excluded constant text\[\] := array\[([^\]]*)\]/
+    );
+    expect(excluded).not.toBeNull();
+    expect(
+      excluded[1].split(',').map((s) => s.trim().replace(/^'|'$/g, ''))
+    ).toEqual(['backup_snapshots']);
+    expect(headerOf(backupDef)).toMatch(/language plpgsql stable /);
+    expect(backupDef).toContain('from pg_catalog.pg_class c');
+    expect(backupDef).toContain("c.relkind in ('r', 'p')");
+    expect(backupDef).toContain('not c.relispartition');
+    expect(backupDef).toContain('<> all (v_excluded)');
+    expect(backupDef).toContain('from public.%i t');
+    for (const t of TABLES) {
+      expect(backupDef).not.toMatch(new RegExp(`\\bfrom (public\\.)?${t}\\b`));
+    }
+  });
+
+  it('self-tests every count against jsonb_array_length and a fresh count(*)', () => {
+    expect(tail).toMatch(/do \$\$/);
+    expect(tail).toContain('public.backup_snapshot()');
+    expect(tail).toContain('jsonb_array_length(v_snap->');
+    expect(tail).toContain('(select count(*) from public.%i)');
+    expect(tail).toContain("'schema_version' is distinct from '2'::jsonb");
+    expect(tail).toContain('raise exception');
+    // Read-only: the self-test must not write a backup_snapshots row.
+    expect(tail).not.toMatch(/select public\.run_backup_snapshot\(\)/);
+    expect(tail).not.toMatch(/insert into public\.backup_snapshots/);
+    // FORCE RLS would make export and count(*) agree on 0 rows; refuse it.
+    expect(tail).toContain('c.relforcerowsecurity');
+    expect(tail).toContain("a.attname = 'created_at' and a.attnotnull");
+    expect(tail).toContain("pg_get_expr(d.adbin, d.adrelid) = 'now()'");
+  });
+
+  it('keeps run_backup_snapshot volatile with a 30-row retention', () => {
+    expect(headerOf(runDef)).toMatch(/language plpgsql volatile /);
+    expect(runDef).toContain(
+      'insert into public.backup_snapshots(payload) values (public.backup_snapshot());'
+    );
+    expect(runDef).toContain('order by created_at desc limit 30');
+  });
+
+  it('keeps SECURITY DEFINER hygiene on both functions', () => {
+    for (const def of [backupDef, runDef]) {
+      const header = headerOf(def);
+      expect(header).toContain('security definer');
+      expect(header).toContain("set search_path = ''");
+    }
+    for (const fn of ['backup_snapshot', 'run_backup_snapshot']) {
+      expect(sql).toContain(
+        `revoke all on function public.${fn}() from public, anon, authenticated;`
+      );
+      expect(sql).toContain(
+        `grant execute on function public.${fn}() to service_role;`
+      );
+    }
+    expect(/revoke[^;]*service_role/.test(sql)).toBe(false);
+  });
+
+  it('rollback restores the live 8-table v1 and never drops the table', () => {
+    expect(/drop\s+table/.test(rollback)).toBe(false);
+    const rbBackup = fnDef(rollback, 'backup_snapshot');
+    const rbRun = fnDef(rollback, 'run_backup_snapshot');
+    expect(headerOf(rbBackup)).toContain('language sql');
+    for (const def of [rbBackup, rbRun]) {
+      expect(headerOf(def)).toContain("set search_path to 'public'");
+      expect(headerOf(def)).toContain('security definer');
+    }
+    for (const t of V1_TABLES) {
+      expect(rbBackup).toContain(`(select count(*) from ${t})`);
+      expect(rbBackup).toContain(
+        `(select coalesce(jsonb_agg(t),'[]'::jsonb) from ${t} t)`
+      );
+    }
+    for (const t of TABLES.slice(8)) {
+      expect(rbBackup).not.toMatch(new RegExp(`\\b${t}\\b`));
+    }
+    for (const fn of ['backup_snapshot', 'run_backup_snapshot']) {
+      expect(rollback).toContain(
+        `revoke all on function public.${fn}() from public, anon, authenticated;`
+      );
+      expect(rollback).toContain(
+        `grant execute on function public.${fn}() to service_role;`
+      );
+    }
+    expect(/revoke[^;]*service_role/.test(rollback)).toBe(false);
+  });
+});

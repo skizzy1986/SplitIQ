@@ -213,6 +213,9 @@ export default [
     languageOptions: {
       globals: {
         process: 'readonly',
+        // Specs run in Node, but page.evaluate callbacks run in the browser, so
+        // browser globals beyond the app-wide list are declared here.
+        Event: 'readonly',
       },
     },
   },

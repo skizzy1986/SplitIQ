@@ -42,6 +42,7 @@ describe('isSquatOnly', () => {
   it('does not match a look-alike folder name', () => {
     expect(isSquatOnly([`${ROOT}/src/squatter/x.js`])).toBe(false);
     expect(isSquatOnly([`${ROOT}/node_modules/threejs-ext/x.js`])).toBe(false);
+    expect(isSquatOnly([`${ROOT}/src/movementsX/squat/x.js`])).toBe(false);
   });
 
   it('covers exactly the three trees', () => {

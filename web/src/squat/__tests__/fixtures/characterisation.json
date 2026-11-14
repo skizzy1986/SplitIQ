@@ -1,0 +1,143 @@
+{
+  "phases": [
+    {
+      "index": 0,
+      "id": "setup",
+      "name": "Setup and brace",
+      "heading": "Setup and brace",
+      "goto": 0.3
+    },
+    {
+      "index": 1,
+      "id": "lowering",
+      "name": "Lowering",
+      "heading": "Lowering (eccentric)",
+      "goto": 1.6
+    },
+    {
+      "index": 2,
+      "id": "bottom",
+      "name": "Bottom",
+      "heading": "The bottom (transition)",
+      "goto": "bottom"
+    },
+    {
+      "index": 3,
+      "id": "drive",
+      "name": "Drive",
+      "heading": "Drive (concentric) and the sticking region",
+      "goto": 2.45
+    },
+    {
+      "index": 4,
+      "id": "lockout",
+      "name": "Lockout",
+      "heading": "Lockout",
+      "goto": 3.3
+    }
+  ],
+  "regionNames": [
+    "Hip extensors",
+    "Knee extensors",
+    "Hamstrings and knee flexors",
+    "Adductors",
+    "Hip flexors",
+    "Hip stabilisers and abductors",
+    "Calves, ankle and foot",
+    "Trunk and bracing",
+    "Upper back and bar shelf",
+    "Shoulders and arms",
+    "Grip and forearm"
+  ],
+  "regionOfSha256": "0772cf5b28b1097673e89c0cd46945e2816af556efa29575a27a0fa811eb3ad9",
+  "actBands": [
+    {
+      "id": "low",
+      "name": "Low",
+      "max": 0.3
+    },
+    {
+      "id": "mod",
+      "name": "Moderate",
+      "max": 0.6
+    },
+    {
+      "id": "high",
+      "name": "High",
+      "max": 1
+    }
+  ],
+  "heatStops": [0, 0.3, 0.6, 1],
+  "proseSha256": {
+    "guide": "38bca78288d5a9b1768949d0fa0e18c14953db520c25f25d5295c32c088a3b07",
+    "formCheck": "806be6b8c91c43e7302253f5abf4609a831d3a664fe98e7d46b164b3c8a0abb6",
+    "metrics": "b735b27059bc44205a79f0bab83a7a6aad70268cdf4841f2eee1dbfe1bee1d4a",
+    "method": "b7c5e7fb9c9d81ea0a6166b29a6ae364981486bbf68a87c040a23074d01de4d9",
+    "references": "91dfd844a55c89e299dbc02ad6ac8694f342314526de82a2294f9ef79087f3bc",
+    "attribution": "fe22adfa3b3e5c75297a9c4614c80699c29fd02bd3a12bc279b5ba28a824f58e"
+  },
+  "page": {
+    "title": "High-bar squat — SplitIQ",
+    "description": "An interactive coaching model of the high-bar back squat: the five phases, what to look for, common faults and cues, and form targets from published research."
+  },
+  "hashes": {
+    "#t=2.44&paused": {
+      "guide": null,
+      "t": 2.44,
+      "tab": null,
+      "m": null,
+      "paused": true,
+      "cam": null,
+      "hide": null,
+      "heat": false
+    },
+    "#t=1.00&m=soleus&paused": {
+      "guide": null,
+      "t": 1,
+      "tab": null,
+      "m": "soleus",
+      "paused": true,
+      "cam": null,
+      "hide": null,
+      "heat": false
+    },
+    "#guide=metrics&m=soleus&paused": {
+      "guide": "metrics",
+      "t": null,
+      "tab": null,
+      "m": "soleus",
+      "paused": true,
+      "cam": null,
+      "hide": null,
+      "heat": false
+    },
+    "#t=2.44&m=vastus-lateralis&paused&cam=90,85,2.50&hide=skeleton&heat": {
+      "guide": null,
+      "t": 2.44,
+      "tab": null,
+      "m": "vastus-lateralis",
+      "paused": true,
+      "cam": {
+        "az": 90,
+        "pol": 85,
+        "dist": 2.5
+      },
+      "hide": ["skeleton"],
+      "heat": true
+    },
+    "#cam=-135,20,6.00": {
+      "guide": null,
+      "t": null,
+      "tab": null,
+      "m": null,
+      "paused": false,
+      "cam": {
+        "az": -135,
+        "pol": 20,
+        "dist": 6
+      },
+      "hide": null,
+      "heat": false
+    }
+  }
+}

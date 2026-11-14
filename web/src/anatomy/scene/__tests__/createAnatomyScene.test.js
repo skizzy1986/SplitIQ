@@ -75,6 +75,23 @@ const build = (container, extra = {}) =>
     ...extra,
   });
 
+// Every cylinder in the scene graph, in traversal order: what the barbell is.
+const barCylinders = (scene) => {
+  const out = [];
+  scene.traverse((o) => {
+    if (!o.isMesh || o.geometry.type !== 'CylinderGeometry') return;
+    out.push({
+      parameters: { ...o.geometry.parameters },
+      position: o.position.toArray(),
+      castShadow: o.castShadow,
+      metalness: o.material.metalness,
+      roughness: o.material.roughness,
+      matrixWorld: [...o.matrixWorld.elements],
+    });
+  });
+  return out;
+};
+
 let container;
 beforeEach(() => {
   fake.rendererThrows = false;
@@ -448,6 +465,47 @@ describe('setActivation on a built scene', () => {
     snapshot(attrs).forEach((a, i) =>
       expect([...a], `set ${i}`).toEqual([...anatomy[i]])
     );
+    ctl.dispose();
+  });
+});
+
+// R12 (#440): the barbell's geometry and attach frame move from the scene
+// style into the movement config. What it draws must not move with them. The
+// expected values in fixtures/barbell-squat.json were captured from main before
+// the change (not typed): every cylinder's dimensions, local placement,
+// material and world matrix at three depths. `fixture.input` is the bar the
+// squat config now passes in; before the change the scene ignored it.
+describe('the barbell (characterisation)', () => {
+  const fixture = JSON.parse(
+    readFileSync(
+      join(
+        process.cwd(),
+        'src/anatomy/scene/__tests__/fixtures/barbell-squat.json'
+      ),
+      'utf8'
+    )
+  );
+
+  it('draws the same cylinders in the same place at every pinned depth', () => {
+    const q = [];
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
+      q.push(cb);
+      return q.length;
+    });
+    vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {});
+    const drive = () => {
+      for (const cb of q.splice(0)) cb(0);
+    };
+    const ctl = build(container, { equipment: fixture.input });
+    drive();
+    const [scene] = fake.renderers[0].render.mock.calls[0];
+
+    for (const { s, cylinders } of fixture.expected) {
+      ctl.setDepth(s);
+      drive();
+      scene.updateMatrixWorld(true);
+      expect(barCylinders(scene), `s = ${s}`).toEqual(cylinders);
+    }
     ctl.dispose();
   });
 });

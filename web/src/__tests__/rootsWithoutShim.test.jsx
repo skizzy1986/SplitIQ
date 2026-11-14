@@ -66,9 +66,7 @@ describe('top-level roots render with no provider above them', () => {
     mocks.splash = false;
     render(<RouteRoot />);
     expect(await screen.findByText('Sign in to continue')).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: /Switch to Spanish/ })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Español' })).toBeInTheDocument();
   });
 
   it('AuthGate on a phone shows the splash inside its own provider', async () => {

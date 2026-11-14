@@ -734,7 +734,8 @@ msgstr "Sessions could not be loaded."
 msgid "SESSIONS LOGGED"
 msgstr "SESSIONS LOGGED"
 
-#: src/views/mobile/MobileToday.jsx
+#. Mobile top bar button that opens Settings
+#: src/components/mobile/MobileTopBar.jsx
 msgid "Settings"
 msgstr "Settings"
 

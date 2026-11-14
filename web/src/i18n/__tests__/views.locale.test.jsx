@@ -136,7 +136,7 @@ describe('LanguageProvider with a views catalog', () => {
   it('a runtime switch loads the views Spanish too, without suspending', async () => {
     mount('dashboard');
     const draft = screen.getByTestId('views');
-    fireEvent.click(screen.getByRole('button', { name: 'ES, Español' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Español' }));
     await waitFor(() =>
       expect(screen.getByTestId('views')).toHaveTextContent('ESTA SEMANA')
     );
@@ -374,7 +374,7 @@ describe('prefetching the views Spanish before its catalog registers', () => {
     const views = prefetched('pf-switch', viewsEn);
     mount('pf-switch');
     expect(views.calls).toBe(0);
-    fireEvent.click(screen.getByRole('button', { name: 'ES, Español' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Español' }));
     expect(views.calls).toBe(1);
     await act(async () => boot.release());
   });
@@ -387,7 +387,7 @@ describe('prefetching the views Spanish before its catalog registers', () => {
     const viewsId = linguiId('THIS WEEK');
     const views = prefetched('login', { ...viewsEn, [viewsId]: 'ESTA SEMANA' });
     mount('login');
-    fireEvent.click(screen.getByRole('button', { name: 'ES, Español' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Español' }));
     await act(async () => boot.release());
     await waitFor(() =>
       expect(screen.getByTestId('boot')).toHaveTextContent('Configuración')

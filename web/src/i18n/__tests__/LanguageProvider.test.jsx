@@ -65,8 +65,13 @@ async function choose(button) {
   await waitFor(() => expect(document.querySelector('[aria-busy]')).toBeNull());
 }
 
-const esButton = () => screen.getByRole('button', { name: 'ES, Español' });
-const enButton = () => screen.getByRole('button', { name: 'EN, English' });
+const esButton = () => screen.getByRole('button', { name: 'Español' });
+const enButton = () => screen.getByRole('button', { name: 'English' });
+
+// A device whose top-ranked language is `tags[0]`.
+function deviceLanguages(tags) {
+  return vi.spyOn(window.navigator, 'languages', 'get').mockReturnValue(tags);
+}
 
 let failingLoader;
 beforeEach(() => {
@@ -221,6 +226,77 @@ describe('LanguageProvider', () => {
     expect(screen.getByTestId('lang')).toHaveTextContent('en');
     expect(i18n.locale).toBe('en');
     expect(window.localStorage.getItem(LANG_KEY)).toBe('en');
+  });
+
+  it('boots a Spanish device in Spanish and never writes the preference (B5, B8)', async () => {
+    const nav = deviceLanguages(['es-CO', 'en']);
+    const set = vi.spyOn(window.Storage.prototype, 'setItem');
+    try {
+      await act(async () => {
+        mount();
+        await bootLocale('es', 'dashboard');
+      });
+      expect(screen.getByTestId('msg')).toHaveTextContent('Configuración');
+      expect(document.documentElement.getAttribute('lang')).toBe('es-CO');
+      expect(set).not.toHaveBeenCalled();
+      expect(window.localStorage.getItem(LANG_KEY)).toBeNull();
+    } finally {
+      nav.mockRestore();
+      set.mockRestore();
+    }
+  });
+
+  it('a stored English choice beats a Spanish device (B7)', () => {
+    const nav = deviceLanguages(['es-CO']);
+    window.localStorage.setItem(LANG_KEY, 'en');
+    try {
+      mount();
+      expect(screen.getByTestId('msg')).toHaveTextContent('Settings');
+    } finally {
+      nav.mockRestore();
+    }
+  });
+
+  it('boots a Spanish device in Spanish when storage is blocked, without throwing', async () => {
+    const nav = deviceLanguages(['es']);
+    const get = vi
+      .spyOn(window.Storage.prototype, 'getItem')
+      .mockImplementation(() => {
+        throw new Error('SecurityError');
+      });
+    try {
+      await act(async () => {
+        mount();
+        await bootLocale('es', 'dashboard');
+      });
+      expect(screen.getByTestId('msg')).toHaveTextContent('Configuración');
+      expect(screen.queryByText('boundary caught')).toBeNull();
+      expect(sentry.captureError).not.toHaveBeenCalled();
+    } finally {
+      nav.mockRestore();
+      get.mockRestore();
+    }
+  });
+
+  it('a Spanish device whose catalog fails gets English and the bilingual failure line', async () => {
+    const nav = deviceLanguages(['es-CO']);
+    try {
+      await act(async () => {
+        mount('broken');
+        await bootLocale('es', 'broken');
+      });
+      expect(screen.getByTestId('msg')).toHaveTextContent('Settings');
+      expect(
+        screen.getByText(/Spanish could not be loaded/)
+      ).toBeInTheDocument();
+      expect(screen.getByText(/No se pudo cargar el español/)).toHaveAttribute(
+        'lang',
+        'es-CO'
+      );
+      expect(window.localStorage.getItem(LANG_KEY)).toBeNull();
+    } finally {
+      nav.mockRestore();
+    }
   });
 
   it('ignores a language it does not know', async () => {

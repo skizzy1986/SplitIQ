@@ -734,7 +734,8 @@ msgstr "No se pudieron cargar las sesiones."
 msgid "SESSIONS LOGGED"
 msgstr "SESIONES REGISTRADAS"
 
-#: src/views/mobile/MobileToday.jsx
+#. Mobile top bar button that opens Settings
+#: src/components/mobile/MobileTopBar.jsx
 msgid "Settings"
 msgstr "Configuración"
 

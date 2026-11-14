@@ -26,7 +26,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `xszP8W` | ＋ ADD TO HOME SCREEN | ＋ AGREGAR A LA PANTALLA DE INICIO | Install-the-app button, all capitals · src/AuthGate.jsx |
 | `UVT0ke` | ⚠️ This section hit a render error and was isolated to protect the rest of the dashboard. | ⚠️ Esta sección tuvo un error al mostrarse y se aisló para proteger el resto del panel. | Shown in place of a dashboard tab that crashed · src/App.jsx |
 | `OJnS4k` | Activity ids: {0} | ID de actividades: {0} | Followed by a list of Strava activity numbers · placeholder {0}: (connection?.ambiguous_activity_ids ?? []).join(', ') · src/components/StravaConnectPanel.jsx |
-| `rtDcZz` | Back to Today | Volver a Hoy | src/views/mobile/MobileSettings.jsx |
+| `m8KGUx` | Back to {destination} | Volver a {destination} | Settings back button; destination is a mobile tab name · src/views/mobile/MobileSettings.jsx |
 | `V3Mep1` | BIKE | BICI | Splash word cycle, one discipline, all capitals · src/components/mobile/SplashScreen.jsx |
 | `bGQplw` | Body | Cuerpo | Mobile tab bar: readiness, sleep, heart rate · src/constants/destinations.js |
 | `AjVXBS` | Calendar | Calendario | Desktop nav tab · src/App.jsx |
@@ -111,7 +111,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `14ONxy` | The server took too long to answer. Try again. | El servidor tardó demasiado en responder. Inténtalo de nuevo. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
 | `UrS17K` | The Strava token could not be refreshed. Reconnect to resume importing. | No se pudo renovar el token de Strava. Reconecta para seguir importando. | src/utils/stravaStatus.js |
 | `6OobED` | This account cannot sign in. | Esta cuenta no puede iniciar sesión. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
-| `ecUA8p` | Today | Hoy | Mobile tab bar · src/constants/destinations.js |
+| `ecUA8p` | Today | Hoy | Mobile tab bar · src/constants/destinations.js · src/views/mobile/MobileSettings.jsx |
 | `GYZVve` | Too many attempts. Wait a few minutes and try again. | Demasiados intentos. Espera unos minutos e inténtalo de nuevo. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
 | `-0cOZb` | Train | Entrenar | Mobile tab bar · src/constants/destinations.js |
 | `hdxhKx` | We could not sign you in. Try again. | No pudimos iniciar sesión. Inténtalo de nuevo. | Login error for any unrecognised cause. Only shown in Spanish. · src/utils/authError.js |
@@ -276,7 +276,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `bppwtk` | SESSIONS | SESIONES | Screen heading, all capitals · Stat label, all capitals · src/views/mobile/MobileSessionLog.jsx · src/views/mobile/MobileToday.jsx |
 | `ffCJn3` | Sessions could not be loaded. | No se pudieron cargar las sesiones. | src/views/CalendarView.jsx |
 | `a-E6u3` | SESSIONS LOGGED | SESIONES REGISTRADAS | Stat tile, all capitals · src/views/OverviewView.jsx |
-| `Tz0i8g` | Settings | Configuración | src/views/mobile/MobileToday.jsx |
+| `Tz0i8g` | Settings | Configuración | Mobile top bar button that opens Settings · src/components/mobile/MobileTopBar.jsx |
 | `FKcroQ` | Share Concept2 links or Fitbod screenshots to add sessions. sRPE captured every session. | Comparte enlaces de Concept2 o capturas de pantalla de Fitbod para agregar sesiones. El sRPE se registra en cada sesión. | Concept2 and Fitbod are brand names: keep them · src/views/LogView.jsx |
 | `UTQjd8` | Short phrases only. Genuinely taxing. Threshold/AT. | Solo frases cortas. Realmente exigente. Umbral/AT. | sRPE scale, effort 7-8: the talk test · src/constants/srpeGuideMessages.js |
 | `aHb3Mx` | since {date} | desde el {date} | Injury onset date · src/views/RecoveryView.jsx |
@@ -335,6 +335,7 @@ No strings yet.
 | `err-body` | The error has been reported. Try again, and if it keeps happening reload the app. | Ya reportamos el error. Inténtalo de nuevo y, si sigue pasando, vuelve a cargar la app. | Whole-app crash screen, body |
 | `err-retry` | TRY AGAIN | INTÉNTALO DE NUEVO | Whole-app crash screen, button |
 | `lang-label` | Language | Idioma | Language control: group name |
-| `lang-native` | English | Español | Language control: each language in its own name (screen reader) |
-| `lang-switch` | Language: English (EN). Switch to Spanish | Idioma: español (ES). Cambiar a inglés | Language control, compact button: screen-reader name |
+| `lang-native` | English | Español | Language control: each language in its own name (visible label) |
+| `lang-describe` | Switch the app to Spanish | Cambia la app a inglés | Login language button: screen-reader description, in the current language |
+| `lang-unavailable` | Spanish could not be loaded. Check your connection and reload the page. | No se pudo cargar el español. Revisa tu conexión y vuelve a cargar la página. | Shown in both languages when the Spanish catalog fails to load |
 

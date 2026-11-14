@@ -127,12 +127,17 @@ export function preChunkRows() {
   add(
     'lang-native',
     LANG_UI.native,
-    'Language control: each language in its own name (screen reader)'
+    'Language control: each language in its own name (visible label)'
   );
   add(
-    'lang-switch',
-    LANG_UI.switchTo,
-    'Language control, compact button: screen-reader name'
+    'lang-describe',
+    LANG_UI.describe,
+    'Login language button: screen-reader description, in the current language'
+  );
+  add(
+    'lang-unavailable',
+    LANG_UI.unavailable,
+    'Shown in both languages when the Spanish catalog fails to load'
   );
   return rows;
 }

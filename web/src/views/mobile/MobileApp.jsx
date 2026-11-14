@@ -7,11 +7,17 @@ import MobileProgress from './MobileProgress.jsx';
 import MobileTrain from './MobileTrain.jsx';
 import MobileRecovery from './MobileRecovery.jsx';
 import MobileSettings from './MobileSettings.jsx';
+import MobileTopBar from '../../components/mobile/MobileTopBar.jsx';
 import BottomTabBar, {
   TAB_BAR_HEIGHT,
 } from '../../components/mobile/BottomTabBar.jsx';
+import { useLingui } from '@lingui/react';
 import { useHashRoute } from '../../hooks/useHashRoute.js';
-import { DEFAULT_DESTINATION } from '../../constants/destinations.js';
+import {
+  DEFAULT_DESTINATION,
+  DESTINATIONS,
+  isDestination,
+} from '../../constants/destinations.js';
 import { THEME } from '../../constants/theme.js';
 import { FONT } from '../../constants/type.js';
 import {
@@ -25,6 +31,7 @@ import {
 const SCREENS = ['settings'];
 
 export default function MobileApp() {
+  const { _ } = useLingui();
   // The Strava OAuth callback returns to the app root with the outcome in the
   // query string (`/?strava=connected`), not in the hash, so the hash cannot
   // route it. Read it once, in a state initialiser rather than useMemo — React
@@ -47,14 +54,26 @@ export default function MobileApp() {
     window.history.replaceState(null, '', `${pathname}${search}#/settings`);
   }, [stravaCallback]);
   // The notice reports one OAuth return. Once you leave Settings it is spent,
-  // so Back then the gear does not announce "Strava connected" again. Route
+  // so Back then Settings again does not announce "Strava connected" again. Route
   // changes also arrive from hashchange (browser back), so this is adjusted
   // during render rather than in each handler.
   if (stravaNotice && route !== 'settings') setStravaNotice(null);
-  // Returning from Settings by its Back control puts focus back on the gear
-  // that opened it; any other way of reaching Today does not.
-  const [focusGear, setFocusGear] = useState(false);
-  if (focusGear && route !== DEFAULT_DESTINATION) setFocusGear(false);
+  // Where Settings returns to: the destination it was opened from. Today when
+  // it was reached some other way (a #/settings reload, the Strava callback).
+  const [returnTo, setReturnTo] = useState(DEFAULT_DESTINATION);
+  // Returning from Settings by Back puts focus on the bar's Settings button
+  // that opened it; any other way of reaching a destination does not.
+  const [focusSettings, setFocusSettings] = useState(false);
+  const settingsRef = useRef(null);
+  const openSettings = () => {
+    setReturnTo(isDestination(route) ? route : DEFAULT_DESTINATION);
+    setFocusSettings(false);
+    navigate('settings');
+  };
+  const leaveSettings = () => {
+    setFocusSettings(true);
+    navigate(returnTo);
+  };
   // Which session Train is running, if any. Held here rather than inside Train
   // because it decides whether the tab bar exists.
   const [trainMode, setTrainMode] = useState(null);
@@ -64,6 +83,8 @@ export default function MobileApp() {
   // cleared when you leave Train: stepping over to Body mid-piece and coming
   // back should return you to the session, not discard it.
   const live = route === 'train' && trainMode != null;
+  // Spent once the bar unmounts, so it cannot refocus when it next mounts.
+  if (focusSettings && (route === 'settings' || live)) setFocusSettings(false);
 
   // Back unwinds one level at a time: out of a live session, then to Today,
   // then out of the app. Kept in a ref so the listener below can be registered
@@ -74,6 +95,7 @@ export default function MobileApp() {
   useEffect(() => {
     onBack.current = () => {
       if (live) setTrainMode(null);
+      else if (route === 'settings') leaveSettings();
       else if (route !== DEFAULT_DESTINATION) navigate(DEFAULT_DESTINATION);
       else App.minimizeApp();
     };
@@ -106,17 +128,13 @@ export default function MobileApp() {
         onStartSession={() => {
           navigate('train');
         }}
-        onOpenSettings={() => navigate('settings')}
-        focusSettings={focusGear}
       />
     );
   else if (route === 'settings')
     content = (
       <MobileSettings
-        onBack={() => {
-          setFocusGear(true);
-          navigate(DEFAULT_DESTINATION);
-        }}
+        onBack={leaveSettings}
+        returnLabel={_(DESTINATIONS.find((d) => d.id === returnTo).message)}
         notice={stravaNotice}
       />
     );
@@ -136,6 +154,13 @@ export default function MobileApp() {
           : `calc(${TAB_BAR_HEIGHT}px + env(safe-area-inset-bottom))`,
       }}
     >
+      {!live && route !== 'settings' && (
+        <MobileTopBar
+          onOpenSettings={openSettings}
+          settingsRef={settingsRef}
+          focusSettings={focusSettings}
+        />
+      )}
       {content}
       {!live && <BottomTabBar activeTab={route} onTabChange={navigate} />}
     </div>

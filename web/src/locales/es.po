@@ -63,9 +63,10 @@ msgstr "⚠️ Esta sección tuvo un error al mostrarse y se aisló para protege
 msgid "Activity ids: {0}"
 msgstr "ID de actividades: {0}"
 
+#. Settings back button; destination is a mobile tab name
 #: src/views/mobile/MobileSettings.jsx
-msgid "Back to Today"
-msgstr "Volver a Hoy"
+msgid "Back to {destination}"
+msgstr "Volver a {destination}"
 
 #. Splash word cycle, one discipline, all capitals
 #: src/components/mobile/SplashScreen.jsx
@@ -455,6 +456,7 @@ msgstr "Esta cuenta no puede iniciar sesión."
 
 #. Mobile tab bar
 #: src/constants/destinations.js
+#: src/views/mobile/MobileSettings.jsx
 msgid "Today"
 msgstr "Hoy"
 

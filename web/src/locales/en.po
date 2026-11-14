@@ -63,9 +63,10 @@ msgstr "⚠️ This section hit a render error and was isolated to protect the r
 msgid "Activity ids: {0}"
 msgstr "Activity ids: {0}"
 
+#. Settings back button; destination is a mobile tab name
 #: src/views/mobile/MobileSettings.jsx
-msgid "Back to Today"
-msgstr "Back to Today"
+msgid "Back to {destination}"
+msgstr "Back to {destination}"
 
 #. Splash word cycle, one discipline, all capitals
 #: src/components/mobile/SplashScreen.jsx
@@ -455,6 +456,7 @@ msgstr "This account cannot sign in."
 
 #. Mobile tab bar
 #: src/constants/destinations.js
+#: src/views/mobile/MobileSettings.jsx
 msgid "Today"
 msgstr "Today"
 

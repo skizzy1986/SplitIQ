@@ -47,8 +47,8 @@ describe('MobileApp — the four destinations', () => {
   it('opens on Today', () => {
     render(<MobileApp />);
     expect(screen.getByText('TODAY')).toBeInTheDocument();
-    // Today is stubbed to a bare marker, so every button here is a tab.
-    expect(screen.getAllByRole('button')).toHaveLength(4);
+    // Today is stubbed to a bare marker: four tabs plus the top bar's Settings.
+    expect(screen.getAllByRole('button')).toHaveLength(5);
     expect(screen.queryByRole('button', { name: /Coach/ })).toBeNull();
   });
 
@@ -75,6 +75,66 @@ describe('MobileApp — the four destinations', () => {
     render(<MobileApp />);
     expect(screen.getByText('TODAY')).toBeInTheDocument();
     expect(screen.queryByText('BODY')).toBeNull();
+  });
+});
+
+describe('the top bar', () => {
+  const settings = () => screen.queryByRole('button', { name: 'Settings' });
+
+  it('carries a labelled Settings button on all four destinations (A1)', async () => {
+    const user = userEvent.setup();
+    render(<MobileApp />);
+    for (const [label, marker] of [
+      ['Today', 'TODAY'],
+      ['Train', /Erg session/],
+      ['Progress', 'PROGRESS'],
+      ['Body', 'BODY'],
+    ]) {
+      await user.click(tab(label));
+      expect(screen.getAllByText(marker).length, label).toBeGreaterThan(0);
+      expect(settings(), label).toHaveTextContent('Settings');
+      expect(screen.getByText('SPLITIQ'), label).toBeInTheDocument();
+    }
+  });
+
+  it('opens Settings in one tap and is gone while it is open', async () => {
+    const user = userEvent.setup();
+    render(<MobileApp />);
+    await user.click(tab('Body'));
+    await user.click(settings());
+    expect(screen.getByText('SETTINGS')).toBeInTheDocument();
+    expect(settings()).toBeNull();
+    expect(screen.queryByText('SPLITIQ')).toBeNull();
+  });
+
+  it('is absent during a live session', async () => {
+    const user = userEvent.setup();
+    render(<MobileApp />);
+    await user.click(tab('Train'));
+    await user.click(screen.getByRole('button', { name: /Erg session/ }));
+    expect(screen.getByText('ERG LIVE')).toBeInTheDocument();
+    expect(settings()).toBeNull();
+    back();
+    expect(
+      await screen.findByRole('button', { name: 'Settings' })
+    ).toBeVisible();
+    expect(settings()).not.toHaveFocus();
+  });
+
+  it('a Back-from-Settings focus is spent by a live session, not replayed after it', async () => {
+    const user = userEvent.setup();
+    render(<MobileApp />);
+    await user.click(settings());
+    back();
+    expect(settings()).toHaveFocus();
+    await user.click(tab('Train'));
+    await user.click(screen.getByRole('button', { name: /Erg session/ }));
+    expect(settings()).toBeNull();
+    back();
+    expect(
+      await screen.findByRole('button', { name: 'Settings' })
+    ).toBeVisible();
+    expect(settings()).not.toHaveFocus();
   });
 });
 

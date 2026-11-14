@@ -15,4 +15,13 @@ describe('ErrorFallback', () => {
     fireEvent.click(screen.getByRole('button', { name: /try again/i }));
     expect(resetError).toHaveBeenCalledOnce();
   });
+
+  it('speaks Spanish on a Spanish device with nothing stored', () => {
+    const spy = vi
+      .spyOn(window.navigator, 'languages', 'get')
+      .mockReturnValue(['es-CO']);
+    render(<ErrorFallback resetError={() => {}} />);
+    expect(screen.getByRole('alert')).toHaveAttribute('lang', 'es-CO');
+    spy.mockRestore();
+  });
 });

@@ -164,12 +164,47 @@ describe('Login in Spanish', () => {
     expect(document.documentElement.getAttribute('lang')).toBe('es-CO');
   });
 
-  it('puts the language control on the login card, named in the active language', async () => {
+  it('opens in Spanish on a Spanish device with nothing stored, zero taps (B5, B8)', async () => {
+    const nav = vi
+      .spyOn(window.navigator, 'languages', 'get')
+      .mockReturnValue(['es-CO', 'en-US']);
+    try {
+      await act(async () => {
+        render(<AuthGate />);
+        await bootLocale('es', 'dashboard');
+      });
+      expect(
+        screen.getByText('Inicia sesión para continuar')
+      ).toBeInTheDocument();
+      expect(document.documentElement.getAttribute('lang')).toBe('es-CO');
+      expect(screen.getByRole('button', { name: 'English' })).toHaveAttribute(
+        'lang',
+        'en'
+      );
+      expect(window.localStorage.getItem(LANG_KEY)).toBeNull();
+    } finally {
+      nav.mockRestore();
+    }
+  });
+
+  it('opens in English when Spanish is not the top-ranked language (B6)', async () => {
+    const nav = vi
+      .spyOn(window.navigator, 'languages', 'get')
+      .mockReturnValue(['fr-FR', 'es']);
+    try {
+      await mountGate();
+      expect(screen.getByText('Sign in to continue')).toBeInTheDocument();
+      expect(document.documentElement.getAttribute('lang')).toBe('en');
+    } finally {
+      nav.mockRestore();
+    }
+  });
+
+  it('puts the language control on the login card, naming the other language in its own words (B9)', async () => {
     await mountGate();
-    const toggle = screen.getByRole('button', {
-      name: 'Language: English (EN). Switch to Spanish',
-    });
-    expect(toggle).toHaveTextContent('EN');
+    const toggle = screen.getByRole('button', { name: 'Español' });
+    expect(toggle).toHaveTextContent(/^Español$/);
+    expect(toggle).toHaveAttribute('lang', 'es-CO');
     const form = toggle.closest('form');
     expect(form).not.toBeNull();
     // The failure line is the card's own full-width row, not squeezed beside
@@ -180,11 +215,9 @@ describe('Login in Spanish', () => {
       target: { value: 'a@b.co' },
     });
     fireEvent.click(toggle);
-    expect(
-      await screen.findByRole('button', {
-        name: 'Idioma: español (ES). Cambiar a inglés',
-      })
-    ).toBeInTheDocument();
+    const back = await screen.findByRole('button', { name: 'English' });
+    expect(back).toHaveAttribute('lang', 'en');
+    expect(back).toHaveAccessibleDescription('Cambia la app a inglés');
     expect(
       screen.getByText('Inicia sesión para continuar')
     ).toBeInTheDocument();
@@ -196,9 +229,7 @@ describe('Login in Spanish', () => {
   it('shows the language control in the Android shell too', async () => {
     mocks.native = true;
     await mountGate();
-    expect(
-      screen.getByRole('button', { name: /Switch to Spanish/ })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Español' })).toBeInTheDocument();
   });
 
   it('validates in Spanish and re-reads the error on a switch', async () => {
@@ -208,7 +239,7 @@ describe('Login in Spanish', () => {
       fireEvent.submit(form);
     });
     expect(screen.getByText('Enter email and password.')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /Switch to Spanish/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Español' }));
     expect(
       await screen.findByText('Ingresa tu correo y tu contraseña.')
     ).toBeInTheDocument();
@@ -327,7 +358,7 @@ describe('Settings in Spanish', () => {
       screen.getByRole('group', { name: 'Idioma' })
     );
     expect(screen.getByRole('group', { name: 'Idioma' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'ES, Español' })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: 'Español' })).toHaveAttribute(
       'aria-pressed',
       'true'
     );

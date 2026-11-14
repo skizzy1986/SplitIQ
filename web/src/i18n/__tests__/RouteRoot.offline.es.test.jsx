@@ -20,6 +20,7 @@ beforeEach(() => {
 afterEach(() => {
   delete window.navigator.onLine;
   window.localStorage.clear();
+  vi.restoreAllMocks();
 });
 
 async function renderSquat() {
@@ -38,6 +39,14 @@ describe('RouteRoot offline message', () => {
       'La herramienta de sentadilla necesita conexión la primera vez.'
     );
     expect(alert).toHaveAttribute('lang', 'es-CO');
+  });
+
+  it('is Spanish on a Spanish device with nothing stored', async () => {
+    vi.spyOn(window.navigator, 'languages', 'get').mockReturnValue(['es-CO']);
+    await renderSquat();
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveAttribute('lang', 'es-CO');
+    expect(window.localStorage.getItem(LANG_KEY)).toBeNull();
   });
 
   it('stays English by default', async () => {

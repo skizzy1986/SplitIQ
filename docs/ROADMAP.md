@@ -314,5 +314,6 @@ total 377.5 / 400, squat entry 116.4 / 117) is kept in git history.
 | D21 | 2026-11-13: Lingui 6 for the whole app; mobile Settings is its own PR (I1); the dashboard ENTRY budget may rise under the #504 rule |
 | D22 | 2026-11-13: Scott waived the native-speaker review as a merge gate for I2 and I3, after reviewing the preview himself as an intermediate learner. The review stays tracked as pending (I7); wording fixes land as follow-up PRs |
 | D23 | 2026-11-13/14: Budget changes from the language track: `ENTRY` 150 → 157 and `SQUAT_ENTRY` 122 → 124 (I2), a new `DASH_ES` line at 5 KB raised to 9 KB with a second, lazily loaded views catalog (I3). The views' English loads with the dashboard shells, not on first paint |
+| D24 | 2026-11-14: **Supersedes D20's first-visit rule.** A first visit follows the device: a top-ranked `es`/`es-*` language opens in Spanish, anything else in English; a stored choice always wins and detection never writes it. Mobile Settings is a labelled button in a top bar on all four tabs. The remaining views are translated in five more PRs (Train erg, StrengthLogger, mobile leftovers, desktop erg, then deferred strength and mobility), plan in `docs/i18n/SPEC.md` § Amendment 2026-11-14. Scott shipped PR 1 (#554) ahead of native review, as under D22 |
 
 A changed decision is a new row here with the date, not an edit to the old one.

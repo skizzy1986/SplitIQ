@@ -20,9 +20,6 @@ vi.mock('../../../hooks/useAnchors.js', () => ({
   useAnchors: () => mockAnchors(),
 }));
 
-import { i18n } from '@lingui/core';
-import { messages as en } from '../../../locales/en.po';
-import { messages as es } from '../../../locales/es.po';
 import MobileToday from '../MobileToday.jsx';
 
 const iso = (d) => d.toISOString().slice(0, 10);
@@ -213,45 +210,13 @@ describe('dates', () => {
   });
 });
 
-describe('the Settings gear', () => {
-  it('is a 44px button named Settings beside the date', () => {
-    render(<MobileToday onOpenSettings={() => {}} />);
-    const gear = screen.getByRole('button', { name: 'Settings' });
-    expect(gear).toHaveStyle({ width: '44px', height: '44px' });
-    expect(gear.closest('header')).not.toBeNull();
-  });
-
-  it('is named in Spanish when Spanish is active', () => {
-    i18n.load('es', { ...en, ...es });
-    i18n.activate('es');
-    render(<MobileToday onOpenSettings={() => {}} />);
-    expect(
-      screen.getByRole('button', { name: 'Configuración' })
-    ).toBeInTheDocument();
-  });
-
-  it('opens Settings from the keyboard', async () => {
-    const user = userEvent.setup();
-    const onOpen = vi.fn();
-    render(<MobileToday onOpenSettings={onOpen} />);
-    screen.getByRole('button', { name: 'Settings' }).focus();
-    await user.keyboard('{Enter}');
-    await user.keyboard(' ');
-    expect(onOpen).toHaveBeenCalledTimes(2);
-  });
-
-  it('takes focus when asked to (returning from Settings)', () => {
-    render(<MobileToday onOpenSettings={() => {}} focusSettings />);
-    expect(screen.getByRole('button', { name: 'Settings' })).toHaveFocus();
-  });
-
-  it('does not take focus by default', () => {
-    render(<MobileToday onOpenSettings={() => {}} />);
-    expect(screen.getByRole('button', { name: 'Settings' })).not.toHaveFocus();
-  });
-
-  it('is not drawn without somewhere to go', () => {
+describe('the header', () => {
+  it("keeps the date but leaves the wordmark and Settings to the shell's top bar", () => {
     render(<MobileToday />);
+    const header = document.querySelector('header');
+    expect(header).not.toBeNull();
+    expect(header.textContent).toMatch(/\d/);
+    expect(screen.queryByText('SPLITIQ')).toBeNull();
     expect(screen.queryByRole('button', { name: 'Settings' })).toBeNull();
   });
 });

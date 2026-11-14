@@ -52,13 +52,7 @@ export default function MobileProgress() {
         style={{
           display: 'flex',
           gap: SPACE.xs,
-          // The sign-out chip is fixed at top 8px with zIndex 1000, and this
-          // strip is the only destination whose first element spans the full
-          // width — every other one opens on a header with dead space at the
-          // right. Without clearance the chip lands on the third tab and eats
-          // "Strength". Mirrors the chip's own safe-area inset so it also
-          // clears on a notched device.
-          padding: `calc(${SPACE.xxl}px + env(safe-area-inset-top, 0px)) ${SPACE.lg}px 0`,
+          padding: `0 ${SPACE.lg}px`,
         }}
       >
         {PANES.map((p) => {

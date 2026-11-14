@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import { useLanguage } from '../i18n/LanguageProvider.jsx';
 import { LANGS, LANG_TAG, LANG_UI } from '../i18n/lang.js';
 import { THEME } from '../constants/theme.js';
@@ -6,12 +7,7 @@ import { RADIUS, SPACE, TYPE } from '../constants/tokens.js';
 
 const TARGET = 44;
 
-// Read by screen readers, not drawn: lets a button's name carry the language's
-// own name in its own language (WCAG 3.1.2) while the visible text stays EN/ES.
-// The whole name lives in this one span and the visible code is aria-hidden:
-// `position: absolute` makes the span block-level, and accessible-name
-// computation pads a block child with spaces, so a name split across the
-// visible text and this span read "EN , English".
+// Read by screen readers, not drawn: the cycle button's description.
 const srOnly = {
   position: 'absolute',
   width: 1,
@@ -21,7 +17,6 @@ const srOnly = {
   whiteSpace: 'nowrap',
 };
 
-const code = (l) => l.toUpperCase();
 const next = (l) => LANGS[(LANGS.indexOf(l) + 1) % LANGS.length];
 
 const buttonBase = {
@@ -50,13 +45,19 @@ export function LanguageStatus() {
         fontFamily: FONT.sans,
       }}
     >
-      {failed ? LANG_UI.unavailable.en : ''}
+      {failed ? (
+        <>
+          <div>{LANG_UI.unavailable.en}</div>
+          <div lang={LANG_TAG.es}>{LANG_UI.unavailable.es}</div>
+        </>
+      ) : null}
     </div>
   );
 }
 
 // `segmented` where there is room (Settings), `cycle` where there is not (the
-// login card, a compact header): one 44px button that names both languages.
+// login card): one 44px button showing the language it switches to, in that
+// language, so a visitor who cannot read the current one still finds theirs.
 // `withStatus={false}` leaves the status to a <LanguageStatus /> placed by the
 // caller.
 export default function LanguageToggle({
@@ -64,16 +65,19 @@ export default function LanguageToggle({
   withStatus = true,
 }) {
   const { lang, setLang, pending } = useLanguage();
+  const describedBy = useId();
   const status = withStatus ? <LanguageStatus /> : null;
 
   if (variant === 'cycle') {
+    const target = next(lang);
     return (
       <div>
         <button
           type="button"
-          aria-label={LANG_UI.switchTo[lang]}
+          lang={LANG_TAG[target]}
+          aria-describedby={describedBy}
           aria-busy={pending || undefined}
-          onClick={() => setLang(next(lang))}
+          onClick={() => setLang(target)}
           style={{
             ...buttonBase,
             background: 'transparent',
@@ -81,8 +85,11 @@ export default function LanguageToggle({
             color: THEME.muted,
           }}
         >
-          {code(lang)}
+          {LANG_UI.native[target]}
         </button>
+        <span id={describedBy} lang={LANG_TAG[lang]} style={srOnly}>
+          {LANG_UI.describe[lang]}
+        </span>
         {status}
       </div>
     );
@@ -102,20 +109,17 @@ export default function LanguageToggle({
             <button
               key={l}
               type="button"
+              lang={LANG_TAG[l]}
               aria-pressed={active}
               onClick={() => setLang(l)}
               style={{
                 ...buttonBase,
-                position: 'relative',
                 background: active ? THEME.accent : 'transparent',
                 border: `1px solid ${active ? THEME.accent : THEME.border}`,
                 color: active ? THEME.bg : THEME.muted,
               }}
             >
-              <span aria-hidden="true">{code(l)}</span>
-              <span style={srOnly}>
-                {code(l)}, <span lang={LANG_TAG[l]}>{LANG_UI.native[l]}</span>
-              </span>
+              {LANG_UI.native[l]}
             </button>
           );
         })}

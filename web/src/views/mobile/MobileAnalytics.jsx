@@ -96,21 +96,11 @@ export default function MobileAnalytics() {
       <div
         style={{
           display: 'flex',
-          justifyContent: 'space-between',
+          justifyContent: 'flex-end',
           alignItems: 'center',
           marginBottom: 20,
         }}
       >
-        <span
-          style={{
-            fontSize: 13,
-            fontWeight: 700,
-            letterSpacing: 2,
-            color: THEME.positive,
-          }}
-        >
-          SPLITIQ
-        </span>
         <span style={{ fontSize: 11, color: THEME.muted }}>{dateStr}</span>
       </div>
 

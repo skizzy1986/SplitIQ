@@ -6,12 +6,15 @@ import { THEME } from '../../constants/theme.js';
 import { RADIUS, SPACE, TYPE } from '../../constants/tokens.js';
 
 // Settings is a screen, not a destination: the four-tab IA (DESIGN_BRIEF §2.2)
-// stays four, and this is reached from the gear on Today. It hosts the desktop
-// SettingsView unchanged, so Strava behaves identically on both.
-export default function MobileSettings({ onBack, notice }) {
+// stays four, and this is reached from the top bar's Settings button on every
+// destination. `returnLabel` is the translated name of the destination Back
+// returns to. It hosts the desktop SettingsView unchanged, so Strava behaves
+// identically on both.
+export default function MobileSettings({ onBack, returnLabel, notice }) {
   const { t } = useLingui();
+  const destination = returnLabel ?? t`Today`;
   // Focus moves to the heading on arrival, so a screen reader announces the
-  // new screen instead of leaving focus on a gear that no longer exists.
+  // new screen instead of leaving focus on a button that no longer exists.
   const headingRef = useRef(null);
   useEffect(() => {
     headingRef.current?.focus();
@@ -35,7 +38,10 @@ export default function MobileSettings({ onBack, notice }) {
         <button
           type="button"
           onClick={onBack}
-          aria-label={t`Back to Today`}
+          aria-label={t({
+            message: `Back to ${destination}`,
+            comment: 'Settings back button; destination is a mobile tab name',
+          })}
           style={{
             width: 44,
             height: 44,

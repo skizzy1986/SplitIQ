@@ -204,9 +204,19 @@ describe('AuthGate boot behaviour', () => {
       expect(brand.compareDocumentPosition(line) & FOLLOWING).toBeTruthy();
       expect(line.compareDocumentPosition(prompt) & FOLLOWING).toBeTruthy();
 
-      const marked = container.querySelectorAll('[lang]');
-      expect(marked).toHaveLength(1);
-      expect(marked[0]).toBe(line);
+      // Besides the line, only the language control marks its own words: the
+      // button names the other language, its description is in this one.
+      const toggle = screen.getByRole('button', {
+        name: locale === 'es' ? 'English' : 'Español',
+      });
+      const description = document.getElementById(
+        toggle.getAttribute('aria-describedby')
+      );
+      expect([...container.querySelectorAll('[lang]')]).toEqual([
+        toggle,
+        description,
+        line,
+      ]);
     }
   );
 

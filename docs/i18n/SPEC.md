@@ -507,3 +507,33 @@ Each of PR-1 to PR-3 gets a native-speaker review on its Vercel preview before m
 - **"Existing tests pass unedited" holds for /squat prose only because of the hybrid.** A pure-Lingui /squat would force edits to `content.test.js`, `repSummary.test.js` and `RichText` tests.
 - **The register rule is folded in:** tú only, never usted, is a hard rule enforced by T-USTED over every Spanish string in the repo.
 
+
+## Amendment 2026-11-14 (Gate 1/2): device language, discoverable control, full localisation plan
+
+Approved by Scott at Gate 1 and Gate 2 on 2026-11-14. Where this section and an earlier one disagree, this one wins.
+
+**Decisions**
+- **AC 3 is reversed.** A first visit with nothing stored follows the device: if the top-ranked browser language (`navigator.languages[0]`, else `navigator.language`) has primary subtag `es`, the app opens in Spanish; anything else opens in English. Only the first-ranked tag decides (`['fr-FR', 'es']` is English). An explicit stored choice always wins, and detection never writes the preference, so `splitiq.lang` only ever holds a choice someone made. Storage blocked: detection still applies and nothing throws (`detectLang` / `readStoredLang` / `initialLang` in `web/src/i18n/lang.js`).
+- **Mobile placement supersedes §11's Today-only gear.** A top bar (`components/mobile/MobileTopBar.jsx`) carries the wordmark and a labelled Settings button (gear plus visible text, 44 px) on all four destinations; it is absent in Settings and during a live session. Settings' Back returns to the destination it was opened from (Today after a `#/settings` reload or the Strava callback) and puts focus back on that bar's Settings button. The language control is two labelled taps from anywhere.
+- **§8 visible labels are native names, not codes.** Settings' segmented control reads "English" (`lang="en"`) and "Español" (`lang="es-CO"`), with `aria-pressed`. The login's cycle button shows the *target* language in that language ("Español" on the English screen, "English" on the Spanish one); its accessible name is its visible text (WCAG 2.5.3) and `aria-describedby` carries "Switch the app to Spanish" / "Cambia la app a inglés" in the current language.
+- The story-local `?lang=` link is dropped.
+- **The catalog-failure message is bilingual**: English first, then the Spanish line in `lang="es-CO"`, in the same live region — a device-language visitor may not read English.
+- Decimal point kept: AC 15 stands. Spanish volume figures stay ungrouped (later PR).
+- Acronyms and units are not translated (CTL, ATL, TSB, sRPE, W, km).
+- The code-written erg session label stays English in the DB; it is display that localises.
+- Durations render "53 min" / "26:00" through `durationDisplay` (PR 2, which also fixes "53mmin").
+- Budgets are raised per #504, per PR, as each needs it.
+- StrengthLogger is translated in place, not extracted first (PR 3).
+- #528, #529 and the stale service worker stay separate issues.
+- Native review: per PR for PR 1 and PR 3; batched for the rest.
+
+**PR plan**
+
+| PR | Scope |
+|---|---|
+| 1 | This amendment: device-language first visit, mobile top bar + labelled Settings, native-name controls, bilingual failure line |
+| 2 | Train erg path in Spanish, duration fix (`durationDisplay`, "53mmin"), a guard test that every translated file is in `VIEWS_SOURCES` |
+| 3 | StrengthLogger, translated in place |
+| 4 | Mobile leftovers: MobileStrength, MobileRecovery's sync `aria-label` |
+| 5 | Desktop erg: ErgView, ErgTooltip, PaceTrendChart, FTP_TEST messages, zone-label maps |
+| 6 | Deferred desktop strength + mobility |

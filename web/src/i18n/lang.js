@@ -16,15 +16,17 @@ export const LANG_TAG = { en: 'en', es: 'es-CO' };
 export const LANG_UI = {
   label: { en: 'Language', es: 'Idioma' },
   native: { en: 'English', es: 'Español' },
-  switchTo: {
-    en: 'Language: English (EN). Switch to Spanish',
-    es: 'Idioma: español (ES). Cambiar a inglés',
+  // In the current language, describing the switch to the other one.
+  describe: {
+    en: 'Switch the app to Spanish',
+    es: 'Cambia la app a inglés',
   },
-  // Only ever shown in English: it reports that Spanish did not arrive. Reload,
-  // not retry: a browser may keep a failed dynamic import for the life of the
-  // page, so choosing Spanish again without a reload can fail the same way.
+  // Shown in both languages: a device-language visitor may not read English.
+  // Reload, not retry: a browser may keep a failed dynamic import for the life
+  // of the page, so choosing Spanish again without a reload can fail the same way.
   unavailable: {
     en: 'Spanish could not be loaded. Check your connection and reload the page.',
+    es: 'No se pudo cargar el español. Revisa tu conexión y vuelve a cargar la página.',
   },
 };
 
@@ -45,20 +47,42 @@ export const ROOT_ERROR_TEXT = {
   retry: { en: 'TRY AGAIN', es: 'INTÉNTALO DE NUEVO' },
 };
 
-export function readLangPref(storage) {
+export function readStoredLang(storage) {
   try {
     const v = storage?.getItem(LANG_KEY);
-    return LANGS.includes(v) ? v : DEFAULT_LANG;
+    return LANGS.includes(v) ? v : null;
   } catch {
     // Storage blocked (private mode, sandboxed iframe): an expected non-event,
-    // not an operational error, so nothing is reported. English it is.
+    // not an operational error, so nothing is reported.
+    return null;
+  }
+}
+
+export const readLangPref = (storage) =>
+  readStoredLang(storage) ?? DEFAULT_LANG;
+
+// Only the top-ranked language decides: ['fr-FR', 'es'] is a French visitor.
+export function detectLang(nav = globalThis.navigator) {
+  try {
+    const tag = String(nav?.languages?.[0] ?? nav?.language ?? '');
+    return tag.toLowerCase().split('-')[0] === 'es' ? 'es' : DEFAULT_LANG;
+  } catch {
+    // A hostile or stubbed navigator: English, as with no navigator at all.
     return DEFAULT_LANG;
   }
 }
 
-// No navigator.language: English is the first-visit default by decision.
+// Device language on a first visit (Gate 1, 2026-11-14, reversing SPEC AC 3).
+// Detection is never written back, so a stored choice is always a choice.
 export function initialLang(win = globalThis.window) {
-  return win ? readLangPref(safeStorage(win)) : DEFAULT_LANG;
+  if (!win) return DEFAULT_LANG;
+  let nav = null;
+  try {
+    nav = win.navigator ?? null;
+  } catch {
+    // A throwing navigator getter: treated as no navigator, i.e. English.
+  }
+  return readStoredLang(safeStorage(win)) ?? detectLang(nav);
 }
 
 export function writeLangPref(lang, win = globalThis.window) {

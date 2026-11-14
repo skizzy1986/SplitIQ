@@ -17,21 +17,9 @@ vi.mock('@capacitor/app', () => ({
   },
 }));
 
-// Today is stubbed to its one relevant control: the real gear is covered in
-// MobileToday.test.jsx, this suite is about what the shell does with it.
-vi.mock('../MobileToday.jsx', () => ({
-  default: ({ onOpenSettings, focusSettings }) => (
-    <div>
-      <p>TODAY</p>
-      <button
-        type="button"
-        aria-label="Settings"
-        onClick={onOpenSettings}
-        ref={(el) => focusSettings && el?.focus()}
-      />
-    </div>
-  ),
-}));
+// The destinations are stubbed: this suite is about the shell, its top bar
+// and Settings.
+vi.mock('../MobileToday.jsx', () => ({ default: () => <p>TODAY</p> }));
 vi.mock('../MobileProgress.jsx', () => ({ default: () => <p>PROGRESS</p> }));
 vi.mock('../MobileRecovery.jsx', () => ({ default: () => <p>BODY</p> }));
 vi.mock('../MobileTrain.jsx', () => ({ default: () => <p>TRAIN</p> }));
@@ -48,6 +36,7 @@ import { i18n } from '@lingui/core';
 import { messages as en } from '../../../locales/en.po';
 import { messages as es } from '../../../locales/es.po';
 import MobileApp from '../MobileApp.jsx';
+import MobileSettings from '../MobileSettings.jsx';
 import { DESTINATIONS } from '../../../constants/destinations.js';
 import { THEME } from '../../../constants/theme.js';
 
@@ -76,7 +65,7 @@ afterEach(() => {
 });
 
 describe('mobile Settings', () => {
-  it('opens from the gear: heading and Strava panel, Today gone', async () => {
+  it('opens from the top bar: heading and Strava panel, Today gone', async () => {
     const user = userEvent.setup();
     await openSettings(user);
     expect(
@@ -191,7 +180,7 @@ describe('the Strava OAuth return on mobile', () => {
     expect(window.location.search).toBe('');
   });
 
-  it('shows the notice once: Back then the gear does not replay it', async () => {
+  it('shows the notice once: Back then Settings does not replay it', async () => {
     const user = userEvent.setup();
     setUrl('/?strava=connected');
     render(<MobileApp />);
@@ -218,19 +207,59 @@ describe('focus', () => {
     expect(screen.getByRole('heading', { name: 'Settings' })).toHaveFocus();
   });
 
-  it('returns to the gear when Back is used', async () => {
+  it('returns to the Settings button when Back is used', async () => {
     const user = userEvent.setup();
     await openSettings(user);
     await user.click(screen.getByRole('button', { name: 'Back to Today' }));
     expect(screen.getByRole('button', { name: 'Settings' })).toHaveFocus();
   });
 
-  it('does not grab the gear when Today is reached by a tab', async () => {
+  it('does not grab the Settings button when Today is reached by a tab', async () => {
     const user = userEvent.setup();
     await openSettings(user);
     await user.click(tab('Progress'));
     await user.click(tab('Today'));
     expect(screen.getByRole('button', { name: 'Settings' })).not.toHaveFocus();
+  });
+});
+
+describe('Back returns to where Settings was opened', () => {
+  it.each([
+    ['Train', 'TRAIN', '#/train'],
+    ['Progress', 'PROGRESS', '#/progress'],
+    ['Body', 'BODY', '#/body'],
+  ])(
+    'from %s: names it, returns to it and focuses its Settings button',
+    async (label, text, hash) => {
+      const user = userEvent.setup();
+      render(<MobileApp />);
+      await user.click(tab(label));
+      await user.click(screen.getByRole('button', { name: 'Settings' }));
+      await user.click(
+        screen.getByRole('button', { name: `Back to ${label}` })
+      );
+      expect(screen.getByText(text)).toBeInTheDocument();
+      expect(window.location.hash).toBe(hash);
+      expect(screen.getByRole('button', { name: 'Settings' })).toHaveFocus();
+    }
+  );
+
+  it('the hardware back button returns to the origin too', async () => {
+    const user = userEvent.setup();
+    render(<MobileApp />);
+    await user.click(tab('Body'));
+    await user.click(screen.getByRole('button', { name: 'Settings' }));
+    act(() => backHandlers.at(-1)?.());
+    expect(await screen.findByText('BODY')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Settings' })).toHaveFocus();
+  });
+
+  it('a #/settings reload returns to Today', async () => {
+    const user = userEvent.setup();
+    window.location.hash = '#/settings';
+    render(<MobileApp />);
+    await user.click(screen.getByRole('button', { name: 'Back to Today' }));
+    expect(screen.getByText('TODAY')).toBeInTheDocument();
   });
 });
 
@@ -246,6 +275,18 @@ describe('the destinations are unchanged', () => {
 });
 
 describe('in Spanish', () => {
+  it('names Back after the origin tab in Spanish', async () => {
+    i18n.load('es', { ...en, ...es });
+    i18n.activate('es');
+    const user = userEvent.setup();
+    render(<MobileApp />);
+    await user.click(tab('Progreso'));
+    await user.click(screen.getByRole('button', { name: 'Configuración' }));
+    expect(
+      screen.getByRole('button', { name: 'Volver a Progreso' })
+    ).toBeInTheDocument();
+  });
+
   it('names the screen, Back and Sign out in Spanish', () => {
     i18n.load('es', { ...en, ...es });
     i18n.activate('es');
@@ -259,6 +300,15 @@ describe('in Spanish', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Cerrar sesión' })
+    ).toBeInTheDocument();
+  });
+});
+
+describe('without a returnLabel', () => {
+  it('names Back after Today', () => {
+    render(<MobileSettings onBack={() => {}} />);
+    expect(
+      screen.getByRole('button', { name: 'Back to Today' })
     ).toBeInTheDocument();
   });
 });

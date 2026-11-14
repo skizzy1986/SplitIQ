@@ -4,8 +4,10 @@ import {
   LANG_UI,
   OFFLINE_TEXT,
   ROOT_ERROR_TEXT,
+  detectLang,
   initialLang,
   readLangPref,
+  readStoredLang,
   writeLangPref,
 } from '../lang.js';
 
@@ -36,14 +38,108 @@ describe('the language preference', () => {
     expect(LANG_KEY).toBe('splitiq.lang');
   });
 
-  it('defaults to English on a first visit, ignoring the browser language', () => {
-    const nav = vi.spyOn(window.navigator, 'language', 'get');
-    nav.mockReturnValue('es-CO');
-    try {
-      expect(initialLang(window)).toBe('en');
-    } finally {
-      nav.mockRestore();
+  it.each([
+    [{ languages: ['es-CO', 'en'], language: 'es-CO' }, 'es'],
+    [{ languages: ['es'] }, 'es'],
+    [{ languages: ['ES-mx'] }, 'es'],
+    [{ languages: ['es-419'] }, 'es'],
+    [{ languages: ['en-AU', 'es'] }, 'en'],
+    [{ languages: ['fr-FR', 'es'] }, 'en'],
+    [{ languages: ['est'] }, 'en'],
+    [{ languages: [], language: 'es-AR' }, 'es'],
+    [{ language: 'es' }, 'es'],
+    [{ language: 'pt-BR' }, 'en'],
+    [{}, 'en'],
+    [null, 'en'],
+  ])(
+    'detectLang(%j) is %s: only the top-ranked language decides',
+    (nav, lang) => {
+      expect(detectLang(nav)).toBe(lang);
     }
+  );
+
+  it('detectLang never throws on a hostile navigator', () => {
+    const nav = {
+      get languages() {
+        throw new Error('nope');
+      },
+    };
+    expect(detectLang(nav)).toBe('en');
+  });
+
+  it('a first visit follows the device language (B5, B6)', () => {
+    expect(
+      initialLang({
+        localStorage: memoryStorage(),
+        navigator: { languages: ['es-CO'] },
+      })
+    ).toBe('es');
+    expect(
+      initialLang({
+        localStorage: memoryStorage(),
+        navigator: { languages: ['de-DE'] },
+      })
+    ).toBe('en');
+    expect(initialLang({ localStorage: memoryStorage() })).toBe('en');
+  });
+
+  it('a stored choice always wins over the device language (B7)', () => {
+    const es = { languages: ['es-CO'] };
+    const en = { languages: ['en-US'] };
+    expect(
+      initialLang({
+        localStorage: memoryStorage({ [LANG_KEY]: 'en' }),
+        navigator: es,
+      })
+    ).toBe('en');
+    expect(
+      initialLang({
+        localStorage: memoryStorage({ [LANG_KEY]: 'es' }),
+        navigator: en,
+      })
+    ).toBe('es');
+  });
+
+  it('an unknown stored value is no choice, so detection applies', () => {
+    const storage = memoryStorage({ [LANG_KEY]: 'fr' });
+    expect(readStoredLang(storage)).toBeNull();
+    expect(
+      initialLang({ localStorage: storage, navigator: { languages: ['es'] } })
+    ).toBe('es');
+  });
+
+  it('detection never writes the stored preference (B8)', () => {
+    const storage = memoryStorage();
+    const setItem = vi.spyOn(storage, 'setItem');
+    initialLang({ localStorage: storage, navigator: { languages: ['es'] } });
+    expect(setItem).not.toHaveBeenCalled();
+    expect(storage.data).toEqual({});
+  });
+
+  it('storage blocked on a Spanish device: Spanish, without throwing', () => {
+    const win = {
+      get localStorage() {
+        throw new Error('SecurityError');
+      },
+      navigator: { languages: ['es-CO'] },
+    };
+    expect(initialLang(win)).toBe('es');
+    expect(
+      initialLang({
+        localStorage: throwingStorage,
+        navigator: { languages: ['es'] },
+      })
+    ).toBe('es');
+  });
+
+  it('a throwing navigator getter gives English, without throwing', () => {
+    const win = {
+      localStorage: memoryStorage(),
+      get navigator() {
+        throw new Error('SecurityError');
+      },
+    };
+    expect(initialLang(win)).toBe('en');
   });
 
   it('reads a stored choice and rejects anything it does not know', () => {
@@ -85,15 +181,15 @@ describe('the language preference', () => {
       ROOT_ERROR_TEXT.retry,
       LANG_UI.label,
       LANG_UI.native,
-      LANG_UI.switchTo,
+      LANG_UI.describe,
+      LANG_UI.unavailable,
     ]) {
       expect(table.en).toBeTruthy();
       expect(table.es).toBeTruthy();
     }
   });
 
-  it('keeps the visible code at the start of the cycle button name (WCAG 2.5.3)', () => {
-    expect(LANG_UI.switchTo.en).toContain('(EN)');
-    expect(LANG_UI.switchTo.es).toContain('(ES)');
+  it('names each language in its own language', () => {
+    expect(LANG_UI.native).toEqual({ en: 'English', es: 'Español' });
   });
 });

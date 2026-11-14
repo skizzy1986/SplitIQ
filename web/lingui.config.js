@@ -23,6 +23,7 @@ export const VIEWS_SOURCES = [
   'src/views/mobile/MobileAnalytics.jsx',
   'src/views/mobile/MobileSessionLog.jsx',
   'src/views/mobile/MobileRecovery.jsx',
+  'src/components/mobile/MobileTopBar.jsx',
   'src/utils/trainingLoad.js',
   'src/utils/recoveryAnalytics.js',
   'src/utils/healthRecords.js',

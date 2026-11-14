@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { readdirSync, readFileSync } from 'node:fs';
-import { join, relative, sep } from 'node:path';
-import { cwd } from 'node:process';
+import { dirname, join, relative, resolve, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { VIEWS_SOURCES } from '../../../lingui.config.js';
 
 // A file whose messages are not in VIEWS_SOURCES is extracted into the boot
@@ -27,6 +27,8 @@ const BOOT_ALLOWLIST = [
 
 // /squat and the anatomy runtime have their own catalog (src/squat/locales).
 const OWN_CATALOG = ['src/squat/', 'src/anatomy/'];
+// Matches what extraction reads: a macro import. A commented-out import
+// false-positives loudly, which is the safe direction; do not loosen it.
 const MACRO_IMPORT = /from\s+['"]@lingui\/(?:core|react)\/macro['"]/;
 
 // messageFiles: files that import a Lingui macro, so extraction reads them.
@@ -59,7 +61,8 @@ function walk(dir) {
 }
 
 function sourceFiles() {
-  const root = cwd();
+  // web/, from this file, so the test does not depend on where vitest runs.
+  const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
   return walk(join(root, 'src'))
     .map((p) => relative(root, p).split(sep).join('/'))
     .filter((f) => !OWN_CATALOG.some((d) => f.startsWith(d)))
@@ -76,7 +79,14 @@ describe('dashboard catalog placement', () => {
     const messageFiles = files
       .filter((f) => f.writesMessages)
       .map((f) => f.path);
-    expect(messageFiles.length).toBeGreaterThan(BOOT_ALLOWLIST.length);
+    // The walker must see real message files, not just a non-empty list.
+    for (const known of [
+      'src/AuthGate.jsx',
+      'src/views/ErgLiveView.jsx',
+      'src/components/WorkoutTarget.jsx',
+      'src/views/mobile/MobileTrain.jsx',
+    ])
+      expect(messageFiles).toContain(known);
     expect(
       catalogPlacement({
         messageFiles,

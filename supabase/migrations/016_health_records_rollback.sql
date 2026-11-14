@@ -1,8 +1,9 @@
 -- Rollback for 016_health_records.sql. NOT auto-applied.
 --
--- DESTRUCTIVE: DROPS lab_results AND injuries WITH EVERY ROW. Nothing restores
--- them — public.backup_snapshot() does not cover health tables (#428). Export
--- first and keep the output outside git:
+-- DESTRUCTIVE: DROPS lab_results AND injuries WITH EVERY ROW. Since 017 (#428)
+-- the nightly public.backup_snapshot() covers health tables, but a snapshot can
+-- be up to a day old and lives in the same database. Still export first and
+-- keep the output outside git:
 --   select * from public.lab_results order by collected_on, panel, marker;
 --   select * from public.injuries order by onset_on nulls last;
 --

@@ -171,3 +171,10 @@ create policy "Users can manage their own rows"
   advisor and the new functions' ACLs: 014's global revoke applies to every
   schema `postgres` creates functions in, so an extension's functions are born
   without PUBLIC EXECUTE and may need explicit grants.
+- **Nightly snapshot coverage (since 017, #428):** every base table in `public`
+  is in `backup_snapshot()`'s export by default, read from `pg_class`, so a new
+  table needs no backup edit. A table holding credentials or secrets (tokens,
+  keys) must add itself to the function's `v_excluded` array in its own
+  migration. The payload is schema v2: rows sit under `tables`, with
+  `schema_version`, `exported_at`, `excluded` and `counts` beside them; a row
+  without `schema_version` is v1 (tables at the top level).

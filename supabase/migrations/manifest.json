@@ -175,6 +175,18 @@
       ],
       "note": "Applied 2026-11-13 via apply_migration (#500); RLS probe and anon 42501 read-back in the PR body.",
       "issue": 417
+    },
+    {
+      "file": "017_backup_snapshot_coverage.sql",
+      "status": "applied",
+      "live": [
+        {
+          "version": "20261114163641",
+          "name": "017_backup_snapshot_coverage"
+        }
+      ],
+      "note": "Applied 2026-11-14 via apply_migration (#428): backup_snapshots + both backup functions captured; backup_snapshot() is catalogue-driven (every public base table minus an exclusion array), payload schema v2. Coverage read-back and advisor diff in the PR body.",
+      "issue": 428
     }
   ],
   "liveOnly": [
@@ -256,13 +268,13 @@
     {
       "version": "20260622173542",
       "name": "backup_snapshots_infra",
-      "note": "backup_snapshots table + backup_snapshot()/run_backup_snapshot(); no file",
+      "note": "backup_snapshots table + backup_snapshot()/run_backup_snapshot(); captured and superseded by 017_backup_snapshot_coverage.sql (#428)",
       "issue": 428
     },
     {
       "version": "20260622173551",
       "name": "schedule_daily_backup",
-      "note": "cron job daily-db-snapshot; no file",
+      "note": "cron job daily-db-snapshot; the job itself still has no file (017 captures only the functions it calls)",
       "issue": 428
     },
     {
@@ -288,7 +300,7 @@
     {
       "version": "20261106035559",
       "name": "bp_readings",
-      "note": "Created before tracking; structure captured by 015_bp_readings.sql. Backup coverage gap tracked in #428",
+      "note": "Created before tracking; structure captured by 015_bp_readings.sql. Backup coverage added by 017 (#428)",
       "issue": 428
     },
     {

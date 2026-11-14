@@ -2,8 +2,9 @@
 --
 -- DELIBERATELY A NO-OP. 015 created nothing in production: the table predates
 -- it (live version 20261106035559). Dropping it would destroy health rows
--- (D9 re-entered BP via MCP) that 015 never created, and nothing restores
--- them — public.backup_snapshot() does not cover health tables (#428).
+-- (D9 re-entered BP via MCP) that 015 never created. Since 017 (#428) the
+-- nightly public.backup_snapshot() covers health tables, but a snapshot can be
+-- up to a day old, so still export first.
 --
 -- Removing bp_readings is its own destructive decision for Scott. If it is
 -- ever taken, roll back 016 first (its rollback restores bp_readings' anon

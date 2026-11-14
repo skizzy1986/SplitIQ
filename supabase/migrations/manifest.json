@@ -178,8 +178,14 @@
     },
     {
       "file": "017_backup_snapshot_coverage.sql",
-      "status": "pending",
-      "note": "Captures backup_snapshots + both backup functions; backup_snapshot() becomes catalogue-driven (every public base table minus an exclusion array), payload schema v2. Awaiting Scott-approved apply; then flip to applied and refresh the live-migrations fixture.",
+      "status": "applied",
+      "live": [
+        {
+          "version": "20261114163641",
+          "name": "017_backup_snapshot_coverage"
+        }
+      ],
+      "note": "Applied 2026-11-14 via apply_migration (#428): backup_snapshots + both backup functions captured; backup_snapshot() is catalogue-driven (every public base table minus an exclusion array), payload schema v2. Coverage read-back and advisor diff in the PR body.",
       "issue": 428
     }
   ],

@@ -356,7 +356,7 @@ function Gate() {
   } else {
     body = (
       <>
-        {/* On a phone the floating button sat over Today's settings gear, so
+        {/* On a phone the floating button sat over the top bar's Settings button, so
             sign-out lives on the mobile Settings screen instead. Held back
             while the splash covers the page, or Tab reaches a hidden button. */}
         {!isMobile && !showSplash && <SignOutButton />}

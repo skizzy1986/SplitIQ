@@ -132,6 +132,16 @@ describe('the language preference', () => {
     ).toBe('es');
   });
 
+  it('a throwing navigator getter gives English, without throwing', () => {
+    const win = {
+      localStorage: memoryStorage(),
+      get navigator() {
+        throw new Error('SecurityError');
+      },
+    };
+    expect(initialLang(win)).toBe('en');
+  });
+
   it('reads a stored choice and rejects anything it does not know', () => {
     expect(readLangPref(memoryStorage({ [LANG_KEY]: 'es' }))).toBe('es');
     expect(readLangPref(memoryStorage({ [LANG_KEY]: 'en' }))).toBe('en');

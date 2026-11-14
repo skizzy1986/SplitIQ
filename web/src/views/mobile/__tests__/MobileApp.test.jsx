@@ -120,6 +120,22 @@ describe('the top bar', () => {
     ).toBeVisible();
     expect(settings()).not.toHaveFocus();
   });
+
+  it('a Back-from-Settings focus is spent by a live session, not replayed after it', async () => {
+    const user = userEvent.setup();
+    render(<MobileApp />);
+    await user.click(settings());
+    back();
+    expect(settings()).toHaveFocus();
+    await user.click(tab('Train'));
+    await user.click(screen.getByRole('button', { name: /Erg session/ }));
+    expect(settings()).toBeNull();
+    back();
+    expect(
+      await screen.findByRole('button', { name: 'Settings' })
+    ).toBeVisible();
+    expect(settings()).not.toHaveFocus();
+  });
 });
 
 describe('a live session owns the screen', () => {

@@ -161,7 +161,8 @@ export default function MobileApp() {
           focusSettings={focusSettings}
         />
       )}
-      {content}
+      {/* <main> scopes each view's own <header>, so the top bar stays the one banner. */}
+      <main>{content}</main>
       {!live && <BottomTabBar activeTab={route} onTabChange={navigate} />}
     </div>
   );

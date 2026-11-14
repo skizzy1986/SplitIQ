@@ -75,9 +75,14 @@ export function detectLang(nav = globalThis.navigator) {
 // Device language on a first visit (Gate 1, 2026-11-14, reversing SPEC AC 3).
 // Detection is never written back, so a stored choice is always a choice.
 export function initialLang(win = globalThis.window) {
-  return win
-    ? (readStoredLang(safeStorage(win)) ?? detectLang(win.navigator ?? null))
-    : DEFAULT_LANG;
+  if (!win) return DEFAULT_LANG;
+  let nav = null;
+  try {
+    nav = win.navigator ?? null;
+  } catch {
+    // A throwing navigator getter: treated as no navigator, i.e. English.
+  }
+  return readStoredLang(safeStorage(win)) ?? detectLang(nav);
 }
 
 export function writeLangPref(lang, win = globalThis.window) {

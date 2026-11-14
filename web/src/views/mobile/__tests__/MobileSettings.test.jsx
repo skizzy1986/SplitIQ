@@ -36,6 +36,7 @@ import { i18n } from '@lingui/core';
 import { messages as en } from '../../../locales/en.po';
 import { messages as es } from '../../../locales/es.po';
 import MobileApp from '../MobileApp.jsx';
+import MobileSettings from '../MobileSettings.jsx';
 import { DESTINATIONS } from '../../../constants/destinations.js';
 import { THEME } from '../../../constants/theme.js';
 
@@ -299,6 +300,15 @@ describe('in Spanish', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Cerrar sesión' })
+    ).toBeInTheDocument();
+  });
+});
+
+describe('without a returnLabel', () => {
+  it('names Back after Today', () => {
+    render(<MobileSettings onBack={() => {}} />);
+    expect(
+      screen.getByRole('button', { name: 'Back to Today' })
     ).toBeInTheDocument();
   });
 });

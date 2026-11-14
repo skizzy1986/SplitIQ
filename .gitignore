@@ -28,3 +28,7 @@ deno.lock
 # Per-session git worktrees (EnterWorktree). Concurrent Claude Code sessions each
 # get their own checkout here, so two sessions cannot race on one working tree.
 .claude/worktrees/
+
+# Supabase CLI per-machine state (`supabase link` writes the linked project ref,
+# the CLI writes its version check). Machine-local, never read by CI or scripts (#548).
+supabase/.temp/

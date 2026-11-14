@@ -1,0 +1,17 @@
+# Line endings: LF in the repo and in every checkout, whatever core.autocrlf says.
+# Windows Git ships core.autocrlf=true system-wide, which checked files out as CRLF
+# and broke raw-byte comparisons (docs/i18n/REVIEW-es-CO.md, #547). Prettier's
+# endOfLine default is also lf.
+* text=auto eol=lf
+
+# Windows batch files must stay CRLF on disk for cmd.exe; stored LF like the rest.
+*.bat text eol=crlf
+
+# Binary formats tracked today. Explicit so a NUL-free file is never sniffed as text.
+*.png   binary
+*.woff2 binary
+*.jar   binary
+*.npy   binary
+*.npz   binary
+*.pkl   binary
+*.bin   binary

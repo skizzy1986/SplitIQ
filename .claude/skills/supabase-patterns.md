@@ -22,41 +22,32 @@ they live in `.env.local` (gitignored). In Vercel, set as environment variables.
 
 ## Tables
 
-### sessions
-```sql
-id          uuid primary key default gen_random_uuid()
-created_at  timestamptz default now()
-date        date not null
-type        text           -- 'erg', 'strength', 'cycling', 'rest', 'mobility'
-label       text           -- human-readable e.g. 'Z2 Aerobic', 'Upper Strength'
-duration    integer        -- minutes
-srpe        integer        -- 1–10
-exercises   jsonb          -- array of { name, sets, reps, weight, notes }
-watts       integer        -- erg only
-hr          integer        -- average heart rate
-distance    integer        -- metres, erg/cycling only
-status      text           -- 'logged' | 'planned'
-```
+The live table set is the source of truth: list it with the Supabase MCP
+`list_tables`, and reconcile migrations in `supabase/migrations/manifest.json`. The
+write conventions for `sessions`, `vitals` and the rest are in root `CLAUDE.md`
+§ Supabase data. Do not copy column lists here — they drifted before (`sessions.date`
+is text `M/D/YY`, not `date`; `date_iso` is the generated column to order by).
 
-### vitals
-```sql
-id          uuid primary key default gen_random_uuid()
-date        date not null unique
-rhr         integer        -- resting heart rate (bpm)
-hrv         integer        -- HRV score
-sleep       numeric(3,1)   -- hours
-bodyweight  numeric(5,1)   -- kg
-source      text           -- 'garmin' | 'google_health' | 'manual'
-```
+Roles of the less obvious tables (moved from root `CLAUDE.md` in #424):
+
+- `template_exercises` — per-template prescriptions (sets/reps/rpe, `set_plan` jsonb,
+  timed holds).
+- `strength_sets` — per-set actuals (weight/reps/rpe/warmup/hold), real logged data only.
+- `workout_assignments` — template → date (`pending` / `in_progress` / `completed` /
+  `skipped`); `StrengthLogger.jsx` uses it.
+- `exercise_prefs` — per-user, per-exercise preferences (e.g. rest seconds).
+- `exercise_media` — demo media per exercise: reference content, not user data.
+- `backup_snapshots` — daily full-DB JSON snapshots written by the backup cron.
 
 ## Query Patterns
 
-### Fetch all sessions (used in useSessions hook)
+### Fetch sessions newest first
 ```js
 const { data, error } = await supabase
   .from('sessions')
   .select('*')
-  .order('created_at', { ascending: false })
+  .order('date_iso', { ascending: false, nullsFirst: false })
+  .order('id', { ascending: false })
 ```
 
 ### Insert a new session (used in LogSessionForm)
@@ -64,7 +55,8 @@ const { data, error } = await supabase
 const { error } = await supabase
   .from('sessions')
   .insert({
-    date,
+    user_id: userId, // explicit: auth.uid() does not resolve through the MCP connector
+    date, // text M/D/YY; never name date_iso (generated, insert rejected)
     type,
     label,
     duration,
@@ -74,18 +66,20 @@ const { error } = await supabase
   })
 ```
 
-### Upsert vitals (used by vitals-import Edge Function)
+### Upsert vitals (as `supabase/functions/vitals-import-api/index.ts` calls it)
 ```js
-await supabase.rpc('upsert_vital', {
+await supa.rpc('upsert_vital', {
   p_user_id: userId,
   p_date: date,
-  p_rhr: rhr,
-  p_hrv: hrv,
-  p_sleep: sleep,
-  p_bodyweight: bodyweight,
-  p_source: 'google_health'
+  p_rhr: rec.rhr_bpm,
+  p_hrv: rec.hrv_ms,
+  p_sleep: rec.sleep_hours,
+  p_bodyweight: rec.bodyweight_kg,
+  p_source: 'google_health_api'
 })
 ```
+`rec` comes from `mapResponses` in `vitals-import-api/mapper.ts`. The RPC coalesces, so
+a null argument never wipes a stored value.
 
 ## React Query Pattern (for new hooks)
 
@@ -102,7 +96,8 @@ export function useSessions() {
       const { data, error } = await supabase
         .from('sessions')
         .select('*')
-        .order('created_at', { ascending: false })
+        .order('date_iso', { ascending: false, nullsFirst: false })
+        .order('id', { ascending: false })
       if (error) throw error
       return data
     }
@@ -127,23 +122,22 @@ Location: `supabase/functions/<name>/index.ts`
 Runtime: Deno (not Node.js)
 Deploy: `supabase functions deploy <name>`
 
-Current Edge Functions:
-- `vitals-import` — pulls Google Health Export CSV, upserts to vitals table. Runs daily via cron.
-
-New Edge Functions for integrations:
-- `strava-sync` — Strava webhook receiver → insert into sessions
-- `garmin-sync` — Garmin health snapshot → upsert into vitals
+List the current functions with `ls supabase/functions` (`_shared/` holds the Sentry
+wrapper and other shared code).
 
 ## RLS (Row Level Security)
 
-Currently: RLS is enabled but all authenticated users can read/write their own rows.
-The app uses a single authenticated user (Scott).
-
-When adding new tables: enable RLS and add a policy:
+RLS is on for every table and is never bypassed from the client. User tables are
+**owner-only**, the user taken from the verified JWT:
 ```sql
-create policy "Users can manage their own rows"
-  on <table> for all
-  using (auth.uid() = user_id);
+create policy "owner"
+  on <table> for all to authenticated
+  using (user_id = auth.uid()) with check (user_id = auth.uid());
+```
+Shared reference tables (e.g. `exercises`, `exercise_media`) are read-only to any
+signed-in user:
+```sql
+create policy "read" on <table> for select to authenticated using (true);
 ```
 
 ## Migrations

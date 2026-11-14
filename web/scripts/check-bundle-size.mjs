@@ -51,7 +51,8 @@
 //
 // Every budget is a RATCHET against unnoticed creep, not a performance
 // threshold: lower it as the bundle shrinks, and raise it only by the
-// procedure in CLAUDE.md, "Budgets rise deliberately, never by drift" (#504).
+// procedure in .claude/rules/observability.md, "Budgets rise deliberately,
+// never by drift" (#504).
 //
 // Do not quote a size figure from memory or from a doc — it drifts. Run
 // `npm run build && npm run size`, or read dist/bundle-size.json, which this
@@ -94,7 +95,7 @@ import { parsePo } from './i18n-review-sheet.mjs';
 // moved out of its lazy chunk — plus the provider, the toggle and the auth
 // error map), use-sync-external-store's shim 0.4, the shared tokens module
 // 0.3, and main +0.5 (src/i18n/lang.js and the root fallback's words). Rule:
-// the measured figure plus ~2 KB, to a whole KB: 155.4 + 2 = 157.
+// the measured figure plus ~2 KB, to the nearest whole KB: 155.4 + 2 = 157.
 const MAX_ENTRY_GZIP_KB = 157;
 const MAX_TOTAL_GZIP_KB = 400;
 
@@ -134,8 +135,8 @@ const MAX_TOTAL_GZIP_KB = 400;
 // entry unchanged (147.3 -> 147.3). The growth is the docked controls rail, the
 // phone bar's Rep | View | Show disclosure and the transport icons, which
 // replace three stacked cards and the intro's button row. The bundle rule
-// approved by Scott at Gate 2 sets the ceiling to the measured figure rounded
-// up, plus ~2 KB: 118 + 2 = 120.
+// approved by Scott at Gate 2 sets the ceiling to the measured figure plus
+// ~2 KB, rounded to the nearest whole KB: 118.0 + 2 = 120.
 //
 // R11 share-a-view (#439) re-measured 2026-11-12, against PR C's head:
 // SQUAT_ENTRY 118.0 -> 120.2 KB (+2.2), SQUAT_TOTAL 29.2 -> 31.8 KB (+2.6),
@@ -145,7 +146,7 @@ const MAX_TOTAL_GZIP_KB = 400;
 // so the shared index chunk shrank (91,113 -> 90,755 B) and the dashboard
 // entry dropped 147.3 -> 146.9 KB. Squat-only static code counts against
 // both squat gates, so both were exceeded. Scott's raise rule at R11 Gate 2:
-// the measured figure plus ~2 KB, rounded to a whole KB. Entry 120.2 + 2 =
+// the measured figure plus ~2 KB, rounded to the nearest whole KB. Entry 120.2 + 2 =
 // 122; total 31.8 + 2 = 34. The dashboard's 150 is not touched.
 //
 // Raised 122 -> 124 on 2026-11-13 (Scott, Gate 3, i18n PR-1). Measured 122.0
@@ -162,7 +163,7 @@ const MAX_SQUAT_TOTAL_GZIP_KB = 34;
 // three.js bump is the likeliest way this grows and should be noticed.
 const MAX_SQUAT_3D_GZIP_KB = 145;
 // The dashboard's Spanish catalog. Measured 2026-11-13 (i18n PR-1) at 2.8 KB;
-// +~2 KB, to a whole KB. It grows with every translated view (Phase 2+), each
+// +~2 KB, to the nearest whole KB. It grows with every translated view (Phase 2+), each
 // of which raises it deliberately with its own measured figure.
 //
 // Raised 5 -> 9 on 2026-11-13 (i18n Phase 2a, approved by Scott at Gate 1+2):
@@ -171,7 +172,7 @@ const MAX_SQUAT_3D_GZIP_KB = 145;
 // Plan, Log, Recovery, their components and the five mobile panes) builds to
 // its own i18n-es-* chunk at 4.5 KB. Measured 7.3 KB (7,478 B). Worth it: it
 // is the Spanish for every settled view, fetched only by a visitor who chose
-// Spanish, never precached. Rule: 7.3 + 2 = 9.3, to a whole KB: 9.
+// Spanish, never precached. Rule: 7.3 + 2 = 9.3, to the nearest whole KB: 9.
 const MAX_DASH_ES_GZIP_KB = 9;
 // The stream measured 2,202,168 bytes; 2.3 MB keeps a re-run of the pipeline
 // from quietly doubling every first visit.
@@ -486,25 +487,25 @@ for (const [label, bytes, budgetKb, advice] of [
     'Entry chunk',
     entryBytes,
     MAX_ENTRY_GZIP_KB,
-    'Lazy-load a route or trim a dependency that first paint does not need, or raise MAX_ENTRY_GZIP_KB deliberately (CLAUDE.md, #504).',
+    'Lazy-load a route or trim a dependency that first paint does not need, or raise MAX_ENTRY_GZIP_KB deliberately (.claude/rules/observability.md, #504).',
   ],
   [
     'Total',
     totalBytes,
     MAX_TOTAL_GZIP_KB,
-    'Trim a dependency, or raise MAX_TOTAL_GZIP_KB deliberately (CLAUDE.md, #504).',
+    'Trim a dependency, or raise MAX_TOTAL_GZIP_KB deliberately (.claude/rules/observability.md, #504).',
   ],
   [
     'Squat entry',
     squatEntryBytes,
     MAX_SQUAT_ENTRY_GZIP_KB,
-    'Something /squat statically imports grew — keep heavy pieces behind a lazy import, or raise MAX_SQUAT_ENTRY_GZIP_KB deliberately (CLAUDE.md, #504).',
+    'Something /squat statically imports grew — keep heavy pieces behind a lazy import, or raise MAX_SQUAT_ENTRY_GZIP_KB deliberately (.claude/rules/observability.md, #504).',
   ],
   [
     'Squat total',
     squatTotalBytes,
     MAX_SQUAT_TOTAL_GZIP_KB,
-    'Trim the tool, or raise MAX_SQUAT_TOTAL_GZIP_KB deliberately (CLAUDE.md, #504).',
+    'Trim the tool, or raise MAX_SQUAT_TOTAL_GZIP_KB deliberately (.claude/rules/observability.md, #504).',
   ],
   [
     'Dashboard Spanish catalog',
@@ -516,7 +517,7 @@ for (const [label, bytes, budgetKb, advice] of [
     'Squat 3D',
     squat3dBytes,
     MAX_SQUAT_3D_GZIP_KB,
-    'three.js or the scene grew — check for a non-tree-shaken import (three/addons barrel, `import *`), or raise MAX_SQUAT_3D_GZIP_KB deliberately (CLAUDE.md, #504).',
+    'three.js or the scene grew — check for a non-tree-shaken import (three/addons barrel, `import *`), or raise MAX_SQUAT_3D_GZIP_KB deliberately (.claude/rules/observability.md, #504).',
   ],
 ]) {
   if (bytes > budgetKb * 1024) {
@@ -528,7 +529,7 @@ for (const [label, bytes, budgetKb, advice] of [
 
 if (squatData.bytes > MAX_SQUAT_DATA_BYTES) {
   failures.push(
-    `✖ ${squatData.file} is ${squatData.bytes} bytes, over the ${MAX_SQUAT_DATA_BYTES}-byte budget.\n  A pipeline re-run grew the anatomy stream; decimate or requantise it, or raise MAX_SQUAT_DATA_BYTES deliberately (CLAUDE.md, #504).`
+    `✖ ${squatData.file} is ${squatData.bytes} bytes, over the ${MAX_SQUAT_DATA_BYTES}-byte budget.\n  A pipeline re-run grew the anatomy stream; decimate or requantise it, or raise MAX_SQUAT_DATA_BYTES deliberately (.claude/rules/observability.md, #504).`
   );
 }
 for (const p of precache.filter((f) => f.bytes > MAX_PRECACHE_FILE_BYTES)) {

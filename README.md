@@ -1,8 +1,8 @@
-# Erg Dashboard
+# SplitIQ
 
-A personal training system for rowing, strength, and cycling — built to replace
-Strava, Garmin Connect, Concept2 Logbook, and TrainingPeaks with a single,
-fully personalised app.
+A training app where the movements explain themselves: a 3D anatomical model shows
+what a lift does, wrapped around a training log with an honest load model. See
+[`VISION.md`](VISION.md).
 
 [![CI — Web](https://github.com/skizzy1986/SplitIQ/actions/workflows/ci-web.yml/badge.svg)](https://github.com/skizzy1986/SplitIQ/actions/workflows/ci-web.yml)
 [![CI — Android](https://github.com/skizzy1986/SplitIQ/actions/workflows/ci-android.yml/badge.svg)](https://github.com/skizzy1986/SplitIQ/actions/workflows/ci-android.yml)
@@ -18,12 +18,12 @@ fully personalised app.
 
 ## What This Is
 
-A full-stack training dashboard built by and for a 50+ recreational rower
-training toward competitive regattas. Not a generic fitness tracker — every
-feature is built to scratch a specific itch that commercial apps don't reach:
-live PM5 Bluetooth data in the browser, HRV-aware readiness scoring, an AI
-coach with full training context, and training load analytics (TSS/CTL/ATL/TSB)
-computed from real session data.
+For anyone who lifts or rows and wants to understand their training, not just record
+it. The public squat tool (`/squat`, no sign-in) models which muscles work through the
+whole range. The training log covers erg, strength, bike and mobility sessions, live PM5
+Bluetooth data, HRV-aware readiness and training load (TSS/CTL/ATL/TSB) computed from
+real session data. No AI coach: every recommendation is deterministic and testable.
+A hobby built to a public-quality standard.
 
 ---
 
@@ -33,17 +33,19 @@ computed from real session data.
 |------|-------------|
 | **Overview** | TSS/CTL/ATL/TSB training load chart, weekly load summary |
 | **Calendar** | Month view of planned vs completed sessions |
-| **Program** | Microcycle schedule with prescribed workouts |
-| **ERG Live** | Real-time Bluetooth connection to Concept2 PM5 (watts, pace, HR) |
-| **Strength Log** | Session logging with PR tracking, rest timers, static hold timer |
+| **Plan** | Upcoming planned sessions |
+| **Live** | Real-time Bluetooth connection to a Concept2 PM5 (watts, pace, HR) |
+| **Erg** | Erg analytics: pace trend against CP-derived zones |
+| **Strength** | e1RM trends per lift |
+| **Logger** | Live strength-set logging with rest timers and a static hold timer |
 | **Mobility** | Mobility session tracking |
-| **Recovery** | HRV analytics dashboard, readiness score from Google Health data |
-| **Session Log** | Full history with filtering |
-| **Journal** | Daily training notes |
-| **AI Coach** | Streaming chat with Claude, training-context-aware system prompt |
+| **Recovery** | HRV/RHR/sleep and the readiness score from Google Health data |
+| **Log** | Full session history |
+| **Settings** | Language, Strava connection |
+| **`/squat`** | Public 3D squat tool — no sign-in |
 
-**Mobile:** Android APK (Capacitor 8) with dedicated mobile views — Analytics,
-Recovery, Strength, Session Log, Coach. PWA installable on iOS/web.
+**Mobile:** Android APK (Capacitor 8) with dedicated mobile views organised as Today,
+Train, Progress and Body. PWA installable on iOS/web.
 
 **Offline:** Service worker queues sessions written offline; syncs on reconnect.
 
@@ -60,7 +62,7 @@ Recovery, Strength, Session Log, Coach. PWA installable on iOS/web.
 | Mobile | Capacitor 8 → Android APK; PWA for iOS/web |
 | Hosting | Vercel (auto-deploy on push) |
 | Bluetooth | `@capgo/capacitor-bluetooth-low-energy` → Concept2 PM5 |
-| AI | Anthropic API (streaming) via Supabase Edge Function proxy |
+| i18n | Lingui (English, Spanish es-CO) |
 | Testing | Vitest + React Testing Library |
 | CI/CD | GitHub Actions |
 | Pre-commit | Husky + lint-staged |
@@ -72,33 +74,29 @@ Recovery, Strength, Session Log, Coach. PWA installable on iOS/web.
 ```
 Browser / Android APK
   └── React 19 SPA (web/src/)
-        ├── views/          — one component per tab (10 desktop + 5 mobile)
+        ├── views/          — one component per tab (desktop + mobile/)
         ├── hooks/          — data fetching (React Query + Supabase), derived state
         ├── components/     — shared UI (charts, forms, log entries)
-        ├── utils/          — pure functions: TSS calc, HRV analytics, scheduling
-        └── constants/      — training config, exercise library, UI config
+        ├── utils/          — pure functions: load model, HRV analytics, formatting
+        ├── constants/      — training config, UI config
+        ├── squat/          — public /squat tool
+        └── anatomy/        — 3D model runtime (three.js, lazy)
               │
               ▼
-        Supabase (Postgres + Auth)
+        Supabase (Postgres + Auth, owner-only RLS)
         ├── sessions        — all workouts (erg, strength, cycling, rest, planned)
         ├── vitals          — daily RHR / HRV / sleep / bodyweight
-        ├── training_load   — computed daily TSS
-        ├── strength_logs   — per-set logs with weights and reps
-        └── coach_messages  — AI coach conversation history
+        └── …               — list the rest with the Supabase MCP `list_tables`
               │
               ▼
-        Supabase Edge Functions (Deno)
-        ├── coach-chat        — Anthropic streaming API proxy (JWT-gated)
-        ├── vitals-import     — Google Sheets CSV → vitals (legacy cron)
-        ├── vitals-import-api — Google Health API → vitals (morning cron)
-        └── vitals-sync       — on-demand sync trigger
+        Supabase Edge Functions (Deno) — `ls supabase/functions`
+        (vitals import from Google Health, Strava OAuth and sync)
 ```
 
-The former 9,733-line monolith has been decomposed into the modular structure
-above using a strangler-fig refactor — one safe extraction at a time, app stays
-functional throughout — and the entry point is now `web/src/App.jsx` (~515
-lines, renamed in PR #145, closing #52). The remaining large-file splits
-(Program sub-tabs #77, StrengthLogger #79) are tracked separately.
+The former monolith has been decomposed into the modular structure above using a
+strangler-fig refactor — one safe extraction at a time, app stays functional
+throughout — and the entry point is now `web/src/App.jsx` (renamed in PR #145,
+closing #52). `StrengthLogger.jsx` is still to be split (#79).
 
 ---
 
@@ -119,9 +117,6 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 ```
 
 See `web/.env.example` for the full list, including the optional Sentry vars.
-
-For the `coach-chat` edge function, set `ANTHROPIC_API_KEY` in the Supabase
-Dashboard under Edge Functions → Secrets.
 
 ### Error monitoring
 
@@ -169,10 +164,12 @@ SplitIQ/
 │   │   ├── hooks/            React Query hooks + Supabase data layer
 │   │   ├── utils/            TSS calc, HRV analytics, scheduling, formatting
 │   │   ├── components/       shared UI components
-│   │   ├── views/            desktop views (CoachView, ErgLiveView, …)
+│   │   ├── views/            desktop views (ErgLiveView, RecoveryView, …)
 │   │   │   └── mobile/       mobile-specific views (MobileApp, MobileRecovery, …)
 │   │   ├── services/         pm5Bluetooth.js (BLE abstraction)
-│   │   ├── App.jsx           shell/router (~515 lines, formerly erg-dashboard.jsx)
+│   │   ├── squat/            public /squat tool
+│   │   ├── anatomy/          3D model runtime
+│   │   ├── App.jsx           shell/router (formerly erg-dashboard.jsx)
 │   │   └── main.jsx          auth gate (Supabase email/password)
 │   ├── android/              Capacitor Android project
 │   ├── capacitor.config.json
@@ -246,24 +243,16 @@ model). It never advances past a gate without explicit approval.
 
 ## Roadmap
 
-These are planned but not yet built:
+See [`docs/ROADMAP.md`](docs/ROADMAP.md). Still open from the original list:
 
-- **Strava OAuth2** — activity auto-sync → sessions table
-- **Garmin Connect** — HRV/RHR/sleep import → vitals table
-- **Concept2 Logbook** — erg session auto-import
-- **TrainingPeaks / Ergzone** — replaced by native plan engine
 - **Signed Android release APK** — for Play Store or direct distribution
-
-The foundation for all of these exists: Supabase tables are schema-ready,
-the edge function pattern is established, and the vitals import pipeline
-(Google Health API) demonstrates the cron + on-demand sync model.
 
 ---
 
 ## Background
 
-Built by Scott with Claude. Started as a static React artifact; grew into a
-full-stack app as training got more serious. The architecture decisions
-(Supabase, Capacitor, strangler-fig refactor) reflect real constraints: a
-single developer, a phone-first training environment, and a preference for
-owning the data rather than being locked into commercial platforms.
+Built by Scott with Claude. It started as a static React artifact for one rower and
+grew into a full-stack app; it is now SplitIQ, a training app for anyone, built as a
+hobby to a public-quality standard. The architecture decisions (Supabase, Capacitor,
+strangler-fig refactor) reflect real constraints: a single developer, a phone-first
+training environment, and owning the data rather than renting it.

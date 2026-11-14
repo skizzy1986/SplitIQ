@@ -1,88 +1,55 @@
 ---
 name: architecture
 description: >
-  Target folder structure, layer rules, and migration line-number map for the
-  erg-dashboard refactor. Read when asked where to put code, how to structure
-  a new feature, or how to safely extract a module from App.jsx or another
-  large file.
+  Folder layout, layer rules and the strangler-fig sequence for the web app.
+  Read when asked where to put code, how to structure a new feature, or how to
+  safely extract a module from App.jsx or another large file.
 ---
 
-## Target Structure
+## Layout (directory level)
+
+List a directory's files with `git ls-files web/src/<dir>`; this section names
+directories and roles only, so it does not go stale with every file.
 
 ```
-src/
-  constants/            ACTUAL flat layout. The colors/calibration/program/season/
-                        guide/logs split was the original plan; the files were
-                        extracted flat instead — THIS is the real convention, name
-                        new constant files to match it:
-    ui.js             C (session-type colors), ICON
-    trainingConfig.js SRPE_GUIDE, SRPE_SCALE, CALIBRATION_STATUS, CRITICAL_POWER,
-                      POWER_DURATION, FTP_TEST, HR_ZONES, derivePaceZones, HR130_POWER,
-                      EST_MHR, deriveCalibrationStatus
-    schedule.js       PHASES, PHASE_CONTEXT, MICROCYCLE, SEASON, SEASON_2,
-                      EVENT_LADDER, VOLUME_PROGRESSION
-    exercises.js      STRENGTH_TEMPLATES, REP_SCHEMES, LOWER_DIFFERENTIATION,
-                      PREHAB_NOTE, STRENGTH_PRINCIPLES
-    nutrition.js      MACRO_TARGETS, NUTRITION_TARGETS, MF_PROGRAM, DEFICIT_PROGRAM,
-                      FUELLING, NUTRITION_PRINCIPLES
-    tssData.js        DAILY_TSS
-    (logs.js + coaching.js — recoveryLog, nutritionLog, bpLog, DECISION_LOG,
-     HYPOTHESES, RULE_FIRING_HISTORY, ADAPTIVE_RULES, DAILY_ROUTINE, RULE_EVOLUTION,
-     ergTrend — are still inside the monolith; PR1 (#68) extracts them flat.)
-
-  hooks/
-    useSessions.js    Supabase fetch + merge with seed; returns { sessions, dbStatus }
-    useTrainingLoad.js calcTrainingLoad → { loadData, latestCTL, latestATL, latestTSB }
-    useReadiness.js   calcReadiness per day → { readiness, verdict }
-    useRosterMode.js  getRosterMode, resolveDay, dayStatus
-
-  utils/
-    analysis.js       analyzeBarometer, evaluateRules, checkConsistency,
-                      deriveTargets, autoregulate
-    formatting.js     fmtPace, normType, workoutAccent, assessMacro,
-                      macroColor, bpCategory
-    schedule.js       getToday, getUpcomingSessions, logEntriesForDate,
-                      daySessions, getRosterMode, resolveDay
-
-  components/
-    ErrorBoundary.jsx Error isolation wrapper (class component)
-    LogEntry.jsx      Collapsible session log entry
-    WorkoutItem.jsx   Single-session box for calendar/schedule views
-    LogSessionForm.jsx Modal form for logging a strength session (Supabase insert)
-    charts/
-      LoadChart.jsx   TSB/CTL/ATL LineChart + LoadTooltip
-      ErgChart.jsx    HR130 barometer + ErgTooltip
-      StrengthChart.jsx e1RM trend + StrengthTooltip
-
-  views/                Extract by TAB ID, one per PR. Find each tab by its
-                        section heading / tab constant in App.jsx (formerly
-                        erg-dashboard.jsx) — do NOT trust absolute line
-                        numbers: every extraction shifts the offsets.
-    CoachView.jsx       ✓ extracted    AI coach tab
-    ErgView.jsx         ✓ extracted    erg analytics, HR130, pace/splits
-    ErgLiveView.jsx     ✓ extracted    live PM5 Bluetooth
-    JournalView.jsx     tab `journal`  — decision log, hypotheses        (PR5, #72)
-    RecoveryView.jsx    tab `recovery` — HRV/RHR/sleep, readiness         (PR6, #73)
-    OverviewView.jsx    tab `overview` — home dashboard (~1,370 lines)    (PR7, #74)
-    StrengthView.jsx    tab `strength` — e1RM trends                      (PR8, #75)
-    MobilityView.jsx    tab `mobility` — mobility routines                (PR9, #76)
-    CalendarView.jsx    tab `calendar` — 17-day calendar                  (#78)
-    PlanView.jsx        tab `plan`     — upcoming planned sessions        (#78)
-    LogView.jsx         tab `log`      — session history                  (#78)
-    program/            tab `program`  — ~3,071 lines, SPLIT (see below)  (#77)
-
-  views/program/        The Program tab is too large for one ProgramView.jsx.
-                        Decision recorded in H0 (#67): split across ~3 PRs into —
-    ProgramView.jsx       shell + tab navigation
-    ProgramPhases.jsx     PHASES, ANNUAL_ARC
-    ProgramMicrocycle.jsx 2-week roster
-    ProgramYear.jsx       EVENT_PATHWAY year view
-
-  App.jsx     Global state + nav tabs + ErrorBoundary + view dispatch (~515 lines;
-              ✓ renamed from erg-dashboard.jsx in PR #145, closing #52)
-  main.jsx    Auth gate (unchanged)
-  supabaseClient.js  Supabase init (unchanged)
+web/src/
+  constants/      plain data, flat files (no imports, no React)
+  utils/          pure functions, unit-tested in utils/__tests__/
+  hooks/          React hooks; Supabase calls via React Query
+  components/     reusable JSX, props in
+    mobile/       mobile-only shared components (BottomTabBar, SplashScreen)
+  services/       device/native integrations (pm5Bluetooth.js)
+  views/          desktop tabs, one file per tab, lazy-loaded from App.jsx
+    mobile/       mobile tab views (MobileApp.jsx is the mobile shell)
+  i18n/           Lingui runtime wiring (locale, provider, catalog registration)
+  locales/        Lingui catalogs (boot catalog; views/ holds the views catalog)
+  squat/          public squat tool at /squat (web only, no auth, not in the APK):
+                  constants/, utils/, hooks/, components/, workers/ (gzip decode),
+                  locales/, assets/ (extracted CC BY-SA anatomy data + LICENSE.md)
+  anatomy/        movement-neutral 3D model runtime used by /squat:
+                  utils/ (pure posing, colour and camera maths, fixture-tested
+                  against the source page — docs/squat/SKINNING.md — plus the
+                  generic manifest readers), constants/ (scene style), scene/
+                  (the ONLY code that imports three.js; loaded lazily via
+                  scene/loadScene.js — ESLint enforces)
+  test/           shared test helpers
+  App.jsx         desktop shell/router: nav, per-tab error boundary, view dispatch
+  AuthGate.jsx    auth gate; lazy-loads the dashboard shells
+  RouteRoot.jsx   picks the product: /squat -> squat/SquatApp, else AuthGate (both lazy)
+  main.jsx        bootstrap (Sentry, react-query, theme vars) -> RouteRoot
+  supabaseClient.js  Supabase init (never imported by /squat)
+  StrengthLogger.jsx live strength-set logger (the Logger tab)
 ```
+
+## Large files
+
+Measure with `wc -l`; do not record counts here.
+
+- `App.jsx` — the former `erg-dashboard.jsx` monolith, decomposed into the views above
+  (#52, closed by PR #145). A shell now: targeted edits only.
+- `StrengthLogger.jsx` — not yet extracted, untested (#79).
+- `ProgramView.jsx` and `views/program/` (#77) were removed by the product-coherence
+  slices (#499); there is no Program tab.
 
 ## Layer Rules
 

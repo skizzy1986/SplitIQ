@@ -32,7 +32,7 @@ Examples:
    > cannot resolve, and every claim carries its source. For APIs report: auth
    > method, the specific endpoints this project needs, rate limits, data
    > formats, and whether a Supabase Edge Function or client-side fetch fits.
-   > For libraries report: React 18 + Vite compatibility, bundle-size impact,
+   > For libraries report: React 19 + Vite compatibility, bundle-size impact,
    > and alternatives considered. For training science: cite sources and note
    > evidence vs convention. Check findings against the current date — APIs
    > change. If credentials are needed, identify what and how to obtain them —

@@ -6,8 +6,10 @@
 # 1. `$CLAUDE_PROJECT_DIR`, not a hardcoded /home/user/erg-dashboard. The old
 #    path does not exist outside the original Linux sandbox, so the hook `cd`
 #    failed and — because the failure exited 0 — reported success while doing
-#    nothing. It also follows the session into its worktree, which matters now
-#    that each session gets its own checkout.
+#    nothing. `$CLAUDE_PROJECT_DIR` does NOT follow a session into its worktree
+#    (it stays at the main checkout), so a file under
+#    <root>/.claude/worktrees/<name>/ is linted with that worktree's own eslint
+#    and config, found by string match alone (#536).
 # 2. It lints the file named in the tool call. The old form linted whatever the
 #    first five entries of `git diff --name-only HEAD` happened to be, which
 #    need not include the file that triggered the hook.
@@ -36,14 +38,40 @@
 # https://code.claude.com/docs/en/hooks
 set -uo pipefail
 
-root="${CLAUDE_PROJECT_DIR:-}"
-if [ -z "$root" ] || [ ! -d "$root" ]; then
-  echo "[HOOK] lint-edited-file: CLAUDE_PROJECT_DIR unset or not a directory (${root:-<unset>})" >&2
+# Each path has two forms (#536). The fs form (backslashes -> /, no trailing
+# slash) is the only one ever opened. The key form also maps /c/ -> C:/ and
+# upper-cases the drive letter, and is used ONLY to compare paths: the Write
+# tool sends C:\..., Git Bash may hand the root over as /c/..., and a literal
+# match between the two silently skipped every edit — #295 again.
+# Runs of / collapse to one, so web//src/ cannot miss scope; a leading // (UNC)
+# is kept.
+fs_form() {
+  local p="${1//\\//}" lead=""
+  case "$p" in //[!/]*) lead=/ && p="${p#/}" ;; esac
+  while [[ "$p" == *//* ]]; do p="${p//\/\//\/}"; done
+  [ "$p" = / ] || p="${p%/}"
+  printf '%s' "$lead$p"
+}
+key_form() {
+  local p d
+  p="$(fs_form "$1")"
+  case "$p" in
+    /[A-Za-z]/*) p="${p:1:1}:${p:2}" ;;
+    /[A-Za-z]) p="${p:1:1}:" ;;
+  esac
+  case "$p" in
+    [A-Za-z]:*) d="${p:0:1}" && p="${d^^}${p:1}" ;;
+  esac
+  printf '%s' "$p"
+}
+
+root_raw="${CLAUDE_PROJECT_DIR:-}"
+root="$(fs_form "$root_raw")"
+if [ -z "$root_raw" ] || [ ! -d "$root" ]; then
+  echo "[HOOK] lint-edited-file: CLAUDE_PROJECT_DIR unset or not a directory (${root_raw:-<unset>})" >&2
   exit 1
 fi
-# A trailing slash would make every scope match below miss, silently skipping
-# every edit: the same exit-0-while-doing-nothing defect as #295.
-[ "$root" = / ] || root="${root%/}"
+rkey="$(key_form "$root")"
 
 # The hook payload arrives as JSON on stdin. Parsed with node rather than the
 # sed approach used by block-secret-commit.sh: a Windows path arrives as
@@ -65,22 +93,72 @@ case "$file" in
   *) exit 0 ;;
 esac
 
-web="$root/web"
+ffs="$(fs_form "$file")"
+fkey="$(key_form "$file")"
+
+# The tree that owns the file: a worktree under <root>/.claude/worktrees/<n>/,
+# else the root. <n> is the one segment after the prefix, cut at the first /
+# (a case * would cross /).
+tree="$root"
+tkey="$rkey"
+wt_prefix="$rkey/.claude/worktrees/"
+case "$fkey" in
+  "$wt_prefix"*)
+    rest="${fkey#"$wt_prefix"}"
+    n="${rest%%/*}"
+    if [ -n "$n" ] && [ "$n" != "$rest" ]; then
+      tree="$root/.claude/worktrees/$n"
+      tkey="$wt_prefix$n"
+    fi
+    ;;
+esac
+
+web="$tree/web"
 eslint="$web/node_modules/.bin/eslint"
 
 # Mirror `npm run lint`, which covers only src/ and scripts/ under web/. Checked
 # before the eslint binary, so an out-of-scope edit stays silent without deps.
-case "$file" in
-  "$web"/src/* | "$web"/scripts/*) ;;
-  *) exit 0 ;;
+case "$fkey" in
+  "$tkey"/web/src/* | "$tkey"/web/scripts/*) ;;
+  *)
+    # Out of scope under the root is normal and silent, unless it misses only by
+    # letter case (web/Src, .claude/Worktrees): Windows would open that file,
+    # so a skip would be silent dead lint. Outside the root, a path that still
+    # looks like web/src code means a normalisation miss or a worktree this hook
+    # cannot see. Both are said out loud rather than exit 0 doing nothing.
+    case "$fkey" in
+      "$rkey"/*)
+        rel="${fkey#"$rkey"/}"
+        rel="${rel,,}"
+        case "$rel" in
+          .claude/worktrees/*/*)
+            rel="${rel#.claude/worktrees/}"
+            rel="${rel#*/}"
+            ;;
+        esac
+        case "$rel" in
+          web/src/* | web/scripts/*)
+            echo "[HOOK] lint-edited-file: $file misses web/src or web/scripts only by letter case — not linted; check the path's case" >&2
+            exit 1
+            ;;
+        esac
+        exit 0
+        ;;
+      */web/src/* | */web/scripts/*)
+        echo "[HOOK] lint-edited-file: $file looks like web/src code but is outside $root and its .claude/worktrees — not linted" >&2
+        exit 1
+        ;;
+    esac
+    exit 0
+    ;;
 esac
 
 # Deleted between the edit and the lint: eslint would exit 2 ("No files
 # matching"), a false tooling alarm.
-[ -f "$file" ] || exit 0
+[ -f "$ffs" ] || exit 0
 
 if [ ! -x "$eslint" ]; then
-  echo "[HOOK] lint-edited-file: eslint not installed at web/node_modules/.bin/eslint — run 'npm install' in web/; edit-time lint is OFF" >&2
+  echo "[HOOK] lint-edited-file: eslint not installed at $eslint — run 'npm install' in $web; edit-time lint is OFF" >&2
   exit 1
 fi
 
@@ -97,7 +175,7 @@ cd "$web" || {
 
 # --no-warn-ignored: a future global ignore must not turn an in-scope file into
 # a "File ignored" warning that --max-warnings=0 would count as a finding.
-lint_out="$("$eslint" --format json --max-warnings=0 --no-warn-ignored "$file" 2>"$errfile")"
+lint_out="$("$eslint" --format json --max-warnings=0 --no-warn-ignored "$ffs" 2>"$errfile")"
 lint_rc=$?
 
 if [ "$lint_rc" -eq 0 ]; then
@@ -118,7 +196,7 @@ fi
 # forwarded raw. JSON.stringify does the escaping; bash never concatenates JSON.
 # node exits 4 when the output is unreadable or holds no findings; any other
 # non-zero means the builder itself broke.
-ctx="$(printf '%s' "$lint_out" | HOOK_ROOT="$root" HOOK_FILE="$file" node -e '
+ctx="$(printf '%s' "$lint_out" | HOOK_ROOT="$tree" HOOK_FILE="$ffs" node -e '
 const path = require("path");
 let s = "";
 process.stdin.on("data", (d) => (s += d)).on("end", () => {

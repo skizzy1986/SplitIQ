@@ -10,8 +10,8 @@ descriptions.
 ## Re-promote one
 
 `git mv .claude/agent-library/<file>.md .claude/agents/`, add its route to
-`.claude/AGENTS.md`, update the 24/208 counts in `CLAUDE.md`, `FACTORY.md` and
-`.claude/AGENTS.md`, and land it as a PR. Never edit these files.
+`.claude/AGENTS.md`, update the counts in this README and `FACTORY.md`, and land it as
+a PR. Never edit these files.
 
 ## Optional: trim a local global install
 

@@ -1,13 +1,17 @@
 # Agent routing — which agent for which job
 
-> The Agency library (232 agents, 16 divisions) is committed, but only the 24
-> agents named in this file's tables are loadable — they sit in `.claude/agents/`
+> The Agency library (`msitarzewski/agency-agents`) is committed in full, but only
+> the agents named in this file's tables are loadable — they sit in `.claude/agents/`
 > and **staff the factory pipeline** (the 12 project pipeline agents were retired
-> 2026-07-02; git history is their archive). The other 208 are parked
-> byte-identical in `.claude/agent-library/`, which Claude Code does not load
-> (#483). Background on the library is in CLAUDE.md ("Agency Agents"); the
-> pipeline is defined in `.claude/skills/orchestrate/SKILL.md` and explained in
-> FACTORY.md.
+> 2026-07-02; git history is their archive). The rest are parked byte-identical in
+> `.claude/agent-library/`, which Claude Code does not load (#483); background and
+> the local-install trim are in `.claude/agent-library/README.md`. The pipeline is
+> defined in `.claude/skills/orchestrate/SKILL.md` and explained in FACTORY.md.
+> Code still ships only through the gated pipeline as a PR, never as a direct commit
+> from a loose agent. To list divisions or re-install: clone the upstream repo and
+> run `./scripts/install.sh --tool claude-code --list teams` (or `--no-interactive`
+> to install all; a full install refills `~/.claude/agents/` with the whole library,
+> so repeat the trim).
 
 ## Always give Agency agents erg context
 
@@ -94,7 +98,7 @@ persona surface.
 
 ## Re-promoting a parked agent
 
-`git mv .claude/agent-library/<file>.md .claude/agents/`, add a row for it above, update the 24/208 counts (here, `CLAUDE.md`, `FACTORY.md`), and land it as a PR. Every loadable agent's description is paid on every request — promote for a recurring job, not a one-off.
+`git mv .claude/agent-library/<file>.md .claude/agents/`, add a row for it above, update the counts in `FACTORY.md` and `.claude/agent-library/README.md`, and land it as a PR. Every loadable agent's description is paid on every request — promote for a recurring job, not a one-off.
 
 ## Rule of thumb
 

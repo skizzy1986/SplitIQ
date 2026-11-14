@@ -57,7 +57,7 @@ architecture, the quality bar — still applies to any code you write.
   unless Scott has asked for it in a Discussion.
 - **No secrets, no personal data.** Don't create `.env` files with real keys, don't use
   any Supabase, Sentry or Vercel connector against Scott's projects, and don't quote
-  Scott's personal training details (in `CLAUDE.md`, `coach/`) in anything you post.
+  Scott's personal training details (in `coach/` or the database) in anything you post.
 - **Honesty labels stay.** The model's values are *modelled*; activation is *estimated,
   not EMG*. Never present a modelled number as measured.
 - **Licences — check `PERMISSIONS.md` first.** The code is proprietary (root `LICENSE`)
@@ -74,14 +74,13 @@ architecture, the quality bar — still applies to any code you write.
     Keep open-source library licence notices (three.js and others).
   - **Never add OpenCap data** to the repo or his published projects
     (`docs/squat/LAB_DATA.md` explains why).
-  - **Never publish Scott's personal training material** (`coach/`, the personal parts
-    of `CLAUDE.md`).
+  - **Never publish Scott's personal training material** (`coach/`).
 
 ## What to ignore in `CLAUDE.md`
 
 Those sections are for Scott's own sessions. In collaborator mode:
 
-- **Supabase / Coach / context store / data-layer gotchas** — not applicable; he has no
+- **Supabase / context store / data-layer gotchas** — not applicable; he has no
   access and `/squat` never touches Supabase.
 - **"Every session works in its own worktree"** — optional here; a single clone with an
   `explore/*` branch is fine.
@@ -164,8 +163,8 @@ don't. Post the result as an Idea.
 
 ### `learn <topic>` — understand how and why it was built
 For curiosity rather than output. Good topics: how the 3D posing works; how a React
-component is tested; what CI checks and why (`.github/workflows/`, `CLAUDE.md` "CI &
-Quality Gates"); how Scott's agent pipeline is staged and gated (`FACTORY.md`,
+component is tested; what CI checks and why (`.github/workflows/`, and "What protects
+`main`" in `.claude/skills/steward/SKILL.md`); how Scott's agent pipeline is staged and gated (`FACTORY.md`,
 `.claude/skills/orchestrate/SKILL.md`) and why gates catch bugs; how the bundle budgets
 work. Explain with the real files open, use small experiments on an `explore/` branch
 ("change this number, watch what happens"), and finish with one or two things he could

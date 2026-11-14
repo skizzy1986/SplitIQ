@@ -248,11 +248,10 @@ code written to the rule under *The shape*, not a revival of these files.
 
 ## How to read this against the rest of the docs
 
-`CLAUDE.md` still opens by describing a personal coaching dashboard with a solo
-user, and names replacing commercial apps as the vision. **That framing is
-superseded by this file** and needs rewriting; until it is, prefer this document.
-That rewrite (#424) now also carries the 2026-11-13 amendment, as does the project
-paragraph in `.claude/skills/erg-context.md`.
+`CLAUDE.md` was rewritten for SplitIQ in #424, carrying the 2026-11-13 amendment, as
+does the project paragraph in `.claude/skills/erg-context.md`. The earlier framing (a
+personal coaching dashboard for one user, replacing commercial apps) is superseded by
+this file.
 
 `docs/ROADMAP.md` was decided on 2026-11-07, before the amendment. It recorded the
 amendment on 2026-11-13 as decisions D13–D18 and a second track for the log (L1–L3):
@@ -262,5 +261,5 @@ note. This file still wins wherever the two disagree.
 
 Roadmap D4 ("not a business" is absolute) is unchanged and is relied on above.
 
-`CLAUDE.md` remains correct and authoritative on how the repo *works* — the
-architecture layers, the Supabase gotchas, the CI gates, the agent pipeline.
+`CLAUDE.md` is authoritative on how the repo *works*, directly or through the files it
+indexes — the architecture layers, the Supabase gotchas, the CI gates, the agent pipeline.

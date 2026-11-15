@@ -65,7 +65,7 @@ beforeEach(() => {
   mocks.authCb = null;
 });
 
-it('clears private caches, queue and draft before a second account renders', async () => {
+it('clears caches and quarantines unattributable work before a second account renders', async () => {
   mocks.session = Promise.resolve({ data: { session: session('A') } });
   const client = mount();
   await waitFor(() =>
@@ -112,7 +112,7 @@ it('keeps same-account refreshes and reloads from discarding private work', asyn
   expect(localStorage.getItem(DRAFT_KEY)).toBe('draft A');
 });
 
-it('clears private work when a cold boot resolves to a different saved owner', async () => {
+it('quarantines unattributable work when a cold boot resolves to a different saved owner', async () => {
   localStorage.setItem('splitiq.data-owner', 'A');
   localStorage.setItem(DRAFT_KEY, 'draft A');
   mocks.session = Promise.resolve({ data: { session: session('B') } });
@@ -123,7 +123,7 @@ it('clears private work when a cold boot resolves to a different saved owner', a
   expect(localStorage.getItem(DRAFT_KEY)).toBeNull();
 });
 
-it('clears caches and private work on sign-out', async () => {
+it('clears caches and quarantines unattributable work on sign-out', async () => {
   mocks.session = Promise.resolve({ data: { session: session('A') } });
   const client = mount();
   await screen.findByTestId('private-probe');
@@ -132,6 +132,37 @@ it('clears caches and private work on sign-out', async () => {
   expect(screen.queryByTestId('private-probe')).toBeNull();
   expect(client.getQueryCache().getAll()).toHaveLength(0);
   expect(localStorage.getItem(DRAFT_KEY)).toBeNull();
+});
+
+it('keeps owned unsynced work through sign-out and the same owner signing back in', async () => {
+  mocks.session = Promise.resolve({ data: { session: session('A') } });
+  mount();
+  await screen.findByTestId('private-probe');
+  const rows = [{ user_id: 'A', label: 'offline erg' }];
+  const draft = { id: 'w1', user_id: 'A', exercises: [] };
+  localStorage.setItem(QUEUE_KEY, JSON.stringify(rows));
+  localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+  act(() => mocks.authCb('SIGNED_OUT', null));
+  expect(JSON.parse(localStorage.getItem(QUEUE_KEY))).toEqual(rows);
+  expect(JSON.parse(localStorage.getItem(DRAFT_KEY))).toEqual(draft);
+  act(() => mocks.authCb('SIGNED_IN', session('A')));
+  await waitFor(() =>
+    expect(screen.getByTestId('private-probe')).toHaveTextContent('A:record-A')
+  );
+  expect(JSON.parse(localStorage.getItem(QUEUE_KEY))).toEqual(rows);
+  expect(localStorage.getItem(UNASSIGNED_KEY)).toBeNull();
+});
+
+it('keeps owned unsynced work when a cold boot finds the session expired', async () => {
+  const rows = [{ user_id: 'A', label: 'offline erg' }];
+  localStorage.setItem('splitiq.data-owner', 'A');
+  localStorage.setItem(QUEUE_KEY, JSON.stringify(rows));
+  mocks.session = Promise.resolve({ data: { session: null } });
+  mount();
+  await waitFor(() =>
+    expect(localStorage.getItem('splitiq.data-owner')).toBeNull()
+  );
+  expect(JSON.parse(localStorage.getItem(QUEUE_KEY))).toEqual(rows);
 });
 
 it('quarantines unknown legacy work instead of assigning it to the first new account', async () => {
@@ -149,7 +180,11 @@ it('quarantines unknown legacy work instead of assigning it to the first new acc
     expect(screen.getByTestId('private-probe')).toHaveTextContent('B:record-B')
   );
   expect(localStorage.getItem(DRAFT_KEY)).toBeNull();
-  expect(JSON.parse(localStorage.getItem(QUEUE_KEY))).toEqual([rows[2]]);
+  // Owned rows stay for their owner's replay; only the ownerless row is archived.
+  expect(JSON.parse(localStorage.getItem(QUEUE_KEY))).toEqual([
+    rows[0],
+    rows[2],
+  ]);
   const archived = JSON.parse(localStorage.getItem(UNASSIGNED_KEY));
   expect(archived).toHaveLength(2);
   expect(archived.find((item) => item.key === DRAFT_KEY).raw).toBe(

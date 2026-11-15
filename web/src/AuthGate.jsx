@@ -3,8 +3,7 @@ import { supabase } from './supabaseClient.js';
 import { QueryClientContext } from '@tanstack/react-query';
 import { SessionOwnerContext } from './hooks/useSessionOwner.js';
 import {
-  clearPrivateSessionState,
-  isolateLegacyPrivateState,
+  startPrivateSession,
   storedSessionOwner,
   rememberSessionOwner,
 } from './utils/privateSessionState.js';
@@ -352,15 +351,13 @@ function Gate() {
         ownerRef.current === undefined
           ? storedSessionOwner()
           : ownerRef.current;
-      // Unassigned legacy work is quarantined instead of attributed to the
-      // next account; known account transitions clear active private storage.
       if (ownerRef.current === undefined || ownerRef.current !== nextOwner) {
         queryClient?.clear();
       }
-      if (previous !== nextOwner && previous !== null) {
-        clearPrivateSessionState();
-      } else if (previous === null && nextOwner) {
-        isolateLegacyPrivateState(nextOwner);
+      // Any owner change starts a new private session: stale callbacks are cut
+      // off and ownerless legacy work is quarantined. Owned unsynced work stays.
+      if (previous !== nextOwner && (previous !== null || nextOwner)) {
+        startPrivateSession();
       }
       ownerRef.current = nextOwner;
       rememberSessionOwner(nextOwner);

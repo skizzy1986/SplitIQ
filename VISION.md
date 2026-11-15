@@ -147,8 +147,7 @@ expert depth, and the user chooses which.
 - **Depth is a preference, not a tier.** Nothing is locked.
 - **The four destinations are the simple depth's structure on every screen size:**
   Today, Train, Progress, Body (`web/src/constants/destinations.js`). The desktop
-  tab row folds into them through R38, implemented in the #511 worktree after
-  approval of the coach-access specification on 2026-11-15.
+  tab row was folded into them by R38.
 
 ### Personal data belongs in the database, not the source
 

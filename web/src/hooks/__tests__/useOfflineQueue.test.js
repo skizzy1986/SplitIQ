@@ -365,8 +365,8 @@ describe('useOfflineQueue drain invalidation', () => {
 });
 
 describe('offline replay across an account change', () => {
-  it('does not restore the old account queue after an in-flight insert fails', async () => {
-    const { clearPrivateSessionState } =
+  it('does not duplicate or overwrite the queue after an in-flight insert fails across an account change', async () => {
+    const { startPrivateSession } =
       await import('../../utils/privateSessionState.js');
     getUserMock.mockResolvedValue({ data: { user: { id: 'account-A' } } });
     let resolveInsert;
@@ -381,13 +381,14 @@ describe('offline replay across an account change', () => {
       wrapper: makeWrapper(makeClient(), 'account-A'),
     });
     await waitFor(() => expect(insertMock).toHaveBeenCalledTimes(1));
-    clearPrivateSessionState();
+    startPrivateSession();
     enqueueSession({ date: '1/3/26', type: 'erg', user_id: 'account-B' });
     resolveInsert({ error: { code: '08006', message: 'old request failed' } });
     await new Promise((resolve) => setTimeout(resolve, 0));
+    // A's row is retained once for A's own replay; the stale drain neither
+    // duplicates it nor drops B's row.
     const rows = JSON.parse(localStorage.getItem(QUEUE_KEY));
-    expect(rows).toHaveLength(1);
-    expect(rows[0].user_id).toBe('account-B');
+    expect(rows.map((row) => row.user_id)).toEqual(['account-A', 'account-B']);
   });
 });
 
@@ -397,13 +398,13 @@ describe('offline queue producer and drain races', () => {
       value: false,
       configurable: true,
     });
-    const { clearPrivateSessionState } =
+    const { startPrivateSession } =
       await import('../../utils/privateSessionState.js');
     const { result } = renderHook(() => useOfflineQueue(), {
       wrapper: makeWrapper(makeClient()),
     });
     const oldAdd = result.current.addToQueue;
-    clearPrivateSessionState();
+    startPrivateSession();
     enqueueSession({
       date: '6/26/26',
       label: 'new account',

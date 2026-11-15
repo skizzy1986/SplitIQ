@@ -70,8 +70,8 @@ separate screen. Desktop retains its analytical layouts; it does not simply stre
 the mobile screens. Train includes the existing live erg and strength logger paths.
 The previous rule that Train has no desktop counterpart no longer applies.
 
-R37 and the R33 disposition were approved on 2026-11-15. R38 implements this
-structure in the #511 worktree, retaining the existing analytical views as panes
+R37 and the R33 disposition were approved on 2026-11-15. R38 (#582) implements this
+structure, retaining the existing analytical views as panes
 and keeping Settings separately routed. Live erg and strength tools remain mounted
 after their first visit so navigation preserves an active session.
 The anatomy engine stays public and independently lazy-loaded. R22 owns the

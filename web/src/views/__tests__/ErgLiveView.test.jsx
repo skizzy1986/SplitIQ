@@ -35,7 +35,7 @@ vi.mock('../../hooks/useOfflineQueue', () => ({
 
 import ErgLiveView from '../ErgLiveView.jsx';
 import { SessionOwnerContext } from '../../hooks/useSessionOwner.js';
-import { clearPrivateSessionState } from '../../utils/privateSessionState.js';
+import { startPrivateSession } from '../../utils/privateSessionState.js';
 
 const SUMMARY = {
   distance: 5000,
@@ -500,7 +500,7 @@ describe('live save account isolation', () => {
     renderWithClient(<ErgLiveView />, makeClient());
     fireEvent.click(screen.getByText('SAVE SESSION'));
     await waitFor(() => expect(getUserMock).toHaveBeenCalled());
-    clearPrivateSessionState();
+    startPrivateSession();
     await act(async () => {
       release({ data: { user: { id: 'account-B' } } });
     });
@@ -520,7 +520,7 @@ describe('live save account isolation', () => {
     renderWithClient(<ErgLiveView />, makeClient());
     fireEvent.click(screen.getByText('SAVE SESSION'));
     await waitFor(() => expect(insertMock).toHaveBeenCalled());
-    clearPrivateSessionState();
+    startPrivateSession();
     await act(async () => {
       release({ error: { code: '42501', message: 'changed account' } });
     });

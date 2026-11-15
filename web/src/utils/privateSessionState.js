@@ -26,17 +26,6 @@ export function rememberSessionOwner(owner) {
   }
 }
 
-export function clearPrivateSessionState() {
-  generation += 1;
-  for (const key of [QUEUE_KEY, DRAFT_KEY]) {
-    try {
-      window.localStorage.removeItem(key);
-    } catch {
-      /* Unavailable storage cannot be read by the next account either. */
-    }
-  }
-}
-
 // Retain ownerless legacy work for explicit recovery, never assign it to whoever
 // signs in first after an upgrade. If storage is full, leave the original intact;
 // the draft loader and replay queue also reject records with unknown ownership.
@@ -59,7 +48,14 @@ export function archiveUnassignedWork(key, raw) {
   }
 }
 
-export function isolateLegacyPrivateState(owner) {
+// An account boundary (sign-in, sign-out, switch, or first boot after an upgrade).
+// Late callbacks from the previous account become stale through the generation.
+// Owner-tagged queue rows and drafts are kept: they may be unsynced workouts, and
+// replay and the logger only ever act on the signed-in owner's records. Deleting
+// them on sign-out or session expiry would lose training data. The trade-off is
+// that another account on the same device leaves them in storage, not on screen.
+// Ownerless legacy work is quarantined, never assigned to whoever signs in next.
+export function startPrivateSession() {
   generation += 1;
   for (const key of [QUEUE_KEY, DRAFT_KEY]) {
     try {
@@ -71,20 +67,19 @@ export function isolateLegacyPrivateState(owner) {
       } catch {
         value = null;
       }
-      if (key === DRAFT_KEY && value?.user_id === owner) continue;
-      const matching =
+      if (key === DRAFT_KEY && value?.user_id) continue;
+      const owned =
         key === QUEUE_KEY && Array.isArray(value)
-          ? value.filter((row) => row?.user_id === owner)
+          ? value.filter((row) => row?.user_id)
           : [];
       if (
         key === QUEUE_KEY &&
         Array.isArray(value) &&
-        matching.length === value.length
+        owned.length === value.length
       )
         continue;
       if (!archiveUnassignedWork(key, raw)) continue;
-      if (matching.length)
-        window.localStorage.setItem(key, JSON.stringify(matching));
+      if (owned.length) window.localStorage.setItem(key, JSON.stringify(owned));
       else window.localStorage.removeItem(key);
     } catch {
       /* Keep unreadable storage untouched; no ownership is inferred. */

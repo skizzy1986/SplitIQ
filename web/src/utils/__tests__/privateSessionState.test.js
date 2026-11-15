@@ -1,6 +1,6 @@
 import {
   archiveUnassignedWork,
-  isolateLegacyPrivateState,
+  startPrivateSession,
   QUEUE_KEY,
   UNASSIGNED_KEY,
 } from '../privateSessionState.js';
@@ -23,7 +23,7 @@ it('retains originals when recovery storage cannot be written', () => {
   vi.spyOn(window.Storage.prototype, 'setItem').mockImplementation(() => {
     throw new Error('quota');
   });
-  isolateLegacyPrivateState('B');
+  startPrivateSession();
   expect(localStorage.getItem(QUEUE_KEY)).toBe(raw);
   expect(localStorage.getItem(UNASSIGNED_KEY)).toBeNull();
 });

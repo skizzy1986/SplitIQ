@@ -18,6 +18,9 @@
 >
 > Amended 2026-11-14: the language track (Spanish, es-CO), I1–I8, D20–D23, and the
 > bundle baseline re-measured after it.
+>
+> Amended 2026-11-15: D25 reverses D3 (invite-only) and opens registration: R31 is in
+> progress as [#561](https://github.com/skizzy1986/SplitIQ/issues/561).
 
 ## What SplitIQ is
 
@@ -75,7 +78,7 @@ through `/orchestrate <item>` with its own Gate 2 and Gate 3, one PR per item, `
 | R4 | Migration for the `exercises` seed and the three un-migrated views | [#435](https://github.com/skizzy1986/SplitIQ/issues/435) | M | R22. **#429 first**, or the migration can merge and never apply |
 | R5 | Backup gaps | [#428](https://github.com/skizzy1986/SplitIQ/issues/428) | M | R31 |
 | R6 | Reorientation slices 4b–12 | [#417–#425](https://github.com/skizzy1986/SplitIQ/issues/412) | per #412 | — |
-| R33 | Privacy research note (D17): what holding another person's training and health data requires, from primary sources (the Privacy Act, OAIC guidance), marked as not legal advice. Scott decides after it whether a professional opinion is needed | — | S | R37, all of L3, R31 |
+| R33 | Privacy research note (D17): what holding another person's training and health data requires, from primary sources (the Privacy Act, OAIC guidance), marked as not legal advice. Scott decides after it whether a professional opinion is needed | — | S | R37, all of L3. R31 proceeds without it as an accepted risk (D25) |
 
 H1 may run beside slices 4b–12 under D6's fences: #416 first; no `CLAUDE.md` edits outside
 slice 11 (#424); at most two open PRs, one cull and one roadmap; rebase on the shared files
@@ -130,7 +133,7 @@ athlete's shared log is a different surface and lives in L3.
 | R28 | Printable coaching card: phase cues, form check labelled "Reference ideal, modelled", sources and link | M | R10 |
 | R29 | Present mode: large controls, panels hidden, offline after first visit | M | R8, R17 |
 | R30 | Annotation: pinned muscles plus a short note in the URL hash (parked, no evidence yet) | M | R11 |
-| R31 | Open sign-up, password reset, remove `VITALS_USER_ID` pinning — **only if D3 is revisited after H2**; needs a health-data opinion first (R33 is its first step). L3's invite path (R41) is separate and stays invite-only | L | R3, R5, R33 |
+| R31 | Open sign-up, password reset, remove `VITALS_USER_ID` pinning. **In progress** as [#561](https://github.com/skizzy1986/SplitIQ/issues/561) in six slices (D25): the sign-up form, a per-user `sessions` unique index, password reset, first run, de-pinning, and Android deep links if needed. The Supabase signups switch stays off until slices 1, 2 and 4 merge. L3's coach invite path (R41) is separate | L | R3 and R5 (done); R33 accepted as a risk (D25) |
 | R32 | Rowing stroke anatomy feasibility note, research only (D5): no 3D stroke anatomy was found anywhere, and rowing coaches' stated pain is team data admin, not stroke understanding | S | after R21 |
 
 **Parked, signal needed:** measured-rep importer and OpenCap overlay (pipeline roadmap
@@ -198,7 +201,7 @@ Done when an invited coach can read exactly what one athlete has granted, and no
 
 | # | Item | Size | Depends on |
 |---|---|---|---|
-| R41 | Invite path for a second account. Invite-only, so D3 holds; scope settled by R37 | M | R5, R33, R37 |
+| R41 | Invite path from an athlete to a coach. Accounts themselves are open from R31 (D25); this is the grant invitation, with scope settled by R37 | M | R5, R33, R37 |
 | R42 | Coach–athlete relationship, grants and RLS, built to R37's spec, with every policy tested as denied by default | L | R37, R41, H2 done |
 | R43 | Coach view in the four destinations, and coach-set plans through the planner | L | R38, R40, R42 |
 
@@ -261,9 +264,10 @@ ground for up to 4 s before English.
   track's (D23).
 - `/squat` never imports `supabaseClient.js`. No personal data in a shareable link.
 - Health data lives in the database behind owner-only RLS, never in tracked source or a
-  public chunk. Before any real user beyond invitation, get a proper read on the Privacy
-  Act's health-service position (secondary sources only so far). R33 is the first step,
-  and no coach reads an athlete's row before it (D17). Coach access adds per-category
+  public chunk. Open registration (D25) goes ahead before a proper read on the Privacy
+  Act's health-service position (secondary sources only so far), as an accepted risk
+  limited by a plain-language notice and a required consent tick. R33 is still the first
+  step of that read, and no coach reads an athlete's row before it (D17). Coach access adds per-category
   grants on top of owner-only RLS; it never loosens it.
 
 ## Bundle baseline — measured 2026-11-14 at `556673e` (after the language track's I3, #533)
@@ -315,5 +319,6 @@ total 377.5 / 400, squat entry 116.4 / 117) is kept in git history.
 | D22 | 2026-11-13: Scott waived the native-speaker review as a merge gate for I2 and I3, after reviewing the preview himself as an intermediate learner. The review stays tracked as pending (I7); wording fixes land as follow-up PRs |
 | D23 | 2026-11-13/14: Budget changes from the language track: `ENTRY` 150 → 157 and `SQUAT_ENTRY` 122 → 124 (I2), a new `DASH_ES` line at 5 KB raised to 9 KB with a second, lazily loaded views catalog (I3). The views' English loads with the dashboard shells, not on first paint |
 | D24 | 2026-11-14: **Supersedes D20's first-visit rule.** A first visit follows the device: a top-ranked `es`/`es-*` language opens in Spanish, anything else in English; a stored choice always wins and detection never writes it. Mobile Settings is a labelled button in a top bar on all four tabs. The remaining views are translated in five more PRs (Train erg, StrengthLogger, mobile leftovers, desktop erg, then deferred strength and mobility), plan in `docs/i18n/SPEC.md` § Amendment 2026-11-14. Scott shipped PR 1 (#554) ahead of native review, as under D22 |
+| D25 | 2026-11-14 (Gate 1 2026-11-15): **Reverses D3, and D14's "open sign-up (R31) stays parked".** Registration opens now, as R31 / [#561](https://github.com/skizzy1986/SplitIQ/issues/561), in six slices. The rules: email confirmation required, a self-declared 18+ tick-box (a declaration, not verification), a short privacy notice with a required consent tick, and web only (the APK offers no sign-up). The Supabase signups switch stays off until slices 1, 2 and 4 merge. R33 is not done, and opening without it is an accepted risk; R33 still gates coach access (D17). Coach access itself is unchanged: specified now, built after H2 (D14) |
 
 A changed decision is a new row here with the date, not an edit to the old one.

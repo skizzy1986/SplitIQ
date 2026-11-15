@@ -23,7 +23,10 @@ enforces it. Three owners:
   mirror** committed so a code session can read it (`conventions.md`,
   `HANDOFF.md`, `ISSUES-load-states.md`, `PROJECT-CONTEXT.md`, `designs/*`).
   **Do not edit these here** — the next download overwrites you, and `config.json`
-  is forbidden from referencing them.
+  is forbidden from referencing them. *Exception since #425 (2026-11-15):* these docs
+  are edited in the repo — the claude.ai/design re-sync was dropped (Scott,
+  2026-11-06) and the standalone service closes 2026-12-14. If a design session ever
+  starts again, sync first.
 - **`local`** — working documents, neither pushed nor mirrored (this file,
   `STATE_OF_PLAY.md`, `DESIGN_BRIEF.md`).
 
@@ -71,7 +74,7 @@ shipping a second, stale copy of the style guide, which is the "Known tension"
 | `.design-sync/base.css` | Generated. The token layer (`--color-*`) plus the app ground. Wired as `cfg.cssEntry`. |
 | `.design-sync/docs/*.md` | Per-component docs. Their `category:` frontmatter is what sets the DS pane groups (session / metrics / charts / tooltips / feedback / mobile) — without them everything lands in `general`. |
 | `.design-sync/previews/*.tsx` | Authored preview stories, one file per component. |
-| `.design-sync/CLAUDE.md` | **`cfg.readmeHeader`** — the domain briefing, and the one input guaranteed to be inlined into the design agent's prompt. Glossary, the five destinations, which numbers are real, the chart rules. |
+| `.design-sync/CLAUDE.md` | **`cfg.readmeHeader`** — the domain briefing, and the one input guaranteed to be inlined into the design agent's prompt. Glossary, the four destinations, which numbers are real, the chart rules. |
 | `.design-sync/CODE-TO-DESIGN.md` | Dated bulletin of what changed in the app since the last sync. Written at sync time. |
 | `scripts/check-design-sync-entry.mjs` | Guards the barrel: bundles `entry.jsx` with rolldown and checks every `componentSrcMap` path still exists. `npm run check:design-sync`, wired into CI (#225). |
 

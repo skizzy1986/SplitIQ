@@ -203,7 +203,7 @@ it is a straggler:
 
 ```
 52  hero        the one headline figure on a screen
-26  sub-hero    a screen's secondary scores (signal, readiness)
+26  sub-hero    a screen's secondary scores (readiness)
 20  title       page title, primary card title
 17  figure      mono metric figures
 13  body        sentences, nav items, buttons
@@ -267,8 +267,8 @@ computed caption downstream ("10.9 short of CTL 62") only held under its own CTL
 Put the model in one plain `.js` file — the series, the seed, the EMA constants,
 the readiness deductions, the TSB band function — load it from each DC's
 `<helmet>` as a classic script that assigns a global, and read it in
-`renderVals()`. `splitiq-load.js` is that file; the desktop overview and Coach
-both read it.
+`renderVals()`. `splitiq-load.js` is that file; the desktop screens
+read it.
 
 Guard the load order: `if (!window.SIQ) return {}` in `renderVals()`, plus a
 short interval in `componentDidMount` that `forceUpdate`s once the global
@@ -303,11 +303,11 @@ laptop.
 
 Desktop is for the analytical deep dive and the supplemental material a phone
 cannot hold: long windows, many series at once, the full zone table, sortable
-logs, periodisation, the reasoning behind a call. Breadth is the point, and the
+logs. Breadth is the point, and the
 affordances follow — hover for detail, resizable panes, dense tables, several
 charts on one surface.
 
-This is why the two platforms do not share an information architecture. The five
+This is why the two platforms do not share an information architecture. The four
 destinations are the mobile IA. A desktop screen named after a mobile
 destination should be read as “the analysis behind that destination”, never as
 the same screen at a wider width — and where a destination is purely a live
@@ -316,17 +316,16 @@ surface, it has no desktop counterpart at all.
 ### Icons: emoji on mobile, stroke glyphs on the desktop rail
 
 The system’s established glyph vocabulary is **emoji**: `BottomTabBar` renders
-six fixed tabs as 18px emoji over tracked captions, and `ICON` maps the nine
+the four mobile destinations as 18px emoji over tracked captions, and `ICON` maps the nine
 session types the same way. Use those wherever the mobile surfaces are being
 matched — do not invent a second vocabulary there.
 
 The desktop nav rail is a **deliberate divergence**, and this is the reasoning
 rather than a preference:
 
-- `BottomTabBar`’s tab list is internal and not configurable by props, and its
-  six tabs are the old thirteen-tab IA (Analytics, Live, Log, Strength,
-  Recovery, Coach). The desktop rail carries the five-destination IA plus
-  Overview. The component cannot express it, so it is not a candidate.
+- `BottomTabBar`’s tab list is internal and not configurable by props — it
+  renders the mobile destinations from `constants/destinations.js`, not the
+  desktop list. The component cannot express the rail, so it is not a candidate.
 - Emoji are full-colour bitmaps. A 64px dark rail needs the glyph to take the
   active-state ink; an emoji cannot, so active and inactive would differ only by
   background, and the glyph would fight the dark ground at every size.
@@ -334,14 +333,14 @@ rather than a preference:
   permanently visible desktop rail cannot.
 
 So: 20px stroke glyphs on `currentColor`, 1.7px stroke, in a 38px chip — grid
-for Overview, calendar for Today, ruled lines with markers for Planning,
-ascending bars for Progress, pulse for Body, speech bubble for Coach. **This is the only place in the system that uses stroke
+for Overview, calendar for Today,
+ascending bars for Progress, pulse for Body. **This is the only place in the system that uses stroke
 icons.** If a second desktop surface needs icons, extend this set rather than
 starting a third vocabulary.
 
 **The rail lists exactly the destinations that exist on desktop.** Today that is
-six: Overview, Today, Planning, Progress, Body, Coach. The list is not the mobile
-IA — Planning has no mobile destination and Train has no desktop one — so it is
+four: Overview, Today, Progress, Body. The list is not the mobile
+IA — Overview has no mobile destination and Train has no desktop one — so it is
 maintained as its own list, and adding a screen means adding its chip to every
 other rail in the same change. A destination reachable only from its own screen
 is not reachable.
@@ -357,35 +356,6 @@ The rule: **a nav rail lists destinations that exist.** A destination that does
 not exist on a platform is omitted, not dimmed. Dimming is for something
 temporarily unavailable, and it still has to clear 3:1 and drop its
 interactive affordances.
-
-### A verdict cell must be derived for every row, or absent
-
-A table that says it checks a rule has to check every row. On Planning’s
-discipline split, only the erg verdict was computed — strength printed
-“yes — strength yields” in positive green unconditionally, and bike printed
-“unconstrained”, so a FIFO week that logged *more* strength than the home week
-would still have read as the design working.
-
-Two rules come out of it:
-
-1. **Derive every verdict from the number beside it.** One function, one row at a
-   time. `rosterCheck(kind, home, away)` in the load model returns
-   `held` / `broken` / `as designed` / `no rule` / `no data` — the screen
-   maps those to words and inks and adds nothing.
-2. **A row with no rule gets no verdict, not a neutral-sounding one.** Bike has no
-   roster constraint, so its cell reads “no rule set” in the muted ink. An
-   unjudged row is more honest than a judgement with nothing behind it.
-
-And a threshold that decides a verdict is part of the model, published, and
-stated on screen — `ROSTER.tolerancePct` is 25, the caption says so, and the
-view does not mint it. Same rule as `tsbBand`’s +10 / −10 / −30: a number the
-reader is being judged against cannot live only in a view.
-
-**Policy and outcome must not be two independent assertions.** The rule card and
-the table sat side by side saying “erg: hold” in green and “erg: −30%, not
-holding” in warning ink about the same fact. Both now read from the same check:
-the card names the policy and shows that check’s result, so the two cannot
-disagree.
 
 ### A state’s encoding must not be a colour another role already owns
 

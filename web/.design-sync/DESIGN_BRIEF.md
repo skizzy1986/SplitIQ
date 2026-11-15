@@ -78,7 +78,6 @@ Classified by what each view actually reads:
 | `live` | `usePM5`, `useOfflineQueue`, Supabase write | Tool |
 | `logger` | Supabase direct | Tool |
 | `log` | `useSessionLog` + `LogSessionForm` | Tool |
-| `coach` | `useCoach` | Tool |
 | `erg` | `useErgSessions`, `useAnchors` | Live analysis |
 | `calendar` | `useBenchmarkStatuses` + live sessions | Live analysis |
 | `plan` | live `plannedSessions` (75 lines) | Live analysis, thin |
@@ -176,7 +175,7 @@ real defect and free headroom.
 ### 1.7 The 767px fork turned one product into two
 
 `src/main.jsx:289` is `{isMobile ? <MobileApp/> : <App/>}` — two entirely separate trees, not a
-responsive layout. Only `ErgLiveView` and `CoachView` are shared. Eight desktop tabs have no mobile
+responsive layout. Only `ErgLiveView` is shared. Eight desktop tabs have no mobile
 equivalent. `RecoveryView.jsx` (781 lines) and `MobileRecovery.jsx` (632 lines) are the same feature
 built twice, disagreeing about the data.
 
@@ -215,49 +214,26 @@ no-escape-hatch rule, and it should be made knowingly rather than by accident.
 
 ## 2. Target information architecture
 
-### 2.1 Thirteen tabs → five destinations
+### 2.1 Thirteen tabs → four destinations
 
 | # | Destination | Question it answers | Absorbs |
 |---|---|---|---|
 | 1 | **Today** | *What am I doing today, and am I ready?* | `overview` (rebuilt), mobile `analytics` hero |
 | 2 | **Train** | *Do the thing.* | `live`, `logger`, `log` (capture), `plan` |
 | 3 | **Progress** | *Am I getting better?* | `erg`, `strength`, `calendar`, `log` (history), training load |
-| 4 | **Body** | *What state am I in?* | `recovery`, `mobility` (doing), nutrition |
-| 5 | **Coach** | *Why am I doing this?* | `coach` (Ask) + Playbook (§2.2) |
-
-**Nothing is deleted. Everything is re-addressed.** Every current tab has a named home, which is what
-makes this shippable as re-parenting rather than as a rewrite.
+| 4 | **Body** | *What state am I in?* | `recovery`, `mobility` (doing) |
 
 Second-level navigation uses one pattern — a `SegmentedNav` strip under the page title. This
 *standardises* the two hand-rolled instances from §1.1 rather than adding a third.
 
-### 2.2 Reference content goes on a shelf, inside Coach
-
-Moving to **Coach → Playbook**: `ProgramView` phases/cycle/annual, `JournalView`'s four ledgers, the
-full `ADAPTIVE_RULES` set and `RULE_EVOLUTION` log currently behind a `<details>` in
-`OverviewView.jsx`, the hardcoded SEQUENCING RULES array (`OverviewView.jsx:1309-1358`),
-`SRPE_GUIDE`, and the mobility routine library. Mobility's *doing* side stays in Body.
-
-**Why Coach and not a sixth tab:** the Playbook answers the same question the chat answers — *why am
-I doing this?* One question, one address. Coach is also one of only two views already shared across
-the `main.jsx:289` fork, making it the lowest-risk merge point in the codebase.
-
-The consequence for Today is the important part: every home-screen block whose job is *explanation*
-becomes a **"Why?" affordance that deep-links into the Playbook**. That is the single largest cut to
-Today, and it is principled — it follows from what the block *is*, not from how much room it takes.
-Cutting explanation stops being a loss of information and becomes a change of address.
-
-`ProgramView`'s internals are not touched — one line of nav config. Decomposition rides with #77;
-#183 already excludes it from hex migration.
-
 ### 2.3 Converge onto the mobile IA — phone is primary
 
 Decided 2026-08-22. Android ships via Capacitor, and the phone is what sits next to the erg.
-Desktop's job becomes *the same five destinations with room to breathe*, not a different product.
+Desktop's job becomes *the same four destinations with room to breathe*, not a different product.
 
 This does not require deleting the fork immediately. Three stages, each independently shippable:
 
-1. **Nav semantics** — same five ids, same order, same content ownership on both trees.
+1. **Nav semantics** — same four ids, same order, same content ownership on both trees.
 2. **Per-destination layout** convergence.
 3. Only then does `main.jsx:289` become `<AppShell density={isMobile ? 'compact' : 'comfortable'}>`.
 
@@ -307,16 +283,14 @@ coloured badge and a workout item: six competing answers.
 (cyan = erg/aerobic, purple = upper, green = lower/done, gold = threshold, orange = elevated load,
 teal = cycling, grey = rest) is **real domain logic and must be preserved** — it is the one part of
 `conventions.md` that was designed rather than accreted. Which is exactly why it must not be spent
-on decoration: the app currently colour-codes section labels by *topic* (SEQUENCING RULES green
-`:1320`, NUTRITION STATUS red `:1085`, TRAINING LOAD orange `:925`), so a green label means
-"nutrition heading" in one place and "UT1/done" in another. That collision devalues the vocabulary
+on decoration: the app currently colour-codes section labels by *topic*, which devalues the vocabulary
 everywhere it is legitimately used.
 *Test:* render in greyscale — reading order survives unchanged. And: every accent in the Today
 subtree traces to a session type or a status, never to a heading.
 
 **P3 · Every number on Today is live, or it is not on Today.**
-*Test:* the `views/today/` subtree imports nothing from `constants/` except `theme.js`, `tokens.js`,
-nutrition targets and `sessionStatus.js`.
+*Test:* the `views/today/` subtree imports nothing from `constants/` except `theme.js`, `tokens.js`
+and `sessionStatus.js`.
 *Today, five of eight blocks fail this.* That ratio is the honest measure of how much of this
 redesign is really a data problem.
 
@@ -349,7 +323,7 @@ already live on mobile via `useTSSHistory`.
 |---|---|---|---|
 | 0 | Header | `SPLITIQ` · date · phase chip (`BUILD · wk 4/6`) | 13 / 11 / 10 |
 | 1 | **Readiness hero** | One number, one plain-English sentence. Nothing else. | 52 / 14 |
-| 2 | **Today's session** | Label, duration, watt band, pacer cue, one adaptive-adjustment line, **one CTA**. "Why?" → Coach. | 20 / 14 / 11 |
+| 2 | **Today's session** | Label, duration, watt band, pacer cue, **one CTA**. | 20 / 14 / 11 |
 | 3 | Next up | 3 rows: date + label | 12 |
 | 4 | This week | Sessions done/planned, weekly TSS, 40px sparkline | 24 / 10 |
 | 5 | Recent | 3 rows, tap for detail | 12 |
@@ -359,11 +333,11 @@ Target ~250 lines across `views/today/*` — satisfying #114's 800-line rule by 
 ### 4.2 Disposition of the current eight blocks
 
 **(a) Today status strip** `:50-362` — **SPLIT into four.** One block doing five jobs in 312 lines;
-splitting it is what makes hierarchy possible at all. Date + phase + week → header chip. Readiness +
-signal → **hero, promoted to 52px**. Today's `WorkoutItem`s → session card. UPCOMING → block 3.
+splitting it is what makes hierarchy possible at all. Date + phase + week → header chip. Readiness
+→ **hero, promoted to 52px**. Today's `WorkoutItem`s → session card. UPCOMING → block 3.
 RECENTLY COMPLETED → **merge into block 5**.
 
-**(b) Phase context card** `:365-468` — **MOVE → Playbook.** The arc strip and Doing / Why now / Not
+**(b) Phase context card** `:365-468` — **CUT (culled, `VISION.md`).** The arc strip and Doing / Why now / Not
 yet / Next gate prose is static `PHASE_CONTEXT`. Weekly orientation, not daily. Fails P4. A one-line
 header chip carries everything genuinely daily.
 
@@ -372,11 +346,6 @@ cumulative vanity totals that barely move day to day — and `totalErgDist` is l
 hardcoded (`App.jsx:204`), a decorative number in prime real estate. LATEST WATTS and SQUAT e1RM are
 progress facts → **Progress** (and `strengthTrend` is stale anyway). Replace with block 4, which
 answers *am I on track?* rather than reporting a number that never meaningfully changes.
-
-**(d) Adaptive Engine card** `:530-747` — **DEMOTE to one line.** *(Decided 2026-08-22.)* 217 lines
-rendering a rules engine's source of truth on the home screen — the highest-value single cut on the
-page. Keep one line inside the session card: *"Volume trimmed 10% — low HRV"*, tappable. The full
-`ADAPTIVE_RULES` set and `RULE_EVOLUTION` log → Playbook. It is documentation, not status.
 
 **(e) Today's Prescription** `:750-905` — **MERGE into block 2.** UT1/UT2 bands and the pacer cue
 *are* today's session. Today currently has two separate cards about today; that duplication costs
@@ -387,13 +356,9 @@ CTL/ATL tiles and the 160px `LineChart` → **Progress**: a 30-day trend answers
 is the largest render cost on the page. Optionally keep a 40px sparkline in block 4. Blocked on the
 data fix — reads static `DAILY_TSS` today and fails P3.
 
-**(g) Nutrition Status** `:1068-1283` — **MOVE → Body.** Daily in kind, but it is a *second
-headline*, which breaks P1 outright. Also reads the static `nutritionLog` and fails P3. If a daily
-cue is wanted it earns **one line** in block 4 — once intake is live.
-
 **(h) RECENT SESSIONS + SEQUENCING RULES** `:1286-1358` — **MERGE + CUT.** Recent sessions merges
 with (a)'s duplicate list. SEQUENCING RULES is an 8-item hardcoded array that has not changed and
-will not change → Playbook. It is a poster on the wall, and posters do not belong on a dashboard.
+will not change → cut (culled, `VISION.md`). It is a poster on the wall, and posters do not belong on a dashboard.
 
 **Net: 8 cards → 5 blocks. ~1,361 lines → ~250.** Three of the five blocks did not exist as such
 before; they are extractions from (a), which was already carrying them at 9px.
@@ -486,7 +451,7 @@ style={{ ...TYPE.label, color: THEME.accent, marginBottom: SPACE.sm }}
 
 | Role | Face | Why |
 |---|---|---|
-| Section labels, buttons, prose, nav, coach chat | **UI sans** | Courier at 9–12px is the homemade tell |
+| Section labels, buttons, prose, nav | **UI sans** | Courier at 9–12px is the homemade tell |
 | Metric values, splits, watts, paces, tables, tooltips | **Monospace, tabular figures** | Genuinely correct — digits must not jitter as they tick |
 
 Concretely: one variable sans with real weights for everything that is not a number, and a numeral
@@ -629,8 +594,6 @@ The `muted` contrast fix is therefore #183's, not S6's. S-1 and the TYPE scale t
 
 ### Standing exclusions
 
-- **`ProgramView.jsx` / `ProgramYear.jsx` internals: untouched.** One line of nav config in S3.
-  Decomposition rides with #77; already excluded from #183.
 - **`StrengthLogger.jsx` internals: untouched.** Rewrite is #79. S7 changes only how it is entered.
 - ~~No light mode~~ — **overtaken.** `HANDOFF.md` §1 makes light the only theme and drops dark
   entirely, via the token seam (`THEME` values become `var(--color-*)`, colour-named keys renamed
@@ -674,12 +637,8 @@ The `muted` contrast fix is therefore #183's, not S6's. S-1 and the TYPE scale t
 
 ### 8.2 Still open
 
-4. **Nutrition** — moved to Body. 215 lines suggests it matters; if intake is adjusted daily it
-   earns one line on Today, but only once it is live.
 5. **Radius 6→12 and ±2px spacing drift across ~200 call sites, with no visual-regression net.** The
    price of a real scale. Mitigation is S6.0 baselines, but that is new CI surface.
-6. **Five destinations or six?** Program sits in the Playbook. If it is read and revised weekly it
-   may deserve its own destination. Genuine coin-flip; one line in `constants/nav.js` either way.
 7. **Hash routing on Android.** Deep links and back are impossible today (`App.jsx:164` is
    `useState`). Capacitor serves from `file://`, so hash routing not history — and `MobileApp.jsx`
    already wires the hardware back button, so the two interact and need testing on a real device.

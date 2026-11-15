@@ -24,7 +24,7 @@ can be updated. Same for `HANDOFF.md` and `ISSUES-load-states.md`.
 
 - **`PROJECT-CONTEXT.md`** — the mechanics. How we work.
 - **`conventions.md`** — the style guide. How it should look.
-- **`CLAUDE.md`** — the subject matter. Glossary, the five destinations, which
+- **`CLAUDE.md`** — the subject matter. Glossary, the four destinations, which
   numbers are real, the chart rules. Repo-owned; read it from
   `web/.design-sync/CLAUDE.md` on `main`, not from the project root copy, which
   is the old mechanics file awaiting overwrite.
@@ -104,14 +104,13 @@ mechanics here.
 **Mobile does the doing; desktop does the understanding.** Live surfaces —
 prescription, watt band, set logger, rest timer, sRPE — are mobile-only.
 Desktop is the analytical deep dive and the supplemental material a phone cannot
-hold. The five destinations are the mobile IA; a desktop screen named after one
+hold. The four destinations are the mobile IA; a desktop screen named after one
 is the analysis behind it, not the same screen at a wider width.
 
 ## Design state
 
-All five mobile destinations are drawn — Today, Train, Progress, Body, Coach —
-plus four desktop screens: Overview (chosen direction: 1b Ledger), Progress,
-Body and Planning. Planning is desktop-only; Train has no desktop counterpart.
-Undrawn: load pending, load unavailable, readiness NO DATA, chat empty and chat
-error. The token seam (`HANDOFF.md` §1) blocks consistent implementation of the
+All four mobile destinations are drawn — Today, Train, Progress, Body — plus
+three desktop screens: Overview (chosen direction: 1b Ledger), Progress and
+Body. Train has no desktop counterpart. Undrawn: load pending, load
+unavailable, readiness NO DATA. The token seam (`HANDOFF.md` §1) blocks consistent implementation of the
 rest.

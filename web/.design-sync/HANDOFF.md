@@ -4,11 +4,11 @@ Everything designed in this project, mapped to the code that has to change.
 Read in order: the token seam first, since nothing else ships consistently
 until it lands.
 
-Source of truth for the designs — all five nav destinations are now drawn:
+Source of truth for the designs:
 `SplitIQ Today - Redesign Light.dc.html`, `SplitIQ Progress.dc.html`,
-`SplitIQ Train.dc.html`, `SplitIQ Body.dc.html`, `SplitIQ Coach.dc.html`.
+`SplitIQ Train.dc.html`, `SplitIQ Body.dc.html`.
 Desktop: `SplitIQ Desktop Overview.dc.html`, `SplitIQ Desktop Progress.dc.html`,
-`SplitIQ Desktop Body.dc.html`, `SplitIQ Desktop Planning.dc.html`.
+`SplitIQ Desktop Body.dc.html`.
 
 **A code session cannot read this project.** Its container is cloned from git,
 so this file only reaches it once committed to `web/.design-sync/HANDOFF.md`,
@@ -203,15 +203,12 @@ New patterns from the designs, mapped to where they belong.
 | Session summary + sRPE prompt | new `components/SessionComplete.jsx` | `session`, `lifts[]`, `onRate`, `onDone` | Lifts / sets / volume / best e1RM all computed from the logged sets, not passed in. sRPE is the only input. |
 | Readiness card with per-metric baseline | new `components/ReadinessCard.jsx` | `score`, `status`, `deductions[]`, `metrics[]` | Each metric states its own baseline source and coverage (`personal · 17/28 days` vs `population default · 6/28`). Deductions list is derived, filtered to those > 0. |
 | Sparse-series chart (gaps, not interpolation) | new `components/SparseSeries.jsx` | `points[]` (nulls kept), `band{lo,hi}`, `axis` | Replaces `connectNulls` usage. A missing day renders as a gap. |
-| Signal card | new `components/SignalCard.jsx` | `signal`, `because`, `guidance`, `rules[]` | The autoregulation call as a headline, each fired rule shown against the baseline it fired on. |
-| Roster wave (14 days) | new `components/RosterWave.jsx` | `days[]`, `todayIndex` | Home-week vs FIFO-week colouring; rest days are short grey stubs. Note computed from the two week totals. |
 | Load model | `web/src/lib/load.js` — extract from `analysis.js` | series seed, EMA constants | See §5. One module, every screen that cites form, CTL, ATL or readiness. |
 | `tsbBand(tsb)` | same module | `tsb` | Returns label + token. Replaces inline threshold ternaries. |
 | Small-multiple row | new `components/MetricRow.jsx` | `points[]`, `band`, `axis`, `last`, `delta` | `SparseSeries` with its own labelled axis per row. Gaps, not interpolation. |
 | Sortable session table | new `components/SessionTable.jsx` | `rows[]`, `sortKey`, `sortDir`, `onSort` | TSS column carries a magnitude bar scaled to the heaviest logged session. |
 | Resizable split | new `components/SplitPane.jsx` | `width`, `min`, `max`, `onResize` | Desktop only. |
-| Phase table | new `components/PhaseTable.jsx` | `phases[]`, `weekNo` | Bar widths are real week spans; current phase derived from `weekNo`. |
-| Desktop nav rail | new `components/desktop/NavRail.jsx` | `active`, `onNavigate` | 64px, one 38px chip per desktop destination — currently Overview, Today, Planning, Progress, Body, Coach. **The list is desktop’s own, not the mobile IA:** Planning has no mobile destination, Train has no desktop one. Adding a desktop screen means adding its chip here, in the same change — a destination reachable only from its own screen is not reachable. 20px stroke glyphs on `currentColor`. **Deliberate divergence from `BottomTabBar`** — its tab list is internal and is the old 13-tab IA, and emoji cannot take the active-state ink on a dark rail. Reasoning in `conventions.md`. Only stroke icons in the system; extend this set rather than starting a third. |
+| Desktop nav rail | new `components/desktop/NavRail.jsx` | `active`, `onNavigate` | 64px, one 38px chip per desktop destination — currently Overview, Today, Progress, Body. **The list is desktop’s own, not the mobile IA:** Train has no desktop one. Adding a desktop screen means adding its chip here, in the same change — a destination reachable only from its own screen is not reachable. 20px stroke glyphs on `currentColor`. **Deliberate divergence from `BottomTabBar`** — its tab list is internal and is the old 13-tab IA, and emoji cannot take the active-state ink on a dark rail. Reasoning in `conventions.md`. Only stroke icons in the system; extend this set rather than starting a third. |
 | Zone table | util in the load module | `cp` | Six bands — Recovery, UT2, UT1, AT, TR, AN — at 0.55/0.70/0.80/0.90/1.05/1.30 × CP. Names and fractions from the shipped `PACE_ZONES`; its watt bounds are frozen at CP 190 and must not be copied. |
 | Erg zone chart | new `components/ErgZoneChart.jsx` | `pieces[]`, `cp` | Watt dots over the derived bands, plus the split view. Split is computed from watts, so the two charts are one measurement — the caption must say so. |
 | Zone distribution list | part of `ErgZoneChart` | `counts`, `cp` | All six bands always shown; empty ones dimmed, never dropped. |
@@ -275,7 +272,7 @@ a decorative line chart looks finished. Put them near the top.
 ## 4. Per-screen build notes
 
 ### Today — `SplitIQ Today - Redesign Light.dc.html`
-Replaces the mobile analytics home. Readiness, autoregulation signal and
+Replaces the mobile analytics home. Readiness and
 UT1/UT2 targets all derive from `analysis.js` + `deriveTargets` — no new maths.
 
 ### Progress — `SplitIQ Progress.dc.html`
@@ -289,8 +286,6 @@ Five states drawn: prescription at rest, library sheet, live erg mid-piece,
 strength logger, session complete. Content is verbatim from `exercises.js` and
 `STRENGTH_TEMPLATES`. Decisions worth preserving:
 
-- Roster context (microcycle wave, year plan) stays on **Coach**. Train shows
-  the consequence — the ramp flag — not the periodization.
 - Live session owns the screen: no tab bar while a piece is running.
 - Watts is the biggest number because the target is a watt band; the split is
   demoted to a line of text.
@@ -311,28 +306,9 @@ HRV. Two behaviours the current code gets wrong and this screen fixes:
 - HRV is drawn as **gaps**. The existing chart's `connectNulls` draws a
   continuous line through days that were never measured.
 
-Readiness 72, sleep 6.4h and RHR 60 are the same readings Coach cites — both
-screens derive them, neither hardcodes them.
-
-### Coach — `SplitIQ Coach.dc.html`
-Signal first, reasoning second, chat third. The signal mirrors
-`autoregulate()`: R4 or TSB < −25 or readiness < 50 → EASE; TSB < −10 or
-readiness < 75 or R5 → PROCEED; else CLEAR. Each fired rule states what it
-measured against which baseline (rolling 28-day trimmed mean, not a fixed
-number).
-
-The 14-day roster wave is where the Train decision landed: two weeks of roster
-explains today's call. The full year plan and phase table stay a desktop
-concern. The week-over-week drop in the caption is computed from the two week
-totals.
-
-Chat is the fallback sheet, not the front door — it already exists in code as
-the whole view.
-
 ### Desktop overview — `SplitIQ Desktop Overview.dc.html`
-First desktop screen. One combined overview at 1920 carrying what the five
-mobile destinations carry, plus the two things deferred from mobile: hover
-tooltips on the load chart, and the year plan with its phase table.
+First desktop screen. One combined overview at 1920 carrying what the
+mobile destinations carry.
 
 Two directions are in the file. **1b Ledger** is the chosen one — icon rail plus
 a pane list, the session log as the primary view, three small multiples above
@@ -340,7 +316,7 @@ it, and a draggable split between the log pane and the detail pane. 1a Cockpit
 (labelled sidebar, chart-led, two columns) is kept below it for reference.
 
 Desktop-only affordances drawn: chart hover tooltip (per-day CTL/ATL/TSB),
-resizable panes, sortable data table, year plan + phase table. The four tooltip
+resizable panes, sortable data table. The four tooltip
 components §2 keeps "for desktop" now have a screen to live on.
 
 Everything it introduces is in §2’s inventory — the desktop rows sit in that
@@ -369,7 +345,7 @@ those are logged mid-workout on a phone, and a desktop copy of them would be a
 surface nobody can reach at the moment it is needed.
 
 Desktop is the analytical layer: long windows, several series at once, the full
-zone table, sortable logs, periodisation, and the reasoning behind a call.
+zone table, sortable logs.
 
 Consequences for this document:
 
@@ -379,8 +355,8 @@ Consequences for this document:
 - `BandGauge`’s second use — Progress’s erg barometer — stands, because that is
   a read of past pieces, not a live gauge.
 - **Train has no desktop counterpart.** The remaining desktop screens are
-  analytical: Progress (built), and the planning and reasoning views.
-- The five destinations are the mobile IA. A desktop screen named after one is
+  analytical: Progress (built).
+- The destinations are the mobile IA. A desktop screen named after one is
   the analysis behind it, not the same screen at a wider width.
 
 ### Body — desktop `SplitIQ Desktop Body.dc.html`
@@ -407,60 +383,24 @@ New for §2’s inventory:
 | `readinessSeries()` | the load module | — | Per-day readiness over the window, same arithmetic as the live score. Returns null-score days rather than omitting them. |
 | Score waterfall | new `components/ReadinessWaterfall.jsx` | `deductions[]`, `score` | Running total per column; band height is the cost. Label flips below the bar when the column is too tall for an above-bar label. |
 | Baseline quality list | new `components/BaselineQuality.jsx` | `coverage`, `baselines` | Per-metric coverage bar and personal-vs-default source line. |
-| `rosterCheck()` | the load model | `kind`, `homeTss`, `awayTss` | Judges one discipline against `ROSTER.expects` within `ROSTER.tolerancePct`. Every verdict cell derives from it; a discipline with no rule returns `no rule` and must render no judgement. |
-| Roster contract | `ROSTER` in the load model | — | `homeDays`/`awayDays`, `tolerancePct` 25, `expects` { erg: hold, str: fall, bike: null }. Thresholds that decide an on-screen verdict live here, not in a view. |
 | Out-of-band cap | part of the metric chart | `outside` | 4px `#1c1e2a` top cap on bars outside ±1 SD. Must not be a repaint in the warning ink — that ink is also a metric ink and the encoding collapses. See `conventions.md`. |
 | Coverage grid | part of `BaselineQuality` | `series[]` | One cell per day per metric; grey is unrecorded. |
 | Sensitivity table | new `components/ScoreSensitivity.jsx` | `SENS` | Reads the coefficients from the model — never a hardcoded copy. |
 
-### Planning — desktop `SplitIQ Desktop Planning.dc.html`
-Desktop-only. The periodisation parked from Coach: Coach shows today's call, Planning
-shows the 34-week season and the 14-day swing that produced it. Two panes —
-Season and Microcycle — on 1b's frame, with the same draggable split.
-
-- **Season** is the phase table plus fitness against the block target. Phase bar
-  widths are real week spans, the current block derives from the week number, and
-  the CTL line is the same series every other screen reads. Hovering a phase row
-  fills the detail pane with its length and target — the desktop tooltip pattern
-  again, not a new one.
-- **Microcycle** is the full home/FIFO swing as a discipline split: home TSS,
-  FIFO TSS, the change, the rule that applies, and the verdict. Every verdict cell
-  is `rosterCheck()` — a discipline with no rule (bike) renders `no rule` and no
-  judgement. Thresholds live in `ROSTER`, not in the view.
-- **The plan is a plan.** The caveat card states what is prescribed versus what is
-  logged; targets are intent, and the fitness line is the only measured thing on
-  the Season pane.
-- Nav rail gains its **Planning** chip here — a desktop destination with no mobile
-  counterpart. See the `NavRail` row in §2.
-
-New for §2's inventory:
-
-| Pattern | Lives in | Props | Notes |
-| --- | --- | --- | --- |
-| `seasonPlan()` | the load module | — | Phases, week spans, block CTL targets, current block from the week number. One definition of the season; no view names a phase. |
-| Season phase table | extends `PhaseTable.jsx` (§2) | `phases[]`, `weekNo`, `onHoverPhase` | The §2 row gains hover — the row feeds the detail pane rather than a floating tooltip. |
-| Discipline split table | new `components/desktop/DisciplineSplit.jsx` | `rows[]`, `roster` | One row per discipline over the swing; verdict from `rosterCheck()`, never from a comparison in the cell. |
-
 ### Not yet designed
 Undrawn states, in one family: load pending, load unavailable (both specified
-in `ISSUES-load-states.md`), chat empty and chat error.
+in `ISSUES-load-states.md`).
 
 Readiness NO DATA is **drawn** — desktop Body reconstructs readiness over the
 window and renders the 11 RHR-less days as null-score stubs. The mobile
 readiness card still needs the same state.
 
 Desktop scope is no longer "separate": see the platform-split note above. Built
-so far — Overview, Progress, Body, Planning. Coach's desktop counterpart (the
-reasoning view) is the remaining one; Train has no desktop counterpart by decision.
+so far — Overview, Progress, Body. Train has no desktop counterpart by decision.
 
 ---
 
 ## 5. The load model must be one module
-
-The desktop screen and Coach both cite form, CTL, ATL and readiness for the same
-day. They drifted: form matched at −8.9 while CTL read 51.1 on one screen and
-16.4 on the other, because each screen carried its own copy of the maths and the
-numbers had been reconciled by digits rather than by derivation.
 
 In this project the fix is `splitiq-load.js` — series, seed, EMA constants,
 readiness deductions, baseline coverage and `tsbBand()` in one file, loaded from
@@ -469,10 +409,10 @@ imported by every view that cites it. No view recomputes CTL, and no view
 hardcodes a band threshold.
 
 `tsbBand` is canonical at +10 / −10 / −30 (the app's existing `tsbColor`), so
-−8.9 is Neutral and green on every screen. Coach previously rendered it gold.
+−8.9 is Neutral and green on every screen.
 
-**Known divergence, 2026-08-25.** The desktop screens and Coach read the shared
-module and now show form −8.3 / CTL 50.8 / ATL 59.1. The five mobile designs
+**Known divergence, 2026-08-25.** The desktop screens read the shared
+module and now show form −8.3 / CTL 50.8 / ATL 59.1. The mobile designs
 still carry hardcoded −8.9 / 16.4 / 25.3 in their own markup — they predate the
 module. That gap is the debt this section describes, made visible: the mobile
 screens should read the same `load.js` rather than be hand-corrected to match.
@@ -495,6 +435,5 @@ gaps.
 6. `SessionComplete` — closes the logging loop
 7. `SessionBar` — needs a session store that outlives the route
 8. `ReadinessCard` + `SparseSeries` — Body
-9. `SignalCard` + `RosterWave` — Coach
-10. Undrawn states above
-11. Desktop: the load-model extraction in §5, then `SplitIQ Desktop Overview.dc.html`
+9. Undrawn states above
+10. Desktop: the load-model extraction in §5, then `SplitIQ Desktop Overview.dc.html`

@@ -25,8 +25,12 @@ agents were retired (git history is their archive; see the migration PR).
 4. **Workflow** — the chain in `.claude/skills/orchestrate/SKILL.md` (the ONE
    canonical pipeline definition; `/feature` is an alias), with three human gates.
    There is no orchestrator agent — the skill prompt orchestrates from the main
-   conversation, which is what lets it stop and wait at each gate.
-5. **Delivery** — PR + both judges' verdicts + confirm Vercel goes READY.
+   conversation, which is what lets it stop and wait at each gate. Where a
+   stage runs is the skill's *Runner* section: in-process subagents everywhere,
+   except that in a Kepler session the Build stage and the two judges are
+   Kepler child sessions of that conversation.
+5. **Delivery** — PR + both judges' verdicts + confirm Vercel goes READY. In a
+   Kepler session the branch and worktree are the ones Kepler made for the task.
 
 ## Tool discipline is prompt-level now (know the trade)
 
@@ -34,10 +38,29 @@ The retired project agents enforced least-privilege in frontmatter (`tools:`);
 read-only stages physically could not write. Agency library agents inherit all
 tools, so the discipline moved to the spawn layer: every read-only stage gets
 the READ-ONLY instruction from `erg-context.md`, and the orchestrating skill
-runs `git status --short` before and after each read-only spawn — any new diff
-is a stage failure. This is enforcement by instruction plus verification, not
-by tool restriction; it is a real (accepted, documented) downgrade, backstopped
-by the human gates and the PR diff.
+fingerprints the working tree before and after each read-only spawn — any
+change is a stage failure. This is enforcement by instruction plus verification,
+not by tool restriction; it is a real (accepted, documented) downgrade,
+backstopped by the human gates and the PR diff.
+
+Under Kepler the trade shifts for stages 4 and 6:
+
+- A Kepler session takes no persona parameter. The orchestrator hands it the
+  persona as a file to read, so the role is followed as a brief inside a full
+  Claude Code session rather than installed as a subagent's system prompt. That
+  session loads `CLAUDE.md`, the skills and the hooks itself: weaker persona
+  binding, fuller repo context.
+- The judges start in Kepler's `plan` mode with the `reviewer` role. Spiked on
+  2026-11-15: two plan-mode judges reviewed a merged commit on a clean tree,
+  reported to the orchestrator and ended idle; neither parked on a plan
+  approval. The same day's first real run had both judges leave a seven-file
+  uncommitted diff with its fingerprint unchanged. Neither run attempted a
+  write, so the tool-level block on edits is Claude Code's documented plan-mode
+  behaviour (code.claude.com/docs/en/permission-modes), not something tested
+  here — which is why the fingerprint still runs.
+- A permission prompt the builder raises appears in its own session in Kepler,
+  not in the orchestrating chat. The orchestrator reports the pause; Scott
+  answers it there.
 
 Erg-specific behaviour — context, per-stage model pins, persona reframing —
 is applied at spawn time by the skills. **Library files are never edited**, so

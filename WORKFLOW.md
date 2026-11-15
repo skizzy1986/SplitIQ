@@ -92,6 +92,13 @@ git push --force-with-lease origin <branch>   # safe force — never plain --for
 One issue per branch keeps PRs small and reviewable. If a branch starts solving
 two issues, split it.
 
+**A Kepler task arrives with its branch and worktree already cut** —
+`kepler/<issue>-<type>/<slug>`, or `kepler/<type>/<slug>` with no issue. Use it as it
+is: do not cut a second branch or rename it. Rebase it before the first commit; it is
+only as fresh as the task. No workflow reads a branch prefix (every `push` trigger is
+`main` only, and `pr-title-lint` checks the PR *title*). After the merge, remove the
+worktree with Kepler's `worktree_delete`, never `git worktree remove` or `git branch -D`.
+
 ## 3. Commit, then open a PR
 
 - Small, focused commits; the pre-commit hook auto-formats staged JS/JSX.
@@ -272,6 +279,10 @@ Issue ──▶ /feature or /orchestrate ──▶ research → story → spec �
 
 Pick an issue, run the pipeline (or hand-build for small changes), and the output
 is a PR linked back to the issue. Same rail, every time.
+
+Run from a Kepler session, the build stage and the two judges are Kepler child sessions
+instead of in-process subagents. The chain, the gates and the output are the same; the
+difference is stated once, in the skill's *Runner* section.
 
 ## Doctrine SHA
 

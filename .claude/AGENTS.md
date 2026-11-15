@@ -12,6 +12,10 @@
 > run `./scripts/install.sh --tool claude-code --list teams` (or `--no-interactive`
 > to install all; a full install refills `~/.claude/agents/` with the whole library,
 > so repeat the trim).
+>
+> **Not the Codex `AGENTS.md`.** The repo-root [`AGENTS.md`](../AGENTS.md) is the entry
+> point for agents that do not read `CLAUDE.md`; it routes nothing. This file is the map
+> of Agency personas, and the repo always cites it as `.claude/AGENTS.md`.
 
 ## Always give Agency agents erg context
 
@@ -43,6 +47,10 @@ with the right context and gates on your approval.
 | Review + Validate | `Code Reviewer` + `Reality Checker` |
 | Refactor extraction | `Minimal Change Engineer` |
 | External research | `Trend Researcher` |
+
+In a Kepler session, Build + tests and Review + Validate run as Kepler child sessions
+that read the persona file instead of being spawned as that subagent. Which stage runs
+where is in the skill's *Runner* section, not here.
 
 ## Advisory Agency agents — task → agent
 

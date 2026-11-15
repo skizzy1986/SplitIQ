@@ -10,22 +10,59 @@ definition of the pipeline — `/feature` is an alias for it.
 ## You are the orchestrator
 
 You (the main conversation) drive the chain — there is no orchestrator agent.
-You route work to Agency-library subagents; you do not do their jobs yourself.
+You route work to Agency-library agents — in-process subagents, or Kepler
+sessions for the stages *Runner* names; you do not do their jobs yourself.
 Reads run in parallel, writes run in sequence. STOP at each human approval gate
 and wait for Scott.
 
 ## Spawn protocol (every stage)
 
 1. Read `.claude/skills/erg-context.md` and prepend its FULL contents to the
-   subagent prompt — Agency agents are generic; this block makes them erg-aware.
+   agent's prompt (a subagent prompt, or a Kepler session's first message) —
+   Agency agents are generic; this block makes them erg-aware.
 2. Append the stage addendum below, then the task itself.
-3. Pin the stage model via the Agent tool's per-call `model` parameter.
-4. For READ-ONLY stages: run `git status --short` before and after the spawn.
-   Any new diff is a stage failure — report and stop.
+3. Pin the stage model via the Agent tool's per-call `model` parameter (a Kepler
+   session: `modelId`).
+4. For READ-ONLY stages: fingerprint the tree before and after the spawn —
+   `{ git status --short; git diff HEAD; git ls-files -o --exclude-standard -z | xargs -0 -r git hash-object; } | git hash-object --stdin`
+   — and compare. A different hash is a stage failure — report and stop. (Plain
+   `git status --short` cannot see an edit to a file Build already changed.)
 5. That preamble carries the **Context7 first** rule, so every subagent inherits
    it automatically — no per-stage repetition needed. It binds you too, in the
    stages you run yourself (5 and 7): resolve library facts through
    `resolve-library-id` → `query-docs` before WebSearch, and name the source.
+
+## Runner — where a stage runs
+
+Decide once, before stage 1, and tell Scott which runner you are on.
+
+- **In-process** — the default, and the only runner in a cloud session, the
+  `claude.yml` action or a collaborator's clone. Every stage is a subagent of
+  this conversation, exactly as the protocol above says.
+- **Kepler** — only when the `mcp__kepler-workspace__*` tools are present AND
+  `task_get({ detail: "full" })` returns this session's task with a live place
+  (a plain repeat call returns only what changed, so it can omit the places).
+  Stages 4 and 6 then run as Kepler child sessions; 1, 2, 3 and 5 stay
+  in-process subagents; 7 stays with you. A missing tool or a failed `task_get`
+  means in-process for the whole run, and Scott can force in-process by saying so. Read `kepler-runner.md`
+  (beside this file) now, before stage 1 — it holds the preflight, how a
+  session's first message is composed, the wait loop and the run ledger.
+
+| Stage | `role` | `mode` | `modelId` | `taskContext` |
+|---|---|---|---|---|
+| 4 Build + tests (each builder) | `delegate` | `edit` | `opus` | `true` |
+| 6 Code Reviewer | `reviewer` | `plan` | `sonnet` | `false` |
+| 6 Reality Checker | `reviewer` | `plan` | `opus` | `false` |
+
+Always pass `mode` and `modelId`: an omitted one inherits yours. Once a run is on
+the Kepler runner it stays there — a `session_start` that fails is a stage
+failure, and `awaiting-approval` is a wait; never run that stage in-process to
+get round either.
+
+`agentId` is omitted, which means Claude Code. It is the seam for another agent
+from `agent_list` (`codex`): a row may name one only with a `modelId` that agent
+lists, and only after a session of that agent is shown to load the repo-root
+`AGENTS.md` — it reads neither `CLAUDE.md` nor the hooks. No stage uses it yet.
 
 ## Routing — classify the request first
 
@@ -68,7 +105,8 @@ focused question.
    (model: opus; WRITES). Sequence backend → frontend when dependent; run
    concurrently only if they touch different files. Both builders MUST ship a
    Vitest/RTL test per acceptance criterion in the same change — there is no
-   separate test-writing stage.
+   separate test-writing stage. Kepler runner: each builder is a Kepler session
+   — see *Runner*.
    - *Backend addendum:* migrations are additive and reversible — any
      destructive change requires a fresh `backup_snapshots` row + Scott's
      approval (stop and ask). RLS stays on; never `BYPASSRLS`. Ingestion is
@@ -91,7 +129,8 @@ focused question.
    the acceptance criteria. Task: interpret the results, flag untested criteria
    and coverage gaps honestly. Conventions: `.claude/skills/testing-patterns.md`.
 
-6. **Review + Validate** — spawn both judges in parallel (READ-ONLY):
+6. **Review + Validate** — spawn both judges in parallel (READ-ONLY; Kepler
+   runner: two Kepler sessions — see *Runner*):
    - `Code Reviewer` (model: sonnet): judge the diff — correctness vs the spec,
      layer compliance, security (no hardcoded credentials, RLS considered, no
      unsanitised `dangerouslySetInnerHTML`), style (inline styles, no
@@ -109,10 +148,22 @@ focused question.
 
    → **GATE 3 (Scott): ship?** Present both verdicts in full. Wait.
 
-7. **Deliver** — you, in the main thread, per `WORKFLOW.md`: create a feature
-   branch (`git checkout -b feature/<kebab-slug>`), stage only the relevant
-   files, commit with a descriptive message, `git push -u origin <branch>`,
-   open a PR with `Closes #N`, and confirm CI gates + the Vercel preview.
+7. **Deliver** — you, in the main thread, per `WORKFLOW.md`:
+   - *Branch.* In-process: create a feature branch (`git checkout -b
+     feature/<kebab-slug>`). Kepler: the task's branch and worktree already
+     exist (`WORKFLOW.md` §2) — stay on `git branch --show-current`. If it is
+     behind, `git fetch origin && git rebase origin/main`, and rerun stage 5 if
+     that moved anything.
+   - Stage only the relevant files, commit with a descriptive message,
+     `git push -u origin <branch>`, open a PR with `Closes #N` (Kepler: `N` is
+     the number in `kepler/<N>-<type>/<slug>`; no number means ask Scott). The
+     PR title is a Conventional Commit whose type is in
+     `.github/workflows/pr-title-lint.yml` — a branch type is not a title type
+     (`feature/` → `feat:`).
+   - Kepler: put the ledger's stage lines and both verdicts in the PR body,
+     then `task_get({ refresh: true })`. A PR whose base is not `main`:
+     `worktree_update`.
+   - Confirm CI gates + the Vercel preview.
 
 Keep a short running summary of where we are in the chain. Never skip a gate.
 If a stage fails, report and stop — do not improvise past a gate.

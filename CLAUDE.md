@@ -195,5 +195,5 @@ in one yanks files from under another (three sessions collided on 2026-08-25). C
 (`worktree.baseRef: "fresh"` in `.claude/settings.json`). For an open PR,
 `git worktree add <path> <branch>` then `EnterWorktree` with `path` (one branch, one
 worktree). Commit or stash before switching; run `npm install` in `web/` first; worktrees
-live in `.claude/worktrees/` (gitignored); check the session list for company. A cloud
-session has its own VM and clone, skips this, and stays on its assigned branch.
+live in `.claude/worktrees/` (gitignored). A cloud session (own VM and clone) or a Kepler
+session (worktree and branch pre-made; install deps first) skips this, stays on its branch.

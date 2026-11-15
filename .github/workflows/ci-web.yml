@@ -133,7 +133,15 @@ jobs:
           cache: npm
           cache-dependency-path: web/package-lock.json
       - run: npm ci
+      # A placeholder DSN keeps Sentry.init in the bundle, so the size gate and
+      # the PR comment measure the entry production ships (#465). Without one,
+      # initSentry()'s early return tree-shakes ~49 KB gzip out of first paint.
+      # Valid shape, dead project — never a real DSN. Mirrored in
+      # scripts/entry-graph.mjs, whose sentryInitProblems() fails the size step
+      # if this is ever dropped.
       - run: npm run build
+        env:
+          VITE_SENTRY_DSN: https://0123456789abcdef0123456789abcdef@o0.ingest.de.sentry.io/0
       # The baseline is the bundle-size.json saved by the most recent push to
       # main (see the save steps below); restore-keys falls back to the newest
       # one when the exact base SHA has no cache entry.

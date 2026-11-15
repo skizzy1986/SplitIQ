@@ -260,8 +260,8 @@ ground for up to 4 s before English.
   the current collaborator until they are.
 - Coverage thresholds never go down. Bundle ceilings rise only under the #504 rule
   (measured + ~2 KB, a dated comment, Scott's approval at the PR's Gate 2) and ratchet
-  down when the bundle shrinks. Raises granted so far include D9 and the language
-  track's (D23).
+  down when the bundle shrinks. Raises granted so far include D9, the language
+  track's (D23) and the Sentry re-base (D26).
 - `/squat` never imports `supabaseClient.js`. No personal data in a shareable link.
 - Health data lives in the database behind owner-only RLS, never in tracked source or a
   public chunk. Open registration (D25) goes ahead before a proper read on the Privacy
@@ -270,26 +270,30 @@ ground for up to 4 s before English.
   step of that read, and no coach reads an athlete's row before it (D17). Coach access adds per-category
   grants on top of owner-only RLS; it never loosens it.
 
-## Bundle baseline — measured 2026-11-14 at `556673e` (after the language track's I3, #533)
+## Bundle baseline — measured 2026-11-15 at `3bb0f95` with a placeholder DSN (#465)
 
 Re-measure with `npm run build && npm run size` before any PR that touches `/squat`'s
-static graph; never quote this table as current. The PR template asks for the five squat
-figures in the body of every such PR (R7, #436).
+static graph; never quote this table as current. Build with `VITE_SENTRY_DSN` set (the CI
+Build job uses a placeholder; `npm run size` refuses a build without the Sentry init path,
+#465). The PR template asks for the five squat figures in the body of every such PR (R7,
+#436).
 
 | Budget | Measured | Ceiling | Spare |
 |---|---|---|---|
-| Dashboard entry | 156.3 KB | 157 KB | **0.7 KB** |
-| Dashboard total | 338.7 KB | 400 KB | 61.3 KB |
+| Dashboard entry | 205.5 KB | 208 KB | **2.5 KB** |
+| Dashboard total | 388.0 KB | 400 KB | 12.0 KB |
 | Dashboard Spanish (`DASH_ES`) | 7.4 KB | 9 KB | 1.6 KB |
-| Squat entry | 122.0 KB | 124 KB | 2.0 KB |
-| Squat total | 33.0 KB | 34 KB | 1.0 KB |
+| Squat entry | 170.8 KB | 173 KB | 2.2 KB |
+| Squat total | 32.9 KB | 34 KB | 1.1 KB |
 | Squat 3D | 138.4 KB | 145 KB | 6.6 KB |
 | Squat data | 2.20 MB | 2.30 MB | ~0.1 MB |
 
-The dashboard entry has the least room left: the next entry-growing change needs a #504
-raise or the `RealtimeClient` reclaim (see the repo-root `CLAUDE.md`). I5 will need a
-`SQUAT_ENTRY` raise. The previous baseline (2026-11-07 at `bdac9fb`: entry 146.8 / 150,
-total 377.5 / 400, squat entry 116.4 / 117) is kept in git history.
+Every baseline before this one was measured without a DSN and so without the Sentry SDK
+(~49 KB gzip on both first paints that production always shipped); D26 re-based `ENTRY`
+and `SQUAT_ENTRY` to the shipped figure. The dashboard total now has 12 KB left, not 61.
+The next entry-growing change needs a #504 raise or the `RealtimeClient` reclaim
+(`.claude/rules/observability.md`). I5 will need a `SQUAT_ENTRY` raise. Earlier baselines
+(2026-11-14 at `556673e`, 2026-11-07 at `bdac9fb`, both DSN-less) are kept in git history.
 
 ## Decisions record
 
@@ -320,5 +324,6 @@ total 377.5 / 400, squat entry 116.4 / 117) is kept in git history.
 | D23 | 2026-11-13/14: Budget changes from the language track: `ENTRY` 150 → 157 and `SQUAT_ENTRY` 122 → 124 (I2), a new `DASH_ES` line at 5 KB raised to 9 KB with a second, lazily loaded views catalog (I3). The views' English loads with the dashboard shells, not on first paint |
 | D24 | 2026-11-14: **Supersedes D20's first-visit rule.** A first visit follows the device: a top-ranked `es`/`es-*` language opens in Spanish, anything else in English; a stored choice always wins and detection never writes it. Mobile Settings is a labelled button in a top bar on all four tabs. The remaining views are translated in five more PRs (Train erg, StrengthLogger, mobile leftovers, desktop erg, then deferred strength and mobility), plan in `docs/i18n/SPEC.md` § Amendment 2026-11-14. Scott shipped PR 1 (#554) ahead of native review, as under D22 |
 | D25 | 2026-11-14 (Gate 1 2026-11-15): **Reverses D3, and D14's "open sign-up (R31) stays parked".** Registration opens now, as R31 / [#561](https://github.com/skizzy1986/SplitIQ/issues/561), in six slices. The rules: email confirmation required, a self-declared 18+ tick-box (a declaration, not verification), a short privacy notice with a required consent tick, and web only (the APK offers no sign-up). The Supabase signups switch stays off until slices 1, 2 and 4 merge. R33 is not done, and opening without it is an accepted risk; R33 still gates coach access (D17). Coach access itself is unchanged: specified now, built after H2 (D14) |
+| D26 | 2026-11-15: The bundle gate measures the build production ships (#465). CI builds with a placeholder `VITE_SENTRY_DSN`, the size script fails a first paint without the Sentry init path, and `ENTRY` 157 → 208 and `SQUAT_ENTRY` 124 → 173 are re-based to the measured figure + ~2 KB. A correction, not growth: production carried the SDK all along. Deferring the SDK off first paint is not chosen now |
 
 A changed decision is a new row here with the date, not an edit to the old one.

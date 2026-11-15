@@ -286,6 +286,38 @@ export function catalogTextLeaks(firstPaint, all, phrases, what) {
   return problems;
 }
 
+// Integration names the Sentry SDK keeps as plain strings through
+// minification. GlobalHandlers is a default integration (present only when
+// Sentry.init is bundled); BrowserTracing is the one utils/sentry.js adds.
+export const SENTRY_INIT_MARKERS = ['GlobalHandlers', 'BrowserTracing'];
+// Valid shape, dead project: keeps the init path in the bundle and can never
+// report anywhere. Never a real DSN. Mirrored in .github/workflows/ci-web.yml.
+const PLACEHOLDER_DSN =
+  'https://0123456789abcdef0123456789abcdef@o0.ingest.de.sentry.io/0';
+
+/**
+ * The size gate must measure the Sentry code production ships (#465).
+ * initSentry() returns early without VITE_SENTRY_DSN, so a build without one
+ * tree-shakes Sentry.init and its integrations out of the shared entry — ~49 KB
+ * gzip that every production first paint carries and the gate would not see.
+ *
+ * @param {{ name: string, files: { file: string, text: string }[] }[]} products
+ *   each product's first-paint JS
+ * @returns {string[]} problems; empty when every first paint carries the init path
+ */
+export function sentryInitProblems(products) {
+  return products.flatMap(({ name, files }) => {
+    const missing = SENTRY_INIT_MARKERS.filter(
+      (m) => !files.some((f) => f.text.includes(m))
+    );
+    return missing.length
+      ? [
+          `The ${name} first paint has no Sentry init path (missing ${missing.join(', ')}), so this build is lighter than production. Rebuild with the placeholder DSN the CI Build job uses: VITE_SENTRY_DSN=${PLACEHOLDER_DSN} npm run build (PowerShell: $env:VITE_SENTRY_DSN='${PLACEHOLDER_DSN}'; npm run build).`,
+        ]
+      : [];
+  });
+}
+
 /** The service worker must still serve index.html for navigations. */
 export const navigationProblems = (sw) =>
   servesIndexNavigation(sw)

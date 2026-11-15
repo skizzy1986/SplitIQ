@@ -91,7 +91,15 @@ monitors need a plan upgrade.
 **Never quote a bundle figure from a doc — re-measure it.** Figures drift, and a stale
 one has already mis-scoped work here (#319). `npm run build && npm run size` prints every
 current figure and regenerates `web/dist/bundle-size.json`. `npm run size` enforces every
-budget inside the **Build** job. The definitions below are in the header of
+budget inside the **Build** job.
+
+**Build with `VITE_SENTRY_DSN` set before measuring** (#465). `initSentry()` returns
+early without a DSN, so the bundler tree-shakes `Sentry.init`, browser tracing and most
+of `@sentry/core` out of the shared entry: ~49 KB gzip lighter than what production
+(DSN set on Vercel) ships, on both first paints. The CI Build job sets a placeholder DSN
+(valid shape, dead project, never a real one); locally, use the command `npm run size`
+prints when it refuses a DSN-less build (`sentryInitProblems` in
+`web/scripts/entry-graph.mjs`, matched by integration names kept in the minified chunk). The definitions below are in the header of
 `web/scripts/check-bundle-size.mjs`, and each ceiling's history is in the dated comments
 beside its constant there.
 
@@ -129,8 +137,9 @@ walk is in `web/scripts/entry-graph.mjs` and is unit-tested, because a walk that
 followed `dynamicImports` would report the total as the entry and pass. The size step
 also fails on split invariants: the 3D chunk on either first paint; squat-only JS not
 equal to the `squat-*` set; `sw.js` precaching an `assets/squat-` or `assets/i18n-` file;
-no `index.html` navigation fallback; a Spanish catalog on a first paint; and the views
-English found in a first-paint file (`catalogTextLeaks`, matched by its words).
+no `index.html` navigation fallback; a Spanish catalog on a first paint; the views
+English found in a first-paint file (`catalogTextLeaks`, matched by its words); and a
+first paint without the Sentry init path (`sentryInitProblems`, above).
 
 Both shells and every desktop tab are lazy (`AuthGate.jsx`, `App.jsx`), so recharts is
 out of first paint. What remains in the entry is React, react-query, Lingui and
@@ -162,7 +171,7 @@ feature that earns its bytes may raise one. This applies to every gate: ENTRY, T
 SQUAT_ENTRY, SQUAT_TOTAL, SQUAT_3D, SQUAT_DATA, DASH_ES and the planned SQUAT_ES. In the PR
 that needs the room:
 
-1. Run `npm run build && npm run size`, then raise the ceiling to the measured figure plus
+1. Run `npm run build && npm run size` (DSN set, above), then raise the ceiling to the measured figure plus
    ~2 KB, rounded to the nearest whole KB (#493). SQUAT_3D and SQUAT_DATA keep
    proportionate headroom instead (~5% and ~0.1 MB, as their comments in the script do):
    a flat ~2 KB is noise against three.js or the raw anatomy data.

@@ -2,12 +2,28 @@ name: Doctrine SHA guard
 
 # The doctrine_sha anchor (Supabase `anchors` table) pins the canonical commit of
 # the doctrine docs — CLAUDE.md + .claude/skills/training-science.md — so Code and
-# Coach agree which doctrine version is live. When those docs change on main, the
-# anchor must be superseded to the new commit. That update lives in the DB (Coach's
-# content lane), not git, so CI can't perform it directly — but it can make the
-# drift impossible to miss. This guard fires exactly when doctrine docs land on
-# main and opens (or comments on) a single tracking issue carrying the new SHA,
-# turning silent drift into an actionable reminder.
+# Coach agree which doctrine version is live. The `Supabase Doctrine_SHA anchor
+# update` Claude Code Routine supersedes it nightly at 01:00 UTC and closes the
+# tracking issue. CI has no DB access, so this file brackets the Routine instead:
+#
+#   remind    on a doctrine push, opens (or comments on) one UNASSIGNED issue
+#             labelled routine-managed — a pending marker, not a to-do. It used to
+#             be assigned with a "Scott authorises" SQL block, which pulled people
+#             and agent sessions into hand-superseding what the Routine already
+#             does (#568).
+#   watchdog  at 03:17 UTC, any routine-managed issue opened before the latest
+#             01:00 UTC and still open means the Routine missed its run. Closing
+#             the issue is the Routine's success signal, so silence is safe only
+#             while that signal keeps arriving. Escalates once (comment,
+#             needs-attention, assign the owner) and fails every run until closed.
+#             It cannot see the DB: a Routine that closed the issue without
+#             writing the anchor would pass.
+#
+# 03:17, not 03:00: scheduled runs are delayed or dropped under load and the top
+# of the hour is the busiest slot (docs.github.com, "Events that trigger
+# workflows" → schedule). A dropped run makes the alarm a day late, not lost.
+# Failure notifications for a scheduled run go to whoever last edited the cron
+# line, not the repo owner — the assignment is the dependable alert.
 
 on:
   push:
@@ -15,51 +31,113 @@ on:
     paths:
       - 'CLAUDE.md'
       - '.claude/skills/training-science.md'
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: watchdog only — report what it would escalate, change nothing
+        type: boolean
+        default: true
 
-permissions:
-  contents: read
-  issues: write
-
-concurrency:
-  group: doctrine-sha-guard
-  cancel-in-progress: false
+permissions: {}
 
 jobs:
   remind:
     name: Flag doctrine_sha drift
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    concurrency:
+      group: doctrine-sha-guard
+      cancel-in-progress: false
     steps:
-      - name: Open or update the doctrine_sha reminder issue
+      - name: Open or update the doctrine_sha tracking issue
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
-          OWNER: ${{ github.repository_owner }}
           SHA: ${{ github.sha }}
+        shell: bash
         run: |
           set -euo pipefail
           title="chore(doctrine): supersede doctrine_sha to latest main"
           body=$(printf '%s\n' \
             "The doctrine docs changed on \`main\` in commit \`${SHA}\`." \
             "" \
-            "The \`doctrine_sha\` anchor (Supabase \`anchors\` table) still points at the previous commit, so Code and Coach may disagree on which doctrine version is live." \
+            "**No action needed.** The \`Supabase Doctrine_SHA anchor update\` Routine supersedes the \`doctrine_sha\` anchor at 01:00 UTC and closes this issue." \
             "" \
-            "**Action — Coach's content lane, Scott authorises:** supersede \`doctrine_sha\` to \`${SHA}\`. Set \`superseded_at = now()\` on the current row and insert a new row with the new SHA, then close this issue:" \
-            "" \
-            "\`\`\`sql" \
-            "update public.anchors set superseded_at = now()" \
-            " where key = 'doctrine_sha' and superseded_at is null;" \
-            "insert into public.anchors (user_id, key, value, source, valid_from, note)" \
-            "values ('<scott-uuid>', 'doctrine_sha', '${SHA}'," \
-            "        'doctrine docs changed on main', current_date," \
-            "        'CLAUDE.md + .claude/skills/training-science.md');" \
-            "\`\`\`" \
+            "If this issue is still open after 03:17 UTC, the watchdog in \`doctrine-sha-guard.yml\` labels it \`needs-attention\` and assigns the owner. Only then: check the Routine, and supersede by hand if it cannot run. Do not hand-supersede before that (CLAUDE.md, Supabase data → \`anchors\`)." \
             "" \
             "_Auto-filed by the Doctrine SHA guard. If this issue is already open, the latest SHA is appended as a comment rather than duplicated._")
           existing=$(gh issue list --repo "$REPO" --state open \
             --search "\"$title\" in:title" --json number --jq '.[0].number // empty')
           if [ -n "$existing" ]; then
             gh issue comment "$existing" --repo "$REPO" --body "$body"
+            # An issue filed before routine-managed existed must still reach the watchdog.
+            gh issue edit "$existing" --repo "$REPO" --add-label routine-managed
           else
             gh issue create --repo "$REPO" --title "$title" --body "$body" \
-              --assignee "$OWNER"
+              --label routine-managed --label 'type: chore' --label 'area: factory'
           fi
+
+  watchdog:
+    name: Doctrine SHA Routine ran on time
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    concurrency:
+      group: doctrine-sha-watchdog
+      cancel-in-progress: false
+    steps:
+      - name: Escalate routine-managed issues the Routine left open
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          OWNER: ${{ github.repository_owner }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The latest 01:00 UTC at or before now: the Routine's most recent window.
+          if [ "$(date -u +%-H)" -ge 1 ]; then day=today; else day=yesterday; fi
+          cutoff=$(date -u -d "$day 01:00" +%Y-%m-%dT%H:%M:%SZ)
+
+          # ISO-8601 UTC strings compare correctly as text.
+          stale=$(gh issue list --repo "$REPO" --label routine-managed --state open \
+            --limit 100 --json number,createdAt,labels |
+            jq -c --arg cutoff "$cutoff" '[ .[] | select(.createdAt < $cutoff) |
+              { number, escalated: any(.labels[]; .name == "needs-attention") } ]')
+
+          if [ "$(jq 'length' <<<"$stale")" -eq 0 ]; then
+            echo "No routine-managed issue opened before $cutoff is still open — the Routine is on time."
+            exit 0
+          fi
+
+          jq -c '.[]' <<<"$stale" | while read -r row; do
+            n=$(jq -r '.number' <<<"$row")
+            if [ "$(jq -r '.escalated' <<<"$row")" = true ]; then
+              echo "#$n is still open and already escalated."
+              continue
+            fi
+            if [ "$DRY_RUN" = true ]; then
+              echo "[dry run] would escalate #$n (opened before $cutoff, still open)."
+              continue
+            fi
+            gh issue comment "$n" --repo "$REPO" --body "$(printf '%s\n' \
+              "**The Routine missed its run.** This issue was opened before the 01:00 UTC window ending $cutoff and is still open, so the Routine that owns it did not close it." \
+              "" \
+              "Check the Routine first (disabled, failed, or stopped on ambiguity). If it cannot run, do its job by hand as CLAUDE.md describes for the \`anchors\` table, then close this issue." \
+              "" \
+              "_Posted once by the watchdog in \`doctrine-sha-guard.yml\`, which fails daily until this issue closes._")"
+            gh issue edit "$n" --repo "$REPO" --add-label needs-attention --add-assignee "$OWNER"
+            echo "Escalated #$n."
+          done
+
+          if [ "$DRY_RUN" = true ]; then
+            echo "[dry run] the scheduled run would fail here."
+            exit 0
+          fi
+          echo "::error::A routine-managed issue outlived its Routine window — see the needs-attention issues."
+          exit 1

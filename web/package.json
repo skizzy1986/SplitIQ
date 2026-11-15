@@ -25,6 +25,7 @@
     "check:no-llm": "node scripts/check-no-llm-path.mjs",
     "check:names": "node scripts/check-names.mjs",
     "check:migrations": "node scripts/check-migrations.mjs",
+    "check:hooks": "node scripts/check-hook-wiring.mjs",
     "i18n:extract": "lingui extract --clean",
     "i18n:check": "lingui check sync --clean && lingui check missing --mode catalog --locale es",
     "i18n:review": "node scripts/i18n-review-sheet.mjs",

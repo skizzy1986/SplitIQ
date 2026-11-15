@@ -16,7 +16,10 @@
 # Output channel (#482): plain stdout from a Stop hook goes to the debug log, so
 # the old echo reached nobody. The warning is a JSON `systemMessage`, which is
 # shown to the user. It carries no `decision`, `continue` or
-# `hookSpecificOutput`, so it never continues the turn.
+# `hookSpecificOutput`, so it never continues the turn. Only the user sees it.
+# The model does not receive `systemMessage` (#538, settled from the docs:
+# "shows a message to the user, not the model"). Claude learns about uncommitted
+# work only from its own `git status`.
 # https://code.claude.com/docs/en/hooks
 #
 # In a cloud session (CLAUDE_CODE_REMOTE=true) this exits 0 silently, before the
@@ -42,8 +45,14 @@ if [ -z "$root" ] || [ ! -d "$root" ]; then
   exit 1
 fi
 
-if ! status="$(git -C "$root" status --porcelain 2>/dev/null)"; then
+# git's stderr goes to a file, never into $status: on success a warning there
+# would be counted as a changed file. On failure it follows our own line, so the
+# reason (e.g. "not a git repository") is visible (#540).
+errf="$(mktemp)" || { echo "[HOOK] warn-uncommitted: mktemp failed" >&2; exit 1; }
+trap 'rm -f "$errf"' EXIT
+if ! status="$(git -C "$root" status --porcelain 2>"$errf")"; then
   echo "[HOOK] warn-uncommitted: git status failed in $root" >&2
+  cat "$errf" >&2
   exit 1
 fi
 

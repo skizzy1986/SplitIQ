@@ -63,7 +63,7 @@ Skills: `/orchestrate` (alias `/feature`), `/refactor`, `/research`, `/daily`, `
 (`npx vitest run --coverage` for the report) · `npm run lint` · `npm run format |
 format:check` · `npm run build && npm run size` (bundle budgets — re-measure, never
 quote a figure) · `npm run check:zones | check:context7 | check:colours |
-check:design-sync | check:migrations | check:no-llm | check:names`.
+check:design-sync | check:migrations | check:no-llm | check:names | check:hooks`.
 
 ## Writing code
 

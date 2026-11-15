@@ -18,12 +18,12 @@ name: Hook smoke test
 # job skipped by an `if:` reports "skipped", which branch protection counts as
 # passing.
 #
-# KNOWN GAP: this runs the hook scripts directly, so it verifies their behaviour
-# and not the wiring in .claude/settings.json. A settings.json change that
-# detaches a hook, renames a matcher or breaks its JSON passes unnoticed, which
-# is why that file is deliberately NOT in the filter below — running this job
-# against a settings-only change would report green having checked nothing about
-# it, the exact failure mode this workflow exists to end.
+# Wiring: web/scripts/check-hook-wiring.mjs asserts that every hook in
+# .claude/settings.json is on the right event and matcher, points at an existing
+# script by the $CLAUDE_PROJECT_DIR form, and that no hook script is orphaned
+# (#541). settings.json is in the filter because something now checks it. What
+# it still cannot check is that Claude Code honours the wiring: trust, runtime,
+# and whether output reaches its audience.
 
 on:
   pull_request:
@@ -49,6 +49,8 @@ jobs:
           filters: |
             hooks:
               - '.claude/hooks/**'
+              - '.claude/settings.json'
+              - 'web/scripts/check-hook-wiring.mjs'
               - '.github/workflows/hook-smoke-test.yml'
 
   check:
@@ -63,6 +65,10 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: web/package-lock.json
+
+      # Node builtins only, so it needs no install and fails before the slow step.
+      - name: Check hook wiring in settings.json
+        run: node web/scripts/check-hook-wiring.mjs
 
       # The real-eslint cases (the block in test-hooks.sh guarded by
       # `[ -x …/eslint ]`) are SKIPPED without web/node_modules/.bin/eslint, and

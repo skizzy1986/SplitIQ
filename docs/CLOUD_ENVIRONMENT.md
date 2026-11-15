@@ -190,9 +190,10 @@ projects["/home/user/erg-dashboard"].hasTrustDialogAccepted: true in /root/.clau
 ```
 
 `/root/.claude.json` ships with `projects: {}` and the container is rebuilt per session, so
-the allowlist is discarded every time. The hooks go with it: a `Write` to a `web/src/*.js`
-file carrying a lint error that `eslint --max-warnings=0` does flag produced **no**
-`PostToolUse` output, and `session-start.sh` never ran. There is no trust dialog to accept
+the allowlist is discarded every time. The hooks go with it: `session-start.sh` never ran,
+judged by its side effect. (A `Write` to a `web/src/*.js` file carrying a lint error also
+produced **no** `PostToolUse` output, but that probe ran under the pre-#482 hook, whose
+output reached nobody, so on its own it proves nothing.) There is no trust dialog to accept
 in a cloud session.
 
 **The fix belongs in the setup script**, which runs before the session and outside the
@@ -271,15 +272,22 @@ by what it *changes* — `node_modules` restamped, a `PreToolUse` exit 2 blockin
 (`block-secret-commit.sh`) — or by deliberately provoking a finding, never by the absence of
 output.
 
+Settings hooks also fire on a subagent's tool calls; lint findings land in that subagent's
+context (#537, see the `lint-edited-file.sh` header).
+
 Three `claude doctor` warnings are unrelated environment plumbing and predate this work
 (observed 2026-11-05 in a container booted before any of it): config install method
 `unknown`, a broken `claude` at `/root/.local/bin/claude`, and a leftover npm global at
 `/opt/node22/bin/claude`. They are not symptoms of the trust flag.
 
 Verify in a new session with `claude doctor`: the "Ignoring 36 …" line disappears when it
-has taken. Setting the flag mid-session does clear that warning but does **not** activate
-the hooks — trust is read once at startup (measured 2026-11-05: the same `Write` probe
-still produced no hook output after the flag was set).
+has taken. Setting the flag mid-session does clear that warning. Whether it also activates
+the hooks is **unverified**. The 2026-11-05 probe (the same `Write` still produced no hook
+output) ran under the old lint hook, which printed plain stdout with exit 0. #482 showed that
+output reaches nobody, so the probe could not have shown output either way. To settle it,
+re-run with a deliberate lint finding, now that findings arrive as `additionalContext` (the
+Stop hook is silent under `CLAUDE_CODE_REMOTE=true`, so it can't be the probe). Tracked in
+#539.
 
 **Decided 2026-11-05: trust is granted, and the full `npm ci` is wanted.** `session-start.sh`
 runs `npm ci --prefix web`, which has never actually executed here — `web/node_modules` is

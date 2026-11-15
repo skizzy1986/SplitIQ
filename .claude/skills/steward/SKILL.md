@@ -203,4 +203,6 @@ but that bear on reading a check list here: nothing had ever executed `test-hook
 defined hooks and `permissions.allow` do not apply in a cloud session at all until the workspace is
 trusted (`claude doctor`: *"Ignoring 36 permissions.allow entries … this workspace has not been
 trusted"*). The second is environment configuration, not CI — it is recorded in
-`docs/CLOUD_ENVIRONMENT.md`.
+`docs/CLOUD_ENVIRONMENT.md`. Re-verified on 2026-11-15 at `56e06a1` for #541: the same
+`Hooks pass their smoke test` job now also checks the hook wiring in `.claude/settings.json`
+via `web/scripts/check-hook-wiring.mjs`, and that file is in the job's path filter.

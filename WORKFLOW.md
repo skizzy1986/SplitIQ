@@ -121,7 +121,7 @@ The edge functions' job (`.github/workflows/ci-functions.yml`, skipped unless
 
 | Gate | Checks |
 |---|---|
-| **Deno Tests** | the hardcoded steps in `ci-functions.yml` pass — only the functions with a step are tested |
+| **Deno Tests** | the hardcoded test steps in `ci-functions.yml` pass (only functions with a step are tested), then `deno lint` over every function |
 
 These are not the whole set. Many more workflows in `.github/workflows/`
 report on a PR — `codeql`, `dependency-review`, `pr-title-lint`, `zone-bands`,

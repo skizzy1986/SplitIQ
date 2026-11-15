@@ -917,7 +917,7 @@ function installStrava(stub: StravaStub) {
     "x-readratelimit-usage": stub.usage ?? "1,1",
   };
 
-  globalThis.fetch = ((input: string | URL | Request, init?: RequestInit) => {
+  globalThis.fetch = ((input: string | URL | Request, _init?: RequestInit) => {
     const href = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
     const url = new URL(href);
 

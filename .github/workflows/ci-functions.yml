@@ -63,3 +63,16 @@ jobs:
       # function's tests run only once a step is added for them by hand.
       - name: strava-import mapper + state + tokens + cron guard + runImport
         run: deno run --allow-env strava-import/test.ts
+      - name: vitals-sync CORS + date window + specs + upsert args + activity mapper
+        run: deno run vitals-sync/test.ts
+      # Last, so a lint finding never hides a test result.
+      # Lint, not format. `deno fmt --check` fails on most files here (they
+      # were never formatted by it); turning it on means one reformat-only PR
+      # first, not a step that is red from day one. `no-import-prefix` is
+      # excluded because inline `jsr:`/`npm:` specifiers are the Supabase
+      # convention: each function deploys with its own (empty) deno.json, so
+      # there is no shared import map to move them into. setup-deno floats on
+      # v2.x, so a new recommended rule in a Deno release can turn this red
+      # on an unrelated PR — fix the finding, or exclude the rule here.
+      - name: deno lint
+        run: deno lint --rules-exclude=no-import-prefix

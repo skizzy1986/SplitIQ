@@ -29,7 +29,7 @@ const weightCsv = [
 ].join("\n");
 
 const recs = buildRecords(vitalsCsv, sleepCsv, weightCsv);
-const byDate: Record<string, any> = {};
+const byDate: Record<string, ReturnType<typeof buildRecords>[number]> = {};
 for (const r of recs) byDate[r.date] = r;
 
 let pass = 0, fail = 0;

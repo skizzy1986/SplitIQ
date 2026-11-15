@@ -28,6 +28,7 @@ export const VIEWS_SOURCES = [
   'src/utils/recoveryAnalytics.js',
   'src/utils/healthRecords.js',
   'src/constants/srpeGuideMessages.js',
+  'src/views/StrengthView.jsx',
 ];
 
 const rooted = (f) => `<rootDir>/${f}`;

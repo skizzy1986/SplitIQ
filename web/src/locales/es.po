@@ -197,11 +197,6 @@ msgstr "Cargando…"
 msgid "Log"
 msgstr "Historial"
 
-#. Desktop nav tab: log strength sets live
-#: src/App.jsx
-msgid "Logger"
-msgstr "Registro"
-
 #. Desktop nav tab
 #: src/App.jsx
 msgid "Mobility"

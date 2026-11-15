@@ -38,7 +38,7 @@ web/src/
   RouteRoot.jsx   picks the product: /squat -> squat/SquatApp, else AuthGate (both lazy)
   main.jsx        bootstrap (Sentry, react-query, theme vars) -> RouteRoot
   supabaseClient.js  Supabase init (never imported by /squat)
-  StrengthLogger.jsx live strength-set logger (the Logger tab)
+  StrengthLogger.jsx live strength-set logger (mounted from desktop Strength and mobile Train)
 ```
 
 ## Large files

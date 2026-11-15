@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { Trans, useLingui } from '@lingui/react/macro';
 import {
   LineChart,
   Line,
@@ -12,7 +13,28 @@ import LogEntry from '../components/LogEntry.jsx';
 import { THEME } from '../constants/theme.js';
 import { alpha } from '../utils/themeCss.js';
 import { FONT } from '../constants/type.js';
+import { RADIUS, SPACE, TYPE } from '../constants/tokens.js';
 import { useLiftHistory } from '../hooks/useLiftHistory.js';
+import { loadDraft } from '../utils/strengthDraft.js';
+
+// The logger is the heaviest file in the repo, so it stays its own chunk and
+// loads only when someone opens it from here.
+const StrengthLogger = lazy(() => import('../StrengthLogger.jsx'));
+
+const actionRowStyle = {
+  display: 'flex',
+  marginBottom: SPACE.md,
+};
+
+const buttonType = {
+  borderRadius: RADIUS.sm,
+  padding: `${SPACE.sm}px ${SPACE.lg}px`,
+  fontSize: TYPE.label.size,
+  fontWeight: TYPE.label.weight,
+  letterSpacing: TYPE.label.letterSpacing,
+  fontFamily: FONT.sans,
+  cursor: 'pointer',
+};
 
 const statusStyle = {
   padding: '20px 0',
@@ -154,8 +176,92 @@ function LiftTrend({ lifts, active, onSelect }) {
 }
 
 export default function StrengthView({ strengthSessions }) {
+  const { t } = useLingui();
   const [activeLift, setActiveLift] = useState(null);
   const { data, isPending, isError } = useLiftHistory();
+  // Section-local mode. The logger is unmounted on Leave and mounted fresh on
+  // re-open, so its own init re-reads the draft and offers to resume it.
+  const [logging, setLogging] = useState(false);
+  // In the initializer, not in render: loadDraft removes a malformed key.
+  const [hasDraft, setHasDraft] = useState(() => loadDraft() != null);
+  const actionRef = useRef(null);
+  const leaveRef = useRef(null);
+  // Set only by closeLogger, so the action button is not focused on first mount.
+  const returnFocus = useRef(false);
+
+  // The button that had focus unmounts on each switch, so hand focus to the
+  // other one rather than let it fall to <body>.
+  useEffect(() => {
+    if (logging) {
+      leaveRef.current?.focus();
+    } else if (returnFocus.current) {
+      returnFocus.current = false;
+      actionRef.current?.focus();
+    }
+  }, [logging]);
+
+  const closeLogger = () => {
+    setHasDraft(loadDraft() != null);
+    returnFocus.current = true;
+    setLogging(false);
+  };
+
+  if (logging) {
+    return (
+      <>
+        <div style={{ ...actionRowStyle, justifyContent: 'flex-start' }}>
+          <button
+            ref={leaveRef}
+            type="button"
+            onClick={closeLogger}
+            aria-label={t({
+              message: 'Leave logger, back to strength trends',
+              comment: 'Accessible name of the Leave logger button',
+            })}
+            style={{
+              ...buttonType,
+              background: 'transparent',
+              border: `1px solid ${THEME.border}`,
+              color: THEME.muted,
+            }}
+          >
+            <Trans comment="Button: close the strength logger and return to strength trends">
+              ← Leave logger
+            </Trans>
+          </button>
+        </div>
+        <Suspense fallback={null}>
+          <StrengthLogger />
+        </Suspense>
+      </>
+    );
+  }
+
+  const actionRow = (
+    <div style={{ ...actionRowStyle, justifyContent: 'flex-end' }}>
+      <button
+        ref={actionRef}
+        type="button"
+        onClick={() => setLogging(true)}
+        style={{
+          ...buttonType,
+          background: THEME.accent,
+          color: THEME.surface,
+          border: 'none',
+        }}
+      >
+        {hasDraft ? (
+          <Trans comment="Button: reopen the logger with an unfinished session">
+            Resume session
+          </Trans>
+        ) : (
+          <Trans comment="Button: open the strength logger">
+            Log a session
+          </Trans>
+        )}
+      </button>
+    </div>
+  );
 
   let body;
   if (isPending) {
@@ -182,6 +288,8 @@ export default function StrengthView({ strengthSessions }) {
 
   return (
     <>
+      {actionRow}
+
       {/* e1RM chart */}
       <div
         style={{

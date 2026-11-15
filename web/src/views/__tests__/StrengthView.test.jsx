@@ -1,12 +1,27 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 const hookState = vi.fn();
 vi.mock('../../hooks/useLiftHistory.js', () => ({
   useLiftHistory: () => hookState(),
 }));
 
+// Counts mounts in an effect, so a fresh instance per open is observable.
+const loggerMounts = vi.hoisted(() => ({ count: 0 }));
+vi.mock('../../StrengthLogger.jsx', async () => {
+  const { useEffect } = await import('react');
+  return {
+    default: function StrengthLoggerStub() {
+      useEffect(() => {
+        loggerMounts.count += 1;
+      }, []);
+      return <div>StrengthLogger-stub</div>;
+    },
+  };
+});
+
 import StrengthView from '../StrengthView.jsx';
+import { DRAFT_KEY } from '../../utils/strengthDraft.js';
 
 const strengthSessions = [
   {
@@ -31,8 +46,14 @@ const lifts = {
 const renderView = () =>
   render(<StrengthView strengthSessions={strengthSessions} />);
 
+const logButton = () => screen.getByRole('button', { name: 'Log a session' });
+
 describe('StrengthView', () => {
-  beforeEach(() => hookState.mockReset());
+  beforeEach(() => {
+    hookState.mockReset();
+    localStorage.clear();
+    loggerMounts.count = 0;
+  });
 
   it('renders the first lift trend and sessions', () => {
     hookState.mockReturnValue(loaded({ lifts, setCount: 3, scoredCount: 3 }));
@@ -47,6 +68,7 @@ describe('StrengthView', () => {
     expect(screen.queryByText(/SAVED TEMPLATES/i)).toBeNull();
     expect(screen.queryByText(/Prehab/)).toBeNull();
     expect(screen.getByText('STRENGTH SESSIONS')).toBeInTheDocument();
+    expect(logButton()).toBeInTheDocument();
   });
 
   it('signs a falling trend correctly', () => {
@@ -72,6 +94,7 @@ describe('StrengthView', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Lift B' }));
     expect(screen.getByText(/LIFT B · e1RM/i)).toBeInTheDocument();
     expect(screen.getByText(/One data point/i)).toBeInTheDocument();
+    expect(logButton()).toBeInTheDocument();
   });
 
   it('says nothing is logged when there are zero sets', () => {
@@ -84,6 +107,7 @@ describe('StrengthView', () => {
     ).toBeInTheDocument();
     expect(screen.queryByText(/e1RM \(kg\)/)).not.toBeInTheDocument();
     expect(screen.getByText('STRENGTH SESSIONS')).toBeInTheDocument();
+    expect(logButton()).toBeInTheDocument();
   });
 
   it('says sets exist but none can be scored', () => {
@@ -99,6 +123,8 @@ describe('StrengthView', () => {
     expect(
       screen.queryByText('No strength sets logged yet.')
     ).not.toBeInTheDocument();
+    expect(screen.getByText('STRENGTH SESSIONS')).toBeInTheDocument();
+    expect(logButton()).toBeInTheDocument();
   });
 
   it('shows a loading state while pending', () => {
@@ -109,6 +135,8 @@ describe('StrengthView', () => {
     });
     renderView();
     expect(screen.getByText('Loading strength history…')).toBeInTheDocument();
+    expect(screen.getByText('STRENGTH SESSIONS')).toBeInTheDocument();
+    expect(logButton()).toBeInTheDocument();
   });
 
   it('shows an error state when the query fails', () => {
@@ -124,5 +152,128 @@ describe('StrengthView', () => {
     expect(
       screen.queryByText('No strength sets logged yet.')
     ).not.toBeInTheDocument();
+    expect(screen.getByText('STRENGTH SESSIONS')).toBeInTheDocument();
+    expect(logButton()).toBeInTheDocument();
+  });
+});
+
+// #520: the logger is reached from inside Strength, not from its own tab.
+describe('StrengthView logging mode', () => {
+  const validDraft = JSON.stringify({
+    id: 'draft-1',
+    label: 'Upper A',
+    exercises: [{ name: 'Bench Press', sets: [] }],
+  });
+
+  beforeEach(() => {
+    hookState.mockReset();
+    hookState.mockReturnValue(loaded({ lifts, setCount: 3, scoredCount: 3 }));
+    localStorage.clear();
+    loggerMounts.count = 0;
+  });
+
+  const leave = () =>
+    screen.getByRole('button', {
+      name: 'Leave logger, back to strength trends',
+    });
+
+  it('opens the unchanged logger in place of the trends, and Leave returns focus', async () => {
+    renderView();
+    fireEvent.click(logButton());
+
+    expect(await screen.findByText('StrengthLogger-stub')).toBeInTheDocument();
+    expect(screen.queryByText(/BARBELL SQUAT · e1RM/i)).toBeNull();
+    expect(screen.queryByText('STRENGTH SESSIONS')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Log a session' })).toBeNull();
+    expect(leave()).toHaveTextContent('← Leave logger');
+
+    fireEvent.click(leave());
+    expect(screen.queryByText('StrengthLogger-stub')).toBeNull();
+    expect(screen.getByText(/BARBELL SQUAT · e1RM/i)).toBeInTheDocument();
+    expect(screen.getByText('STRENGTH SESSIONS')).toBeInTheDocument();
+    await waitFor(() => expect(logButton()).toHaveFocus());
+  });
+
+  it('reads "Resume session" when a valid draft is saved', () => {
+    localStorage.setItem(DRAFT_KEY, validDraft);
+    renderView();
+    expect(
+      screen.getByRole('button', { name: 'Resume session' })
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Log a session' })).toBeNull();
+  });
+
+  it('mounts a fresh logger on every open and leaves the saved draft alone', async () => {
+    localStorage.setItem(DRAFT_KEY, validDraft);
+    renderView();
+    const resume = () => screen.getByRole('button', { name: 'Resume session' });
+
+    fireEvent.click(resume());
+    await screen.findByText('StrengthLogger-stub');
+    expect(loggerMounts.count).toBe(1);
+
+    fireEvent.click(leave());
+    fireEvent.click(resume());
+    await screen.findByText('StrengthLogger-stub');
+    expect(loggerMounts.count).toBe(2);
+
+    expect(localStorage.getItem(DRAFT_KEY)).toBe(validDraft);
+  });
+
+  it('reads "Log a session" with no draft', () => {
+    renderView();
+    expect(logButton()).toBeInTheDocument();
+  });
+
+  it('reads "Log a session" when the draft is malformed', () => {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ id: 'x' }));
+    renderView();
+    expect(logButton()).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Resume session' })).toBeNull();
+  });
+
+  it('re-reads the draft on Leave, so a finished session relabels the button', async () => {
+    localStorage.setItem(DRAFT_KEY, validDraft);
+    renderView();
+    fireEvent.click(screen.getByRole('button', { name: 'Resume session' }));
+    await screen.findByText('StrengthLogger-stub');
+
+    // What the logger does on finish or discard.
+    localStorage.removeItem(DRAFT_KEY);
+    fireEvent.click(leave());
+
+    expect(logButton()).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Resume session' })).toBeNull();
+  });
+
+  it('moves focus to the Leave button when the logger opens', () => {
+    renderView();
+    fireEvent.click(logButton());
+    expect(leave()).toHaveFocus();
+  });
+
+  it('does not focus the action button on first render', () => {
+    renderView();
+    expect(logButton()).not.toHaveFocus();
+  });
+
+  it('re-reads the draft on Leave, so a session started in the logger reads "Resume session"', async () => {
+    renderView();
+    fireEvent.click(logButton());
+    await screen.findByText('StrengthLogger-stub');
+
+    // What the logger does once a workout is under way.
+    localStorage.setItem(DRAFT_KEY, validDraft);
+    fireEvent.click(leave());
+
+    expect(
+      screen.getByRole('button', { name: 'Resume session' })
+    ).toBeInTheDocument();
+  });
+
+  it('lets loadDraft remove a malformed draft on render', () => {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ id: 'x' }));
+    renderView();
+    expect(localStorage.getItem(DRAFT_KEY)).toBeNull();
   });
 });

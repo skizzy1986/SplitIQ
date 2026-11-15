@@ -15,7 +15,7 @@
 > | PR-M | Mobile Settings screen (gear in Today header, reuses SettingsView) | **merged** — #508 |
 > | PR-1 | Lingui foundation (spike first) + dashboard Phase 1 | **merged** — #522 |
 > | Phase 2a | the settled views (Overview, Calendar, Plan, Log, Recovery; mobile Today, Progress, Body, Train picker) on a second "views" catalog | **merged** — #533 |
-> | Phase 2b | Live, mobile Strength, Erg, Mobility, Strength/Logger — each after #518/#519/#422/#423/#520 | waiting |
+> | Phase 2b | Live, mobile Strength, Erg, Mobility, Strength/Logger — each after #518/#519/#422/#423/#520 (#520 landed as placement only; Strength’s existing copy and the logger are still English) | waiting |
 > | PR-2 | /squat chrome on Lingui | not started |
 > | PR-3 | /squat prose overlay | not started |
 >

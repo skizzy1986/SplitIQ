@@ -101,9 +101,6 @@ vi.mock('../supabaseClient.js', () => ({
 
 // Stub every child module App imports so the test drives App's own routing and
 // mapping logic in isolation (utils + constants run for real).
-vi.mock('../StrengthLogger.jsx', () => ({
-  default: () => <div>StrengthLogger-stub</div>,
-}));
 vi.mock('../views/ErgLiveView.jsx', () => ({
   default: () => <div>ErgLiveView-stub</div>,
 }));
@@ -126,9 +123,22 @@ vi.mock('../utils/sentry.js', () => ({
 vi.mock('../views/RecoveryView.jsx', () => ({
   default: () => <div>RecoveryView-stub</div>,
 }));
-vi.mock('../views/StrengthView.jsx', () => ({
-  default: () => <div>StrengthView-stub</div>,
-}));
+// Stateful, so a test can tell a remount (state reset) from a re-render.
+vi.mock('../views/StrengthView.jsx', async () => {
+  const { useState } = await import('react');
+  return {
+    default: function StrengthViewStub() {
+      const [opened, setOpened] = useState(false);
+      return (
+        <div>
+          <span>StrengthView-stub</span>
+          <button onClick={() => setOpened(true)}>open-logger-stub</button>
+          {opened && <span>logging-mode-stub</span>}
+        </div>
+      );
+    },
+  };
+});
 vi.mock('../views/MobilityView.jsx', () => ({
   default: () => <div>MobilityView-stub</div>,
 }));
@@ -214,7 +224,6 @@ const NAV = [
   ['LIVE', 'ErgLiveView-stub'],
   ['ERG', 'ErgView-stub'],
   ['STRENGTH', 'StrengthView-stub'],
-  ['LOGGER', 'StrengthLogger-stub'],
   ['MOBILITY', 'MobilityView-stub'],
   ['RECOVERY', 'RecoveryView-stub'],
   ['LOG', 'LogView-stub'],
@@ -237,18 +246,20 @@ describe('App', () => {
     expect(screen.queryByText(/STRENGTH · BASE/)).toBeNull();
     expect(screen.queryByText(/beta/)).toBeNull();
 
-    // Eleven tabs: Coach retired in #414, Program and Journal in #418.
-    expect(NAV).toHaveLength(11);
+    // Ten tabs: Coach retired in #414, Program and Journal in #418, and the
+    // Logger tab in #520 (the logger now opens from inside Strength).
+    expect(NAV).toHaveLength(10);
     const navRow = screen.getByRole('button', {
       name: 'OVERVIEW',
     }).parentElement;
-    expect(navRow.querySelectorAll('button')).toHaveLength(11);
+    expect(navRow.querySelectorAll('button')).toHaveLength(10);
     for (const [label] of NAV) {
       expect(screen.getByRole('button', { name: label })).toBeInTheDocument();
     }
     expect(screen.queryByRole('button', { name: 'COACH' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'PROGRAM' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'JOURNAL' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'LOGGER' })).toBeNull();
 
     // Every tab is lazy (#331), so its content arrives when the chunk
     // resolves rather than in the click’s own tick — findBy, not getBy.
@@ -367,5 +378,22 @@ describe('App', () => {
     fireEvent(window, new window.Event('resize'));
 
     expect(screen.getByText('SPLITIQ')).toBeInTheDocument();
+  }, 30000);
+
+  it('remounts Strength after another tab, so its logging mode never survives (#520)', async () => {
+    render(<App />);
+    await screen.findByText('OverviewView-stub');
+
+    fireEvent.click(screen.getByRole('button', { name: 'STRENGTH' }));
+    fireEvent.click(await screen.findByText('open-logger-stub'));
+    expect(screen.getByText('logging-mode-stub')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'PLAN' }));
+    await screen.findByText('PlanView-stub');
+    expect(screen.queryByText('StrengthView-stub')).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'STRENGTH' }));
+    expect(await screen.findByText('StrengthView-stub')).toBeInTheDocument();
+    expect(screen.queryByText('logging-mode-stub')).toBeNull();
   }, 30000);
 });

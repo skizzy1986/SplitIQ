@@ -9,7 +9,7 @@ proper names stay as they are (SplitIQ, Strava). Numbers use a decimal point.
 Placeholders in braces — `{count}`, `{0}` — must stay exactly as written; their order
 may change. To correct a line, reply with its **row** id and the new Spanish.
 
-## Dashboard (src/locales, 104 strings)
+## Dashboard (src/locales, 103 strings)
 
 | Row | English | Español | Where / note |
 |---|---|---|---|
@@ -54,7 +54,6 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `dF6vP6` | Live | En vivo | Desktop nav tab: live erg session · src/App.jsx |
 | `Pwqkdw` | Loading… | Cargando… | Shown while the session or the app is loading · src/AuthGate.jsx |
 | `FOw3tu` | Log | Historial | Desktop nav tab: past sessions · src/App.jsx |
-| `i7OUw2` | Logger | Registro | Desktop nav tab: log strength sets live · src/App.jsx |
 | `Rs3GvY` | Mobility | Movilidad | Desktop nav tab · src/App.jsx |
 | `x9cgKh` | No successful sync in {span} | Ninguna sincronización exitosa en {span} | src/utils/stravaStatus.js |
 | `dk8q7E` | Nothing already imported is affected — reconnecting resumes from where it stopped. | Lo que ya se importó no se ve afectado: al reconectar, la importación sigue desde donde se detuvo. | src/utils/stravaStatus.js |
@@ -118,7 +117,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `3_fJQg` | Working backwards from {from}. | Importando hacia atrás desde {from}. | src/utils/stravaStatus.js |
 | `y1oEoC` | Wrong email or password. | Correo o contraseña incorrectos. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
 
-## Dashboard views (src/locales/views, 199 strings)
+## Dashboard views (src/locales/views, 203 strings)
 
 | Row | English | Español | Where / note |
 |---|---|---|---|
@@ -126,6 +125,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `f72_Pd` | {cancelledCount, plural, one {⊘ {cancelledCount} CANCELLED} other {⊘ {cancelledCount} CANCELLED}} | {cancelledCount, plural, one {⊘ {cancelledCount} CANCELADA} other {⊘ {cancelledCount} CANCELADAS}} | src/views/CalendarView.jsx |
 | `P6EN8W` | {count, plural, one {{count} logged} other {{count} logged}} | {count, plural, one {{count} registrada} other {{count} registradas}} | src/views/mobile/MobileSessionLog.jsx |
 | `Dnks7s` | {doneCount, plural, one {✓ DONE} other {✓ DONE ×{doneCount}}} | {doneCount, plural, one {✓ HECHA} other {✓ HECHAS ×{doneCount}}} | Day badge, all capitals: sessions done that day · src/views/CalendarView.jsx |
+| `hL1nTc` | ← Leave logger | ← Salir del registro | Button: close the strength logger and return to strength trends · src/views/StrengthView.jsx |
 | `v77_zP` | ＋ add exercise | ＋ agregar ejercicio | src/components/LogSessionForm.jsx |
 | `r5Xvbj` | ＋ LOG A STRENGTH SESSION | ＋ REGISTRAR UNA SESIÓN DE FUERZA | Button, all capitals · src/components/LogSessionForm.jsx |
 | `k6NFYN` | ● TODAY | ● HOY | Marks today in the calendar, all capitals · src/components/WorkoutItem.jsx |
@@ -205,11 +205,13 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `SfZTx1` | LAST 3 DAYS · TODAY · NEXT 13 · | ÚLTIMOS 3 DÍAS · HOY · PRÓXIMOS 13 · | Calendar legend: the window shown, all capitals · src/views/CalendarView.jsx |
 | `Cagxat` | LATEST WATTS | ÚLTIMOS VATIOS | Stat tile, all capitals · src/views/OverviewView.jsx |
 | `7fmJyT` | LDL Cholesterol | Colesterol LDL | Blood lipid marker · src/utils/healthRecords.js |
+| `fU22Bg` | Leave logger, back to strength trends | Salir del registro, volver a las tendencias de fuerza | Accessible name of the Leave logger button · src/views/StrengthView.jsx |
 | `U6e-ld` | limit {target} {unit} | límite {target} {unit} | Lipid decision limit, e.g. limit 3.0 mmol/L · src/views/RecoveryView.jsx |
 | `axf51R` | Load | Carga | Progress sub-tab: training load · src/views/mobile/MobileProgress.jsx |
 | `SxT-I_` | Loading sessions… | Cargando sesiones… | src/views/CalendarView.jsx |
 | `SVUEE0` | Loading vitals… | Cargando signos vitales… | src/views/RecoveryView.jsx |
 | `Pwqkdw` | Loading… | Cargando… | src/components/HealthRecordCard.jsx · src/views/mobile/MobileRecovery.jsx · src/views/mobile/MobileSessionLog.jsx |
+| `9qsGwv` | Log a session | Registrar una sesión | Button: open the strength logger · src/views/StrengthView.jsx |
 | `G2QKvx` | Log sets against today’s template | Registra series según la plantilla de hoy | src/views/mobile/MobileTrain.jsx |
 | `nylP3W` | LOG STRENGTH SESSION | REGISTRAR SESIÓN DE FUERZA | Form title, all capitals · src/components/LogSessionForm.jsx |
 | `fcouDV` | logged total | total registrado | src/views/OverviewView.jsx |
@@ -264,6 +266,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `BPmK5_` | RESTING HR | FC EN REPOSO | All capitals · All capitals · src/views/mobile/MobileRecovery.jsx · src/views/RecoveryView.jsx |
 | `KqWf7J` | RESTING HR TREND | TENDENCIA DE FC EN REPOSO | Chart title, all capitals · src/views/RecoveryView.jsx |
 | `RTFfQq` | RESTING HR TREND — 14 DAYS | TENDENCIA DE FC EN REPOSO — 14 DÍAS | Chart title, all capitals · src/views/mobile/MobileRecovery.jsx |
+| `5e-CbN` | Resume session | Retomar sesión | Button: reopen the logger with an unfinished session · src/views/StrengthView.jsx |
 | `95QKX4` | Rowing CP {cp}W · bike FTP {ftpW}W | CP de remo {cp}W · FTP de bici {ftpW}W | src/views/OverviewView.jsx |
 | `zG0ocl` | Save failed: {detail} | No se pudo guardar: {detail} | {detail} is the server error message, shown as it came · src/components/LogSessionForm.jsx |
 | `wEEld0` | Saved! Session added to your log. | ¡Guardado! La sesión se agregó a tu historial. | src/components/LogSessionForm.jsx |

@@ -11,7 +11,8 @@ const rgb = (hex) => {
 };
 const ACCENT_RGB = rgb(DEFAULT_THEME.accent);
 
-// Every dashboard tab (matches the NAV in App.jsx).
+// Every dashboard tab (matches the NAV in App.jsx). The strength logger is not
+// a tab since #520; it opens from inside Strength (its own test, below).
 const TABS = [
   'overview',
   'calendar',
@@ -19,7 +20,6 @@ const TABS = [
   'live',
   'erg',
   'strength',
-  'logger',
   'mobility',
   'recovery',
   'log',
@@ -93,4 +93,27 @@ test.describe('dashboard smoke', () => {
       expect(consoleErrors, consoleErrors.join('\n')).toEqual([]);
     });
   }
+
+  // The real logger, mounted from Strength's primary action (#520). This is
+  // the coverage the removed Logger tab's loop entry used to give.
+  test('strength logger mounts from the Strength tab without error', async ({
+    page,
+  }) => {
+    const navButton = page.getByRole('button', {
+      name: NAV_LABEL('strength'),
+      exact: true,
+    });
+    await expect(navButton).toBeVisible();
+    await clickAndSettle(page, navButton);
+
+    const logButton = page.getByRole('button', {
+      name: /^(Log a session|Resume session)$/,
+    });
+    await expect(logButton).toBeVisible();
+    await clickAndSettle(page, logButton);
+
+    await expect(page.locator('.slog')).toBeVisible();
+    await expect(page.getByText(ERROR_BOUNDARY_TEXT)).toHaveCount(0);
+    expect(consoleErrors, consoleErrors.join('\n')).toEqual([]);
+  });
 });

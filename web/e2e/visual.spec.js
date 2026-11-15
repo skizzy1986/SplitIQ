@@ -12,7 +12,7 @@
 //     below), so S6 cannot lean on these baselines for chart layout. The mask
 //     tracks the container's bounding box, so container geometry IS still
 //     covered — what is lost is everything drawn inside it.
-//   - Desktop plan/live/erg/strength/logger/mobility/recovery/log, mobile
+//   - Desktop plan/live/erg/strength/mobility/recovery/log, mobile
 //     erg, StrengthLogger entirely, and every hover, focus and expanded
 //     state.
 //

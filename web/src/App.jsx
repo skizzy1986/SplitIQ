@@ -20,12 +20,12 @@ import { versionLabel } from './utils/appVersion.js';
 
 const VERSION_LABEL = versionLabel(version);
 
-// Every tab is lazy. Only one is on screen at a time, and three of them are
-// among the heaviest files in the repo (StrengthLogger ~1,682, OverviewView
-// ~1,423, ErgView ~1,271), so shipping every tab to
-// paint one of them was most of the entry chunk. React.lazy caches the
-// resolved module, so only a tab's FIRST visit suspends.
-const StrengthLogger = lazy(() => import('./StrengthLogger.jsx'));
+// Every tab is lazy. Only one is on screen at a time, and two of them are
+// among the heaviest files in the repo (OverviewView ~1,423, ErgView ~1,271),
+// so shipping every tab to paint one of them was most of the entry chunk. The
+// heaviest of all, StrengthLogger, is no longer a tab: StrengthView lazy-loads
+// it behind its own action. React.lazy caches the resolved module, so only a
+// tab's FIRST visit suspends.
 const ErgLiveView = lazy(() => import('./views/ErgLiveView.jsx'));
 const ErgView = lazy(() => import('./views/ErgView.jsx'));
 const RecoveryView = lazy(() => import('./views/RecoveryView.jsx'));
@@ -121,13 +121,6 @@ const NAV = [
     msg({ message: 'Erg', comment: 'Desktop nav tab: rowing ergometer' }),
   ],
   ['strength', msg({ message: 'Strength', comment: 'Desktop nav tab' })],
-  [
-    'logger',
-    msg({
-      message: 'Logger',
-      comment: 'Desktop nav tab: log strength sets live',
-    }),
-  ],
   ['mobility', msg({ message: 'Mobility', comment: 'Desktop nav tab' })],
   ['recovery', msg({ message: 'Recovery', comment: 'Desktop nav tab' })],
   ['log', msg({ message: 'Log', comment: 'Desktop nav tab: past sessions' })],
@@ -331,9 +324,6 @@ export default function App() {
               as a flicker. React.lazy resolves each module once, so only the
               first visit to a tab can suspend at all. */}
           <Suspense fallback={null}>
-            {/* ── STRENGTH LOGGER VIEW (live set/rep logging → sessions) ── */}
-            {view === 'logger' && <StrengthLogger />}
-
             {/* ── LIVE ERG VIEW (Bluetooth PM5 → real-time metrics → session save) ── */}
             {view === 'live' && (
               <ErgLiveView

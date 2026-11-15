@@ -197,11 +197,6 @@ msgstr "Loading…"
 msgid "Log"
 msgstr "Log"
 
-#. Desktop nav tab: log strength sets live
-#: src/App.jsx
-msgid "Logger"
-msgstr "Logger"
-
 #. Desktop nav tab
 #: src/App.jsx
 msgid "Mobility"

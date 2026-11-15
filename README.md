@@ -36,8 +36,7 @@ A hobby built to a public-quality standard.
 | **Plan** | Upcoming planned sessions |
 | **Live** | Real-time Bluetooth connection to a Concept2 PM5 (watts, pace, HR) |
 | **Erg** | Erg analytics: pace trend against CP-derived zones |
-| **Strength** | e1RM trends per lift |
-| **Logger** | Live strength-set logging with rest timers and a static hold timer |
+| **Strength** | e1RM trends and live strength logging (rest timers and a static hold timer) |
 | **Mobility** | Mobility session tracking |
 | **Recovery** | HRV/RHR/sleep and the readiness score from Google Health data |
 | **Log** | Full session history |

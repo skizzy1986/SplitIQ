@@ -25,6 +25,11 @@ msgstr "{count, plural, one {{count} logged} other {{count} logged}}"
 msgid "{doneCount, plural, one {✓ DONE} other {✓ DONE ×{doneCount}}}"
 msgstr "{doneCount, plural, one {✓ DONE} other {✓ DONE ×{doneCount}}}"
 
+#. Button: close the strength logger and return to strength trends
+#: src/views/StrengthView.jsx
+msgid "← Leave logger"
+msgstr "← Leave logger"
+
 #: src/components/LogSessionForm.jsx
 msgid "＋ add exercise"
 msgstr "＋ add exercise"
@@ -404,6 +409,11 @@ msgstr "LATEST WATTS"
 msgid "LDL Cholesterol"
 msgstr "LDL Cholesterol"
 
+#. Accessible name of the Leave logger button
+#: src/views/StrengthView.jsx
+msgid "Leave logger, back to strength trends"
+msgstr "Leave logger, back to strength trends"
+
 #. Lipid decision limit, e.g. limit 3.0 mmol/L
 #: src/views/RecoveryView.jsx
 msgid "limit {target} {unit}"
@@ -427,6 +437,11 @@ msgstr "Loading vitals…"
 #: src/views/mobile/MobileSessionLog.jsx
 msgid "Loading…"
 msgstr "Loading…"
+
+#. Button: open the strength logger
+#: src/views/StrengthView.jsx
+msgid "Log a session"
+msgstr "Log a session"
 
 #: src/views/mobile/MobileTrain.jsx
 msgid "Log sets against today’s template"
@@ -677,6 +692,11 @@ msgstr "RESTING HR TREND"
 #: src/views/mobile/MobileRecovery.jsx
 msgid "RESTING HR TREND — 14 DAYS"
 msgstr "RESTING HR TREND — 14 DAYS"
+
+#. Button: reopen the logger with an unfinished session
+#: src/views/StrengthView.jsx
+msgid "Resume session"
+msgstr "Resume session"
 
 #: src/views/OverviewView.jsx
 msgid "Rowing CP {cp}W · bike FTP {ftpW}W"

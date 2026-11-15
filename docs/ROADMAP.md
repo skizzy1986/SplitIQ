@@ -21,6 +21,9 @@
 >
 > Amended 2026-11-15: D25 reverses D3 (invite-only) and opens registration: R31 is in
 > progress as [#561](https://github.com/skizzy1986/SplitIQ/issues/561).
+>
+> Amended 2026-11-15: a Status column on H0 and H1, checked against GitHub that day, and
+> R13 and R14 re-worded to what R8 and R12 left of them (D27).
 
 ## What SplitIQ is
 
@@ -70,15 +73,15 @@ through `/orchestrate <item>` with its own Gate 2 and Gate 3, one PR per item, `
 
 ### H0 — Foundations (in flight)
 
-| # | Item | Issue | Size | Blocks |
-|---|---|---|---|---|
-| R1 | Five coach/athlete walkthroughs of `/squat`. Also ask each coach whether they would want an athlete's shared log here: the only evidence L3 will have before it is built | [#433](https://github.com/skizzy1986/SplitIQ/issues/433) | S | All of H2 (D10) |
-| R2 | Read the SimTK/OpenSim model terms and OpenCap terms (Scott, D8) | [#434](https://github.com/skizzy1986/SplitIQ/issues/434) | S | R11, R26–R28, R21, any invite beyond Paul |
-| R3 | Health data out of source and bundle (reorientation slice 4a) | [#416](https://github.com/skizzy1986/SplitIQ/issues/416) | S | R11, R26–R28, any invite beyond Paul |
-| R4 | Migration for the `exercises` seed and the three un-migrated views | [#435](https://github.com/skizzy1986/SplitIQ/issues/435) | M | R22. **#429 first**, or the migration can merge and never apply |
-| R5 | Backup gaps | [#428](https://github.com/skizzy1986/SplitIQ/issues/428) | M | R31 |
-| R6 | Reorientation slices 4b–12 | [#417–#425](https://github.com/skizzy1986/SplitIQ/issues/412) | per #412 | — |
-| R33 | Privacy research note (D17): what holding another person's training and health data requires, from primary sources (the Privacy Act, OAIC guidance), marked as not legal advice. Scott decides after it whether a professional opinion is needed | — | S | R37, all of L3. R31 proceeds without it as an accepted risk (D25) |
+| # | Item | Issue | Size | Blocks | Status |
+|---|---|---|---|---|---|
+| R1 | Five coach/athlete walkthroughs of `/squat`. Also ask each coach whether they would want an athlete's shared log here: the only evidence L3 will have before it is built | [#433](https://github.com/skizzy1986/SplitIQ/issues/433) | S | All of H2 (D10) | Open (Scott) |
+| R2 | Read the SimTK/OpenSim model terms and OpenCap terms (Scott, D8) | [#434](https://github.com/skizzy1986/SplitIQ/issues/434) | S | R11, R26–R28, R21, any invite beyond Paul | Open (Scott) |
+| R3 | Health data out of source and bundle (reorientation slice 4a) | [#416](https://github.com/skizzy1986/SplitIQ/issues/416) | S | R11, R26–R28, any invite beyond Paul | **Done** — [#447](https://github.com/skizzy1986/SplitIQ/pull/447) |
+| R4 | Migration for the `exercises` seed and the three un-migrated views | [#435](https://github.com/skizzy1986/SplitIQ/issues/435) | M | R22. **#429 first**, or the migration can merge and never apply | Open. Its blocker #429 is done ([#451](https://github.com/skizzy1986/SplitIQ/pull/451)) |
+| R5 | Backup gaps | [#428](https://github.com/skizzy1986/SplitIQ/issues/428) | M | R31 | **Done** — [#552](https://github.com/skizzy1986/SplitIQ/pull/552) |
+| R6 | Reorientation slices 4b–12 | [#417–#425](https://github.com/skizzy1986/SplitIQ/issues/412) | per #412 | — | **Done** — all nine slices, the last in [#562](https://github.com/skizzy1986/SplitIQ/pull/562) |
+| R33 | Privacy research note (D17): what holding another person's training and health data requires, from primary sources (the Privacy Act, OAIC guidance), marked as not legal advice. Scott decides after it whether a professional opinion is needed | — | S | R37, all of L3. R31 proceeds without it as an accepted risk (D25) | Not started |
 
 H1 may run beside slices 4b–12 under D6's fences: #416 first; no `CLAUDE.md` edits outside
 slice 11 (#424); at most two open PRs, one cull and one roadmap; rebase on the shared files
@@ -91,20 +94,24 @@ not a third stream (D16).
 Done when a coach can send a link that opens at a chosen depth, time and selected muscle,
 and every chart is readable by keyboard.
 
-| # | Item | Issue | Size | Depends on |
-|---|---|---|---|---|
-| R7 | Bundle headroom baseline and per-PR re-measure convention | [#436](https://github.com/skizzy1986/SplitIQ/issues/436) | S | — |
-| R8 | Time axis: play, pause, scrub, speed via `meta.rep` | [#407](https://github.com/skizzy1986/SplitIQ/issues/407) | M | R7 |
-| R9 | Charts: angles, moments, force, activation, length, each with a data table | [#437](https://github.com/skizzy1986/SplitIQ/issues/437) | L | R7, R8, D9 |
-| R10 | "How this was modelled and what it cannot say" page | [#438](https://github.com/skizzy1986/SplitIQ/issues/438) | S | — |
-| R11 | Share-a-view v1: copy-link over hash state, camera in the hash | [#439](https://github.com/skizzy1986/SplitIQ/issues/439) | S–M | R3, R8 |
-| R12 | Movement config object; extract the squat behind it, no behaviour change | [#440](https://github.com/skizzy1986/SplitIQ/issues/440) | M | R7 |
-| R13 | Data-driven barbell and attach frame | [#441](https://github.com/skizzy1986/SplitIQ/issues/441) | M | R12 |
-| R14 | Generalised phases from config | [#442](https://github.com/skizzy1986/SplitIQ/issues/442) | S–M | R12 |
-| R15 | Multi-dataset bundle rule and generalised `squat-` chunk naming | [#443](https://github.com/skizzy1986/SplitIQ/issues/443) | M | R12 |
-| R16 | Generalise the prose scan over per-movement content | [#444](https://github.com/skizzy1986/SplitIQ/issues/444) | M | R12 |
-| R17 | Measure real phone performance for the 3D chunk and data | [#445](https://github.com/skizzy1986/SplitIQ/issues/445) | S | R7 |
-| R18 | Refresh `docs/onboarding/*` | [#446](https://github.com/skizzy1986/SplitIQ/issues/446) | S | — |
+| # | Item | Issue | Size | Depends on | Status |
+|---|---|---|---|---|---|
+| R7 | Bundle headroom baseline and per-PR re-measure convention | [#436](https://github.com/skizzy1986/SplitIQ/issues/436) | S | — | **Done** — [#450](https://github.com/skizzy1986/SplitIQ/pull/450) |
+| R8 | Time axis: play, pause, scrub, speed via `meta.rep` | [#407](https://github.com/skizzy1986/SplitIQ/issues/407) | M | R7 | **Done** — [#463](https://github.com/skizzy1986/SplitIQ/pull/463) |
+| R9 | Charts: angles, moments, force, activation, length, each with a data table | [#437](https://github.com/skizzy1986/SplitIQ/issues/437) | L | R7, R8, D9 | Open |
+| R10 | "How this was modelled and what it cannot say" page | [#438](https://github.com/skizzy1986/SplitIQ/issues/438) | S | — | Open. The `#guide=method` link already works; the content audit is the work |
+| R11 | Share-a-view v1: copy-link over hash state, camera in the hash | [#439](https://github.com/skizzy1986/SplitIQ/issues/439) | S–M | R3, R8 | **Done** — [#485](https://github.com/skizzy1986/SplitIQ/pull/485) |
+| R12 | Movement config object; extract the squat behind it, no behaviour change | [#440](https://github.com/skizzy1986/SplitIQ/issues/440) | M | R7 | **Done** — [#557](https://github.com/skizzy1986/SplitIQ/pull/557) |
+| R13 | Static muscle sets and their attach frame from the movement config. R12 already made the barbell optional and data-driven; what is left is the `st`/`sa` sets, still hard-wired to the `thorax` frame in the scene (D27) | [#441](https://github.com/skizzy1986/SplitIQ/issues/441) | S | R12 | Open |
+| R14 | Phases and direction through the movement config. R8 removed the thresholds and chip names this item was written for; what is left is the squat's direction words in `anatomy/utils/rep.js`, the squat files that read `PHASES` directly, and a five-phase layout assumption (D27) | [#442](https://github.com/skizzy1986/SplitIQ/issues/442) | S | R12 | Open |
+| R15 | Multi-dataset bundle rule and generalised `squat-` chunk naming | [#443](https://github.com/skizzy1986/SplitIQ/issues/443) | M | R12 | Open. `src/movements/` already takes the chunk prefix (R12) |
+| R16 | Generalise the prose scan over per-movement content | [#444](https://github.com/skizzy1986/SplitIQ/issues/444) | M | R12 | Open |
+| R17 | Measure real phone performance for the 3D chunk and data | [#445](https://github.com/skizzy1986/SplitIQ/issues/445) | S | R7 | Open (Scott's phones) |
+| R18 | Refresh `docs/onboarding/*` | [#446](https://github.com/skizzy1986/SplitIQ/issues/446) | S | — | **Done** — [#477](https://github.com/skizzy1986/SplitIQ/pull/477) |
+
+Order for what is open, one at a time: R4, R13, R14, R10, R9, R16, R15. R9 is the last
+item on this horizon's own "done when"; R15 and R16 only bite once a second dataset
+exists, so they run last.
 
 ### H2 — Second and third flagship movements (not yet approved; gated on R1)
 
@@ -325,5 +332,6 @@ The next entry-growing change needs a #504 raise or the `RealtimeClient` reclaim
 | D24 | 2026-11-14: **Supersedes D20's first-visit rule.** A first visit follows the device: a top-ranked `es`/`es-*` language opens in Spanish, anything else in English; a stored choice always wins and detection never writes it. Mobile Settings is a labelled button in a top bar on all four tabs. The remaining views are translated in five more PRs (Train erg, StrengthLogger, mobile leftovers, desktop erg, then deferred strength and mobility), plan in `docs/i18n/SPEC.md` § Amendment 2026-11-14. Scott shipped PR 1 (#554) ahead of native review, as under D22 |
 | D25 | 2026-11-14 (Gate 1 2026-11-15): **Reverses D3, and D14's "open sign-up (R31) stays parked".** Registration opens now, as R31 / [#561](https://github.com/skizzy1986/SplitIQ/issues/561), in six slices. The rules: email confirmation required, a self-declared 18+ tick-box (a declaration, not verification), a short privacy notice with a required consent tick, and web only (the APK offers no sign-up). The Supabase signups switch stays off until slices 1, 2 and 4 merge. R33 is not done, and opening without it is an accepted risk; R33 still gates coach access (D17). Coach access itself is unchanged: specified now, built after H2 (D14) |
 | D26 | 2026-11-15: The bundle gate measures the build production ships (#465). CI builds with a placeholder `VITE_SENTRY_DSN`, the size script fails a first paint without the Sentry init path, and `ENTRY` 157 → 208 and `SQUAT_ENTRY` 124 → 173 are re-based to the measured figure + ~2 KB. A correction, not growth: production carried the SDK all along. Deferring the SDK off first paint is not chosen now |
+| D27 | 2026-11-15: R13 and R14 are re-scoped to what is left of them. R12 (#557) made the barbell optional and data-driven, so R13 is the static muscle sets and their attach frame. R8 (#463) deleted `derivePhase`, `PHASE_CHIPS`, `DIRECTIONS` and the thresholds, so R14 is the direction words in `anatomy/utils/rep.js`, phases read through the movement config, and the five-phase layout. Build order for the open H0/H1 items: R4, R13, R14, R10, R9, R16, R15 |
 
 A changed decision is a new row here with the date, not an edit to the old one.

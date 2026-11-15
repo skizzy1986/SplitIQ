@@ -53,9 +53,14 @@ and implemented, pure and fixture-tested, in `web/src/anatomy/utils/`.
   direction flips at the depth peak (`anatomy/utils/rep.js` `directionAt`). A press or a
   lunge needs its own phase codes and names, and a movement whose load does not peak at
   maximum depth needs a different direction rule.
-- **Equipment.** The scene always builds a barbell from `meta.bar` on the thorax frame,
-  sized in `anatomy/constants/sceneStyle.js`. A dumbbell, kettlebell or bodyweight
-  movement needs this made optional or data-driven.
+- **Equipment.** The barbell is optional and comes from the movement config
+  (`SQUAT_MOVEMENT.equipment.bar`, sized in `squat/constants/barbell.js`): a movement
+  with no `equipment.bar` gets no bar. A bar still needs `meta.bar` in the manifest for
+  its position, and the only implement the scene can draw is a barbell, so a dumbbell
+  or kettlebell needs new scene code.
+- **The static muscle sets.** The scene builds the `st` and `sa` sets by name and
+  attaches both to the `thorax` frame (`anatomy/scene/createAnatomyScene.js`), so a
+  manifest without them, or without that frame, does not load. Tracked as R13 (#441).
 - **The region map.** `squat/constants/muscleRegions.js` names eleven regions ordered
   the way a squat loads, and `REGION_OF` assigns each of the 118 muscles to one *by
   index into `meta.muscles`*. Both are authored judgements about this movement: a press
@@ -66,11 +71,14 @@ and implemented, pure and fixture-tested, in `web/src/anatomy/utils/`.
 - **All the coaching content** in `web/src/squat/constants/` (guide prose, phases, form
   check, metrics table, sources) and the readout summary in `squat/utils/repSummary.js`.
 - **The route, assets and bundle gates** are hard-wired to `/squat` and
-  `squat-anatomy-*.bin`.
+  `squat-anatomy-*.bin`. Code under `src/movements/` already takes the `squat-` chunk
+  prefix; the data-file checks still expect exactly one dataset (R15, #443).
 
-A good first design exercise is a `movement` config (the shape is sketched in
-`docs/squat/RESEARCH_BRIEF.md` §6: skeleton, reference curves, phases, targets,
-faults, cues, sources) and a list of exactly which lines above it would replace.
+The `movement` config now exists: `web/src/movements/squat/movement.js`
+(`SQUAT_MOVEMENT`), with its field-by-field contract in
+[`docs/squat/MOVEMENT_CONFIG.md`](../squat/MOVEMENT_CONFIG.md). Most of the tool still
+reads its constants directly rather than through the config, so a second movement is a
+second file of that shape plus the items above.
 
 ## The data pipeline
 

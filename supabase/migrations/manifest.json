@@ -6,13 +6,13 @@
     {
       "file": "000_initial_schema.sql",
       "status": "mirror",
-      "note": "Reconstruction of the pre-tracking base tables (sessions, vitals, exercises). sessions/exercises predate migration tracking; vitals was created live by create_vitals_table. Not faithful: types sessions.date as date, live is text M/D/YY.",
+      "note": "Reconstruction of the pre-tracking base tables (sessions, vitals, exercises). sessions/exercises predate migration tracking; vitals was created live by create_vitals_table. exercises block corrected to the live shape (#435), matching 018. Still not faithful: sessions.id is uuid (live bigint) and sessions.date is date (live text M/D/YY), so a from-zero replay still fails at 007:64 (session_id bigint references sessions.id) and 008:53 (session_date_to_iso(text) on a date column) [reproduced in a local PGlite replay with auth stubbed; not run on a Supabase stack].",
       "related": ["20260621115135"]
     },
     {
       "file": "001_enable_rls.sql",
       "status": "mirror",
-      "note": "Owner RLS on sessions/vitals plus the exercises read policy; the live equivalent was built under other names.",
+      "note": "Owner RLS on sessions/vitals plus the exercises read policy; the live sessions/vitals equivalents were built under other names. The exercises policy name now matches live exercises_read (#435).",
       "related": ["20260619235836"]
     },
     {
@@ -57,7 +57,7 @@
     {
       "file": "007_strength_subsystem.sql",
       "status": "mirror",
-      "note": "Backfill of the strength subsystem built live via Cowork/MCP, reproduced from pg_catalog.",
+      "note": "Backfill of the strength subsystem built live via Cowork/MCP, reproduced from pg_catalog. strength_set_metrics now declared with (security_invoker = on) as live (#435). The six other strength/exercise views are captured by 018, not 007.",
       "related": [
         "20260620122709",
         "20260620122747",
@@ -201,6 +201,12 @@
       "issue": 428
     },
     {
+      "file": "018_exercises_and_strength_views.sql",
+      "status": "pending",
+      "note": "Captures public.exercises (live shape), its read policy and indexes, strength_set_metrics security_invoker, and the 6 live-only strength/exercise views; closing shape guard over all 8 objects. Verified no-op capture once applied. Seed is supabase/seed/exercises.sql (never applied to production; fingerprint 149ed35cc65128b5ee354a997d7fdd79).",
+      "issue": 435
+    },
+    {
       "file": "018_strava_backup_exclusion.sql",
       "status": "applied",
       "live": [
@@ -256,7 +262,7 @@
     {
       "version": "20260620122747",
       "name": "strength_logger_views_and_rollup",
-      "note": "Mirrored by 007"
+      "note": "strength_set_metrics mirrored by 007; exercise_prs and strength_volume_daily captured by 018 (#435)"
     },
     {
       "version": "20260620225816",
@@ -266,7 +272,7 @@
     {
       "version": "20260620231523",
       "name": "strength_coach_suggestions_and_performance_views",
-      "note": "Mirrored by 007"
+      "note": "exercise_last_performance and exercise_progression captured by 018 (#435)"
     },
     {
       "version": "20260621115135",
@@ -286,7 +292,7 @@
     {
       "version": "20260622043728",
       "name": "exercise_media_phase1",
-      "note": "Mirrored by 007"
+      "note": "exercise_media table mirrored by 007; exercise_media_gaps captured by 018 (#435)"
     },
     {
       "version": "20260622043757",
@@ -296,7 +302,7 @@
     {
       "version": "20260622045110",
       "name": "exercise_with_media_add_images",
-      "note": "Mirrored by 007"
+      "note": "exercise_with_media captured by 018 (#435)"
     },
     {
       "version": "20260622045846",

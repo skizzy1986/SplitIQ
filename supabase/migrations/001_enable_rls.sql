@@ -68,9 +68,10 @@ CREATE POLICY vitals_delete_own ON vitals
   USING (auth.uid() = user_id);
 
 -- exercises (shared reference table): authenticated read only.
--- Not counted in the 8 owner policies above.
-DROP POLICY IF EXISTS exercises_select_authenticated ON exercises;
-CREATE POLICY exercises_select_authenticated ON exercises
+-- Not counted in the 8 owner policies above. Named exercises_read as it is
+-- live (#435; 018 asserts this is the table's only policy).
+DROP POLICY IF EXISTS exercises_read ON exercises;
+CREATE POLICY exercises_read ON exercises
   FOR SELECT
   TO authenticated
   USING (true);

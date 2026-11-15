@@ -101,13 +101,13 @@ most likely to be stale.**
 
 | | |
 |---|---|
-| Required status checks | **`Lint & Format`, `Test & Coverage`, `Build`, `CodeQL`, `Validate PR title (Conventional Commits)`, `Review dependency changes`, `Deno Tests`, `Zone bands match derivePaceZones`, `Build Debug APK`, `Context7 rule reaches every workflow`** — those ten, and nothing else. `CodeQL` is emitted by the GitHub Advanced Security app and is a **different check-run** from `codeql.yml`'s job `Analyze (JavaScript/TypeScript)`; the ruleset binds the former. |
+| Required status checks | **`Lint & Format`, `Test & Coverage`, `Build`, `CodeQL`, `Validate PR title (Conventional Commits)`, `Review dependency changes`, `Deno Tests`, `Zone bands match derivePaceZones`, `Build Debug APK`, `Context7 rule reaches every workflow`, `Hooks pass their smoke test`** — those eleven, and nothing else. `CodeQL` is emitted by the GitHub Advanced Security app and is a **different check-run** from `codeql.yml`'s job `Analyze (JavaScript/TypeScript)`; the ruleset binds the former. |
 | Advisory — red does **not** block merge | `Lighthouse`, `Playwright Smoke`, `Playwright Visual`. Still fix them; just do not report them as blocking. |
-| Reports but is not required | `Build Web Assets`, `Seer Code Review`, `Vercel Preview Comments`, `Analyze (JavaScript/TypeScript)`, `Label by changed paths`, `add-to-project`, `Flag steward skill staleness`, `Enable auto-merge`, `Hooks pass their smoke test` (`hook-smoke-test.yml`, added 2026-11-05), `Migrations manifest is consistent` (`migrations-manifest.yml`, added by #451 — not in the ruleset until Scott adds it, so a red run there does not yet block), and every `Detect …` filter job. Red here does not block either — but see the `Build Web Assets` trap below. |
+| Reports but is not required | `Build Web Assets`, `Seer Code Review`, `Vercel Preview Comments`, `Analyze (JavaScript/TypeScript)`, `Label by changed paths`, `add-to-project`, `Flag steward skill staleness`, `Enable auto-merge`, `Migrations manifest is consistent` (`migrations-manifest.yml`, added by #451 — not in the ruleset until Scott adds it, so a red run there does not yet block), and every `Detect …` filter job. Red here does not block either — but see the `Build Web Assets` trap below. |
 | Also enforced | a PR before merging · branches up to date before merging · force pushes blocked **on `main` only**, so `--force-with-lease` on your own feature branch is fine |
 | Not enforced | linear history. Squash with `(#N)` is convention, not a gate. |
 
-**A required check can be satisfied by `skipped`** (`ci-web.yml:3-7`), so all ten can be
+**A required check can be satisfied by `skipped`** (`ci-web.yml:3-7`), so all eleven can be
 green having run nothing — see *When every check is green*. That applies hardest to
 `Deno Tests`: it is required, but `ci-functions.yml` tests only the functions it has a step
 for (`ci-functions.yml:58-66`), so on a change to the since-removed LLM-coach function it
@@ -206,3 +206,7 @@ trusted"*). The second is environment configuration, not CI — it is recorded i
 `docs/CLOUD_ENVIRONMENT.md`. Re-verified on 2026-11-15 at `56e06a1` for #541: the same
 `Hooks pass their smoke test` job now also checks the hook wiring in `.claude/settings.json`
 via `web/scripts/check-hook-wiring.mjs`, and that file is in the job's path filter.
+Re-verified on 2026-11-15 by querying ruleset 18063518: Scott added `Hooks pass their smoke
+test` (source GitHub Actions, integration 15368), so the required set is now **eleven** and the
+check moved out of the *Reports but is not required* row. It is filtered at job level, so it
+reports `skipped` (= passing) on PRs that touch no hook path.

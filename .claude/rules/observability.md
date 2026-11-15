@@ -91,7 +91,9 @@ monitors need a plan upgrade.
 **Never quote a bundle figure from a doc — re-measure it.** Figures drift, and a stale
 one has already mis-scoped work here (#319). `npm run build && npm run size` prints every
 current figure and regenerates `web/dist/bundle-size.json`. `npm run size` enforces every
-budget inside the **Build** job.
+budget inside the **Build** job. The definitions below are in the header of
+`web/scripts/check-bundle-size.mjs`, and each ceiling's history is in the dated comments
+beside its constant there.
 
 **Build with `VITE_SENTRY_DSN` set before measuring** (#465). `initSentry()` returns
 early without a DSN, so the bundler tree-shakes `Sentry.init`, browser tracing and most
@@ -99,9 +101,7 @@ of `@sentry/core` out of the shared entry: ~49 KB gzip lighter than what product
 (DSN set on Vercel) ships, on both first paints. The CI Build job sets a placeholder DSN
 (valid shape, dead project, never a real one); locally, use the command `npm run size`
 prints when it refuses a DSN-less build (`sentryInitProblems` in
-`web/scripts/entry-graph.mjs`, matched by integration names kept in the minified chunk). The definitions below are in the header of
-`web/scripts/check-bundle-size.mjs`, and each ceiling's history is in the dated comments
-beside its constant there.
+`web/scripts/entry-graph.mjs`, matched by integration names kept in the minified chunk).
 
 - **ENTRY** — main plus `AuthGate`'s static graph (a *boot key*: lazy behind `RouteRoot`,
   but nothing paints without it) and its CSS: what a dashboard first paint costs, the
@@ -171,8 +171,8 @@ feature that earns its bytes may raise one. This applies to every gate: ENTRY, T
 SQUAT_ENTRY, SQUAT_TOTAL, SQUAT_3D, SQUAT_DATA, DASH_ES and the planned SQUAT_ES. In the PR
 that needs the room:
 
-1. Run `npm run build && npm run size` (DSN set, above), then raise the ceiling to the measured figure plus
-   ~2 KB, rounded to the nearest whole KB (#493). SQUAT_3D and SQUAT_DATA keep
+1. Run `npm run build && npm run size` (DSN set, above), then raise the ceiling to the
+   measured figure plus ~2 KB, rounded to the nearest whole KB (#493). SQUAT_3D and SQUAT_DATA keep
    proportionate headroom instead (~5% and ~0.1 MB, as their comments in the script do):
    a flat ~2 KB is noise against three.js or the raw anatomy data.
 2. Add a dated comment beside the constant in `web/scripts/check-bundle-size.mjs` saying

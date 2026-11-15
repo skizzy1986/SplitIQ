@@ -60,3 +60,37 @@ cited, which the tool does in its Sources list.
 Numbers used as targets and reference ranges are facts reported in the cited
 papers, listed with citations in `docs/squat/REFERENCES.md` and in the tool's
 Sources pane.
+
+## free-exercise-db — The Unlicense (public domain)
+
+- `supabase/seed/free-exercise-db/exercises.json` (verbatim upstream file)
+- `supabase/seed/exercises.sql` (generated from it by
+  `web/scripts/generate-exercise-seed.mjs`)
+- the 873 rows of the production `exercises` table, which those files reproduce
+
+The exercise catalogue comes from **free-exercise-db**,
+<https://github.com/yuhonas/free-exercise-db>, at commit
+`5197c055b356498944328bd00178b64a5e9f422c` (2024-01-16), file
+`dist/exercises.json` (git blob `99d414913b62e96263f31d1babe5bb50d13444f5`).
+Upstream's README says it restructured the data from
+[`wrkout/exercises.json`](https://github.com/wrkout/exercises.json).
+
+Licensed under [The Unlicense](https://unlicense.org/), from the upstream
+`LICENSE.md` at that commit; `wrkout/exercises.json` is also Unlicense (GitHub
+licence API). It is a public-domain dedication and requires no attribution; it is
+credited here as provenance.
+
+The exercise images are **not** redistributed here: `web/src/StrengthLogger.jsx`
+loads them from `cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/`.
+
+How this was verified, and what was not (2026-11-15):
+
+- **Verified:** the committed JSON is byte-identical to the upstream file at the
+  pinned commit (its git blob sha is checked by a test), and the 873 production
+  rows match it: an md5 fingerprint over all 11 data columns, read from
+  production, equals the one computed from the file
+  (`149ed35cc65128b5ee354a997d7fdd79`).
+- **Verified:** the repository-level licence, from `LICENSE.md` at the pinned
+  commit.
+- **Not established:** the provenance of the images and of the individual
+  instruction texts beyond the repository's licence file.

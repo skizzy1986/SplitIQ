@@ -15,3 +15,7 @@
 *.npz   binary
 *.pkl   binary
 *.bin   binary
+
+# Upstream data committed byte-for-byte: a test pins its git blob sha to
+# upstream's, so no line-ending conversion may touch it (#435).
+supabase/seed/free-exercise-db/*.json -text

@@ -1,0 +1,27 @@
+-- Rollback for 018_exercises_and_strength_views.sql. NOT auto-applied.
+--
+-- DELIBERATELY A NO-OP. 018 created nothing in production: public.exercises
+-- (and its 873 rows, loaded outside migrations), its policy and indexes, and
+-- all seven views predate it (live versions 20260620122747, 20260620231523,
+-- 20260622043728, 20260622045110). strength_set_metrics already had
+-- security_invoker = on, so the guarded ALTER did not run either. This
+-- diverges from the 008-013 rollbacks, which undo; like 015, 018 is a capture.
+--
+-- Dropping these objects would break the app: web/src/StrengthLogger.jsx reads
+-- exercises (picker), exercise_with_media (demo media),
+-- exercise_last_performance and exercise_prs, and web/src/hooks/useStrengthPRs.js
+-- reads exercise_prs. Dropping exercises would also cascade to exercise_media
+-- and exercise_prefs (on delete cascade) and is blocked by the foreign keys
+-- from strength_sets and template_exercises. Clearing security_invoker on
+-- strength_set_metrics would reopen an RLS bypass through every view above.
+--
+-- For a NON-production database only, the reverse-order drop list is:
+--   drop view if exists public.exercise_media_gaps;
+--   drop view if exists public.strength_volume_daily;
+--   drop view if exists public.exercise_progression;
+--   drop view if exists public.exercise_last_performance;
+--   drop view if exists public.exercise_prs;
+--   drop view if exists public.exercise_with_media;
+--   -- exercises itself belongs to 000 on a replay; leave it.
+
+select 1;

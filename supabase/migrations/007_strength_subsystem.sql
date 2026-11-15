@@ -196,7 +196,7 @@ create trigger trg_touch_exercise_media before update on public.exercise_media
   for each row execute function public.touch_exercise_media();
 
 -- ── e1RM / volume metrics view (drives the rollup) ──────────────────────────
-create or replace view public.strength_set_metrics as
+create or replace view public.strength_set_metrics with (security_invoker = on) as
   select s.id, s.user_id, s.workout_id, s.exercise_id, s.exercise_name, s.set_index,
          s.weight_kg, s.reps, s.rpe, s.is_warmup, s.completed, s.created_at,
          w.workout_date, w.session_type, w.status as workout_status,

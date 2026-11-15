@@ -72,3 +72,11 @@
   aliases: ['a11y']
   color: 'bfd4f2'
   description: 'Accessibility — contrast, ARIA labels, focus handoffs'
+
+# ── 4. AUTOMATION STATE (set by workflows, not by hand) ──────────────────────
+- name: routine-managed
+  color: 'c2e0c6'
+  description: 'A scheduled Routine resolves and closes this — no action unless needs-attention'
+- name: needs-attention
+  color: 'b60205'
+  description: 'Automation missed its window — a human must look'

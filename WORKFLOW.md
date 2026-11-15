@@ -40,6 +40,7 @@ Every issue carries a stack-ranked priority (`P0`–`P3`), a `type:` label, and 
 | **Priority** | `P0`, `P1`, `P2`, `P3` | Relative stack rank (re-sorted often) |
 | **Type** | `type: epic`, `type: feature`, `type: bug`, `type: refactor`, `type: spike`, `type: chore`, `type: docs` | What kind of work it is |
 | **Area** | `area: anatomy`, `area: coherence`, `area: factory`, `area: backend`, `area: mobile`, `area: design`, `area: a11y` | Subsystem domain (mirrors Kepler Task Groups) |
+| **Automation state** | `routine-managed`, `needs-attention` | Set by workflows, never by hand: a scheduled Routine owns the issue; escalated when it misses its window (see *Doctrine SHA*) |
 
 Priority is **relative and re-sorted often** — it's a stack rank, not a promise.
 
@@ -292,10 +293,25 @@ and Coach agree which doctrine version is live. **When you change either doc, th
 anchor must be superseded to the new `main` commit.** That update is a DB write in
 Coach's content lane (Scott authorises), not a git change.
 
-You don't have to remember: the **Doctrine SHA guard**
-(`.github/workflows/doctrine-sha-guard.yml`) fires whenever those docs land on
-`main` and opens/updates a single tracking issue carrying the new SHA. Close the
-issue once Coach has superseded the anchor.
+You don't have to do it either. Three parts, all in
+`.github/workflows/doctrine-sha-guard.yml` except the Routine:
+
+1. **Guard** (push to `main` touching those docs) opens, or comments on, one
+   unassigned tracking issue labelled `routine-managed`, carrying the new SHA. It
+   is a pending marker, not a to-do.
+2. **Routine** — the `Supabase Doctrine_SHA anchor update` Claude Code Routine runs
+   at 01:00 UTC, supersedes the anchor and closes the issue. Its prompt lives in
+   the Routine, not in git.
+3. **Watchdog** (03:17 UTC daily) looks for a `routine-managed` issue opened
+   before the latest 01:00 UTC that is still open. Closing the issue is the
+   Routine's success signal, so a survivor means the Routine missed its run: the
+   watchdog comments once, adds `needs-attention`, assigns the owner, and fails
+   the run every day until the issue closes. Dispatch it with `dry_run` to see
+   what it would do.
+
+Act only on a `needs-attention` issue: check the Routine first, then supersede by
+hand if it cannot run. The watchdog cannot see the database, so it trusts the
+close; a Routine that closed the issue without writing the anchor would pass.
 
 ## Database migrations
 

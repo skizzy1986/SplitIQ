@@ -104,23 +104,35 @@ two issues, split it.
 
 ## 4. CI gates (must be green to merge)
 
-Three required checks on every PR (`.github/workflows/ci-web.yml`):
+The web app's three jobs (`.github/workflows/ci-web.yml`, which skips them
+unless `web/**` changed):
 
 | Gate | Checks |
 |---|---|
-| **Lint & Format** | ESLint + Prettier + `npm audit --audit-level=high` |
+| **Lint & Format** | ESLint + Prettier + `check:design-sync` + `check:colours` + `i18n:check` + `npm audit --omit=dev --audit-level=high` (dev-only advisories are deliberately out of scope — an unscoped gate deadlocked the repo for a month in 2026-08; see the comment in `ci-web.yml`) |
 | **Test & Coverage** | Vitest passes; coverage meets the ratcheting thresholds in `web/vite.config.js` |
-| **Build** | `npm run build` exits 0 (runs after Test) |
+| **Build** | `npm run build` exits 0, then `npm run size` (bundle budgets); runs after Test |
 
-Plus a fourth check that runs only when edge functions change
-(`.github/workflows/ci-functions.yml`):
+When `Lint & Format` is red, read the failing **step**: a green `npm run lint`
+does not clear the other five.
+
+The edge functions' job (`.github/workflows/ci-functions.yml`, skipped unless
+`supabase/functions/**` changed):
 
 | Gate | Checks |
 |---|---|
-| **Deno Tests** | `supabase/functions/*/test.ts` pass (parser, mapper, cron guard) |
+| **Deno Tests** | the hardcoded steps in `ci-functions.yml` pass — only the functions with a step are tested |
 
-`main` is protected: no direct pushes, branch must be up to date, all checks
-green. A coverage comment posts automatically. The coverage numbers live in
+These are not the whole set. Many more workflows in `.github/workflows/`
+report on a PR — `codeql`, `dependency-review`, `pr-title-lint`, `zone-bands`,
+`ci-android`, `e2e-web`, `lighthouse` and others — each with its own job-level
+path filter, and several are required. The required set lives in the
+repository ruleset, not in this file: derive it as
+`.claude/skills/steward/SKILL.md` (*What protects `main`*) describes, and do
+not copy it here.
+
+`main` is protected: no direct pushes, branch must be up to date, all required
+checks green. A coverage comment posts automatically. The coverage numbers live in
 **one place only** — `web/vite.config.js` (`test.coverage.thresholds`). Do not
 mirror them into docs; they ratchet upward with every extraction and mirrored
 copies drift.

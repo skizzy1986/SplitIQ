@@ -23,7 +23,7 @@ PR etiquette does not.
 |---|---|
 | **`pull_request` delivery can lag ~10 minutes.** On 2026-08-26 PR #310 showed 2 checks instead of ~24 for nine minutes after opening, and again after a human reopen; then nine workflows landed at once, all green. **A missing check is not a missing trigger.** | Diagnose a trigger bug and edit workflow YAML. Three wrong diagnoses were made that day before waiting proved to be the answer. |
 | Push and `pull_request` lag move **independently**, and `ci-web.yml` pushes only on `main` (`ci-web.yml:10-11`) — so on any other branch ci-web's three required jobs come *only* from the PR event. | Infer from green push runs that the PR's own checks are never coming. |
-| **Derive the expected set from `.github/workflows/`; never memorise a count.** Over a dozen workflows report on a `web/**` PR, several of them (`labeler`, `add-to-project`, `dependabot-auto-merge`) with no path filter at all. `WORKFLOW.md` names only four, and `CLAUDE.md` lists none since #424. | Treat an unrecognised check as spurious, or count against a list that was stale the day it was written. |
+| **Derive the expected set from `.github/workflows/`; never memorise a count.** Over a dozen workflows report on a `web/**` PR, several of them (`labeler`, `add-to-project`, `dependabot-auto-merge`) with no path filter at all. `WORKFLOW.md` § 4 details only the four `ci-web`/`ci-functions` jobs and defers the rest here (#311), and `CLAUDE.md` lists none since #424. | Treat an unrecognised check as spurious, or count against a list that was stale the day it was written. |
 | **No workflow filters at the `on.pull_request.paths` level any more** — every one gates a `changes` job with a job-level `if:`, so an unmatched check reports `skipped`, never nothing (`ci-web.yml:3-7` explains why). If you ever see a check that simply is not there, suspect a reverted filter or an event that never arrived, not a skip. | Read a genuinely absent check as a skip, or a skip as absence. |
 | `zone-bands.yml` filters on `**/*.md` (`zone-bands.yml:50`), so it fires on repo-root `CLAUDE.md` and `coach/`, not just `web/`. It reports `skipped` when unmatched. | Assume a docs-only PR runs nothing. |
 | **Check tree position before grounding a claim**: `git fetch && git rev-parse HEAD origin/main`. | Report a finding from code no longer on `main`. Two agents did this on 2026-08-26, one commit behind. |
@@ -68,7 +68,7 @@ Green is at its most misleading here.
 
 1. Report what **ran**, not what was green. Name any job that reported `skipped`.
 2. If a fact here is contradicted by the file it cites, **say so, and offer to open an issue** — do not work around it silently. You are this file's staleness sensor.
-3. Name a **required** check by name when you say a PR is blocked. Ten are required — see *What protects `main`*, and read the ruleset rather than trusting that number — so "CI is red" and "this cannot merge" are different claims. Use the **check-run name**, which is the job's `name:`, not the workflow's: the ruleset binds to `Zone bands match derivePaceZones`, and nothing reports under `Zone bands`.
+3. Name a **required** check by name when you say a PR is blocked. Eleven are required — see *What protects `main`*, and read the ruleset rather than trusting that number — so "CI is red" and "this cannot merge" are different claims. Use the **check-run name**, which is the job's `name:`, not the workflow's: the ruleset binds to `Zone bands match derivePaceZones`, and nothing reports under `Zone bands`.
 
 ## What protects `main`
 

@@ -300,7 +300,13 @@ describe('Option A mirrors agree with 018 (AC14)', () => {
     expect(m001).toMatch(
       /CREATE POLICY exercises_read ON exercises\s+FOR SELECT\s+TO authenticated\s+USING \(true\);/
     );
-    expect(m001).not.toContain('exercises_select_authenticated');
+    expect(m001).not.toMatch(/CREATE POLICY exercises_select_authenticated/);
+  });
+
+  it('001 drops the pre-#435 policy name, so 018 finds exactly one policy', () => {
+    expect(stripComments(read('001_enable_rls.sql'))).toContain(
+      'DROP POLICY IF EXISTS exercises_select_authenticated ON exercises;'
+    );
   });
 
   it('007 declares strength_set_metrics with security_invoker = on', () => {

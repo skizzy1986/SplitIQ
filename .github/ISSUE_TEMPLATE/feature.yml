@@ -1,6 +1,6 @@
 name: ✨ Feature
 description: A new capability or enhancement to build
-labels: ['P2']
+labels: ['P2', 'type: feature']
 body:
   - type: input
     id: outcome

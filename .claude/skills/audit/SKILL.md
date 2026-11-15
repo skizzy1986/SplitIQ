@@ -93,7 +93,7 @@ padding with minor findings.
 
 1. `issue_write` a GitHub Issue: outcome-shaped title, the Sentry permalink, the
    stack excerpt, the file path, and acceptance criteria. Label per
-   `WORKFLOW.md` (`P0`/`P1`/`P2` + area).
+   `WORKFLOW.md` § 1 (priority + `type:` + `area:`).
 2. `add_issue_note` on the Sentry issue linking the GitHub issue, so the two
    systems point at each other.
 

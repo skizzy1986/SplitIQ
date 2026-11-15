@@ -166,7 +166,7 @@ the gates are the contract.
 ## The design lane
 
 Design work rides the same rail as everything else — Issue → branch → PR → CI → `main`,
-labelled `design` (and `a11y` where relevant), on the Split IQ board. Two extra rules:
+labelled `area: design` (and `area: a11y` where relevant), on the Split IQ board. Two extra rules:
 
 - **A PR that changes what the app looks like carries visual evidence** — a screenshot or
   a baseline diff, reviewed in the PR.

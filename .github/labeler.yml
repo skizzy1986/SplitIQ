@@ -1,4 +1,4 @@
-# PR auto-labeler config (actions/labeler@v5). Maps changed paths to the area
+# PR auto-labeler config (actions/labeler@v7). Maps changed paths to the area
 # labels defined in .github/labels.yml.
 
 'area: anatomy':
@@ -40,6 +40,7 @@
           - 'DESIGN.md'
           - 'web/.design-sync/**'
           - 'web/src/constants/theme.js'
+          - 'web/src/constants/ui.js'
           - 'web/src/constants/tokens.js'
           - 'web/src/utils/themeCss.js'
 

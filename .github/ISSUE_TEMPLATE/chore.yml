@@ -1,6 +1,6 @@
 name: 🧹 Chore
 description: Config, infra, dependencies, docs, or housekeeping
-labels: ['infra']
+labels: ['type: chore']
 body:
   - type: textarea
     id: what

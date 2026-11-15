@@ -1,6 +1,6 @@
 name: 🐛 Bug
 description: Something is broken or behaving incorrectly
-labels: ['P1', 'bug']
+labels: ['P1', 'type: bug']
 body:
   - type: textarea
     id: summary

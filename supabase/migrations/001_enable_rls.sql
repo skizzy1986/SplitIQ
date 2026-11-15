@@ -69,7 +69,9 @@ CREATE POLICY vitals_delete_own ON vitals
 
 -- exercises (shared reference table): authenticated read only.
 -- Not counted in the 8 owner policies above. Named exercises_read as it is
--- live (#435; 018 asserts this is the table's only policy).
+-- live (#435; 018 asserts this is the table's only policy). The old name is
+-- dropped too, so a database built from the earlier 001 ends with one policy.
+DROP POLICY IF EXISTS exercises_select_authenticated ON exercises;
 DROP POLICY IF EXISTS exercises_read ON exercises;
 CREATE POLICY exercises_read ON exercises
   FOR SELECT

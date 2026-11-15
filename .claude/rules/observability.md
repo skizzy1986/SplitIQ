@@ -45,10 +45,15 @@ It has a **blast radius outside Sentry**: `tracePropagationTargets` in
 `web/src/utils/sentry.js` includes the Supabase origin, so the SDK attaches
 `sentry-trace` and `baggage` to every call to it. Neither header is CORS-safelisted, so
 both appear in the preflight. Supabase's own gateway (`/rest`, `/auth`) reflects request
-headers and is unaffected, but **every hand-rolled edge-function
-`Access-Control-Allow-Headers` must list them**, or the browser fails the preflight and
-never sends the request — a bare `TypeError: Failed to fetch` on the client with only the
-OPTIONS in the edge logs. This silently killed the Coach tab (#301).
+headers and is unaffected, but **every edge function the client calls directly via
+`supabase.functions.invoke` must list them in its `Access-Control-Allow-Headers`**, or the
+browser fails the preflight and never sends the request — a bare `TypeError: Failed to
+fetch` on the client with only the OPTIONS in the edge logs. This silently killed the Coach
+tab (#301; that function has since been removed). Today that means `strava-connect`,
+`strava-sync` and `vitals-sync` (re-derive with `grep -rn "functions.invoke" web/src`).
+Functions nothing in the browser fetches correctly have **no** CORS block: the cron/server
+jobs (`vitals-import`, `vitals-import-api`, `strava-import`) and `strava-oauth-callback`,
+which is reached by a top-level browser redirect, not a fetch.
 
 Env vars are documented in `web/.env.example`. Runtime (`VITE_SENTRY_DSN`) and build-time
 (`SENTRY_ORG`/`SENTRY_PROJECT`/`SENTRY_URL`/`SENTRY_AUTH_TOKEN`) are set in the Vercel

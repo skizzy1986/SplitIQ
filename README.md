@@ -191,9 +191,12 @@ SplitIQ/
 
 | Job | What it checks |
 |-----|---------------|
-| **Lint & Format** | ESLint + Prettier + `npm audit --audit-level=high` |
+| **Lint & Format** | ESLint + Prettier + `check:design-sync` + `check:colours` + `i18n:check` + `npm audit --omit=dev --audit-level=high` (production dependencies only, deliberately) |
 | **Test & Coverage** | All Vitest tests pass; posts coverage summary as a PR comment |
-| **Build** | `npm run build` exits 0 (runs only after Test passes) |
+| **Build** | `npm run build` exits 0, then the bundle-size budgets (runs only after Test passes) |
+
+These are three of many checks; the other workflows in `.github/workflows/`
+report too, and the required set is described in `WORKFLOW.md` § 4.
 
 ### Android (`ci-android.yml`) — runs on every PR, and on push to `main`
 

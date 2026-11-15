@@ -1,47 +1,50 @@
-# PR auto-labeler config (actions/labeler@v5). Maps changed paths to the area
-# labels defined in .github/labels.yml. Labels must already exist (synced by
-# .github/workflows/labels.yml).
+# PR auto-labeler config (actions/labeler@v7). Maps changed paths to the area
+# labels defined in .github/labels.yml.
 
-testing:
+'area: anatomy':
   - changed-files:
       - any-glob-to-any-file:
-          - '**/__tests__/**'
-          - '**/*.test.{js,jsx}'
+          - 'web/src/anatomy/**'
+          - 'web/src/squat/**'
+          - 'docs/squat/**'
 
-android:
+'area: coherence':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'web/src/views/**'
+          - 'web/src/components/**'
+
+'area: backend':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'supabase/**'
+
+'area: factory':
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.claude/**'
+          - '.github/**'
+          - 'CLAUDE.md'
+          - 'WORKFLOW.md'
+          - 'FACTORY.md'
+
+'area: mobile':
   - changed-files:
       - any-glob-to-any-file:
           - 'web/android/**'
           - 'web/capacitor.config.json'
 
-integration:
-  - changed-files:
-      - any-glob-to-any-file:
-          - 'supabase/**'
-
-docs:
-  - changed-files:
-      - any-glob-to-any-file:
-          - '**/*.md'
-
-infra:
-  - changed-files:
-      - any-glob-to-any-file:
-          - '.github/**'
-
-refactor:
-  - changed-files:
-      - any-glob-to-any-file:
-          - 'web/src/App.jsx'
-          - 'web/src/StrengthLogger.jsx'
-
-# Note: the `docs` rule above also fires on docs in these paths. That is fine —
-# a design doc is both, and both labels are useful on the board.
-design:
+'area: design':
   - changed-files:
       - any-glob-to-any-file:
           - 'DESIGN.md'
           - 'web/.design-sync/**'
           - 'web/src/constants/theme.js'
           - 'web/src/constants/ui.js'
+          - 'web/src/constants/tokens.js'
           - 'web/src/utils/themeCss.js'
+
+'type: docs':
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.md'

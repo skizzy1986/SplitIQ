@@ -1,45 +1,74 @@
 # Canonical label taxonomy for SplitIQ (see WORKFLOW.md §1).
 # Synced to the repo by .github/workflows/labels.yml. Edit here, not in the UI.
+# `aliases` renames a legacy label in place on sync, so issues keep it.
 
-# Priority — relative stack rank, re-sorted often.
+# ── 1. PRIORITY (Stack Rank) ──────────────────────────────────────────────────
 - name: P0
   color: 'b60205'
-  description: Do now — blocks other work or keeps the system honest
+  description: 'Do now — blocks other work, breaks prod, or keeps CI/gates honest'
 - name: P1
   color: 'd93f0b'
-  description: Next — most valuable in-flight feature or foundation
+  description: 'Next — most valuable in-flight feature, active milestone'
 - name: P2
   color: 'fbca04'
-  description: Later — quality, or large new bets
+  description: 'Backlog — quality, or large new bets sequenced after P1'
+- name: P3
+  color: 'cfd3d7'
+  description: 'Someday / Icebox — parked ideas or low-priority polish'
 
-# Type / area
-- name: bug
+# ── 2. TYPE (What kind of work) ──────────────────────────────────────────────
+- name: 'type: epic'
+  color: '3e1f7a'
+  description: 'Parent umbrella tracking an entire theme or roadmap spine'
+- name: 'type: feature'
+  color: 'a2eeef'
+  description: 'New user-facing capability (runs canonical factory chain)'
+- name: 'type: bug'
+  aliases: ['bug']
   color: 'd73a4a'
-  description: Something is broken or behaving incorrectly
-- name: refactor
-  color: '5319e7'
-  description: Strangler-fig decomposition of the monolith
-- name: integration
-  color: '0e8a16'
-  description: External data source (Strava, Garmin, Concept2) or Supabase backend
-- name: testing
-  color: '1d76db'
-  description: Tests, coverage, and test tooling
-- name: docs
+  description: 'Something is broken or behaving incorrectly (skips Story stage)'
+- name: 'type: refactor'
+  aliases: ['refactor']
+  color: '95a5a6'
+  description: 'Code restructuring / decomposition without changing behavior'
+- name: 'type: spike'
+  color: 'd4c5f9'
+  description: 'Timeboxed research, prototype, or feasibility check'
+- name: 'type: chore'
+  color: 'fef2c0'
+  description: 'Maintenance, dependencies, CI tooling, or routine housekeeping'
+- name: 'type: docs'
+  aliases: ['docs']
   color: '0075ca'
-  description: Documentation and project process
-- name: infra
-  color: 'c5def5'
-  description: CI, workflows, config, build
-- name: android
-  color: '3ddc84'
-  description: Capacitor / Android APK
+  description: 'Documentation, architecture records, and project process'
 - name: dependencies
   color: '0366d6'
-  description: Dependency updates (Dependabot)
-- name: design
-  color: 'd4c5f9'
-  description: Design system, visual and IA work — see DESIGN.md
-- name: a11y
+  description: 'Dependency updates (Dependabot; dependabot-maintenance.yml files issues with it)'
+
+# ── 3. AREA (Subsystem Domain — mirrors Kepler Task Groups) ───────────────────
+- name: 'area: anatomy'
+  color: '1d76db'
+  description: '3D engine, Three.js, squat model, biomechanics runtime'
+- name: 'area: coherence'
+  color: 'ff7597'
+  description: 'UX unification, desktop nav, Strength section, Logger integration'
+- name: 'area: factory'
+  aliases: ['infra']
+  color: '5319e7'
+  description: 'Kepler workflows, Claude skills, CI gates, agent doctrine'
+- name: 'area: backend'
+  aliases: ['integration']
+  color: '0e8a16'
+  description: 'Supabase, Deno edge functions, migrations, RLS, Strava sync'
+- name: 'area: mobile'
+  aliases: ['android']
+  color: '3ddc84'
+  description: 'Capacitor Android APK'
+- name: 'area: design'
+  aliases: ['design']
+  color: 'e99695'
+  description: 'Design system, tokens, theme, typography (DESIGN.md)'
+- name: 'area: a11y'
+  aliases: ['a11y']
   color: 'bfd4f2'
-  description: Accessibility — contrast, labels, focus, the Lighthouse floor
+  description: 'Accessibility — contrast, ARIA labels, focus handoffs'

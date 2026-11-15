@@ -32,12 +32,14 @@ A good issue has:
 - A **milestone** if it belongs to a themed batch of work.
 
 ### Labels
-| Label | Meaning |
-|---|---|
-| `P0` | Do now — blocks other work or keeps the system honest |
-| `P1` | Next — the most valuable in-flight feature or foundation |
-| `P2` | Later — quality, or large new bets, sequenced after the foundation |
-| area labels | `refactor`, `integration`, `testing`, `docs`, `infra`, … |
+
+Every issue carries a stack-ranked priority (`P0`–`P3`), a `type:` label, and an `area:` label matching our core workstreams:
+
+| Dimension | Labels | Purpose |
+|---|---|---|
+| **Priority** | `P0`, `P1`, `P2`, `P3` | Relative stack rank (re-sorted often) |
+| **Type** | `type: epic`, `type: feature`, `type: bug`, `type: refactor`, `type: spike`, `type: chore`, `type: docs` | What kind of work it is |
+| **Area** | `area: anatomy`, `area: coherence`, `area: factory`, `area: backend`, `area: mobile`, `area: design`, `area: a11y` | Subsystem domain (mirrors Kepler Task Groups) |
 
 Priority is **relative and re-sorted often** — it's a stack rank, not a promise.
 
@@ -164,7 +166,7 @@ the gates are the contract.
 ## The design lane
 
 Design work rides the same rail as everything else — Issue → branch → PR → CI → `main`,
-labelled `design` (and `a11y` where relevant), on the Split IQ board. Two extra rules:
+labelled `area: design` (and `area: a11y` where relevant), on the Split IQ board. Two extra rules:
 
 - **A PR that changes what the app looks like carries visual evidence** — a screenshot or
   a baseline diff, reviewed in the PR.

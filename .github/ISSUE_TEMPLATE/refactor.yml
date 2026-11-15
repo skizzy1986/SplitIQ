@@ -1,6 +1,6 @@
 name: 🧱 Refactor
 description: Extract or restructure code (strangler-fig decomposition of the monolith)
-labels: ['refactor']
+labels: ['type: refactor']
 body:
   - type: input
     id: module

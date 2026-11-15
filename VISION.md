@@ -40,8 +40,9 @@ when coach access is specified.
 It is built as a **hobby and a learning exercise, to a public-quality standard**.
 That is not a contradiction: building it properly is the interesting way to build
 it. The widened audience makes other users a design requirement, where it used to be
-an option left open: nothing may assume an audience of one. Opening sign-up is a
-separate decision, and the roadmap's invite-only rule (D3) holds until it is changed.
+an option left open: nothing may assume an audience of one. Sign-up was opened on
+2026-11-14 (roadmap D25, which reverses the invite-only D3), behind a privacy notice
+and a consent and age declaration.
 
 It is still **not a business**, and no decision here should be read as planning for
 one (roadmap D4). The coach capability does not change that. Any account can be a

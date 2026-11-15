@@ -35,6 +35,11 @@
 # not a failed edit. Every non-zero exit keeps stdout empty because Claude Code
 # ignores the exit code of a hook that also prints valid JSON and treats it as a
 # success — a broken hook must not look like a clean one, which was #295.
+#
+# Subagents (#537): settings hooks also fire on a subagent's tool calls, with
+# `agent_id`/`agent_type` in the payload, so the /orchestrate Build stage gets
+# edit-time lint too. The findings go to that subagent's context, not the main
+# thread's. This script ignores those fields: it lints the same file either way.
 # https://code.claude.com/docs/en/hooks
 set -uo pipefail
 

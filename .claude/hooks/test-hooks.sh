@@ -19,9 +19,9 @@
 # silently test the remote path.
 #
 # Not tested here: a real eslint crash through a broken eslint.config.js (the
-# stub in L8 drives the same branch without touching the real config);
-# concurrency; and the wiring in .claude/settings.json (the known gap
-# hook-smoke-test.yml documents).
+# stub in L8 drives the same branch without touching the real config); and
+# concurrency. The wiring in .claude/settings.json is checked by
+# web/scripts/check-hook-wiring.mjs, not here.
 set -uo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -77,6 +77,7 @@ expect_exit() { [ "$rc" = "$1" ] || bad "expected exit $1, got $rc"; }
 expect_stdout_empty() { [ -z "$out" ] || bad "expected empty stdout"; }
 expect_stderr_empty() { [ -z "$err" ] || bad "expected empty stderr"; }
 expect_stderr_has() { printf '%s' "$err" | grep -qF -- "$1" || bad "stderr lacks: $1"; }
+expect_stderr_line1_is() { [ "$(printf '%s\n' "$err" | head -n 1)" = "$1" ] || bad "stderr line 1 is not: $1"; }
 expect_stderr_line1_has() { printf '%s\n' "$err" | head -n 1 | grep -qF -- "$1" || bad "stderr line 1 lacks: $1"; }
 
 # expect_json <dotted.path> <substring>: stdout must be exactly one JSON object
@@ -127,6 +128,7 @@ winpayload() {
 fx_git="$tmpd/git"
 mkdir -p "$fx_git"
 git -C "$fx_git" init -q
+git -C "$fx_git" config commit.gpgsign false
 git -C "$fx_git" -c user.name=t -c user.email=t@example.invalid commit --allow-empty -qm init
 
 fx_nogit="$tmpd/nogit"
@@ -163,10 +165,11 @@ expect_exit 1; expect_stderr_has "<unset>"; expect_stdout_empty
 done_case "W2 warn-uncommitted: unset var fails loudly"
 
 # GIT_CEILING_DIRECTORIES stops git walking up into an enclosing repo, so the
-# fixture really is "not a repo" wherever the temp dir lives.
+# fixture really is "not a repo" wherever the temp dir lives. LC_ALL=C because
+# git localises the message the second assertion looks for (#540).
 begin
-run '' stop -u CLAUDE_CODE_REMOTE CLAUDE_PROJECT_DIR="$fx_nogit" GIT_CEILING_DIRECTORIES="$tmpd"
-expect_exit 1; expect_stderr_has "git status failed"; expect_stdout_empty
+run '' stop -u CLAUDE_CODE_REMOTE CLAUDE_PROJECT_DIR="$fx_nogit" GIT_CEILING_DIRECTORIES="$tmpd" LC_ALL=C
+expect_exit 1; expect_stderr_line1_is "[HOOK] warn-uncommitted: git status failed in $fx_nogit"; expect_stderr_has "not a git repository"; expect_stdout_empty
 done_case "W3 warn-uncommitted: git failure is not read as clean"
 
 # Dirty a fixture repo deliberately rather than assert against whatever state
@@ -227,15 +230,15 @@ silent_lint "$root" "$(payload "$root/web/vite.config.js")" "L5 lint: JS outside
 probe p_absent absent
 silent_lint "$root" "$(payload "$p_absent")" "L6 lint: a file deleted before the lint is a quiet no-op"
 
-begin
-run "$(payload "$fx_lint/web/src/a.js")" lint "$fx_lint"
-expect_exit 1; expect_stderr_has "eslint not installed"; expect_stdout_empty
-done_case "L7 lint: missing eslint is visible"
-
 # The scope check runs before the binary check, so an out-of-scope edit with no
 # node_modules stays silent (pins the guard order).
 printf 'export default {};\n' > "$fx_lint/web/vite.config.js"
 silent_lint "$fx_lint" "$(payload "$fx_lint/web/vite.config.js")" "L16 lint: out-of-scope edit is silent even without eslint"
+
+begin
+run "$(payload "$fx_lint/web/src/a.js")" lint "$fx_lint"
+expect_exit 1; expect_stderr_has "eslint not installed"; expect_stdout_empty
+done_case "L7 lint: missing eslint is visible"
 
 install_stub 'printf "\nOops! Something went wrong! :(\n\nESLint: 10.14.0\n\nNo files matching the pattern \"x\" were found. CRASHPROBE\n" >&2; exit 2'
 begin

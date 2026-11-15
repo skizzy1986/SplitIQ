@@ -12,11 +12,7 @@ import { useEffect, useRef } from 'react';
 import { supabase as sb } from './supabaseClient.js';
 import { THEME } from './constants/theme.js';
 import { LAYER } from './constants/tokens.js';
-import {
-  saveDraft as _saveDraft,
-  loadDraft,
-  clearDraft,
-} from './utils/strengthDraft.js';
+import { sessionDraftStore } from './utils/strengthDraft.js';
 
 const CSS = `
 .slog{ --bg:var(--color-bg); --panel:var(--color-raised); --panel2:var(--color-surface-alt);
@@ -151,6 +147,7 @@ const SKELETON = `
 `;
 
 function mountStrengthLogger(root) {
+  const { saveDraft: _saveDraft, loadDraft, clearDraft } = sessionDraftStore();
   /* ---------- helpers ---------- */
   const $ = (s) => root.querySelector(s);
   const el = (t, c, h) => {
@@ -1584,8 +1581,9 @@ function mountStrengthLogger(root) {
     }
     const draft = loadDraft();
     if (draft) {
-      if (draft.user_id && draft.user_id !== USER.id) {
-        clearDraft();
+      if (draft.user_id !== USER.id) {
+        // Unknown legacy ownership is retained for recovery, never adopted.
+        if (draft.user_id) clearDraft();
         loadHome();
         return;
       }
@@ -1673,6 +1671,8 @@ export default function StrengthLogger() {
     <>
       <style>{CSS}</style>
       <div
+        data-theme="light"
+        style={{ colorScheme: 'light', background: THEME.bg }}
         className="slog"
         ref={rootRef}
         dangerouslySetInnerHTML={{ __html: SKELETON }}

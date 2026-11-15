@@ -11,23 +11,21 @@ const rgb = (hex) => {
 };
 const ACCENT_RGB = rgb(DEFAULT_THEME.accent);
 
-// Every dashboard tab (matches the NAV in App.jsx).
+// Every existing desktop surface remains reachable through the four destinations.
 const TABS = [
-  'overview',
-  'calendar',
-  'plan',
-  'live',
-  'erg',
-  'strength',
-  'logger',
-  'mobility',
-  'recovery',
-  'log',
-  'settings',
+  ['overview', 'Today', 'Overview'],
+  ['calendar', 'Today', 'Calendar'],
+  ['plan', 'Train', 'Plan'],
+  ['live', 'Train', 'Live'],
+  ['logger', 'Train', 'Logger'],
+  ['mobility', 'Train', 'Mobility'],
+  ['load', 'Progress', 'Load'],
+  ['erg', 'Progress', 'Erg'],
+  ['strength', 'Progress', 'Strength'],
+  ['history', 'Progress', 'History'],
+  ['recovery', 'Body', null],
+  ['settings', 'Settings', null],
 ];
-
-// Label shown on each nav button is the tab key, uppercased.
-const NAV_LABEL = (tab) => tab.toUpperCase();
 
 // The ErrorBoundary fallback in App.jsx renders this sentence when a
 // view crashes on render. Its absence is the "mounted without error" signal.
@@ -62,15 +60,15 @@ test.describe('dashboard smoke', () => {
   }) => {
     // The login screen would show a SIGN IN button; the dashboard shows the nav.
     await expect(
-      page.getByRole('button', { name: NAV_LABEL('overview'), exact: true })
+      page.getByRole('button', { name: 'Today', exact: true })
     ).toBeVisible();
     await expect(page.getByRole('button', { name: 'SIGN IN' })).toHaveCount(0);
   });
 
-  for (const tab of TABS) {
+  for (const [tab, destination, pane] of TABS) {
     test(`tab "${tab}" mounts without error`, async ({ page }) => {
       const navButton = page.getByRole('button', {
-        name: NAV_LABEL(tab),
+        name: destination,
         exact: true,
       });
       await expect(navButton).toBeVisible();
@@ -82,6 +80,11 @@ test.describe('dashboard smoke', () => {
       // waitForLoadState('networkidle') was a no-op here (the state is reached
       // once per document, at load), so wait for the click's own requests.
       await clickAndSettle(page, navButton);
+      if (pane)
+        await clickAndSettle(
+          page,
+          page.getByRole('button', { name: pane, exact: true })
+        );
 
       // The active tab button is highlighted with the accent border colour.
       await expect(navButton).toHaveCSS('border-top-color', ACCENT_RGB);
@@ -93,4 +96,30 @@ test.describe('dashboard smoke', () => {
       expect(consoleErrors, consoleErrors.join('\n')).toEqual([]);
     });
   }
+  test('desktop pane URLs survive reload, Back/Forward and Settings return', async ({
+    page,
+  }) => {
+    await page.getByRole('button', { name: 'Calendar', exact: true }).click();
+    await expect(page).toHaveURL(/#\/today\/calendar$/);
+    await page.reload();
+    await expect(
+      page.getByRole('button', { name: 'Calendar', exact: true })
+    ).toHaveAttribute('aria-current', 'page');
+    await page.getByRole('button', { name: 'Train', exact: true }).click();
+    await expect(page).toHaveURL(/#\/train$/);
+    await page.goBack();
+    await expect(
+      page.getByRole('button', { name: 'Calendar', exact: true })
+    ).toHaveAttribute('aria-current', 'page');
+    await page.goForward();
+    await expect(
+      page.getByRole('button', { name: 'Plan', exact: true })
+    ).toHaveAttribute('aria-current', 'page');
+    await page.getByRole('button', { name: 'Settings', exact: true }).click();
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await expect(page).toHaveURL(/#\/train$/);
+    await expect(
+      page.getByRole('button', { name: 'Settings', exact: true })
+    ).toBeFocused();
+  });
 });

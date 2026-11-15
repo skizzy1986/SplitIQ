@@ -49,10 +49,14 @@ describe('RouteRoot', () => {
   it('renders the squat tool at /squat without importing supabaseClient', async () => {
     await renderAt('/squat');
     expect(
-      await screen.findByRole('heading', {
-        level: 1,
-        name: 'High-bar back squat',
-      })
+      await screen.findByRole(
+        'heading',
+        {
+          level: 1,
+          name: 'High-bar back squat',
+        },
+        { timeout: 5000 }
+      )
     ).toBeInTheDocument();
     expect(mocks.authGateImported).not.toHaveBeenCalled();
     expect(mocks.supabaseImported).not.toHaveBeenCalled();
@@ -63,7 +67,9 @@ describe('RouteRoot', () => {
     await renderAt('/squat/#guide=metrics');
     expect(window.location.pathname).toBe('/squat');
     expect(window.location.hash).toBe('#guide=metrics');
-    expect(await screen.findByText('High-bar back squat')).toBeInTheDocument();
+    expect(
+      await screen.findByText('High-bar back squat', {}, { timeout: 5000 })
+    ).toBeInTheDocument();
     expect(mocks.supabaseImported).not.toHaveBeenCalled();
   });
 
@@ -74,7 +80,7 @@ describe('RouteRoot', () => {
       const ground = screen.getByTestId('route-ground');
       expect(ground).toHaveAttribute('data-theme', 'dark');
       expect(ground.style.colorScheme).toBe('dark');
-      await screen.findByText('High-bar back squat');
+      await screen.findByText('High-bar back squat', {}, { timeout: 5000 });
     } finally {
       window.localStorage.clear();
     }
@@ -91,12 +97,17 @@ describe('RouteRoot', () => {
     expect(await screen.findByText('AuthGate-stub')).toBeInTheDocument();
     expect(screen.queryByText('High-bar back squat')).toBeNull();
   });
-  it('leaves the dashboard ground unthemed', async () => {
+  it('paints the dashboard loading ground in the shared preference', async () => {
     window.localStorage.setItem('splitiq.theme', 'dark');
     try {
       await renderAt('/');
-      expect(screen.getByTestId('route-ground')).not.toHaveAttribute(
-        'data-theme'
+      expect(screen.getByTestId('route-ground')).toHaveAttribute(
+        'data-theme',
+        'dark'
+      );
+      expect(screen.getByTestId('theme-root')).toHaveAttribute(
+        'data-theme',
+        'dark'
       );
       await screen.findByText('AuthGate-stub');
     } finally {

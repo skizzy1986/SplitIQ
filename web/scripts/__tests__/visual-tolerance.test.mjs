@@ -1,3 +1,7 @@
+// @vitest-environment node
+// A Node-side config test with no DOM. Under the project's jsdom default,
+// importing @playwright/test takes ~5 s on Windows (vs ~1 s in node) and trips
+// the 5 s test timeout.
 import {
   SCREENSHOT_COMPARE,
   ONE_CHANNEL_LEVEL,

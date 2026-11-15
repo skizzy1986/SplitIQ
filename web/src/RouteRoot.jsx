@@ -1,7 +1,8 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
+import { ThemeContext, useTheme } from './hooks/useTheme.js';
+import { DARK, LIGHT } from './constants/themeValues.js';
 import { Capacitor } from '@capacitor/core';
 import { canonicalSquatUrl, isSquatPath } from './utils/squatRoute.js';
-import { initialSquatTheme } from './utils/squatTheme.js';
 import { THEME } from './constants/theme.js';
 import { LANG_TAG, OFFLINE_TEXT, initialLang } from './i18n/lang.js';
 
@@ -37,8 +38,8 @@ else {
     window.history.replaceState(window.history.state, '', canonical);
 }
 
-// The loading ground. On /squat it takes the tool's theme before the tool's
-// chunk arrives, or a dark-mode visitor sees the light ground flash first.
+// Resolve the shared preference before either lazy product loads, so the
+// loading ground and authentication match the selected theme.
 function Ground({ theme, children }) {
   return (
     <div
@@ -47,7 +48,7 @@ function Ground({ theme, children }) {
       style={{
         minHeight: '100vh',
         background: THEME.bg,
-        ...(theme ? { colorScheme: theme } : {}),
+        colorScheme: theme,
       }}
     >
       {children}
@@ -60,7 +61,7 @@ function Ground({ theme, children }) {
 function SquatOffline() {
   const lang = initialLang();
   return (
-    <Ground theme={initialSquatTheme()}>
+    <Ground>
       <p
         role="alert"
         lang={LANG_TAG[lang]}
@@ -74,11 +75,41 @@ function SquatOffline() {
 
 export default function RouteRoot() {
   const squat = onSquat();
+  const theme = useTheme();
+  const { resolved } = theme;
+  useEffect(() => {
+    // SquatApp owns the document ground for its standalone surface.
+    if (squat) return undefined;
+    const ground = (resolved === 'dark' ? DARK : LIGHT).bg;
+    const body = document.body.style;
+    const previous = body.backgroundColor;
+    const meta = document.querySelector('meta[name="theme-color"]');
+    const previousMeta = meta?.getAttribute('content');
+    body.backgroundColor = ground;
+    meta?.setAttribute('content', ground);
+    return () => {
+      body.backgroundColor = previous;
+      if (meta) {
+        if (previousMeta == null) meta.removeAttribute('content');
+        else meta.setAttribute('content', previousMeta);
+      }
+    };
+  }, [resolved, squat]);
   return (
-    <Suspense
-      fallback={<Ground theme={squat ? initialSquatTheme() : undefined} />}
-    >
-      {squat ? <SquatApp /> : <AuthGate />}
-    </Suspense>
+    <ThemeContext.Provider value={theme}>
+      <div
+        data-testid="theme-root"
+        data-theme={resolved}
+        style={{
+          minHeight: '100vh',
+          background: THEME.bg,
+          colorScheme: resolved,
+        }}
+      >
+        <Suspense fallback={<Ground theme={resolved} />}>
+          {squat ? <SquatApp /> : <AuthGate />}
+        </Suspense>
+      </div>
+    </ThemeContext.Provider>
   );
 }

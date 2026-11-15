@@ -124,3 +124,19 @@ describe('round-trip', () => {
     expect(loadDraft().id).toBe('workout-123');
   });
 });
+
+it('does not let a stale logger save or clear the next account draft', async () => {
+  const { sessionDraftStore } = await import('../strengthDraft.js');
+  const { clearPrivateSessionState } =
+    await import('../privateSessionState.js');
+  const old = sessionDraftStore();
+  old.saveDraft(makeActive());
+  clearPrivateSessionState();
+  const next = makeActive({ id: 'new-workout', user_id: 'new-owner' });
+  const current = sessionDraftStore();
+  current.saveDraft(next);
+  old.clearDraft();
+  old.saveDraft(makeActive());
+  expect(current.loadDraft()).toEqual(next);
+  expect(old.loadDraft()).toBeNull();
+});

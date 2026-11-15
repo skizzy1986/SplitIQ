@@ -5,6 +5,10 @@ import { useSessions } from '../../hooks/useSessions.js';
 import { THEME } from '../../constants/theme.js';
 import { alpha } from '../../utils/themeCss.js';
 import { dateLocale } from '../../utils/displayLocale.js';
+import {
+  isCompletedStatus,
+  isCancelledStatus,
+} from '../../utils/sessionStatus.js';
 
 function typeColor(type) {
   const t = (type ?? '').toLowerCase();
@@ -39,9 +43,10 @@ function formatDate(dateStr, lang) {
 export default function MobileSessionLog() {
   const { i18n } = useLingui();
   const [activeFilter, setActiveFilter] = useState('all');
-  const { data, isLoading, error } = useSessions();
+  const { data, isLoading, error } = useSessions({ mode: 'all' });
 
   const filtered = (data ?? []).filter((s) => {
+    if (s.status === 'planned' || s.type === 'Test') return false;
     if (activeFilter === 'erg')
       return (
         s.type?.toLowerCase().includes('erg') ||
@@ -51,7 +56,9 @@ export default function MobileSessionLog() {
       return s.type?.toLowerCase().includes('strength');
     return true;
   });
-  const count = filtered.length;
+  const count = filtered.filter((session) =>
+    isCompletedStatus(session.status)
+  ).length;
 
   const pillBase = {
     border: 'none',
@@ -202,6 +209,19 @@ export default function MobileSessionLog() {
                 >
                   {s.label ?? s.type}
                 </span>
+                {isCancelledStatus(s.status) && (
+                  <span
+                    style={{
+                      color: THEME.muted,
+                      fontSize: 10,
+                      border: `1px solid ${THEME.border}`,
+                      borderRadius: 4,
+                      padding: '1px 5px',
+                    }}
+                  >
+                    <Trans>Cancelled</Trans>
+                  </span>
+                )}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ fontSize: 10, color: THEME.muted }}>

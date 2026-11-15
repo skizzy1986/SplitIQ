@@ -38,9 +38,9 @@ export default function PlanView({ plannedSessions, loggedKeys, isWide }) {
           <Trans comment="Banner lead-in, all capitals">THE PLAN.</Trans>{' '}
         </span>
         <Trans>
-          Upcoming prescriptions from Coach (today forward). A dashed border
-          marks a planned session; tap any card for the targets. Cards mark ✓
-          done once you log the matching session.
+          Upcoming planned sessions (today forward). A dashed border marks a
+          planned session; tap any card for the targets. Cards mark ✓ done once
+          you log the matching session.
         </Trans>
       </div>
       {items.length === 0 ? (

@@ -1,6 +1,7 @@
 import React from 'react';
 import StravaConnectPanel from '../components/StravaConnectPanel.jsx';
 import LanguageToggle from '../components/LanguageToggle.jsx';
+import ThemeControl from '../components/ThemeControl.jsx';
 import { Trans } from '@lingui/react/macro';
 import { THEME } from '../constants/theme.js';
 import { FONT } from '../constants/type.js';
@@ -61,6 +62,12 @@ export default function SettingsView({ onSynced, notice }) {
           {notice.text}
         </div>
       )}
+      <section aria-labelledby="settings-theme" style={sectionStyle}>
+        <h2 id="settings-theme" style={headingStyle}>
+          <Trans>Theme</Trans>
+        </h2>
+        <ThemeControl />
+      </section>
       <section aria-labelledby="settings-language" style={sectionStyle}>
         <h2 id="settings-language" style={headingStyle}>
           <Trans comment="Settings section heading above the language control">

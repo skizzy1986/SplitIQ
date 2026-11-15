@@ -9,14 +9,13 @@ import { __resetLocaleCacheForTests } from '../i18n/locale.js';
 import LanguageProvider, { useLanguage } from '../i18n/LanguageProvider.jsx';
 import '../i18n/dashboard.js';
 
-const sessionsChain = {
-  select: () => sessionsChain,
-  order: () => sessionsChain,
-  then: (resolve, reject) =>
-    Promise.resolve({ data: [], error: null }).then(resolve, reject),
-};
-vi.mock('../supabaseClient.js', () => ({
-  supabase: { from: () => sessionsChain },
+vi.mock('../hooks/useSessions.js', () => ({
+  useSessions: () => ({
+    data: [],
+    isLoading: false,
+    isError: false,
+    refetch: vi.fn(),
+  }),
 }));
 vi.mock('../utils/sentry.js', () => ({ captureError: vi.fn() }));
 vi.mock('../hooks/useTSSHistory.js', () => ({
@@ -106,5 +105,25 @@ describe('App in Spanish after a runtime switch', () => {
     expect(footer).toHaveTextContent(/Concept2/);
     expect(footer).toHaveTextContent(/Fitbod/);
     expect(screen.queryByText(/Tap any session/)).toBeNull();
+  });
+  it('routes search callbacks to canonical Settings and spends the notice after leaving', async () => {
+    window.history.replaceState(
+      null,
+      '',
+      '/?strava=connected&keep=yes#/today/calendar'
+    );
+    await act(async () => {
+      render(<App />);
+    });
+    expect(await screen.findByTestId('notice')).toHaveTextContent(
+      /^Strava connected/
+    );
+    expect(window.location.search).toBe('?keep=yes');
+    expect(window.location.hash).toBe('#/settings');
+    fireEvent.click(screen.getByRole('button', { name: 'Today', exact: true }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Settings', exact: true })
+    );
+    expect(await screen.findByTestId('notice')).toBeEmptyDOMElement();
   });
 });

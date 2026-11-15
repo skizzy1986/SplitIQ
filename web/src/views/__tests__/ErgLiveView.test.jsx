@@ -1,5 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import {
+  act,
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+} from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Mocks for supabase + the two hooks ErgLiveView depends on.
@@ -28,6 +34,8 @@ vi.mock('../../hooks/useOfflineQueue', () => ({
 }));
 
 import ErgLiveView from '../ErgLiveView.jsx';
+import { SessionOwnerContext } from '../../hooks/useSessionOwner.js';
+import { clearPrivateSessionState } from '../../utils/privateSessionState.js';
 
 const SUMMARY = {
   distance: 5000,
@@ -46,9 +54,13 @@ function makeClient() {
   });
 }
 
-function renderWithClient(ui, client) {
+function renderWithClient(ui, client, owner = 'user-123') {
   return render(
-    <QueryClientProvider client={client}>{ui}</QueryClientProvider>
+    <QueryClientProvider client={client}>
+      <SessionOwnerContext.Provider value={owner}>
+        {ui}
+      </SessionOwnerContext.Provider>
+    </QueryClientProvider>
   );
 }
 
@@ -178,8 +190,7 @@ describe('ErgLiveView save row', () => {
     ]);
   });
 
-  it('nulls unmeasured metrics instead of writing zeroes, and survives no auth user', async () => {
-    getUserMock.mockResolvedValue({ data: { user: null } });
+  it('nulls unmeasured metrics instead of writing zeroes', async () => {
     pm5State = {
       ...pm5State,
       status: 'finished',
@@ -202,7 +213,7 @@ describe('ErgLiveView save row', () => {
     expect(row.avg_watts).toBeNull();
     expect(row.duration).toBe('00:00');
     expect(row.exercises).toEqual([]);
-    expect(row.user_id).toBeUndefined();
+    expect(row.user_id).toBe('user-123');
   });
 });
 
@@ -375,7 +386,7 @@ describe('ErgLiveView save outcomes', () => {
 
     expect(insertMock).not.toHaveBeenCalled();
     expect(addToQueueMock).toHaveBeenCalledTimes(1);
-    expect(addToQueueMock.mock.calls[0][0].user_id).toBeUndefined();
+    expect(addToQueueMock.mock.calls[0][0].user_id).toBe('user-123');
   });
 
   it('surfaces a failure when the row cannot even be stored locally', async () => {
@@ -473,5 +484,68 @@ describe('ErgLiveView manual end', () => {
       expect(screen.getByText('SAVED TO LOG')).toBeInTheDocument()
     );
     expect(insertMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('live save account isolation', () => {
+  it('abandons a deferred auth lookup when the account changes before it resolves', async () => {
+    let release;
+    getUserMock.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          release = resolve;
+        })
+    );
+    finished();
+    renderWithClient(<ErgLiveView />, makeClient());
+    fireEvent.click(screen.getByText('SAVE SESSION'));
+    await waitFor(() => expect(getUserMock).toHaveBeenCalled());
+    clearPrivateSessionState();
+    await act(async () => {
+      release({ data: { user: { id: 'account-B' } } });
+    });
+    expect(insertMock).not.toHaveBeenCalled();
+    expect(addToQueueMock).not.toHaveBeenCalled();
+  });
+
+  it('never restores an old row to the queue after a deferred insert fails on another account', async () => {
+    let release;
+    insertMock.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          release = resolve;
+        })
+    );
+    finished();
+    renderWithClient(<ErgLiveView />, makeClient());
+    fireEvent.click(screen.getByText('SAVE SESSION'));
+    await waitFor(() => expect(insertMock).toHaveBeenCalled());
+    clearPrivateSessionState();
+    await act(async () => {
+      release({ error: { code: '42501', message: 'changed account' } });
+    });
+    expect(addToQueueMock).not.toHaveBeenCalled();
+  });
+
+  it('refuses a different auth identity even before its auth event is delivered', async () => {
+    getUserMock.mockResolvedValue({ data: { user: { id: 'account-B' } } });
+    finished();
+    renderWithClient(<ErgLiveView />, makeClient());
+    fireEvent.click(screen.getByText('SAVE SESSION'));
+    await act(async () => {});
+    expect(insertMock).not.toHaveBeenCalled();
+    expect(addToQueueMock).not.toHaveBeenCalled();
+  });
+
+  it('does not invent an owner when both context and auth identity are absent', async () => {
+    getUserMock.mockResolvedValue({ data: { user: null } });
+    finished();
+    renderWithClient(<ErgLiveView />, makeClient(), null);
+    fireEvent.click(screen.getByText('SAVE SESSION'));
+    await waitFor(() =>
+      expect(screen.getByText(/SAVE FAILED/)).toBeInTheDocument()
+    );
+    expect(insertMock).not.toHaveBeenCalled();
+    expect(addToQueueMock).not.toHaveBeenCalled();
   });
 });

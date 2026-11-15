@@ -11,7 +11,8 @@ import {
 // `screens` are routes the shell can show that are not destinations (Settings):
 // reachable by hash and by back, but never drawn in the tab bar.
 const read = (screens) => {
-  const id = (window.location.hash || '').replace(/^#\/?/, '');
+  // A desktop pane link still opens its shared destination on a phone.
+  const id = (window.location.hash || '').replace(/^#\/?/, '').split(/[/?]/)[0];
   return isDestination(id) || screens.includes(id) ? id : DEFAULT_DESTINATION;
 };
 

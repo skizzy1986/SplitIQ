@@ -81,8 +81,7 @@ through `/orchestrate <item>` with its own Gate 2 and Gate 3, one PR per item, `
 | R4 | Migration for the `exercises` seed and the three un-migrated views | [#435](https://github.com/skizzy1986/SplitIQ/issues/435) | M | R22. **#429 first**, or the migration can merge and never apply | Open. Its blocker #429 is done ([#451](https://github.com/skizzy1986/SplitIQ/pull/451)) |
 | R5 | Backup gaps | [#428](https://github.com/skizzy1986/SplitIQ/issues/428) | M | R31 | **Done** — [#552](https://github.com/skizzy1986/SplitIQ/pull/552) |
 | R6 | Reorientation slices 4b–12 | [#417–#425](https://github.com/skizzy1986/SplitIQ/issues/412) | per #412 | — | **Done** — all nine slices, the last in [#562](https://github.com/skizzy1986/SplitIQ/pull/562) |
-| R33 | Privacy research note (D17): what holding another person's training and health data requires, from primary sources (the Privacy Act, OAIC guidance), marked as not legal advice. Scott decides after it whether a professional opinion is needed | — | S | R37, all of L3. R31 proceeds without it as an accepted risk (D25) | Not started |
-
+| R33 | **Research considered (2026-11-15):** [privacy note and Scott's disposition](coherence/PRIVACY_RESEARCH.md). Privacy research note (D17): what holding another person's training and health data requires, from primary sources (the Privacy Act, OAIC guidance), marked as not legal advice. Scott decides after it whether a professional opinion is needed | — | S | R37, all of L3. R31 proceeds without it as an accepted risk (D25) | Research considered; R37 approved for self-use development |
 H1 may run beside slices 4b–12 under D6's fences: #416 first; no `CLAUDE.md` edits outside
 slice 11 (#424); at most two open PRs, one cull and one roadmap; rebase on the shared files
 (`web/vite.config.js`, `web/scripts/check-bundle-size.mjs`, e2e and visual snapshots,
@@ -184,13 +183,23 @@ takes the roadmap PR slot in turn with H1 (D16).
 Done when every user-visible name says SplitIQ, the desktop uses the four destinations with
 URLs, and the dashboard has a light/dark/auto control.
 
+Current baseline (2026-11-15, #511): the vision amendment (#515), names and residue
+(R34/R35, #524), the cull slices #420–#423, and doctrine rewrite (#424, #555)
+have landed. R36 can ship independently. R38 retains its full R33 → R37 prerequisite:
+the approved coach-access specification must precede desktop navigation changes.
+Scott approved the [R33/R37 packet](coherence/COACH_ACCESS_SPEC.md) on 2026-11-15.
+R38 is unblocked: privacy/legal consideration continues, without halting development
+of the currently private, non-commercial app. Coach-access rollout remains separate.
+R39 (depth), R40 (planner), and R41–R43 (coach implementation) remain separate work;
+shipping L1 does not complete the expanded #511 epic.
+
 | # | Item | Size | Depends on |
 |---|---|---|---|
-| R34 | One name everywhere (B): user-visible self-names, the APK display name and `applicationId` (a new Android identity, accepted at #511's Gate 1), version read from `package.json`, a phase-free eyebrow, a PWA description from `VISION.md`, and a guard test. The README title belongs to #424 | S–M | — |
-| R35 | Residue the cull misses (C): the unowned list in #511 §5. May ship with R34 | S | — |
-| R36 | Dashboard theme control honouring `splitiq.theme` (F). `StrengthLogger.jsx` stays light until #79. Re-measure the dashboard entry budget first | M | — |
-| R37 | Coach access **spec only** (D): relationship and consent, per-category grants, RLS read policies, the plan-write policy, the invite path, and how the `coach_log` / `source = 'coach'` names are reconciled. Runs to Gate 2 and stops (D14) | M | R33 |
-| R38 | Desktop adopts the four destinations with URL routing and one session hook (E) | L | R6 slices #420–#423, R37 |
+| R34 | **Done (#524).** One name everywhere (B): user-visible self-names, the APK display name and `applicationId` (a new Android identity, accepted at #511's Gate 1), version read from `package.json`, a phase-free eyebrow, a PWA description from `VISION.md`, and a guard test. The README title belongs to #424 | S–M | — |
+| R35 | **Done (#524).** Residue the cull misses (C): the unowned list in #511 §5. May ship with R34 | S | — |
+| R36 | **Implemented in the #511 worktree; validation recorded with the change.** Dashboard theme control honouring `splitiq.theme` (F). `StrengthLogger.jsx` stays light until #79. Re-measure the dashboard entry budget first | M | — |
+| R37 | **Spec approved (2026-11-15):** [coach-access contract](coherence/COACH_ACCESS_SPEC.md). Coach access **spec only** (D): relationship and consent, per-category grants, RLS read policies, the plan-write policy, the invite path, and how the `coach_log` / `source = 'coach'` names are reconciled. Runs to Gate 2 and stops (D14) | M | R33 |
+| R38 | **Implemented in the #511 worktree:** shared owner-scoped recent/full sessions, account isolation and desktop routing. Desktop adopts the four destinations with hash URL routing and one session hook (E). First unify recent/full-history queries and invalidation without losing records, then migrate the shell | L | R6 slices #420–#423, R37 |
 | R39 | Depth preference: simple or expert per user, simple by default (`VISION.md`, *One dataset, two depths*). Not in #511; added here so the principle has an item | M–L | R38 |
 
 ### L2 — Deterministic planning (after the cull)
@@ -335,3 +344,21 @@ The next entry-growing change needs a #504 raise or the `RealtimeClient` reclaim
 | D27 | 2026-11-15: R13 and R14 are re-scoped to what is left of them. R12 (#557) made the barbell optional and data-driven, so R13 is the static muscle sets and their attach frame. R8 (#463) deleted `derivePhase`, `PHASE_CHIPS`, `DIRECTIONS` and the thresholds, so R14 is the direction words in `anatomy/utils/rep.js`, phases read through the movement config, and the five-phase layout. Build order for the open H0/H1 items: R4, R13, R14, R10, R9, R16, R15 |
 
 A changed decision is a new row here with the date, not an edit to the old one.
+
+
+### #511 implementation record — 2026-11-15
+
+Scott approved R37 and the R33 disposition: privacy/legal considerations continue,
+but do not halt development of the private, non-commercial app. This is not a
+claim of exemption or approval of public/commercial rollout. R36 and R38 are now
+implemented in the working branch; merge/release status is separate.
+
+R38 uses explicit owner filters, recent/full query keys, paged full-history reads,
+shared pure status selectors and account-change cache isolation. The independent
+`useSessionLog` reader has been removed. Desktop maps Overview/Calendar to Today;
+Plan/Live/Logger/Mobility to Train; Load/Erg/Strength/History to Progress; Recovery
+to Body. Settings is a separate route. Pane hash links survive reload and browser
+history; legacy desktop hashes normalize to the new destinations. A phone opens a
+desktop pane link at the same destination. Live tools retain state across desktop
+navigation. Coach views, grants, planner generation and depth preferences remain
+in R39–R43 as specified, without enabling new data access in R38.

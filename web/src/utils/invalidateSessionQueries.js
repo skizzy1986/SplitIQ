@@ -2,8 +2,7 @@
 // invalidate all of them; the three write paths each used to pick their own
 // subset and disagreed (#195). ['sessions'] is a prefix, so it also reaches
 // any ['sessions', …] sub-key — do not list those separately.
-// useSessionLog.js also reads sessions but through a raw useState/useEffect
-// fetch, so no invalidation can reach it (#194).
+// The useSessionLog compatibility adapter reads the same owner-scoped cache.
 export function invalidateSessionQueries(queryClient) {
   queryClient.invalidateQueries({ queryKey: ['sessions'] });
   queryClient.invalidateQueries({ queryKey: ['erg-sessions'] });

@@ -120,14 +120,14 @@ test.describe('desktop shell', () => {
 
   test('overview', async ({ page, context }) => {
     await openAuthed(page, context);
-    await expect(nav(page, 'OVERVIEW')).toBeVisible();
+    await expect(nav(page, 'Today')).toBeVisible();
     await shot(page, 'desktop-overview');
   });
 
   test('calendar', async ({ page, context }) => {
     await openAuthed(page, context);
-    await expect(nav(page, 'CALENDAR')).toBeVisible();
-    await switchTo(page, nav(page, 'CALENDAR'));
+    await expect(nav(page, 'Calendar')).toBeVisible();
+    await switchTo(page, nav(page, 'Calendar'));
     await shot(page, 'desktop-calendar');
   });
 

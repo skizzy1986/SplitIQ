@@ -326,10 +326,12 @@ describe('Plan and Log in Spanish', () => {
     const { enText, esText } = both(
       <PlanView plannedSessions={[]} loggedKeys={new Set()} />
     );
-    expect(esText).toContain('EL PLAN. Próximas prescripciones del Coach');
+    expect(esText).toContain(
+      'EL PLAN. Sesiones planificadas de hoy en adelante.'
+    );
     expect(esText).toContain('No hay sesiones planificadas próximas.');
     expect(enText).toContain(
-      'THE PLAN. Upcoming prescriptions from Coach (today forward).'
+      'THE PLAN. Upcoming planned sessions (today forward).'
     );
   });
 
@@ -668,8 +670,20 @@ describe('Mobile in Spanish', () => {
 
   it('Session log: whole-word filter chips and a pluralised count', () => {
     mocks.sessions = [
-      { id: 1, date: '6/19/26', type: 'Erg', label: 'Erg 60' },
-      { id: 2, date: '6/18/26', type: 'Strength', label: 'Upper 1' },
+      {
+        id: 1,
+        date: '6/19/26',
+        type: 'Erg',
+        label: 'Erg 60',
+        status: 'completed',
+      },
+      {
+        id: 2,
+        date: '6/18/26',
+        type: 'Strength',
+        label: 'Upper 1',
+        status: 'completed',
+      },
     ];
     inSpanish();
     render(<MobileSessionLog />);
@@ -684,7 +698,15 @@ describe('Mobile in Spanish', () => {
   });
 
   it('Session log: English chips and count are unchanged', () => {
-    mocks.sessions = [{ id: 1, date: '6/19/26', type: 'Erg', label: 'Erg' }];
+    mocks.sessions = [
+      {
+        id: 1,
+        date: '6/19/26',
+        type: 'Erg',
+        label: 'Erg',
+        status: 'completed',
+      },
+    ];
     render(<MobileSessionLog />);
     for (const name of ['All', 'Erg', 'Strength']) {
       expect(screen.getByRole('button', { name })).toBeInTheDocument();

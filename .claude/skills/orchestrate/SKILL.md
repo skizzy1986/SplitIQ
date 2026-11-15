@@ -124,8 +124,11 @@ focused question.
      `@tanstack/react-query` API you are not certain of against Context7 before
      writing against it. Do not touch backend/migrations.
 
-5. **Test verification** — YOU run `npm test` and the coverage report, then
-   spawn `Test Results Analyzer` (model: sonnet, READ-ONLY) with the output and
+5. **Test verification** — YOU run, in `web/`, `npx vitest run --changed
+   origin/main --passWithNoTests --coverage`: the tests the diff reaches, with
+   coverage of the changed files only (a `package.json` or Vite config change
+   runs the whole suite). The full suite and the project-wide coverage
+   thresholds run in CI's Test & Coverage job, which is the gate. Then spawn `Test Results Analyzer` (model: sonnet, READ-ONLY) with the output and
    the acceptance criteria. Task: interpret the results, flag untested criteria
    and coverage gaps honestly. Conventions: `.claude/skills/testing-patterns.md`.
 

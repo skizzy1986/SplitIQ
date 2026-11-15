@@ -56,7 +56,9 @@
 //
 // Do not quote a size figure from memory or from a doc — it drifts. Run
 // `npm run build && npm run size`, or read dist/bundle-size.json, which this
-// script regenerates on every run.
+// script regenerates on every run. Build with VITE_SENTRY_DSN set (CI uses a
+// placeholder): without it the Sentry SDK is tree-shaken out and the entry is
+// ~49 KB lighter than production, so this script refuses to measure it (#465).
 import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 import { join } from 'node:path';
@@ -72,6 +74,7 @@ import {
   precachedI18n,
   precachedSquat,
   prefixMismatch,
+  sentryInitProblems,
   squatOnlyFiles,
 } from './entry-graph.mjs';
 import { SQUAT_JS } from './squatChunks.mjs';
@@ -96,7 +99,17 @@ import { parsePo } from './i18n-review-sheet.mjs';
 // error map), use-sync-external-store's shim 0.4, the shared tokens module
 // 0.3, and main +0.5 (src/i18n/lang.js and the root fallback's words). Rule:
 // the measured figure plus ~2 KB, to the nearest whole KB: 155.4 + 2 = 157.
-const MAX_ENTRY_GZIP_KB = 157;
+//
+// Re-based 157 -> 208 on 2026-11-15 (Scott, #465): not growth, a correction.
+// CI built without VITE_SENTRY_DSN, so initSentry()'s early return let the
+// bundler drop Sentry.init, browser tracing and most of @sentry/core from the
+// shared entry; production (DSN set on Vercel) ships them. The Build job now
+// builds with a placeholder DSN and sentryInitProblems() fails a build whose
+// first paint lacks the init path. Measured on the same commit: 156.8 KB
+// without a DSN, 205.5 KB with one (browser tracing ~22.5 of the 48.7).
+// Rule: 205.5 + 2 = 207.5, to the nearest whole KB: 208. TOTAL measured
+// 339.3 -> 388.0 KB, still inside 400, so it is not touched.
+const MAX_ENTRY_GZIP_KB = 208;
 const MAX_TOTAL_GZIP_KB = 400;
 
 // Squat tool, measured 2026-11-04 on PR1 (no three.js yet): SQUAT_ENTRY
@@ -156,7 +169,12 @@ const MAX_TOTAL_GZIP_KB = 400;
 // renders) and ROOT_ERROR_TEXT, the root fallback's English and Spanish,
 // pulled in through RouteRoot and ErrorFallback because both render before
 // any product chunk and so cannot use Lingui. Rule: 122.0 + 2 = 124.
-const MAX_SQUAT_ENTRY_GZIP_KB = 124;
+//
+// Re-based 124 -> 173 on 2026-11-15 (Scott, #465), for the same reason as
+// ENTRY above: the Sentry SDK lives in main, shared by both products, and the
+// gate had been measuring a build without it. 122.0 KB without a DSN, 170.8
+// KB with one. Rule: 170.8 + 2 = 172.8, to the nearest whole KB: 173.
+const MAX_SQUAT_ENTRY_GZIP_KB = 173;
 const MAX_SQUAT_TOTAL_GZIP_KB = 34;
 // three.js (r187, tree-shaken) + OrbitControls + the anatomy scene and posing
 // maths. Measured 2026-11-04 at 138.0 KB; ~5% headroom, because a
@@ -356,9 +374,23 @@ function viewsEnglishLeaks() {
   );
 }
 
+// Each product's first-paint JS, as text.
+function firstPaintJs(key) {
+  return entryFilesFrom(manifest, { bootKeys: [key] })
+    .filter((f) => f.endsWith('.js'))
+    .map((f) => ({
+      file: assetName(f),
+      text: readFileSync(join(DIST, f), 'utf8'),
+    }));
+}
+
 const invariants = [];
 try {
   invariants.push(
+    ...sentryInitProblems([
+      { name: 'dashboard', files: firstPaintJs(DASHBOARD_BOOT) },
+      { name: '/squat', files: firstPaintJs(SQUAT_ROOT) },
+    ]),
     ...firstPaintLeaks(manifest, SCENE_ROOT, [DASHBOARD_BOOT, SQUAT_ROOT]),
     ...DASH_ES_ROOTS.flatMap((root) => [
       ...firstPaintLeaks(manifest, root, [DASHBOARD_BOOT, SQUAT_ROOT], {

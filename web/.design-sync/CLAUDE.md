@@ -14,13 +14,10 @@
 > is the missing half — and it is the one of the three the code side owns, because the
 > domain lives in the code.
 
-> **Superseded in part — read `VISION.md` (repo root) first.** As of 2026-11-06 SplitIQ is
-> not a one-athlete dashboard and has no AI coach. In this file, "What SplitIQ is" (the
-> single-user premise), the **Coach** destination, the **Microcycle** entry and the CP and
-> zone figures (one athlete's calibration) are superseded, as are the Coach, roster,
-> Planning and nutrition sections of `HANDOFF.md`, `DESIGN_BRIEF.md` and `conventions.md`.
-> The mobile target is four destinations. Those lines are struck later (tracked in #412);
-> until then, where they disagree with `VISION.md`, `VISION.md` wins — do not design them.
+> **Superseded in part — read `VISION.md` (repo root) first.** SplitIQ is not a one-athlete
+> dashboard. "What SplitIQ is" (the single-user premise), the **Microcycle** entry and the CP
+> and zone figures are still superseded and not yet rewritten; where they disagree with
+> `VISION.md`, `VISION.md` wins.
 
 ## What SplitIQ is
 
@@ -37,9 +34,9 @@ That "one user" fact drives the design more than anything else here:
 - **Phone is primary.** Sessions are logged mid-workout, between intervals, with a heart
   rate still coming down. Depth is tolerated; breadth is not.
 
-## The five destinations
+## The four destinations
 
-The IA target is five, down from thirteen tabs today. Each answers one question:
+The IA target is four, down from thirteen tabs today. Each answers one question:
 
 | Destination | Answers |
 |---|---|
@@ -47,7 +44,6 @@ The IA target is five, down from thirteen tabs today. Each answers one question:
 | **Train** | The live session — prescription, logging, the set in front of me. |
 | **Progress** | Is the training working? Load, erg, strength, history. |
 | **Body** | Readiness and the readings behind it — sleep, RHR, HRV. |
-| **Coach** | Why the plan says what it says, and the conversation about changing it. |
 
 ## Domain glossary
 

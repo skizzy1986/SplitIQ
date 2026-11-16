@@ -1,0 +1,130 @@
+---
+description: Cursor sessions follow the Claude Code sources of truth. Read them; do not copy them.
+alwaysApply: true
+---
+
+# Cursor follows the Claude Code sources
+
+This file is a map. The binding text stays in the files it names. Do not copy
+those files into `.cursor/`, and do not edit them so Cursor will notice them.
+
+An `@` mention does not inline a file. Read it with your tools. Verified
+against [Cursor rules](https://cursor.com/docs/rules) ("Referencing files from
+a rule") and [Rules help](https://cursor.com/help/customization/rules). The
+same page says this holds for the editor, the CLI, and Cloud Agents.
+
+## Read and obey
+
+Cursor loads some of these by itself. Read any that are not already in your
+context, then follow them.
+
+| File | What it is | How Cursor loads it |
+|---|---|---|
+| `CLAUDE.md` (repo root) | Project doctrine | Auto-loaded, always applied |
+| `AGENTS.md` (repo root) | Entry point for agents that do not read `CLAUDE.md` | Auto-loaded, always applied. Nested `AGENTS.md` files apply when working in that directory |
+| `.claude/CLAUDE.md` | Scott's working preferences (Australian English, smallest diff, show the command output, discovery before a commit) | Not in the always-applied set. Read it at the start of every session |
+| `.claude/AGENTS.md` | Which agent for which job. Not the root `AGENTS.md` | Nested rule: attached when files under `.claude/` are in context. Read it before you choose how work ships |
+
+Loading, verified 2026-11-16:
+
+- [Rules](https://cursor.com/docs/rules): project rules are `.cursor/rules/*.mdc`. `alwaysApply: true` is included every chat. A plain `.md` file in that directory is ignored. Root and nested `AGENTS.md` are read; nested files apply to that directory and its children, and the more specific file wins.
+- [Rules help](https://cursor.com/help/customization/rules), "How does CLAUDE.md work in Cursor?": Cursor reads `CLAUDE.md` the same way it reads `AGENTS.md`. A root `CLAUDE.md` is always applied, and `alwaysApply` frontmatter does not turn that off.
+- This cloud session's always-applied rules were the root `CLAUDE.md` and the root `AGENTS.md` only. Reading a file under `.claude/` attached `.claude/AGENTS.md`. `.claude/CLAUDE.md` was not attached. That is why the row above says to read it.
+
+`VISION.md` wins where docs disagree. That is stated in the root `CLAUDE.md`.
+
+## Rules, skills, and agents
+
+Claude loads `.claude/rules/*.md` when a file matches the rule's `paths`
+frontmatter. Cursor does not load that directory. Before you read or edit a
+matching file, read the rule. The one that exists today is
+`.claude/rules/observability.md` (Sentry, CSP, bundle gate). A glob rule next
+to this file attaches a pointer when one of those paths is in context. If
+another file appears under `.claude/rules/`, read it when its `paths` match.
+Do not copy a new one into `.cursor/rules/` unless its `paths` need a glob
+pointer.
+
+Claude loads `.claude/skills/` when a task matches the skill's `description`.
+Cursor does not. When the task fits, read that file and follow it. Do not
+invent a shorter version.
+
+| When | Read |
+|---|---|
+| A feature, a bug, or any significant change | `.claude/skills/orchestrate/SKILL.md`. `.claude/skills/feature/SKILL.md` is an alias. Three approval gates: stop and wait. `WORKFLOW.md` allows a hand-built change when the task is small and already specified; say that in the PR, and do not skip a gate the skill says to hold |
+| One extraction from a named large file | `.claude/skills/refactor/SKILL.md` |
+| Investigate before any code | `.claude/skills/research/SKILL.md` |
+| The person you are helping is not Scott | `.claude/skills/collaborate/SKILL.md` before anything else |
+| A red or green CI check, or a review comment | `.claude/skills/steward/SKILL.md`. Derive the required set from the ruleset query in that file. Do not memorise it |
+| What is breaking in production | `.claude/skills/audit/SKILL.md` |
+| A short list of tasks for a gap | `.claude/skills/daily/SKILL.md` |
+| Where code goes, or an extraction | `.claude/skills/architecture.md` |
+| A Supabase query, a hook, a migration, an Edge Function | `.claude/skills/supabase-patterns.md` |
+| A test | `.claude/skills/testing-patterns.md` |
+| Load, readiness, zones | `.claude/skills/training-science.md` (doctrine, with the root `CLAUDE.md`) |
+| Spawning an agent | Prepend the full `.claude/skills/erg-context.md`. The persona file is under `.claude/agents/`, chosen from `.claude/AGENTS.md` |
+
+`.claude/agent-library/` is parked. Do not load it. `docs/CODEX_WORKFLOW.md` is
+the Codex adapter. It is not the Cursor path.
+
+Shipping is `WORKFLOW.md`: issue, branch, PR, CI. Root `AGENTS.md` names the
+things you never do (push to `main`, merge, force-push, Supabase writes,
+`--no-verify`, editing `.claude/agents/` or `.claude/agent-library/`).
+
+## Hooks do not run as they do in Claude Code
+
+`.claude/settings.json` wires four command hooks. Cursor does not run that
+file for a cloud agent. In the IDE, Claude hooks load only when **Settings →
+Agents → Third-Party Imports** ("Include Third-Party Plugins, Skills, and
+Other Configs") is on, which is the default. Do not assume they ran. Do the
+checks below yourself unless this turn already showed you the hook's output.
+
+Verified 2026-11-16:
+
+- [Third-party hooks](https://cursor.com/docs/reference/third-party-hooks): Claude hooks load from `.claude/settings.json` when that setting is on. `PreToolUse` maps to `preToolUse`, `PostToolUse` to `postToolUse`, `Stop` to `stop`, `SessionStart` to `sessionStart`. `Bash` maps to `Shell`, `Edit` to `Write`. Exit code 2 blocks. `PermissionRequest` and `Notification` have no Cursor hook.
+- [Hooks](https://cursor.com/docs/hooks), Cloud agent support: cloud agents run command hooks from `.cursor/hooks.json`, plus Enterprise team and managed hooks. `.claude/settings.json` is not in that source list. `sessionStart` does not run in cloud agents. `beforeShellExecution`, `afterFileEdit`, `preToolUse`, `postToolUse`, and `stop` do. Hooks do not run during an early read-only turn.
+- [Cloud Agents](https://cursor.com/docs/cloud-agent), Hooks support: the same `.cursor/hooks.json` statement. User-level `~/.cursor/hooks.json` is not on the VM.
+- A native permission hook (`beforeShellExecution`, `preToolUse`) treats exit 0 with output that is not the permission schema as a **block**. The Claude scripts allow by printing nothing and exiting 0. Pointing a native permission hook at the script would deny every shell command. That is why `.cursor/hooks.json` does not call them directly.
+- `postToolUse` can return `additional_context`. `afterFileEdit` documents no output fields. The lint script prints Claude's `hookSpecificOutput.additionalContext`, so a native `afterFileEdit` would drop the findings. A silent lint hook is the failure this repo already had (#295). It is not wired.
+- `stop` only documents `followup_message`, which submits a new user message. `warn-uncommitted.sh` prints a user-only `systemMessage` and must not continue the turn. Wiring it would change that contract. It is not wired.
+
+What each hook enforces, and the manual check:
+
+| Hook | Enforces | What you do under Cursor |
+|---|---|---|
+| `.claude/hooks/session-start.sh` (`SessionStart`) | In a remote Claude session only (`CLAUDE_CODE_REMOTE=true`): warn if `deno` is missing, then `npm ci --prefix web` so the lockfile is not rewritten. Elsewhere it exits 0 | Cloud agents do not run `sessionStart`. If `web/node_modules` is missing before lint, test, or build, run `npm ci --prefix web`. Do not `npm install`. If you are on an Edge Function and `deno` is missing, say so |
+| `.claude/hooks/block-secret-commit.sh` (`PreToolUse` / `Bash`) | Blocks `git commit` when a staged path matches the pattern in that script (exit 2) | Wired, below. Still read the staged list before you commit. The pattern lives only in the script |
+| `.claude/hooks/lint-edited-file.sh` (`PostToolUse` / `Edit\|Write`) | Advisory ESLint on a `.js` / `.jsx` file under `web/src` or `web/scripts`. Findings are context, not a failed edit | After such an edit, run `web/node_modules/.bin/eslint --max-warnings=0 --no-warn-ignored` on that file. Fix findings, or show them, before you finish. `npm run lint` in `web/` is the full check |
+| `.claude/hooks/warn-uncommitted.sh` (`Stop`) | Tells the user when the turn ends dirty. Silent in a remote Claude session. Does not continue the turn | Before you finish, `git status --porcelain`. Uncommitted work goes in the commit or is named in the PR body |
+
+`.cursor/hooks.json` wires one adapter, `.cursor/hooks/block-secret-commit.sh`,
+on `beforeShellExecution` with matcher `git commit`. The adapter runs the
+Claude script and turns its silence into `{"permission":"allow"}`, and its
+exit 2 into a deny. The deny sentence is the script's own wording, repeated
+so Cursor has it on stdout. The path pattern is not repeated. Both the IDE
+and cloud agents run this hook (`beforeShellExecution` is in the cloud
+matrix). It does not run during a read-only cloud turn, and an IDE with
+third-party import may also run the Claude `PreToolUse` hook on the same
+commit. The Claude script remains the check.
+
+Husky is separate, and it only runs when `core.hooksPath` is `.husky`. Cursor
+cloud agents point that elsewhere, so run the commands yourself when they
+apply:
+
+- `.husky/pre-commit` — `cd web && npx lint-staged`
+- `.husky/pre-push` — needs `origin/main`, then `cd web && npx vitest run --changed origin/main --passWithNoTests`
+
+Never `--no-verify` without an explicit reason.
+
+## `settings.json` permissions
+
+`.claude/settings.json` has `permissions.allow` and `permissions.ask`. It has
+no `deny` list. Cursor does not enforce either key.
+
+`ask` is `git push`, `git reset`, and `rm`. Treat `git reset` and `rm` as
+stop-and-ask unless the user explicitly requested that command. `git push`
+only the branch this task told you to publish, never `main`.
+
+The stops that are absolute live in the root `AGENTS.md` and the root
+`CLAUDE.md` (no Supabase writes, no migration apply, no merge, no
+force-push except `--force-with-lease` on your own branch). An empty `deny`
+list does not lift them.

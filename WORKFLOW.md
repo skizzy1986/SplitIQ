@@ -45,7 +45,7 @@ Every issue carries a stack-ranked priority (`P0`–`P3`), a `type:` label, and 
 |---|---|---|
 | **Priority** | `P0`, `P1`, `P2`, `P3` | Relative stack rank (re-sorted often) |
 | **Type** | `type: epic`, `type: feature`, `type: bug`, `type: refactor`, `type: spike`, `type: chore`, `type: docs` | What kind of work it is |
-| **Area** | `area: anatomy`, `area: coherence`, `area: factory`, `area: backend`, `area: mobile`, `area: design`, `area: a11y` | Subsystem domain (mirrors Kepler Task Groups) |
+| **Area** | `area: anatomy`, `area: coherence`, `area: factory`, `area: backend`, `area: mobile`, `area: design`, `area: a11y` | Subsystem domain; each has one Kepler task group (see *Picking up work in Kepler*) |
 | **Automation state** | `routine-managed`, `needs-attention` | Set by workflows, never by hand: a scheduled Routine owns the issue; escalated when it misses its window (see *Doctrine SHA*) |
 | **Epic** | `epic: <n> <name>`, e.g. `epic: 432 roadmap` | Set by `epic-labels.yml`, never by hand: which epic an issue or PR belongs to (see *Epics*) |
 
@@ -71,6 +71,47 @@ one identifier**. There is no second numbering scheme for its slices.
   arrives with the daily run. Dispatch `epic-labels.yml` to have it at once.
 - A new epic works with no setup: it is given a bare `epic: <n>` label. Give it
   a name in `.github/labels.yml` when it has one.
+
+### Picking up work in Kepler
+
+Work is grouped in three places: the epic (sub-issues), the labels, and Kepler task
+groups. These rules say how they fit together (decided 2026-11-16, #593).
+
+1. **A task starts on a sub-issue, never on an epic.** An epic is not a unit of
+   work. A task started on one cuts a `kepler/<epic>-…` branch that no single PR can
+   close, which is how #565 and #582 both ended up closing #520. You can still see
+   the epic from a task: its sub-issues carry the `epic:` label (*Epics* above), and
+   each epic is a tab in the Kepler Dashboard. If the work has no sub-issue yet, file
+   one under the epic first.
+2. **Picking up an issue means assigning it to yourself.** Kepler's *Plan issues
+   assigned to me* automation then makes the Plan task and its branch (§2). The
+   assignee is the claim (#543): an assigned issue is taken, an unassigned one is
+   free. Unassign yourself if you drop it.
+3. **Each area has one Kepler task group**, named exactly as below:
+
+   | Area label | Kepler task group |
+   |---|---|
+   | `area: anatomy` | Anatomy Engine |
+   | `area: coherence` | Product Coherence |
+   | `area: factory` | Factory & Workflow |
+   | `area: backend` | Backend & Reliability |
+   | `area: mobile` | Mobile |
+   | `area: design` | Design |
+   | `area: a11y` | Accessibility |
+
+   Kepler only creates a group when the first task goes into it, so a group can be
+   missing until its area has work. Create it with the name above, spelled exactly.
+   Tasks made by automation (the stage 6 review) arrive with no group. Move each one
+   into the group for its PR's `area:` label.
+4. **One source of truth per dimension.** Anything else showing that dimension is a
+   copy. Where they disagree, fix the copy.
+
+   | Dimension | Source of truth | Copies |
+   |---|---|---|
+   | Epic | The parent issue (sub-issue hierarchy) | `epic:` label, Dashboard tab |
+   | Area | The `area:` label | Kepler task group |
+   | Priority | The `P0`–`P3` label | — |
+   | Status | The Kepler stage, and the PR's state | Split IQ board Status |
 
 ### Ideas that start in Discussions
 
@@ -254,13 +295,18 @@ Backlog  →  Ready  →  In progress  →  In review  →  Done
 |---|---|
 | New issue/PR → **Backlog** | Automatic: *Auto-add to project* + *Item added to project* |
 | Reopened → **Backlog** | Automatic: *Item reopened* |
-| **Backlog → Ready** | **By hand**: triaged and worth doing next |
-| **Ready → In progress** | **By hand**: when you cut the branch |
 | Issue → **In review** | Automatic: *Pull request linked to issue* — fires on `Closes #N` in the PR body (the PR template already carries it; see §3). It moves the linked **issue**; the PR's own card stays in Backlog until it merges |
 | → **Done** | Automatic: *Item closed* + *Pull request merged* |
 
-GitHub has no trigger for "triaged" or "branch created", so those two moves stay manual.
-Cloud sessions read the board and make the two manual moves through
+**The two hand moves, Backlog → Ready and Ready → In progress, are retired (2026-11-16,
+#593).** Nothing has to move a card by hand. Both moves were hand-kept copies of facts that
+now have a source of truth (*Picking up work in Kepler*, rule 4). "Worth doing next" is the
+`P0`–`P3` label. "Being worked on" is the assignee plus the Kepler stage. A third copy kept
+by hand only drifts from the other two. The Ready and In progress columns stay, because
+`project-board.yml` and existing `set` lines name them, but nothing reads them. A card left
+in Backlog until its PR opens is correct.
+
+Cloud sessions read the board, and set the roadmap fields below, through
 `.github/workflows/project-board.yml` — see [`docs/CLOUD_ENVIRONMENT.md`](docs/CLOUD_ENVIRONMENT.md).
 
 ### Roadmap fields (added 2026-11-07)
@@ -292,8 +338,10 @@ pending run**, so several dispatches queued at once cancel all but the last:
    markers on *Target*. Filter `-horizon:Maintenance` so only roadmap work draws.
 3. **Epic tree** — layout *Table*, group by **Parent issue**, columns Status · Horizon ·
    Size · Target. Sub-issues of #412 and #432 fall into their epics automatically.
-4. **Now** — layout *Board*, filter `status:Ready,"In progress","In review"`, group by
-   Status, sorted by Horizon. The short list for a 30-minute gap.
+4. **Now** — layout *Table*, filter `is:open label:P0,P1`, group by **Assignees**,
+   sorted by Horizon. The short list for a 30-minute gap: the unassigned group is what
+   is free to pick up. (It filtered on Ready and In progress until those hand moves were
+   retired.)
 
 The built-in *Auto-add sub-issues* workflow (on) means a new sub-issue of an epic lands
 on the board with its parent set; give it a Horizon and Size with `set` and it appears in

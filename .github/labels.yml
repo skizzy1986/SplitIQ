@@ -45,7 +45,7 @@
   color: '0366d6'
   description: 'Dependency updates (Dependabot; dependabot-maintenance.yml files issues with it)'
 
-# ── 3. AREA (Subsystem Domain — mirrors Kepler Task Groups) ───────────────────
+# ── 3. AREA (Subsystem Domain — one Kepler task group each, WORKFLOW.md) ──────
 - name: 'area: anatomy'
   color: '1d76db'
   description: '3D engine, Three.js, squat model, biomechanics runtime'

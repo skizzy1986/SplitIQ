@@ -354,8 +354,10 @@ background `until` loop polling `gh api repos/<owner>/<repo>/actions/workflows/p
 works for the wait (that read path was reachable on 2026-11-07, despite the caveat below).
 
 The board's built-in workflows handle every automatic move (see `WORKFLOW.md`). This
-workflow exists so a session can read the board and make the two manual moves: to Ready,
-and to In progress.
+workflow exists so a session can read the board and set the roadmap fields. It was also
+how a session made the two hand moves, to Ready and to In progress. Those moves were
+retired on 2026-11-16 (#593): status comes from the Kepler stage and the PR, so `move`
+is no longer part of the workflow, though it still works.
 
 Verified 2026-11-05: `action=list` (run 41988480375) printed the full board with real
 Status values, so the token, the `@me` owner and the `gh project` JSON shapes

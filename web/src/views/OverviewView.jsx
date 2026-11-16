@@ -255,19 +255,19 @@ export default function OverviewView({
               [
                 'CTL',
                 t({ message: 'Fitness', comment: 'Subtitle of CTL' }),
-                latest ? latest.ctl : '',
+                latest.ctl,
                 THEME.accent,
               ],
               [
                 'ATL',
                 t({ message: 'Fatigue', comment: 'Subtitle of ATL' }),
-                latest ? latest.atl : '',
+                latest.atl,
                 THEME.warning,
               ],
               [
                 'TSB',
                 t({ message: 'Form', comment: 'Subtitle of TSB' }),
-                latest ? (latest.tsb > 0 ? '+' : '') + latest.tsb : '',
+                (latest.tsb > 0 ? '+' : '') + latest.tsb,
                 tsbColor,
               ],
             ].map(([k, sub, v, c]) => (

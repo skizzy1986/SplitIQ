@@ -174,11 +174,11 @@ Projects `erg-dashboard` (app) and `erg-dashboard-functions` (edge functions).
 
 ## Shipping a change
 
-**GitHub Issue → branch → PR → CI → `main`** (`WORKFLOW.md`); status: "Split IQ" board.
+**GitHub Issue → branch → PR → CI → `main`** (`WORKFLOW.md`); status: "Split IQ" board. An epic's slices are its sub-issues.
 
-- Branch from a freshly fetched `origin/main` (`git fetch origin && git checkout -b
-  <type>/<slug> origin/main`); keep it short-lived; rebase, never merge; only
-  `--force-with-lease`, never `--force`. `main` blocks direct pushes and stale branches.
+- Names carry the issue number: branch `<type>/<issue>-<slug>` off a freshly fetched
+  `origin/main`; PR title `<type>(<scope>): <change> (#<issue>)`, CI-enforced; issue titles
+  plain, no prefix. Rebase, never merge; `--force-with-lease` only. `main` blocks direct pushes and stale branches.
 - Before pushing: `npm run build`, `npm test`, `npm run lint`, `npm run format:check`.
   Never `--no-verify` the pre-commit hook without an explicit reason. Coverage
   thresholds live only in `web/vite.config.js` and only go up. Derive the required

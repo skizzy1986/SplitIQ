@@ -1,5 +1,5 @@
 name: ✨ Feature
-description: A new capability or enhancement to build
+description: A new capability or enhancement to build. Title it as the outcome, in a plain sentence — no "feat:" prefix.
 labels: ['P2', 'type: feature']
 body:
   - type: input

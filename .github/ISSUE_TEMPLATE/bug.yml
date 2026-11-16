@@ -1,5 +1,5 @@
 name: 🐛 Bug
-description: Something is broken or behaving incorrectly
+description: Something is broken or behaving incorrectly. Title it as the symptom, in a plain sentence — no "fix:" prefix.
 labels: ['P1', 'type: bug']
 body:
   - type: textarea

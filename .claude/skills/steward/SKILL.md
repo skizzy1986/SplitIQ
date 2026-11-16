@@ -103,9 +103,9 @@ most likely to be stale.**
 |---|---|
 | Required status checks | **`Lint & Format`, `Test & Coverage`, `Build`, `CodeQL`, `Validate PR title (Conventional Commits)`, `Review dependency changes`, `Deno Tests`, `Zone bands match derivePaceZones`, `Build Debug APK`, `Context7 rule reaches every workflow`, `Hooks pass their smoke test`** — those eleven, and nothing else. `CodeQL` is emitted by the GitHub Advanced Security app and is a **different check-run** from `codeql.yml`'s job `Analyze (JavaScript/TypeScript)`; the ruleset binds the former. |
 | Advisory — red does **not** block merge | `Lighthouse`, `Playwright Smoke`, `Playwright Visual`. Still fix them; just do not report them as blocking. |
-| Reports but is not required | `Build Web Assets`, `Seer Code Review`, `Vercel Preview Comments`, `Analyze (JavaScript/TypeScript)`, `Label by changed paths`, `add-to-project`, `Flag steward skill staleness`, `Enable auto-merge`, `Migrations manifest is consistent` (`migrations-manifest.yml`, added by #451 — not in the ruleset until Scott adds it, so a red run there does not yet block), and every `Detect …` filter job. Red here does not block either — but see the `Build Web Assets` trap below. |
+| Reports but is not required | `Build Web Assets`, `Seer Code Review`, `Vercel Preview Comments`, `Analyze (JavaScript/TypeScript)`, `Label by changed paths`, `add-to-project`, `Flag steward skill staleness`, `Sync epic labels` (`epic-labels.yml`, #586), `Enable auto-merge`, `Migrations manifest is consistent` (`migrations-manifest.yml`, added by #451 — not in the ruleset until Scott adds it, so a red run there does not yet block), and every `Detect …` filter job. Red here does not block either — but see the `Build Web Assets` trap below. |
 | Also enforced | a PR before merging · branches up to date before merging · force pushes blocked **on `main` only**, so `--force-with-lease` on your own feature branch is fine |
-| Not enforced | linear history. Squash with `(#N)` is convention, not a gate. |
+| Not enforced | linear history. The PR number GitHub appends on squash, `(#N)`, is convention, not a gate. The **issue** number before it is a gate: `Validate PR title (Conventional Commits)` also fails a title that does not end ` (#<issue>)` with an existing issue that is neither a pull request nor the PR itself (`pr-title-lint.yml:52-88`; Dependabot exempt). Branch names are not checked. |
 
 **A required check can be satisfied by `skipped`** (`ci-web.yml:3-7`), so all eleven can be
 green having run nothing — see *When every check is green*. That applies hardest to
@@ -143,6 +143,10 @@ Since #424 `CLAUDE.md` carries no CI table; it points here. Its old table opened
 **three** gated jobs and listed fewer rows than the required set.
 
 ## Verified against
+
+The *Reports but is not required* row re-verified on 2026-11-16 against `.github/workflows/epic-labels.yml` as added by #586: it reports one job, `Sync epic labels`, on `pull_request_target` (`opened`, `edited`, `reopened`); it is not in the ruleset.
+
+The *Not enforced* row re-verified on 2026-11-15 against `.github/workflows/pr-title-lint.yml` as changed by #583: the issue-number rule is a second step in the existing required job, so the required set and its job names are unchanged. `issue-title-lint.yml` (also #583) runs on `issues` events only and reports nothing on a PR.
 
 `ci-android.yml` line citations (`:21-24`, `:27`, `:68-70`, `:80-81`) re-checked on 2026-11-14 at `b2bcbce`; the two in *What protects `main`* had drifted after #524 added a path-filter line.
 

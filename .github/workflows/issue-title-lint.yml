@@ -1,0 +1,48 @@
+name: Issue title lint
+
+# An issue title is a plain sentence: the symptom for a bug, the outcome for a
+# feature (WORKFLOW.md §1). The `type:` and `area:` labels say what kind of work
+# it is, so a Conventional Commit prefix on the title is a second copy of the
+# type that drifts from the label. That prefix belongs on the PR title.
+#
+# An issue has no merge to block, so this is a signal, not a gate: a red run
+# against the issue that needs retitling.
+on:
+  issues:
+    types: [opened, edited]
+
+permissions: {}
+
+jobs:
+  validate:
+    name: Validate issue title (no type prefix)
+    runs-on: ubuntu-latest
+    steps:
+      # The script is unit-tested as it stands in this file by
+      # web/scripts/__tests__/title-lint.test.mjs, which also fails if TYPES
+      # drifts from pr-title-lint.yml's list — change them together.
+      - name: Title has no Conventional Commit prefix
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const TYPES = [
+              'feat', 'fix', 'docs', 'refactor', 'test', 'ci', 'build', 'perf',
+              'chore', 'style', 'config', 'housekeeping', 'revert',
+            ];
+            const { action, changes, issue } = context.payload;
+            // A body edit is not a retitle: the backlog that predates this
+            // rule stays quiet until someone touches a title.
+            if (action === 'edited' && !changes?.title) return;
+            // Automation files issues under fixed titles that other automation
+            // matches on (doctrine-sha-guard.yml), so those are left alone.
+            if (issue.user.type === 'Bot') return;
+            if (issue.labels.some((label) => label.name === 'routine-managed')) return;
+
+            const prefix = new RegExp(`^(${TYPES.join('|')})(\\([^)]*\\))?!?:`, 'i');
+            if (prefix.test(issue.title)) {
+              throw new Error(
+                `"${issue.title}" starts with a type prefix. Issue titles are plain ` +
+                  'sentences: the type: and area: labels say what kind of work it is, ' +
+                  'and the prefix goes on the PR title. Retitle it (WORKFLOW.md §1).'
+              );
+            }

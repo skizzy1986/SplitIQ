@@ -26,7 +26,13 @@ scattered markdown files — if it's worth doing, it's worth one issue.
 
 A good issue has:
 - A clear, outcome-shaped **title** ("Deploy Google Health API vitals import",
-  not "health stuff").
+  not "health stuff"). It is a plain sentence: the symptom for a bug, the outcome
+  for a feature, `Epic: …` for an epic. **No `fix(scope):` prefix** — the `type:`
+  and `area:` labels say that, and a second copy in the title drifts from them; the
+  prefix belongs on the PR title (§3). No roadmap or decision IDs (`R12`, `D27`)
+  either: they go in the body. `issue-title-lint.yml` fails on a new or retitled
+  issue that has a prefix; an issue has no merge to block, so that is a red run,
+  not a gate.
 - A short **body**: what + why, and a checklist of acceptance criteria.
 - **Labels** for priority and area (below).
 - A **milestone** if it belongs to a themed batch of work.
@@ -39,10 +45,105 @@ Every issue carries a stack-ranked priority (`P0`–`P3`), a `type:` label, and 
 |---|---|---|
 | **Priority** | `P0`, `P1`, `P2`, `P3` | Relative stack rank (re-sorted often) |
 | **Type** | `type: epic`, `type: feature`, `type: bug`, `type: refactor`, `type: spike`, `type: chore`, `type: docs` | What kind of work it is |
-| **Area** | `area: anatomy`, `area: coherence`, `area: factory`, `area: backend`, `area: mobile`, `area: design`, `area: a11y` | Subsystem domain (mirrors Kepler Task Groups) |
+| **Area** | `area: anatomy`, `area: coherence`, `area: factory`, `area: backend`, `area: mobile`, `area: design`, `area: a11y` | Subsystem domain; each has one Kepler task group (see *Picking up work in Kepler*) |
 | **Automation state** | `routine-managed`, `needs-attention` | Set by workflows, never by hand: a scheduled Routine owns the issue; escalated when it misses its window (see *Doctrine SHA*) |
+| **Epic** | `epic: <n> <name>`, e.g. `epic: 432 roadmap` | Set by `epic-labels.yml`, never by hand: which epic an issue or PR belongs to (see *Epics*) |
 
 Priority is **relative and re-sorted often** — it's a stack rank, not a promise.
+
+### Epics
+
+An epic is an **outcome that needs more than one PR and has a finish line**: one
+sentence in its body saying when it is done. Every piece of work toward it is a
+sub-issue. A theme with no end is an `area:` label, not an epic. A roadmap horizon
+or track is a phase, recorded in the board's **Horizon** field, not an epic. (Applied
+2026-11-16: #382 went from `type: epic` to `type: feature`, its work being #432's H1;
+the Language track got its epic, #597.)
+
+An epic is an issue labelled `type: epic`, and **its issue number is the epic's
+one identifier**. There is no second numbering scheme for its slices.
+
+- **An epic gets Start and Target on the board when it is filed** (`project-board.yml`,
+  action `set`), so it draws as one bar on the Roadmap view (*Views*, below). Target is a
+  working target, revised as work lands.
+- **File each slice as a sub-issue of the epic** (*Create sub-issue* on the epic,
+  or `issue_write` with `parent_issue_number` from a session). The sub-issue
+  hierarchy is the source of truth: the epic shows its own progress, and an agent
+  reads the whole epic in one call. A "Part of #n" line in a body links nothing.
+- **`epic-labels.yml` copies the epic's label onto every descendant and onto each
+  open PR whose title names one** (`epic: 432 roadmap`). Sub-issues do not show
+  in the issue or PR lists; the label does, so one glance or one filter finds an
+  epic's whole body of work. Never apply or remove an `epic:` label by hand — the
+  next run puts it back the way the hierarchy says.
+- **Titles do not carry the epic number.** A PR title ends with its slice's
+  issue number (§3) and nothing else.
+- Making an *existing* issue a sub-issue fires no workflow event, so the label
+  arrives with the daily run. Dispatch `epic-labels.yml` to have it at once.
+- A new epic works with no setup: it is given a bare `epic: <n>` label. Give it
+  a name in `.github/labels.yml` when it has one.
+- **A new epic label, or a renamed one, goes on Kepler's skip list:** Kepler →
+  Automations → *Plan issues assigned to me* → Edit → *Without labels*. Miss it and
+  the epic's sub-issues start getting their own tasks again (*Picking up work in
+  Kepler*, rule 2).
+
+### Picking up work in Kepler
+
+Work is grouped in three places: the epic (sub-issues), the labels, and Kepler task
+groups. These rules say how they fit together (decided 2026-11-16, #593; rule 1
+revised the same day, #599, after one task per sub-issue left many task pages and
+every session starting cold).
+
+1. **An epic gets one Kepler task; each sub-issue is a worktree inside it.** When an
+   epic spans roadmap horizons it gets **one task per horizon** instead, so no task
+   page gets overwhelming (#432 → one task for H0, one for H1). The task links the
+   epic and sits in the group for the epic's area (rule 3).
+   - Each sub-issue gets its own worktree in that task, on its own branch
+     `kepler/<sub-issue>-<type>/<slug>`, with its own session and its own PR whose
+     title ends `(#<sub-issue>)`. One PR per issue still holds. **The branch is named
+     after the sub-issue, never the epic:** a `kepler/<epic>-…` branch is one no single
+     PR can close, which is how #565 and #582 both ended up closing #520.
+   - Work through it in order: the next slice branches from `main` once the last one
+     merges, or from the last one's branch to keep going before it merges (record the
+     stacked target with `worktree_update`).
+   - The task's notes carry what each slice learned into the next session. That is why
+     it is one task.
+   - If the work has no sub-issue yet, file one under the epic first. Each epic is also
+     a tab in the Kepler Dashboard.
+2. **Picking up an issue means assigning it to yourself.** The assignee is the claim
+   (#543): an assigned issue is taken, an unassigned one is free. Unassign yourself if
+   you drop it.
+   - A **standalone issue** gets its own task: Kepler's *Plan issues assigned to me*
+     automation makes the Plan task and its branch (§2).
+   - A **sub-issue** does not. The automation skips it because it lists **every epic's
+     label under *Without labels*** (its form cannot take a raw `no:parent-issue`
+     filter). Picking up a sub-issue means assigning yourself and adding its worktree
+     to the epic's (or horizon's) task. Filing or renaming an epic label means
+     updating that list (*Epics* above).
+3. **Each area has one Kepler task group**, named exactly as below:
+
+   | Area label | Kepler task group |
+   |---|---|
+   | `area: anatomy` | Anatomy Engine |
+   | `area: coherence` | Product Coherence |
+   | `area: factory` | Factory & Workflow |
+   | `area: backend` | Backend & Reliability |
+   | `area: mobile` | Mobile |
+   | `area: design` | Design |
+   | `area: a11y` | Accessibility |
+
+   Kepler only creates a group when the first task goes into it, so a group can be
+   missing until its area has work. Create it with the name above, spelled exactly.
+   A review runs when Scott starts one, as a session in the epic's task or the issue's
+   task (Kepler's *SplitIQ Stage 6 PR Review* automation was deleted 2026-11-16).
+4. **One source of truth per dimension.** Anything else showing that dimension is a
+   copy. Where they disagree, fix the copy.
+
+   | Dimension | Source of truth | Copies |
+   |---|---|---|
+   | Epic | The parent issue (sub-issue hierarchy) | `epic:` label, Dashboard tab |
+   | Area | The `area:` label | Kepler task group |
+   | Priority | The `P0`–`P3` label | — |
+   | Status | The Kepler stage, and the PR's state | Split IQ board Status |
 
 ### Ideas that start in Discussions
 
@@ -60,7 +161,8 @@ is told so. The loop closes itself when the work ships.
    `Discussion: #<n>` works too. Then reply on the thread with the issue link. The weekly
    *SplitIQ Discussion drafts* task drafts both and does them on Scott's `promote` reply.
 2. **Build.** Branch, PR and merge as below. The PR closes the issue the normal way
-   (`Closes #<issue>`). A PR with no issue can carry the `Discussion:` line itself.
+   (`Closes #<issue>`). The `Discussion:` line is also read from the PR body, but the
+   PR still names an issue in its title (§3).
 3. **Ship.** When that PR merges into `main`, `.github/workflows/discussion-shipped.yml`
    replies on the thread: "Shipped: #PR closed #issue…". Nobody has to remember to.
 
@@ -79,10 +181,16 @@ a merged PR would post, dispatch `discussion-shipped.yml` with `pr=<number>`, ad
 Cut every branch from a freshly-fetched `origin/main`:
 
 ```bash
-git fetch origin && git checkout -b <type>/<short-slug> origin/main
+git fetch origin && git checkout -b <type>/<issue>-<short-slug> origin/main
 ```
 
 Branch **types**: `feature/`  `fix/`  `refactor/`  `housekeeping/`  `config/`.
+The issue number leads the slug (`fix/567-logger-sheet-cutoff`), so a branch
+says what it is for wherever it is listed. A session that is handed its branch
+(Kepler below; a cloud session's `ccr-…` or `claude/…`) keeps the name it was
+given. Branch names are convention, not a gate: a branch cannot be renamed
+under an open PR, so a failed check there could not be fixed. The PR title
+carries the number that is enforced (§3).
 Keep branches short-lived and **rebase** (never merge) to stay current:
 
 ```bash
@@ -93,7 +201,8 @@ git push --force-with-lease origin <branch>   # safe force — never plain --for
 One issue per branch keeps PRs small and reviewable. If a branch starts solving
 two issues, split it.
 
-**A Kepler task arrives with its branch and worktree already cut** —
+**A Kepler task, or a sub-issue's worktree in its epic's task (§1), arrives with its
+branch and worktree already cut** —
 `kepler/<issue>-<type>/<slug>`, or `kepler/<type>/<slug>` with no issue. Use it as it
 is: do not cut a second branch or rename it. Rebase it before the first commit; it is
 only as fresh as the task. No workflow reads a branch prefix (every `push` trigger is
@@ -111,6 +220,24 @@ worktree with Kepler's `worktree_delete`, never `git worktree remove` or `git br
   ```
   Closes #42
   ```
+
+- **Title the PR `<type>(<scope>): <what the change does> (#<issue>)`** —
+  `fix(strength): keep logger sheets inside the desktop window (#567)`. The
+  title becomes the squash commit and GitHub appends the PR number, so every
+  commit on `main` reads `… (#issue) (#PR)`: the last bracket is the PR, the one
+  before it is the issue. Four rules follow from that:
+  - **Never type the PR number.** GitHub adds it.
+  - **One issue number, at the very end.** A PR that closes more lists the rest
+    in the body (`Closes #N`), not the title.
+  - **No other ID schemes in the title** — no `R12`, `D27`, `slice 11` or
+    `PR 1/6`. The issue body carries them.
+  - **Every PR has an issue**, however small. If there is none, file one first.
+
+  `pr-title-lint.yml` enforces the type and the ending inside the required
+  title check: the number must be an existing issue here, not a pull request
+  and not the PR's own number. Dependabot PRs are the one exemption — they have
+  no issue. A branch type is not a title type (`feature/` → `feat:`); the
+  allowed title types are listed in that workflow.
 
 ## 4. CI gates (must be green to merge)
 
@@ -201,13 +328,18 @@ Backlog  →  Ready  →  In progress  →  In review  →  Done
 |---|---|
 | New issue/PR → **Backlog** | Automatic: *Auto-add to project* + *Item added to project* |
 | Reopened → **Backlog** | Automatic: *Item reopened* |
-| **Backlog → Ready** | **By hand**: triaged and worth doing next |
-| **Ready → In progress** | **By hand**: when you cut the branch |
 | Issue → **In review** | Automatic: *Pull request linked to issue* — fires on `Closes #N` in the PR body (the PR template already carries it; see §3). It moves the linked **issue**; the PR's own card stays in Backlog until it merges |
 | → **Done** | Automatic: *Item closed* + *Pull request merged* |
 
-GitHub has no trigger for "triaged" or "branch created", so those two moves stay manual.
-Cloud sessions read the board and make the two manual moves through
+**The two hand moves, Backlog → Ready and Ready → In progress, are retired (2026-11-16,
+#593).** Nothing has to move a card by hand. Both moves were hand-kept copies of facts that
+now have a source of truth (*Picking up work in Kepler*, rule 4). "Worth doing next" is the
+`P0`–`P3` label. "Being worked on" is the assignee plus the Kepler stage. A third copy kept
+by hand only drifts from the other two. The Ready and In progress columns stay, because
+`project-board.yml` and existing `set` lines name them, but nothing reads them. A card left
+in Backlog until its PR opens is correct.
+
+Cloud sessions read the board, and set the roadmap fields below, through
 `.github/workflows/project-board.yml` — see [`docs/CLOUD_ENVIRONMENT.md`](docs/CLOUD_ENVIRONMENT.md).
 
 ### Roadmap fields (added 2026-11-07)
@@ -219,7 +351,7 @@ Four custom fields carry the product roadmap ([`docs/ROADMAP.md`](docs/ROADMAP.m
 |---|---|---|---|
 | **Horizon** | single select | `H0 Foundations` · `H1 Squat` · `H2 Movements` · `H3 Coach surfaces` · `Maintenance` | Which roadmap horizon the item belongs to; `Maintenance` is everything that is not roadmap work |
 | **Size** | single select | `S` · `M` · `L` | ≤ half a day · ≈ a day · 2+ days, the roadmap's own scale |
-| **Start** / **Target** | date | `YYYY-MM-DD` | The **horizon's planning window**, not a per-item commitment: H0 2026-11-07 → 2026-12-19, H1 2026-11-21 → 2027-02-28. Later horizons get dates when they are approved. |
+| **Start** / **Target** | date | `YYYY-MM-DD` | On an **epic**, its own run, set when it is filed; Target is a working target, revised as work lands (§1 *Epics*). On other items, the **horizon's planning window**, not a per-item commitment: H0 2026-11-07 → 2026-12-19, H1 2026-11-21 → 2027-02-28. Later horizons get dates when they are approved. |
 
 `project-board.yml` grew two actions for them. `fields` creates any of the four that is
 missing (idempotent). `set` takes one line per item and sets any field by name, Status
@@ -232,19 +364,24 @@ pending run**, so several dispatches queued at once cancel all but the last:
 
 `list` now prints the four columns beside Status.
 
-### Views worth having (owner clicks; views cannot be created through the API)
+### Views (owner clicks; views cannot be created through the API)
 
-1. **Board** by Status — the existing view; the day-to-day answer to "what's happening".
-2. **Roadmap** — layout *Roadmap*, date fields *Start → Target*, group by **Horizon**,
-   markers on *Target*. Filter `-horizon:Maintenance` so only roadmap work draws.
-3. **Epic tree** — layout *Table*, group by **Parent issue**, columns Status · Horizon ·
-   Size · Target. Sub-issues of #412 and #432 fall into their epics automatically.
-4. **Now** — layout *Board*, filter `status:Ready,"In progress","In review"`, group by
-   Status, sorted by Horizon. The short list for a 30-minute gap.
+The board has five views (set 2026-11-16, #599). The old Table, Status Board and My
+items views were deleted.
+
+| Tab | Layout | Filter | Group / sort | Answers |
+|---|---|---|---|---|
+| **Now** | Table | `is:open label:P0,P1` | Group **Assignees**, sort **Horizon** | What is claimed, and what is free (*No assignees*) |
+| **Epics** | Table | `is:open` | Group **Parent issue** | Each epic's open sub-issues and their status |
+| **In review** | Table | `is:open status:"In review"` | (none) | What waits on a PR to land |
+| **Roadmap** | Roadmap | `label:"type: epic"` (no `is:open`, so finished epics stay as history) | Dates **Start → Target**, markers on Target, sort by Start, column **Sub-issues progress** | One bar per epic: how long it runs and how far it has got |
+| **Bugs** | Table | `is:open label:"type: bug"` | Sort **Labels** | What is broken |
+
+The Ready and In progress columns are no longer kept (#593), so no view filters on them.
 
 The built-in *Auto-add sub-issues* workflow (on) means a new sub-issue of an epic lands
-on the board with its parent set; give it a Horizon and Size with `set` and it appears in
-every view above.
+on the board with its parent set, so it appears under its epic in the Epics view; give it
+a Horizon and Size with `set`.
 
 > **Built-in workflows (configured 2026-11-05, *Project → ⋯ → Workflows*).**
 > **On:** Auto-add to project (repo `SplitIQ`, filter `is:issue,pr is:open`) ·

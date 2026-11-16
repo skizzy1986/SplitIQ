@@ -150,7 +150,8 @@ focused question.
 
 7. **Deliver** — you, in the main thread, per `WORKFLOW.md`:
    - *Branch.* In-process: create a feature branch (`git checkout -b
-     feature/<kebab-slug>`). Kepler: the task's branch and worktree already
+     feature/<N>-<kebab-slug>`, `N` the issue; a cloud session keeps the
+     branch it was given). Kepler: the task's branch and worktree already
      exist (`WORKFLOW.md` §2) — stay on `git branch --show-current`. If it is
      behind, `git fetch origin && git rebase origin/main`, and rerun stage 5 if
      that moved anything.
@@ -159,7 +160,9 @@ focused question.
      the number in `kepler/<N>-<type>/<slug>`; no number means ask Scott). The
      PR title is a Conventional Commit whose type is in
      `.github/workflows/pr-title-lint.yml` — a branch type is not a title type
-     (`feature/` → `feat:`).
+     (`feature/` → `feat:`) — and it ends ` (#N)`, the issue and nothing else:
+     that check is required and fails on a missing number or a PR's number
+     (`WORKFLOW.md` §3). No issue means file one first.
    - Kepler: put the ledger's stage lines and both verdicts in the PR body,
      then `task_get({ refresh: true })`. A PR whose base is not `main`:
      `worktree_update`.

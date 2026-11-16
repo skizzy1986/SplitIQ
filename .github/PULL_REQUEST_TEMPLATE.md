@@ -1,4 +1,5 @@
 Closes #<!-- issue number — links the PR to its issue so merging closes it and the Split IQ board moves it to Done -->
+<!-- Title: <type>(<scope>): <what the change does> (#<issue>) — the same issue number, last thing in the title. Never the PR number: GitHub adds it. CI enforces this (WORKFLOW.md §3). -->
 
 ## What changed and why
 

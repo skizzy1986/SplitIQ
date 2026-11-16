@@ -1,5 +1,5 @@
 name: 🧱 Refactor
-description: Extract or restructure code (strangler-fig decomposition of the monolith)
+description: Extract or restructure code (strangler-fig decomposition of the monolith). Title it as a plain sentence — no "refactor:" prefix.
 labels: ['type: refactor']
 body:
   - type: input

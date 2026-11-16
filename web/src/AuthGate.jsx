@@ -268,26 +268,30 @@ function SignOutButton() {
       onClick={() => supabase.auth.signOut()}
       style={{
         position: 'fixed',
-        top: 'calc(8px + env(safe-area-inset-top, 0px))',
-        right: 8,
+        left: 16,
+        bottom: 'calc(16px + env(safe-area-inset-bottom, 0px))',
         zIndex: 1000,
-        background: 'color-mix(in srgb, var(--color-bg) 80%, transparent)',
+        minHeight: 44,
+        minWidth: 44,
+        background: THEME.raised,
         border: `1px solid ${THEME.border}`,
-        borderRadius: 5,
-        padding: '5px 10px',
-        fontSize: 9,
-        letterSpacing: 1,
-        color: THEME.muted,
+        borderRadius: 999,
+        padding: '0 16px',
+        fontSize: 12,
+        color: THEME.text,
         cursor: 'pointer',
         fontFamily: 'inherit',
-        backdropFilter: 'blur(4px)',
       }}
       title={t({
         message: 'Sign out',
         comment: 'Tooltip on the sign-out button',
       })}
+      aria-label={t({
+        message: 'Sign out',
+        comment: 'Tooltip on the sign-out button',
+      })}
     >
-      <Trans comment="Floating button, all capitals">SIGN OUT</Trans>
+      <Trans>Sign out</Trans>
     </button>
   );
 }

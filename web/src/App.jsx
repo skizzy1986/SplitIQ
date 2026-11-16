@@ -14,6 +14,8 @@ import { useDesktopRoute } from './hooks/useDesktopRoute.js';
 import { DESKTOP_PANES } from './utils/desktopRoute.js';
 import { DESTINATIONS } from './constants/destinations.js';
 import { RADIUS, SPACE, TYPE } from './constants/tokens.js';
+import Icon from './components/Icon.jsx';
+import SegmentedControl from './components/SegmentedControl.jsx';
 import { useTSSHistory } from './hooks/useTSSHistory.js';
 import {
   readStravaCallback,
@@ -170,7 +172,6 @@ export default function App() {
   }, []);
   // Responsive breakpoints: wider container on desktop, multi-column where it helps.
   const isWide = vw >= 900; // desktop — use the extra width
-  const containerMax = isWide ? 1100 : 680;
 
   const sessions = useSessions({ mode: 'all' });
   const {
@@ -217,89 +218,52 @@ export default function App() {
     <div
       style={{
         minHeight: '100vh',
-        background: THEME.field,
+        background: THEME.bg,
         color: THEME.text,
         fontFamily: FONT.sans,
-        paddingBottom: 60,
+        display: 'flex',
         overflowX: 'hidden',
         maxWidth: '100vw',
         boxSizing: 'border-box',
       }}
     >
-      {/* HEADER */}
-      <div
+      <aside
         style={{
-          background: `linear-gradient(180deg,${THEME.surfaceAlt} 0%,${THEME.bg} 100%)`,
-          borderBottom: `1px solid ${THEME.border}`,
-          padding: '24px 14px 18px',
+          width: 240,
+          flex: 'none',
+          display: 'flex',
+          flexDirection: 'column',
+          borderRight: `1px solid ${THEME.divider}`,
+          padding: '28px 16px 80px',
           boxSizing: 'border-box',
-          width: '100%',
         }}
       >
-        <div
-          style={{
-            maxWidth: containerMax,
-            margin: '0 auto',
-            boxSizing: 'border-box',
-            width: '100%',
-          }}
-        >
-          {/* Left-aligned: at the far right AuthGate's floating sign-out button
-              covers it at desktop widths (the button is fixed to the viewport,
-              the row to the container). */}
-          {VERSION_LABEL && (
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'flex-start',
-                alignItems: 'baseline',
-                gap: 8,
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 8,
-                  letterSpacing: 1,
-                  color: THEME.textFaint,
-                  flexShrink: 0,
-                }}
-              >
-                {VERSION_LABEL}
-              </div>
-            </div>
-          )}
+        {VERSION_LABEL && (
           <div
             style={{
-              fontSize: 24,
-              fontWeight: 700,
-              color: THEME.textStrong,
-              letterSpacing: -1,
+              fontSize: TYPE.label.size,
+              color: THEME.textFaint,
             }}
           >
-            SPLITIQ
+            {VERSION_LABEL}
           </div>
-        </div>
-      </div>
-
-      <div
-        style={{
-          maxWidth: containerMax,
-          margin: '0 auto',
-          padding: isWide ? '0 24px' : '0 14px',
-          boxSizing: 'border-box',
-          width: '100%',
-        }}
-      >
-        <nav
-          aria-label={_(msg`Main navigation`)}
+        )}
+        <div
           style={{
-            display: 'flex',
-            gap: SPACE.sm,
-            flexWrap: 'wrap',
-            margin: `${SPACE.lg}px 0`,
+            fontSize: 24,
+            fontWeight: 700,
+            color: THEME.textStrong,
+            letterSpacing: -1,
+            marginBottom: SPACE.lg,
           }}
         >
-          {DESTINATIONS.map(({ id, message }) => (
+          SPLITIQ
+        </div>
+        <nav
+          aria-label={_(msg`Main navigation`)}
+          style={{ display: 'flex', flexDirection: 'column', gap: SPACE.xs }}
+        >
+          {DESTINATIONS.map(({ id, message, icon }) => (
             <button
               key={id}
               type="button"
@@ -307,62 +271,74 @@ export default function App() {
               onClick={() => navigate(id)}
               style={{
                 ...navStyle,
-                flex: 1,
-                border: `1px solid ${route.destination === id ? THEME.accent : THEME.border}`,
-                color: route.destination === id ? THEME.accent : THEME.muted,
+                display: 'flex',
+                alignItems: 'center',
+                gap: SPACE.sm,
+                border: 'none',
+                borderRadius: RADIUS.md,
+                color: route.destination === id ? THEME.text : THEME.textSubtle,
+                background:
+                  route.destination === id
+                    ? `color-mix(in srgb, ${THEME.accent} 12%, transparent)`
+                    : 'transparent',
               }}
             >
+              <Icon name={icon} />
               {_(message)}
             </button>
           ))}
-        </nav>
-        <button
-          ref={settingsRef}
-          type="button"
-          aria-current={view === 'settings' ? 'page' : undefined}
-          onClick={() => navigate('settings')}
-          style={{
-            ...navStyle,
-            border: `1px solid ${view === 'settings' ? THEME.accent : THEME.border}`,
-            color: view === 'settings' ? THEME.accent : THEME.text,
-            marginRight: SPACE.sm,
-            marginBottom: SPACE.md,
-          }}
-        >
-          <Trans>Settings</Trans>
-        </button>
-        {route.destination && DESKTOP_PANES[route.destination].length > 1 && (
-          <nav
-            aria-label={_(msg`Sections`)}
+          <button
+            ref={settingsRef}
+            type="button"
+            aria-current={view === 'settings' ? 'page' : undefined}
+            onClick={() => navigate('settings')}
             style={{
+              ...navStyle,
               display: 'flex',
-              flexWrap: 'wrap',
+              alignItems: 'center',
               gap: SPACE.sm,
-              marginBottom: SPACE.lg,
+              border: 'none',
+              borderRadius: RADIUS.md,
+              color: view === 'settings' ? THEME.text : THEME.textSubtle,
+              background:
+                view === 'settings'
+                  ? `color-mix(in srgb, ${THEME.accent} 12%, transparent)`
+                  : 'transparent',
             }}
           >
-            {DESKTOP_PANES[route.destination].map((pane, index) => (
-              <button
-                key={pane}
-                type="button"
-                aria-current={route.pane === pane ? 'page' : undefined}
-                onClick={() =>
-                  navigate(
-                    index === 0
-                      ? route.destination
-                      : `${route.destination}/${pane}`
-                  )
-                }
-                style={{
-                  ...navStyle,
-                  border: `1px solid ${route.pane === pane ? THEME.accent : THEME.border}`,
-                  color: route.pane === pane ? THEME.accent : THEME.muted,
-                }}
-              >
-                {_(PANE_LABELS[pane])}
-              </button>
-            ))}
-          </nav>
+            <Icon name="settings" />
+            <Trans>Settings</Trans>
+          </button>
+        </nav>
+      </aside>
+      <div
+        style={{
+          flex: 1,
+          minWidth: 0,
+          padding: isWide ? '24px' : '16px',
+          boxSizing: 'border-box',
+        }}
+      >
+        {route.destination && DESKTOP_PANES[route.destination].length > 1 && (
+          <div style={{ marginBottom: SPACE.lg }}>
+            <SegmentedControl
+              label={_(msg`Sections`)}
+              value={route.pane}
+              onChange={(pane) => {
+                const panes = DESKTOP_PANES[route.destination];
+                const index = panes.indexOf(pane);
+                navigate(
+                  index === 0
+                    ? route.destination
+                    : `${route.destination}/${pane}`
+                );
+              }}
+              items={DESKTOP_PANES[route.destination].map((pane) => ({
+                id: pane,
+                label: _(PANE_LABELS[pane]),
+              }))}
+            />
+          </div>
         )}
         {view === 'settings' && (
           <button

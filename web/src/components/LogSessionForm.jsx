@@ -4,7 +4,7 @@ import { Trans, useLingui } from '@lingui/react/macro';
 import { msg } from '@lingui/core/macro';
 import { supabase } from '../supabaseClient.js';
 import { THEME } from '../constants/theme.js';
-import { toLogDate } from '../utils/dateFormat.js';
+import { toISODate, toLogDate } from '../utils/dateFormat.js';
 import { invalidateSessionQueries } from '../utils/invalidateSessionQueries.js';
 
 // Kept as descriptors, not text, so a message already on screen follows a
@@ -140,14 +140,14 @@ export default function LogSessionForm({ onSaved }) {
     border: `1px solid ${THEME.border}`,
     borderRadius: 4,
     padding: '7px 9px',
-    fontSize: 11,
+    fontSize: 16,
     color: THEME.text,
     fontFamily: 'inherit',
     width: '100%',
     boxSizing: 'border-box',
   };
   const lbl = {
-    fontSize: 8,
+    fontSize: 12,
     letterSpacing: 1,
     color: THEME.muted,
     marginBottom: 3,
@@ -212,11 +212,14 @@ export default function LogSessionForm({ onSaved }) {
             setOpen(false);
             reset();
           }}
+          aria-label={t`Close`}
           style={{
             background: 'none',
             border: 'none',
             color: THEME.muted,
             fontSize: 16,
+            minWidth: 44,
+            minHeight: 44,
             cursor: 'pointer',
           }}
         >
@@ -234,7 +237,7 @@ export default function LogSessionForm({ onSaved }) {
         }}
       >
         <div>
-          <label style={lbl}>
+          <label htmlFor="log-date" style={lbl}>
             <Trans
               context="log-form-date"
               comment="Field label, all capitals. The date is stored month/day/year; in Spanish say so, e.g. FECHA (MES/DÍA/AÑO)"
@@ -243,9 +246,13 @@ export default function LogSessionForm({ onSaved }) {
             </Trans>
           </label>
           <input
+            id="log-date"
+            type="date"
             style={inp}
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
+            value={toISODate(date)}
+            onChange={(e) =>
+              setDate(e.target.value ? toLogDate(e.target.value) : '')
+            }
             placeholder={t({
               message: '6/19/26',
               comment:
@@ -364,6 +371,8 @@ export default function LogSessionForm({ onSaved }) {
             >
               <input
                 style={inp}
+                inputMode="decimal"
+                aria-label={t`Top weight`}
                 value={r.weight}
                 onChange={(e) => setRow(i, 'weight', e.target.value)}
                 placeholder={t({
@@ -373,6 +382,8 @@ export default function LogSessionForm({ onSaved }) {
               />
               <input
                 style={inp}
+                inputMode="decimal"
+                aria-label={t`Volume`}
                 value={r.volume}
                 onChange={(e) => setRow(i, 'volume', e.target.value)}
                 placeholder={t({
@@ -382,6 +393,8 @@ export default function LogSessionForm({ onSaved }) {
               />
               <input
                 style={inp}
+                inputMode="decimal"
+                aria-label={t`e1RM`}
                 value={r.e1rm}
                 onChange={(e) => setRow(i, 'e1rm', e.target.value)}
                 placeholder="e1RM (88.8kg)"

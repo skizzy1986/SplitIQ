@@ -115,7 +115,7 @@ describe('OverviewView', () => {
     expect(card.getByText('20')).toBeInTheDocument();
   });
 
-  it('shows a dash for readiness when there is no vitals reading', () => {
+  it('shows an absence message for readiness when there is no vitals reading', () => {
     useVitalsMock.mockReturnValue({
       latest: null,
       readiness: computeReadiness(null, {}, null),
@@ -123,7 +123,9 @@ describe('OverviewView', () => {
     });
     render(<OverviewView {...baseProps} />);
     const card = within(screen.getByRole('region', { name: 'Readiness' }));
-    expect(card.getByText('—')).toBeInTheDocument();
+    expect(card.getByText(/No reading this morning/)).toBeInTheDocument();
+    expect(card.queryByText('0')).toBeNull();
+    expect(card.queryByText(/some were missing/)).toBeNull();
   });
 
   it('renders no roster text now that the today strip is gone', () => {
@@ -160,8 +162,9 @@ describe('OverviewView', () => {
       <OverviewView {...baseProps} latest={null} loadUnavailable={true} />
     );
     expect(screen.getByText('TRAINING LOAD UNAVAILABLE')).toBeInTheDocument();
-    expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(3);
-    expect(screen.getByText(/form status unknown/i)).toBeInTheDocument();
+    expect(screen.queryByText('—')).toBeNull();
+    expect(screen.queryByText(/form status unknown/i)).toBeNull();
+    expect(screen.queryByText('0')).toBeNull();
     expect(screen.queryByText(/Fresh —/)).not.toBeInTheDocument();
   });
 

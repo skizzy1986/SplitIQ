@@ -234,7 +234,11 @@ export default function MobileToday({ onStartSession }) {
                   color: THEME[band?.token] ?? THEME.muted,
                 }}
               >
-                {latestLoad ? latestLoad.tsb.toFixed(1) : '—'}
+                {latestLoad
+                  ? latestLoad.tsb.toFixed(1)
+                  : loadPending
+                    ? t`Reading…`
+                    : t`No reading`}
               </div>
               <div style={{ fontSize: TYPE.caption.size, color: THEME.muted }}>
                 {band
@@ -246,7 +250,7 @@ export default function MobileToday({ onStartSession }) {
             </div>
           </div>
         )}
-        {readiness?.partial && (
+        {readiness?.score != null && readiness?.partial && (
           <div
             style={{
               fontSize: TYPE.caption.size,
@@ -269,6 +273,24 @@ export default function MobileToday({ onStartSession }) {
           <div style={{ fontSize: TYPE.body.size, color: THEME.muted }}>
             <Trans>Nothing prescribed today.</Trans>
           </div>
+          <button
+            type="button"
+            onClick={() => onStartSession?.()}
+            style={{
+              marginTop: SPACE.md,
+              minHeight: 44,
+              width: '100%',
+              background: THEME.accent,
+              color: THEME.surface,
+              border: 'none',
+              borderRadius: RADIUS.pill,
+              fontFamily: FONT.sans,
+              fontSize: TYPE.body.size,
+              cursor: 'pointer',
+            }}
+          >
+            <Trans>Open Train</Trans>
+          </button>
         </Card>
       ) : (
         todays.map((s) => (

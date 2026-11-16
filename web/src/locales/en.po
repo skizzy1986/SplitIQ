@@ -77,14 +77,10 @@ msgid "Sign in to continue"
 msgstr "Sign in to continue"
 
 #. Tooltip on the sign-out button
+#. Tooltip on the sign-out button
 #: src/AuthGate.jsx
 msgid "Sign out"
 msgstr "Sign out"
-
-#. Floating button, all capitals
-#: src/AuthGate.jsx
-msgid "SIGN OUT"
-msgstr "SIGN OUT"
 
 #. Login button while the request is in flight
 #: src/AuthGate.jsx

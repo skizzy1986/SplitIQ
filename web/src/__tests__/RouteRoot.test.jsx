@@ -97,8 +97,8 @@ describe('RouteRoot', () => {
     expect(await screen.findByText('AuthGate-stub')).toBeInTheDocument();
     expect(screen.queryByText('High-bar back squat')).toBeNull();
   });
-  it('paints the dashboard loading ground in the shared preference', async () => {
-    window.localStorage.setItem('splitiq.theme', 'dark');
+  it('paints the dashboard loading ground dark even when light is stored', async () => {
+    window.localStorage.setItem('splitiq.theme', 'light');
     try {
       await renderAt('/');
       expect(screen.getByTestId('route-ground')).toHaveAttribute(

@@ -236,7 +236,10 @@ const NAV = [
 ];
 
 function press(label) {
-  fireEvent.click(screen.getByRole('button', { name: label, exact: true }));
+  const button = screen.queryByRole('button', { name: label, exact: true });
+  fireEvent.click(
+    button ?? screen.getByRole('tab', { name: label, exact: true })
+  );
 }
 async function hashTo(hash) {
   await act(async () => {
@@ -266,10 +269,7 @@ describe('App', () => {
       within(primary)
         .getAllByRole('button')
         .map((button) => button.textContent)
-    ).toEqual(['Today', 'Train', 'Progress', 'Body']);
-    expect(
-      within(primary).queryByRole('button', { name: 'Settings' })
-    ).toBeNull();
+    ).toEqual(['Today', 'Train', 'Progress', 'Body', 'Settings']);
     expect(screen.queryByRole('button', { name: 'COACH' })).toBeNull();
     for (const [destination, pane, marker] of NAV) {
       press(destination);
@@ -401,9 +401,9 @@ describe('App', () => {
     await screen.findByText('CalendarView-stub');
     await hashTo('#/progress/strength');
     await screen.findByText('StrengthView-stub');
-    expect(screen.getByRole('button', { name: 'Strength' })).toHaveAttribute(
-      'aria-current',
-      'page'
+    expect(screen.getByRole('tab', { name: 'Strength' })).toHaveAttribute(
+      'aria-selected',
+      'true'
     );
   });
 

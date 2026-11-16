@@ -50,10 +50,16 @@ it('applies accessible theme choices to the dashboard and persists the shared ke
     'dark'
   );
   expect(localStorage.getItem('splitiq.theme')).toBe('dark');
+  fireEvent.click(screen.getByRole('button', { name: 'Light' }));
+  expect(screen.getByTestId('theme-root')).toHaveAttribute(
+    'data-theme',
+    'dark'
+  );
+  expect(localStorage.getItem('splitiq.theme')).toBe('light');
   fireEvent.click(screen.getByRole('button', { name: 'Auto' }));
   expect(screen.getByTestId('theme-root')).toHaveAttribute(
     'data-theme',
-    'light'
+    'dark'
   );
   expect(localStorage.getItem('splitiq.theme')).toBeNull();
 });

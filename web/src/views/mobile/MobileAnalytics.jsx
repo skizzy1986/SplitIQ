@@ -131,7 +131,7 @@ export default function MobileAnalytics() {
             fontFamily: FONT.mono,
           }}
         >
-          {latest ? latest.tsb.toFixed(1) : '—'}
+          {latest ? latest.tsb.toFixed(1) : loadPending ? t`Reading…` : ''}
         </div>
         <div
           style={{
@@ -172,7 +172,7 @@ export default function MobileAnalytics() {
               fontFamily: FONT.mono,
             }}
           >
-            {latest ? latest.ctl.toFixed(1) : '—'}
+            {latest ? latest.ctl.toFixed(1) : ''}
           </div>
         </div>
         <div
@@ -201,7 +201,7 @@ export default function MobileAnalytics() {
               fontFamily: FONT.mono,
             }}
           >
-            {latest ? latest.atl.toFixed(1) : '—'}
+            {latest ? latest.atl.toFixed(1) : ''}
           </div>
         </div>
       </div>
@@ -224,34 +224,36 @@ export default function MobileAnalytics() {
         >
           <Trans comment="Chart title, all capitals">30-DAY LOAD TREND</Trans>
         </div>
-        <ResponsiveContainer width="100%" height={120}>
-          <LineChart data={loadData.slice(-30)}>
-            <Line
-              type="monotone"
-              dataKey="ctl"
-              stroke={THEME.accent}
-              dot={false}
-              isAnimationActive={false}
-              strokeWidth={2}
-            />
-            <Line
-              type="monotone"
-              dataKey="atl"
-              stroke={THEME.warning}
-              dot={false}
-              isAnimationActive={false}
-              strokeWidth={2}
-            />
-            <Line
-              type="monotone"
-              dataKey="tsb"
-              stroke={color}
-              dot={false}
-              isAnimationActive={false}
-              strokeWidth={2}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        {loadData.length > 0 && (
+          <ResponsiveContainer width="100%" height={120}>
+            <LineChart data={loadData.slice(-30)}>
+              <Line
+                type="monotone"
+                dataKey="ctl"
+                stroke={THEME.accent}
+                dot={false}
+                isAnimationActive={false}
+                strokeWidth={2}
+              />
+              <Line
+                type="monotone"
+                dataKey="atl"
+                stroke={THEME.warning}
+                dot={false}
+                isAnimationActive={false}
+                strokeWidth={2}
+              />
+              <Line
+                type="monotone"
+                dataKey="tsb"
+                stroke={color}
+                dot={false}
+                isAnimationActive={false}
+                strokeWidth={2}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
         <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
           <span style={{ fontSize: 10, color: THEME.muted }}>
             <span style={{ color: THEME.accent }}>● </span>CTL
@@ -285,16 +287,18 @@ export default function MobileAnalytics() {
             8-WEEK TSS HISTORY
           </Trans>
         </div>
-        <ResponsiveContainer width="100%" height={80}>
-          <BarChart data={weeklyData} barCategoryGap="20%">
-            <Bar
-              dataKey="weeklyTss"
-              fill={THEME.positive}
-              radius={[3, 3, 0, 0]}
-              isAnimationActive={false}
-            />
-          </BarChart>
-        </ResponsiveContainer>
+        {loadData.length > 0 && (
+          <ResponsiveContainer width="100%" height={80}>
+            <BarChart data={weeklyData} barCategoryGap="20%">
+              <Bar
+                dataKey="weeklyTss"
+                fill={THEME.positive}
+                radius={[3, 3, 0, 0]}
+                isAnimationActive={false}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        )}
       </div>
 
       <div style={{ marginBottom: 8 }}>

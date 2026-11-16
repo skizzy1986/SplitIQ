@@ -1671,8 +1671,7 @@ export default function StrengthLogger() {
     <>
       <style>{CSS}</style>
       <div
-        data-theme="light"
-        style={{ colorScheme: 'light', background: THEME.bg }}
+        style={{ colorScheme: 'dark', background: THEME.bg }}
         className="slog"
         ref={rootRef}
         dangerouslySetInnerHTML={{ __html: SKELETON }}

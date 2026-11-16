@@ -182,7 +182,7 @@ Projects `erg-dashboard` (app) and `erg-dashboard-functions` (edge functions).
 - Before pushing: `npm run build`, `npm run lint`, `npm run format:check`; `.husky/pre-push`
   runs the tests the diff reaches (`npx vitest run --changed origin/main --passWithNoTests`).
   CI runs the full suite and is the gate. Never `--no-verify` without a reason. Coverage
-  thresholds live only in `web/vite.config.js`, only go up. Required checks: per `steward`.
+  thresholds live only in `web/vite.config.js`, only go up. Required checks: per `steward`, never a list.
 - Never hardcode credentials (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`). Never edit
   agent files in `.claude/agents/` or `.claude/agent-library/` (erg behaviour is applied
   at spawn time). CI, Vercel and edge-function runs post to `#build` in Slack.

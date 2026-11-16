@@ -44,7 +44,7 @@ Every issue carries a stack-ranked priority (`P0`–`P3`), a `type:` label, and 
 | Dimension | Labels | Purpose |
 |---|---|---|
 | **Priority** | `P0`, `P1`, `P2`, `P3` | Relative stack rank (re-sorted often) |
-| **Type** | `type: epic`, `type: feature`, `type: bug`, `type: refactor`, `type: spike`, `type: chore`, `type: docs` | What kind of work it is. On an issue, set by hand. On a PR, set from the title's Conventional Commit type by `pr-type-label.yml`, never by hand: exactly one when the title has a recognised type, and never `type: epic` or `type: spike`. The type-to-label mapping lives only in that workflow |
+| **Type** | `type: epic`, `type: feature`, `type: bug`, `type: refactor`, `type: spike`, `type: chore`, `type: docs` | What kind of work it is. On an issue, set by hand. On a PR, set from the title's Conventional Commit type by the type step of `labeler.yml` (after the path labeler, in the same job), never by hand: exactly one when the title has a recognised type, and never `type: epic` or `type: spike`. The type-to-label mapping lives only in that workflow |
 | **Area** | `area: anatomy`, `area: coherence`, `area: factory`, `area: backend`, `area: mobile`, `area: design`, `area: a11y` | Subsystem domain; each has one Kepler task group (see *Picking up work in Kepler*) |
 | **Automation state** | `routine-managed`, `needs-attention` | Set by workflows, never by hand: a scheduled Routine owns the issue; escalated when it misses its window (see *Doctrine SHA*) |
 | **Epic** | `epic: <n> <name>`, e.g. `epic: 432 roadmap` | Set by `epic-labels.yml`, never by hand: which epic an issue or PR belongs to (see *Epics*) |
@@ -238,7 +238,7 @@ worktree with Kepler's `worktree_delete`, never `git worktree remove` or `git br
   and not the PR's own number. Dependabot PRs are the one exemption — they have
   no issue. A branch type is not a title type (`feature/` → `feat:`); the
   allowed title types are listed in that workflow. The title type also sets the
-  PR's `type:` label (`pr-type-label.yml`, §1), so retitling a PR relabels it.
+  PR's `type:` label (`labeler.yml`, §1), so retitling a PR relabels it.
 
 ## 4. CI gates (must be green to merge)
 

@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect, vi } from 'vitest';
@@ -20,10 +20,19 @@ const issueWorkflow = readFileSync(
   'utf8'
 );
 
-// The body of the one `script: |` block in a workflow, dedented.
-function scriptOf(workflowText) {
+// The body of the first `script: |` block in a workflow, dedented. With
+// `after`, the first block after the first line matching that RegExp, so a
+// workflow with several github-script steps can be read step by step.
+function scriptOf(workflowText, after) {
   const lines = workflowText.split('\n');
-  const start = lines.findIndex((line) => /^\s*script: \|\s*$/.test(line));
+  let from = 0;
+  if (after) {
+    from = lines.findIndex((line) => after.test(line));
+    if (from === -1) throw new Error(`no line matching ${after} found`);
+  }
+  const start = lines.findIndex(
+    (line, i) => i >= from && /^\s*script: \|\s*$/.test(line)
+  );
   if (start === -1) throw new Error('no `script: |` block found');
   const indent = lines[start].match(/^\s*/)[0].length + 2;
   const body = [];
@@ -220,9 +229,12 @@ describe('issue title has no type prefix', () => {
 
 describe('PR type label follows the title type', () => {
   const repoRoot = resolve(here, '../../..');
-  const typeScriptText = scriptOf(
-    readFileSync(resolve(workflows, 'pr-type-label.yml'), 'utf8')
-  );
+  // CRLF-normalised: a Windows checkout must not break the `^…$` anchors.
+  const readWorkflow = (name) =>
+    readFileSync(resolve(workflows, name), 'utf8').replace(/\r\n/g, '\n');
+  const labelerWorkflow = readWorkflow('labeler.yml');
+  const TYPE_STEP = /name: Set the type label from the title/;
+  const typeScriptText = scriptOf(labelerWorkflow, TYPE_STEP);
   const typeScript = new AsyncFunction('github', 'context', typeScriptText);
   // The mapping as the workflow declares it: its object literal, evaluated.
   const TYPE_LABELS = new Function(
@@ -443,5 +455,78 @@ describe('PR type label follows the title type', () => {
       'utf8'
     );
     expect(labelerYml).not.toMatch(/^['"]?type: /m);
+  });
+
+  // #605: the type step lives in labeler.yml's `label` job, after the path
+  // labeler and serialised with it, so labeler's snapshot-then-PUT can never
+  // resurrect or drop a type label written by a concurrent run.
+  describe('runs after the path labeler, in one serialised job (#605)', () => {
+    // A top-level job: from `  <id>:` to the next top-level job or EOF.
+    function jobBlock(text, id) {
+      const lines = text.split('\n');
+      const start = lines.findIndex((line) => line === `  ${id}:`);
+      if (start === -1) throw new Error(`no job ${id} found`);
+      const end = lines.findIndex(
+        (line, i) => i > start && /^ {2}[a-z-]+:$/.test(line)
+      );
+      return lines.slice(start, end === -1 ? undefined : end).join('\n');
+    }
+    const labelJob = jobBlock(labelerWorkflow, 'label');
+
+    it('anchors to the type script, not the staleness script', () => {
+      expect(typeScriptText).toContain('const TYPE_LABELS');
+      expect(typeScriptText).not.toContain('steward-staleness');
+    });
+
+    it('has one home: pr-type-label.yml is gone, only labeler.yml maps types', () => {
+      expect(existsSync(resolve(workflows, 'pr-type-label.yml'))).toBe(false);
+      const mapping = readdirSync(workflows)
+        .filter((name) => name.endsWith('.yml'))
+        .filter((name) => /const TYPE_LABELS/.test(readWorkflow(name)));
+      expect(mapping).toEqual(['labeler.yml']);
+    });
+
+    it('triggers on every event that can change the title or the paths', () => {
+      expect(labelerWorkflow).toMatch(
+        /^on:\n {2}pull_request_target:\n {4}types: \[opened, edited, synchronize, reopened\]$/m
+      );
+    });
+
+    it('serialises the label job per PR without cancelling', () => {
+      expect(labelJob).toMatch(
+        /^ {4}concurrency:\n {6}group: pr-labels-\$\{\{ github\.event\.pull_request\.number \}\}\n {6}cancel-in-progress: false$/m
+      );
+    });
+
+    it('runs the type step after the path labeler', () => {
+      const labeler = labelJob.indexOf('uses: actions/labeler@');
+      expect(labeler).toBeGreaterThanOrEqual(0);
+      expect(labeler).toBeLessThan(
+        labelJob.indexOf('name: Set the type label from the title')
+      );
+      expect(labelJob).toContain('sync-labels: true');
+    });
+
+    it('keeps the type step advisory and running after a labeler failure', () => {
+      const from = labelJob.indexOf('name: Set the type label from the title');
+      const next = labelJob.indexOf('\n      - ', from);
+      const step = labelJob.slice(from, next === -1 ? undefined : next);
+      expect(step).toContain('continue-on-error: true');
+      expect(step).toContain('if: ${{ !cancelled() }}');
+    });
+
+    it('never checks out PR code under pull_request_target', () => {
+      expect(labelerWorkflow).not.toMatch(/actions\/checkout/);
+    });
+
+    it('leaves the staleness job as it was: no `edited`, its own group', () => {
+      const job = jobBlock(labelerWorkflow, 'steward-staleness');
+      expect(job).toContain("if: github.event.action != 'edited'");
+      expect(job).toContain(
+        'group: steward-staleness-${{ github.event.pull_request.number }}'
+      );
+      expect(job).toContain('cancel-in-progress: false');
+      expect(job).not.toContain('pr-labels-');
+    });
   });
 });

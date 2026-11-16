@@ -123,7 +123,7 @@ test.describe('language from the mobile shell', () => {
       });
 
       for (const tab of ['Today', 'Train', 'Progress', 'Body']) {
-        await page.getByRole('button', { name: tab }).click();
+        await page.getByRole('button', { name: tab, exact: true }).click();
         const settings = page.getByRole('button', {
           name: 'Settings',
           exact: true,

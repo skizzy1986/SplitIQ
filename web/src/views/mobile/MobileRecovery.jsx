@@ -14,12 +14,14 @@ import { useVitalsSync } from '../../hooks/useVitalsSync.js';
 import { useTSSHistory } from '../../hooks/useTSSHistory.js';
 import { calcTrainingLoad, tsbBand } from '../../utils/trainingLoad.js';
 import { THEME } from '../../constants/theme.js';
+import ScreenHeader from '../../components/ScreenHeader.jsx';
+import Button from '../../components/Button.jsx';
 import { FONT } from '../../constants/type.js';
 import { dateLocale, displayChartDate } from '../../utils/displayLocale.js';
 
 const tickStyle = { fontSize: 9, fill: THEME.muted };
 
-export default function MobileRecovery() {
+export default function MobileRecovery({ onOpenSettings }) {
   const { t, i18n } = useLingui();
   const lang = i18n.locale;
   const chartDate = (d) => displayChartDate(lang, d);
@@ -120,24 +122,19 @@ export default function MobileRecovery() {
           marginBottom: 20,
         }}
       >
-        <span
-          style={{
-            fontSize: 13,
-            fontWeight: 700,
-            letterSpacing: 2,
-            color: THEME.positive,
-          }}
-        >
-          <Trans comment="Screen heading, all capitals">RECOVERY</Trans>
-        </span>
+        <ScreenHeader
+          title={<Trans comment="Screen heading, all capitals">RECOVERY</Trans>}
+        />
         <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <button
             onClick={() => syncVitals()}
             disabled={isSyncing}
+            aria-label={t`Sync now`}
             style={{
               background: 'none',
               border: 'none',
-              padding: 0,
+              minWidth: 44,
+              minHeight: 44,
               cursor: isSyncing ? 'default' : 'pointer',
               color: isSyncing
                 ? THEME.muted
@@ -176,6 +173,11 @@ export default function MobileRecovery() {
             <Trans comment="Google Health is a brand name: keep it">
               Connect Google Health to populate this view
             </Trans>
+          </div>
+          <div style={{ marginTop: 16 }}>
+            <Button onClick={() => onOpenSettings?.()}>
+              <Trans>Open Settings</Trans>
+            </Button>
           </div>
         </div>
       )}
@@ -265,7 +267,7 @@ export default function MobileRecovery() {
                   <div
                     style={{ fontSize: 24, fontWeight: 700, color: rhrColor }}
                   >
-                    {latest.rhr ?? '—'} bpm
+                    {latest.rhr != null ? `${latest.rhr} bpm` : t`No reading`}
                   </div>
                   <div
                     style={{ fontSize: 10, color: THEME.muted, marginTop: 4 }}
@@ -315,7 +317,7 @@ export default function MobileRecovery() {
                   <div
                     style={{ fontSize: 24, fontWeight: 700, color: hrvColor }}
                   >
-                    {latest.hrv ?? '—'} ms
+                    {latest.hrv != null ? `${latest.hrv} ms` : t`No reading`}
                   </div>
                   <div
                     style={{ fontSize: 10, color: THEME.muted, marginTop: 4 }}
@@ -364,7 +366,7 @@ export default function MobileRecovery() {
                   <div
                     style={{ fontSize: 24, fontWeight: 700, color: sleepColor }}
                   >
-                    {latest.sleep ?? '—'}h
+                    {latest.sleep != null ? `${latest.sleep}h` : t`No reading`}
                   </div>
                   <div
                     style={{ fontSize: 10, color: THEME.muted, marginTop: 4 }}
@@ -435,146 +437,157 @@ export default function MobileRecovery() {
                     color: THEME[tsbBand(tsbValue)?.token] ?? THEME.muted,
                   }}
                 >
-                  {tsbValue == null ? '—' : tsbValue.toFixed(1)}
+                  {tsbValue == null ? t`No reading` : tsbValue.toFixed(1)}
                 </div>
               </div>
             )}
           </div>
 
-          {/* HRV 14-day trend */}
-          <div
-            style={{
-              background: THEME.raised,
-              borderRadius: 10,
-              padding: '14px',
-              marginBottom: 10,
-            }}
-          >
-            <div
-              style={{
-                fontSize: 9,
-                letterSpacing: 2,
-                color: THEME.muted,
-                marginBottom: 6,
-              }}
-            >
-              <Trans comment="Chart title, all capitals; HRV stays as is">
-                HRV TREND — 14 DAYS
-              </Trans>
-            </div>
-            <ResponsiveContainer width="100%" height={110}>
-              <LineChart data={trend14}>
-                <XAxis
-                  dataKey="date"
-                  tick={tickStyle}
-                  axisLine={false}
-                  tickLine={false}
-                  interval="preserveStartEnd"
-                  tickFormatter={chartDate}
-                />
-                <ReferenceLine
-                  y={personalBaselines.hrvBaseline}
-                  stroke={THEME.warning}
-                  strokeDasharray="3 3"
-                />
-                <Line
-                  type="monotone"
-                  dataKey="hrv"
-                  stroke={THEME.accent}
-                  dot={false}
-                  strokeWidth={2}
-                  isAnimationActive={false}
-                  connectNulls
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* RHR 14-day trend */}
-          <div
-            style={{
-              background: THEME.raised,
-              borderRadius: 10,
-              padding: '14px',
-              marginBottom: 10,
-            }}
-          >
-            <div
-              style={{
-                fontSize: 9,
-                letterSpacing: 2,
-                color: THEME.muted,
-                marginBottom: 6,
-              }}
-            >
-              <Trans comment="Chart title, all capitals">
-                RESTING HR TREND — 14 DAYS
-              </Trans>
-            </div>
-            <ResponsiveContainer width="100%" height={110}>
-              <LineChart data={trend14}>
-                <XAxis
-                  dataKey="date"
-                  tick={tickStyle}
-                  axisLine={false}
-                  tickLine={false}
-                  interval="preserveStartEnd"
-                  tickFormatter={chartDate}
-                />
-                <ReferenceLine
-                  y={personalBaselines.rhrBaseline}
-                  stroke={THEME.accent}
-                  strokeDasharray="3 3"
-                />
-                <Line
-                  type="monotone"
-                  dataKey="rhr"
-                  stroke={THEME.warning}
-                  dot={false}
-                  strokeWidth={2}
-                  isAnimationActive={false}
-                  connectNulls
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Sleep 14-day bar chart */}
-          <div
-            style={{
-              background: THEME.raised,
-              borderRadius: 10,
-              padding: '14px',
-              marginBottom: 10,
-            }}
-          >
-            <div
-              style={{
-                fontSize: 9,
-                letterSpacing: 2,
-                color: THEME.muted,
-                marginBottom: 6,
-              }}
-            >
-              <Trans comment="Chart title, all capitals">SLEEP — 14 DAYS</Trans>
-            </div>
-            <ResponsiveContainer width="100%" height={80}>
-              <BarChart data={trend14} barCategoryGap="20%">
-                <ReferenceLine
-                  y={7}
-                  stroke={THEME.positive}
-                  strokeDasharray="3 3"
-                />
-                <Bar
-                  dataKey="sleep"
-                  fill={THEME.accentAlt}
-                  radius={[3, 3, 0, 0]}
-                  isAnimationActive={false}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
+          {trend14.length > 0 && (
+            <>
+              {/* HRV 14-day trend */}
+              <div
+                style={{
+                  background: THEME.raised,
+                  borderRadius: 10,
+                  padding: '14px',
+                  marginBottom: 10,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 9,
+                    letterSpacing: 2,
+                    color: THEME.muted,
+                    marginBottom: 6,
+                  }}
+                >
+                  <Trans comment="Chart title, all capitals; HRV stays as is">
+                    HRV TREND — 14 DAYS
+                  </Trans>
+                </div>
+                <ResponsiveContainer width="100%" height={110}>
+                  <LineChart data={trend14}>
+                    <XAxis
+                      dataKey="date"
+                      tick={tickStyle}
+                      axisLine={false}
+                      tickLine={false}
+                      interval="preserveStartEnd"
+                      tickFormatter={chartDate}
+                    />
+                    <ReferenceLine
+                      y={personalBaselines.hrvBaseline}
+                      stroke={THEME.warning}
+                      strokeDasharray="3 3"
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="hrv"
+                      stroke={THEME.accent}
+                      dot={false}
+                      strokeWidth={2}
+                      isAnimationActive={false}
+                      connectNulls
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </>
+          )}
+          {trend14.length > 0 && (
+            <>
+              {/* RHR 14-day trend */}
+              <div
+                style={{
+                  background: THEME.raised,
+                  borderRadius: 10,
+                  padding: '14px',
+                  marginBottom: 10,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 9,
+                    letterSpacing: 2,
+                    color: THEME.muted,
+                    marginBottom: 6,
+                  }}
+                >
+                  <Trans comment="Chart title, all capitals">
+                    RESTING HR TREND — 14 DAYS
+                  </Trans>
+                </div>
+                <ResponsiveContainer width="100%" height={110}>
+                  <LineChart data={trend14}>
+                    <XAxis
+                      dataKey="date"
+                      tick={tickStyle}
+                      axisLine={false}
+                      tickLine={false}
+                      interval="preserveStartEnd"
+                      tickFormatter={chartDate}
+                    />
+                    <ReferenceLine
+                      y={personalBaselines.rhrBaseline}
+                      stroke={THEME.accent}
+                      strokeDasharray="3 3"
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="rhr"
+                      stroke={THEME.warning}
+                      dot={false}
+                      strokeWidth={2}
+                      isAnimationActive={false}
+                      connectNulls
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </>
+          )}
+          {trend14.length > 0 && (
+            <>
+              {/* Sleep 14-day bar chart */}
+              <div
+                style={{
+                  background: THEME.raised,
+                  borderRadius: 10,
+                  padding: '14px',
+                  marginBottom: 10,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 9,
+                    letterSpacing: 2,
+                    color: THEME.muted,
+                    marginBottom: 6,
+                  }}
+                >
+                  <Trans comment="Chart title, all capitals">
+                    SLEEP — 14 DAYS
+                  </Trans>
+                </div>
+                <ResponsiveContainer width="100%" height={80}>
+                  <BarChart data={trend14} barCategoryGap="20%">
+                    <ReferenceLine
+                      y={7}
+                      stroke={THEME.positive}
+                      strokeDasharray="3 3"
+                    />
+                    <Bar
+                      dataKey="sleep"
+                      fill={THEME.accentAlt}
+                      radius={[3, 3, 0, 0]}
+                      isAnimationActive={false}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </>
+          )}
           {/* 7-day readiness history */}
           {history.length > 0 && (
             <div

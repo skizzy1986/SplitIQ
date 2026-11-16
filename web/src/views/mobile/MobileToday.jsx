@@ -18,7 +18,12 @@ import {
   PLANNED_STATUS,
 } from '../../constants/sessionStatus.js';
 import { THEME } from '../../constants/theme.js';
-import { alpha } from '../../utils/themeCss.js';
+import SharedCard from '../../components/Card.jsx';
+import ScreenHeader from '../../components/ScreenHeader.jsx';
+import Button from '../../components/Button.jsx';
+import ListRow from '../../components/ListRow.jsx';
+import StatTile from '../../components/StatTile.jsx';
+import SectionHeader from '../../components/SectionHeader.jsx';
 import { FONT } from '../../constants/type.js';
 import { RADIUS, SPACE, TYPE } from '../../constants/tokens.js';
 
@@ -44,23 +49,9 @@ const Label = ({ children, style }) => (
   </div>
 );
 
-const Card = ({ children, accent, wash }) => (
-  <div
-    style={{
-      background: wash ?? THEME.surface,
-      border: `1px solid ${THEME.border}`,
-      ...(accent ? { borderLeft: `3px solid ${accent}` } : null),
-      borderRadius: RADIUS.md,
-      boxShadow: `0 1px 2px ${alpha(THEME.text, '1a')}`,
-      padding: `${SPACE.lg}px`,
-      marginBottom: SPACE.sm,
-    }}
-  >
-    {children}
-  </div>
-);
+const Card = SharedCard;
 
-export default function MobileToday({ onStartSession }) {
+export default function MobileToday({ onStartSession, onOpenBody }) {
   const { t, i18n } = useLingui();
   const { data: sessions } = useSessions();
   const { readiness } = useVitals();
@@ -122,6 +113,17 @@ export default function MobileToday({ onStartSession }) {
         minHeight: '100vh',
       }}
     >
+      <ScreenHeader
+        title={<Trans>Today</Trans>}
+        meta={new Date(`${today}T00:00:00`).toLocaleDateString(
+          dateLocale(i18n.locale, 'en-GB'),
+          {
+            weekday: 'short',
+            day: 'numeric',
+            month: 'short',
+          }
+        )}
+      />
       <header
         style={{
           display: 'flex',
@@ -130,22 +132,6 @@ export default function MobileToday({ onStartSession }) {
           marginBottom: SPACE.md,
         }}
       >
-        <span
-          style={{
-            fontSize: TYPE.label.size,
-            fontFamily: FONT.mono,
-            color: THEME.textSubtle,
-          }}
-        >
-          {new Date(`${today}T00:00:00`).toLocaleDateString(
-            dateLocale(i18n.locale, 'en-GB'),
-            {
-              weekday: 'short',
-              day: 'numeric',
-              month: 'short',
-            }
-          )}
-        </span>
         {phase && (
           <span
             style={{
@@ -164,7 +150,7 @@ export default function MobileToday({ onStartSession }) {
         )}
       </header>
 
-      <Card wash={readiness?.score != null ? THEME.surface : undefined}>
+      <Card>
         <Label>
           <Trans comment="Card heading, all capitals">READINESS</Trans>
         </Label>
@@ -193,6 +179,9 @@ export default function MobileToday({ onStartSession }) {
                 Readiness needs a resting heart rate. Sync vitals from Body.
               </Trans>
             </div>
+            <Button onClick={() => onOpenBody?.()}>
+              <Trans>Open Body</Trans>
+            </Button>
           </>
         ) : (
           <div
@@ -234,7 +223,11 @@ export default function MobileToday({ onStartSession }) {
                   color: THEME[band?.token] ?? THEME.muted,
                 }}
               >
-                {latestLoad ? latestLoad.tsb.toFixed(1) : '—'}
+                {latestLoad
+                  ? latestLoad.tsb.toFixed(1)
+                  : loadPending
+                    ? t`Reading…`
+                    : t`No reading`}
               </div>
               <div style={{ fontSize: TYPE.caption.size, color: THEME.muted }}>
                 {band
@@ -246,7 +239,7 @@ export default function MobileToday({ onStartSession }) {
             </div>
           </div>
         )}
-        {readiness?.partial && (
+        {readiness?.score != null && readiness?.partial && (
           <div
             style={{
               fontSize: TYPE.caption.size,
@@ -261,14 +254,17 @@ export default function MobileToday({ onStartSession }) {
         )}
       </Card>
 
-      <Label style={{ margin: `${SPACE.lg}px 0 ${SPACE.sm}px` }}>
+      <SectionHeader>
         <Trans comment="Section heading, all capitals">TODAY</Trans>
-      </Label>
+      </SectionHeader>
       {todays.length === 0 ? (
         <Card>
           <div style={{ fontSize: TYPE.body.size, color: THEME.muted }}>
             <Trans>Nothing prescribed today.</Trans>
           </div>
+          <Button onClick={() => onStartSession?.()}>
+            <Trans>Open Train</Trans>
+          </Button>
         </Card>
       ) : (
         todays.map((s) => (
@@ -320,9 +316,9 @@ export default function MobileToday({ onStartSession }) {
         ))
       )}
 
-      <Label style={{ margin: `${SPACE.lg}px 0 ${SPACE.sm}px` }}>
+      <SectionHeader>
         <Trans comment="Section heading, all capitals">THIS WEEK</Trans>
-      </Label>
+      </SectionHeader>
       <Card>
         <div style={{ display: 'flex', gap: SPACE.xl }}>
           <div>
@@ -343,62 +339,37 @@ export default function MobileToday({ onStartSession }) {
               <Trans comment="Stat label, all capitals">SESSIONS</Trans>
             </Label>
           </div>
-          <div>
-            <div
-              style={{
-                fontSize: TYPE.display.size,
-                fontWeight: TYPE.display.weight,
-                fontFamily: FONT.mono,
-                color: THEME.text,
-              }}
-            >
-              {week.tss}
-            </div>
-            <Label style={{ marginTop: SPACE.xs }}>
+          <StatTile
+            label={
               <Trans comment="Stat label, all capitals; TSS stays as is">
                 TSS LOGGED
               </Trans>
-            </Label>
-          </div>
+            }
+            value={week.tss}
+          />
         </div>
       </Card>
 
-      <Label style={{ margin: `${SPACE.lg}px 0 ${SPACE.sm}px` }}>
+      <SectionHeader>
         <Trans comment="Section heading, all capitals">RECENT</Trans>
-      </Label>
+      </SectionHeader>
       {recent.length === 0 ? (
         <Card>
           <div style={{ fontSize: TYPE.body.size, color: THEME.muted }}>
             <Trans>No sessions logged yet.</Trans>
           </div>
+          <Button variant="secondary" onClick={() => onStartSession?.()}>
+            <Trans>Open Train</Trans>
+          </Button>
         </Card>
       ) : (
         <Card>
-          {recent.map((s, i) => (
-            <div
+          {recent.map((s) => (
+            <ListRow
               key={s.id}
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'baseline',
-                padding: `${SPACE.sm}px 0`,
-                borderTop: i === 0 ? 'none' : `1px solid ${THEME.divider}`,
-              }}
-            >
-              <span style={{ fontSize: TYPE.bodySm.size, color: THEME.text }}>
-                {s.label ?? s.type}
-              </span>
-              <span
-                style={{
-                  fontSize: TYPE.caption.size,
-                  fontFamily: FONT.mono,
-                  color: THEME.muted,
-                }}
-              >
-                {s.duration ? `${s.duration}min` : ''}
-                {s.srpe ? ` · RPE ${s.srpe}` : ''}
-              </span>
-            </div>
+              title={s.label ?? s.type}
+              meta={`${s.duration ? `${s.duration}min` : ''}${s.srpe ? ` · RPE ${s.srpe}` : ''}`}
+            />
           ))}
         </Card>
       )}

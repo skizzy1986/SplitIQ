@@ -4,6 +4,7 @@ import LanguageToggle from '../components/LanguageToggle.jsx';
 import ThemeControl from '../components/ThemeControl.jsx';
 import { Trans } from '@lingui/react/macro';
 import { THEME } from '../constants/theme.js';
+import ScreenHeader from '../components/ScreenHeader.jsx';
 import { FONT } from '../constants/type.js';
 import { RADIUS, SPACE, TYPE } from '../constants/tokens.js';
 
@@ -24,7 +25,7 @@ const headingStyle = {
 // Deliberately thin. Strava is the first integration to need a home; Garmin,
 // Concept2 and the rest land here as sibling panels rather than growing another
 // tab each.
-export default function SettingsView({ onSynced, notice }) {
+export default function SettingsView({ onSynced, notice, heading = true }) {
   return (
     <div
       style={{
@@ -34,17 +35,16 @@ export default function SettingsView({ onSynced, notice }) {
         fontFamily: FONT.sans,
       }}
     >
-      <div>
-        <div
-          style={{
-            fontSize: TYPE.micro.size,
-            fontWeight: TYPE.micro.weight,
-            letterSpacing: TYPE.micro.letterSpacing,
-            color: THEME.accent,
-          }}
-        >
-          <Trans comment="Section eyebrow, all capitals">SETTINGS</Trans>
-        </div>
+      {heading && <ScreenHeader title={<Trans>Settings</Trans>} />}
+      <div
+        style={{
+          fontSize: TYPE.micro.size,
+          fontWeight: TYPE.micro.weight,
+          letterSpacing: TYPE.micro.letterSpacing,
+          color: THEME.accent,
+        }}
+      >
+        <Trans comment="Section eyebrow, all capitals">SETTINGS</Trans>
       </div>
       {/* The OAuth outcome, routed here by App.jsx's callback effect. */}
       {notice && (

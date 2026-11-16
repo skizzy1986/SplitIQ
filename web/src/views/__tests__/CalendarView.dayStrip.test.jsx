@@ -43,8 +43,9 @@ describe('CalendarView — sessions rows only (#420)', () => {
     const { container } = renderView();
     const cells = stripCells(container);
     expect(cells).toHaveLength(17);
-    expect(screen.getAllByText('—')).toHaveLength(17);
+    expect(screen.queryAllByText('—')).toHaveLength(0);
     expect(screen.getByText('No sessions in this window.')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Log a session' })).toBeEnabled();
   });
 
   it('shows a loading line and no cells while loading', () => {

@@ -266,10 +266,7 @@ describe('App', () => {
       within(primary)
         .getAllByRole('button')
         .map((button) => button.textContent)
-    ).toEqual(['Today', 'Train', 'Progress', 'Body']);
-    expect(
-      within(primary).queryByRole('button', { name: 'Settings' })
-    ).toBeNull();
+    ).toEqual(['Today', 'Train', 'Progress', 'Body', 'Settings']);
     expect(screen.queryByRole('button', { name: 'COACH' })).toBeNull();
     for (const [destination, pane, marker] of NAV) {
       press(destination);
@@ -405,6 +402,18 @@ describe('App', () => {
       'aria-current',
       'page'
     );
+  });
+
+  it('renders the sidebar foot inside the sidebar, after the navigation', () => {
+    render(<App sidebarFoot={<button type="button">Sign out</button>} />);
+    const sidebar = screen.getByRole('complementary');
+    const signOut = within(sidebar).getByRole('button', { name: 'Sign out' });
+    const nav = within(sidebar).getByRole('navigation', {
+      name: 'Main navigation',
+    });
+    // 0x04 is DOCUMENT_POSITION_FOLLOWING: sign-out comes after the nav.
+    expect(nav.compareDocumentPosition(signOut) & 0x04).toBeTruthy();
+    expect(signOut.style.position).toBe('');
   });
 
   it('returns from Settings to the exact prior pane and restores Settings focus', async () => {

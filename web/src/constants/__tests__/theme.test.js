@@ -84,29 +84,29 @@ describe('DARK — the palette values THEME resolves to', () => {
   });
 
   it('locks the canonical values', () => {
-    expect(DARK.bg).toBe('#08080d');
-    expect(DARK.surface).toBe('#1a1a2e');
-    expect(DARK.raised).toBe('#2a2a48');
-    expect(DARK.field).toBe('#08080d');
-    expect(DARK.border).toBe('#4a4a68');
-    expect(DARK.text).toBe('#e8e8f0');
-    expect(DARK.muted).toBe('#7e7e9a');
-    expect(DARK.accent).toBe('#00d4ff');
-    expect(DARK.positive).toBe('#34d399');
-    expect(DARK.caution).toBe('#ffd700');
-    expect(DARK.warning).toBe('#ff6b35');
-    expect(DARK.critical).toBe('#ff2d55');
-    expect(DARK.accentAlt).toBe('#a78bfa');
-    expect(DARK.accentAlt2).toBe('#f472b6');
-    expect(DARK.cycling).toBe('#2dd4bf');
-    expect(DARK.surfaceAlt).toBe('#1e1e30');
-    expect(DARK.surfaceDeep).toBe('#12121f');
-    expect(DARK.neutral).toBe('#3a3a4a');
-    expect(DARK.textSubtle).toBe('#aaaacc');
-    expect(DARK.textFaint).toBe('#6c6c88');
-    expect(DARK.textDim).toBe('#5a5a74');
-    expect(DARK.divider).toBe('#3e3e5a');
-    expect(DARK.neutralAccent).toBe('#888888');
+    expect(DARK.bg).toBe('#0d0e12');
+    expect(DARK.surface).toBe('#16171d');
+    expect(DARK.raised).toBe('#1e2027');
+    expect(DARK.field).toBe('#1e2027');
+    expect(DARK.border).toBe('#2a2d36');
+    expect(DARK.text).toBe('#f3f4f6');
+    expect(DARK.muted).toBe('#a9adba');
+    expect(DARK.accent).toBe('#5cc8e8');
+    expect(DARK.positive).toBe('#6fd69a');
+    expect(DARK.caution).toBe('#f0c75e');
+    expect(DARK.warning).toBe('#ff9b6a');
+    expect(DARK.critical).toBe('#ff6f86');
+    expect(DARK.accentAlt).toBe('#c4b5fd');
+    expect(DARK.accentAlt2).toBe('#f0a3c8');
+    expect(DARK.cycling).toBe('#5eead4');
+    expect(DARK.surfaceAlt).toBe('#121318');
+    expect(DARK.surfaceDeep).toBe('#090a0e');
+    expect(DARK.neutral).toBe('#4a4e5a');
+    expect(DARK.textSubtle).toBe('#a9adba');
+    expect(DARK.textFaint).toBe('#8a8f9c');
+    expect(DARK.textDim).toBe('#5c6170');
+    expect(DARK.divider).toBe('#2a2d36');
+    expect(DARK.neutralAccent).toBe('#8a8f9c');
     expect(DARK.textStrong).toBe('#ffffff');
     expect(DARK.modelled).toBe('#f2b45a');
     expect(DARK.measured).toBe('#86a8ff');
@@ -177,18 +177,18 @@ describe('the literals the seam left behind', () => {
   const expand = (hex) =>
     hex.length === 4 ? '#' + [...hex.slice(1)].map((c) => c + c).join('') : hex;
 
-  it.each([
-    ['#fff', 'textStrong'],
-    ['#888', 'neutralAccent'],
-  ])('%s is shorthand for DARK.%s', (hex, key) => {
-    expect(DARK[key]).toBe(expand(hex));
-  });
+  it.each([['#fff', 'textStrong']])(
+    '%s is shorthand for DARK.%s',
+    (hex, key) => {
+      expect(DARK[key]).toBe(expand(hex));
+    }
+  );
 
   it.each([
-    ['#08080d', 'bg'],
-    ['#2a2a48', 'raised'],
-    ['#1e1e30', 'surfaceAlt'],
-  ])('%s was DARK.%s', (hex, key) => {
+    ['#0d0e12', 'bg'],
+    ['#1e2027', 'raised'],
+    ['#121318', 'surfaceAlt'],
+  ])('%s is DARK.%s', (hex, key) => {
     expect(DARK[key]).toBe(hex);
   });
 

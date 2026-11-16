@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { DARK } from '../src/constants/themeValues.js';
 
 // The public /squat tool against the built preview — the real browser, a real
 // Worker and a real DecompressionStream, none of which jsdom has.
@@ -473,7 +474,8 @@ test('a stored dark choice beats a light OS, from the first frame', async ({
   const bg = await ground.evaluate(
     (el) => window.getComputedStyle(el).backgroundColor
   );
-  expect(bg).toBe('rgb(8, 8, 13)');
+  const n = parseInt(DARK.bg.slice(1), 16);
+  expect(bg).toBe(`rgb(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255})`);
   release();
   await expect(page.getByTestId('load-status')).toHaveText(READY, {
     timeout: READY_TIMEOUT,

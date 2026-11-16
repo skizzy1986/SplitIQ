@@ -3,6 +3,8 @@ import { THEME } from '../../constants/theme.js';
 import { LAYER, TYPE } from '../../constants/tokens.js';
 import { DESTINATIONS } from '../../constants/destinations.js';
 import { useLingui } from '@lingui/react';
+import Icon from '../Icon.jsx';
+import { alpha } from '../../utils/themeCss.js';
 
 // The artboards draw a 64px bar; 56 was the old value.
 export const TAB_BAR_HEIGHT = 64;
@@ -23,42 +25,58 @@ export default function BottomTabBar({ activeTab, onTabChange }) {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-around',
-        background: THEME.raised,
-        borderTop: `1px solid ${THEME.border}`,
+        background: THEME.bg,
+        borderTop: `1px solid ${THEME.divider}`,
       }}
     >
-      {DESTINATIONS.map(({ id, message, icon }) => (
-        <button
-          key={id}
-          onClick={() => onTabChange(id)}
-          style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            height: TAB_BAR_HEIGHT,
-            border: 'none',
-            background: 'transparent',
-            cursor: 'pointer',
-            padding: 0,
-          }}
-        >
-          <span style={{ fontSize: 18, lineHeight: 1, marginBottom: 2 }}>
-            {icon}
-          </span>
-          <span
+      {DESTINATIONS.map(({ id, message, icon }) => {
+        const on = activeTab === id;
+        return (
+          <button
+            key={id}
+            type="button"
+            aria-current={on ? 'page' : undefined}
+            onClick={() => onTabChange(id)}
             style={{
-              fontSize: TYPE.caption.size,
-              letterSpacing: 1,
-              fontWeight: TYPE.label.weight,
-              color: activeTab === id ? THEME.accent : THEME.textSubtle,
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: TAB_BAR_HEIGHT,
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              padding: 0,
+              color: on ? THEME.accent : THEME.textSubtle,
             }}
           >
-            {_(message)}
-          </span>
-        </button>
-      ))}
+            <span
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 56,
+                height: 30,
+                borderRadius: 15,
+                marginBottom: 2,
+                background: on ? alpha(THEME.accent, '1f') : 'transparent',
+              }}
+            >
+              <Icon name={icon} />
+            </span>
+            <span
+              style={{
+                fontSize: TYPE.label.size,
+                fontWeight: TYPE.label.weight,
+                color: on ? THEME.text : THEME.textSubtle,
+              }}
+            >
+              {_(message)}
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }

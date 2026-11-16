@@ -8,15 +8,15 @@ import { DARK } from '../themeValues.js';
 // locks both halves: that the indirection resolves to the values it replaced,
 // and that each type keeps the accent its meaning is assigned in conventions.md.
 const EXPECTED = {
-  'Z2 Aerobic': ['#00d4ff', 'accent'],
-  Threshold: ['#ffd700', 'caution'],
-  'VO₂ Intervals': ['#ff6b35', 'warning'],
-  Sharpener: ['#ff2d55', 'critical'],
-  Rest: ['#3a3a4a', 'neutral'],
-  'Upper Strength': ['#a78bfa', 'accentAlt'],
-  'Lower Strength': ['#34d399', 'positive'],
-  Combined: ['#f472b6', 'accentAlt2'],
-  Cycling: ['#2dd4bf', 'cycling'],
+  'Z2 Aerobic': ['#5cc8e8', 'accent'],
+  Threshold: ['#f0c75e', 'caution'],
+  'VO₂ Intervals': ['#ff9b6a', 'warning'],
+  Sharpener: ['#ff6f86', 'critical'],
+  Rest: ['#4a4e5a', 'neutral'],
+  'Upper Strength': ['#c4b5fd', 'accentAlt'],
+  'Lower Strength': ['#6fd69a', 'positive'],
+  Combined: ['#f0a3c8', 'accentAlt2'],
+  Cycling: ['#5eead4', 'cycling'],
 };
 
 describe('C — session type accents', () => {

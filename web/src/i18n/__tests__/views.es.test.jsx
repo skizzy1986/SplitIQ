@@ -738,10 +738,10 @@ describe('Mobile in Spanish', () => {
     expect(screen.getByText('Sesión de fuerza')).toBeInTheDocument();
     render(<MobileProgress />);
     expect(
-      screen.getByRole('tablist', { name: 'Progreso' })
+      screen.getByRole('navigation', { name: 'Progreso' })
     ).toBeInTheDocument();
     for (const name of ['Carga', 'Historial', 'Fuerza']) {
-      expect(screen.getByRole('tab', { name })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name })).toBeInTheDocument();
     }
   });
 });

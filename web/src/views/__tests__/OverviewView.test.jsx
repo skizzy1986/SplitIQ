@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, within, fireEvent } from '@testing-library/react';
 import {
   RHR_DEFAULT,
   HRV_DEFAULT,
@@ -115,7 +115,7 @@ describe('OverviewView', () => {
     expect(card.getByText('20')).toBeInTheDocument();
   });
 
-  it('shows a dash for readiness when there is no vitals reading', () => {
+  it('shows an absence message for readiness when there is no vitals reading', () => {
     useVitalsMock.mockReturnValue({
       latest: null,
       readiness: computeReadiness(null, {}, null),
@@ -123,7 +123,14 @@ describe('OverviewView', () => {
     });
     render(<OverviewView {...baseProps} />);
     const card = within(screen.getByRole('region', { name: 'Readiness' }));
-    expect(card.getByText('—')).toBeInTheDocument();
+    expect(card.getByText(/No reading this morning/)).toBeInTheDocument();
+    expect(card.queryByText('0')).toBeNull();
+    expect(card.queryByText(/some were missing/)).toBeNull();
+    const onOpenBody = vi.fn();
+    render(<OverviewView {...baseProps} onOpenBody={onOpenBody} />);
+    const openBody = screen.getAllByRole('button', { name: 'Open Body' });
+    fireEvent.click(openBody[openBody.length - 1]);
+    expect(onOpenBody).toHaveBeenCalledOnce();
   });
 
   it('renders no roster text now that the today strip is gone', () => {
@@ -138,6 +145,20 @@ describe('OverviewView', () => {
     render(<OverviewView {...baseProps} />);
     expect(screen.getByText(/Rowing CP 205W/)).toBeInTheDocument();
     expect(screen.queryByText(/190W/)).not.toBeInTheDocument();
+  });
+
+  it('leaves bike FTP out of the load footnote when there is no FTP anchor', () => {
+    useAnchorsMock.mockReturnValue({
+      anchors: {},
+      cp: 205,
+      ftp: null,
+      cpAvailable: true,
+    });
+    render(<OverviewView {...baseProps} />);
+    expect(
+      screen.getByText(/measured against rowing CP 205W; revalidate/)
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/bike FTP/)).not.toBeInTheDocument();
   });
 
   it('says CP is unavailable rather than showing a stale threshold', () => {
@@ -160,8 +181,21 @@ describe('OverviewView', () => {
       <OverviewView {...baseProps} latest={null} loadUnavailable={true} />
     );
     expect(screen.getByText('TRAINING LOAD UNAVAILABLE')).toBeInTheDocument();
-    expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(3);
-    expect(screen.getByText(/form status unknown/i)).toBeInTheDocument();
+    const onOpenHistory = vi.fn();
+    render(
+      <OverviewView
+        {...baseProps}
+        latest={null}
+        loadUnavailable={true}
+        onOpenHistory={onOpenHistory}
+      />
+    );
+    const openHistory = screen.getAllByRole('button', { name: 'Open History' });
+    fireEvent.click(openHistory[openHistory.length - 1]);
+    expect(onOpenHistory).toHaveBeenCalledOnce();
+    expect(screen.queryByText('—')).toBeNull();
+    expect(screen.queryByText(/form status unknown/i)).toBeNull();
+    expect(screen.queryByText('0')).toBeNull();
     expect(screen.queryByText(/Fresh —/)).not.toBeInTheDocument();
   });
 

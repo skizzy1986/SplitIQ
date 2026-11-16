@@ -19,7 +19,7 @@ export default function LogEntry({ entry, done = false }) {
     entry.distance_m != null || entry.avg_watts != null || entry.avg_hr != null;
   const fmtDist = (m) =>
     m == null
-      ? '—'
+      ? ''
       : m >= 1000
         ? `${(m / 1000).toFixed(m % 1000 === 0 ? 0 : 1)}km`
         : `${m}m`;
@@ -186,7 +186,7 @@ export default function LogEntry({ entry, done = false }) {
                   [
                     'duration',
                     t({ message: 'DURATION', comment: 'Metric, all capitals' }),
-                    entry.duration || '—',
+                    entry.duration || '',
                   ],
                   [
                     'distance',
@@ -199,7 +199,7 @@ export default function LogEntry({ entry, done = false }) {
                       message: 'AVG WATTS',
                       comment: 'Average power, all capitals',
                     }),
-                    entry.avg_watts != null ? `${entry.avg_watts}W` : '—',
+                    entry.avg_watts != null ? `${entry.avg_watts}W` : '',
                   ],
                   [
                     'hr',
@@ -207,7 +207,7 @@ export default function LogEntry({ entry, done = false }) {
                       message: 'AVG HR',
                       comment: 'Average heart rate, all capitals',
                     }),
-                    entry.avg_hr != null ? `${entry.avg_hr}` : '—',
+                    entry.avg_hr != null ? `${entry.avg_hr}` : '',
                   ],
                 ].map(([id, k, v]) => (
                   <div

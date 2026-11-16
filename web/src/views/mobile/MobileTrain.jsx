@@ -4,6 +4,7 @@ import { msg } from '@lingui/core/macro';
 import ErgLiveView from '../ErgLiveView.jsx';
 import StrengthLogger from '../../StrengthLogger.jsx';
 import { THEME } from '../../constants/theme.js';
+import ScreenHeader from '../../components/ScreenHeader.jsx';
 import { FONT } from '../../constants/type.js';
 import { RADIUS, SPACE, TYPE } from '../../constants/tokens.js';
 
@@ -59,17 +60,9 @@ export default function MobileTrain({ mode, onMode }) {
         minHeight: '100vh',
       }}
     >
-      <div
-        style={{
-          fontSize: TYPE.micro.size,
-          fontWeight: TYPE.micro.weight,
-          letterSpacing: TYPE.micro.letterSpacing,
-          color: THEME.textSubtle,
-          marginBottom: SPACE.md,
-        }}
-      >
-        <Trans comment="Heading, all capitals">START A SESSION</Trans>
-      </div>
+      <ScreenHeader
+        title={<Trans comment="Heading, all capitals">START A SESSION</Trans>}
+      />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: SPACE.sm }}>
         {ENTRIES.map((e) => (

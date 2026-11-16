@@ -202,6 +202,11 @@ msgstr "BLOOD PRESSURE"
 msgid "BLOODS · LIPID PANEL"
 msgstr "BLOODS · LIPID PANEL"
 
+#. Desktop body screen heading
+#: src/views/RecoveryView.jsx
+msgid "Body"
+msgstr "Body"
+
 #. Chart title, all capitals; kg stays as is
 #: src/views/mobile/MobileRecovery.jsx
 msgid "BODYWEIGHT — 14 DAYS (kg)"
@@ -209,6 +214,7 @@ msgstr "BODYWEIGHT — 14 DAYS (kg)"
 
 #. Desktop Today pane
 #: src/App.jsx
+#: src/views/CalendarView.jsx
 msgid "Calendar"
 msgstr "Calendar"
 
@@ -239,6 +245,10 @@ msgstr "Checking Strava connection…"
 #: src/views/RecoveryView.jsx
 msgid "clean"
 msgstr "clean"
+
+#: src/components/LogSessionForm.jsx
+msgid "Close"
+msgstr "Close"
 
 #. When the blood sample was taken
 #: src/views/RecoveryView.jsx
@@ -355,6 +365,10 @@ msgid "DURATION"
 msgstr "DURATION"
 
 #: src/components/LogSessionForm.jsx
+msgid "e1RM"
+msgstr "e1RM"
+
+#: src/components/LogSessionForm.jsx
 msgid "easy · talk in sentences (UT2)"
 msgstr "easy · talk in sentences (UT2)"
 
@@ -364,8 +378,10 @@ msgid "Easy (UT2)"
 msgstr "Easy (UT2)"
 
 #. Desktop Progress pane
+#. Progress sub-tab: rowing
 #. Session filter chip
 #: src/App.jsx
+#: src/views/mobile/MobileProgress.jsx
 #: src/views/mobile/MobileSessionLog.jsx
 msgid "Erg"
 msgstr "Erg"
@@ -489,6 +505,7 @@ msgstr "High fatigue — recent load well above fitness"
 #. Desktop Progress pane
 #. Progress sub-tab: past sessions
 #: src/App.jsx
+#: src/views/LogView.jsx
 #: src/views/mobile/MobileProgress.jsx
 msgid "History"
 msgstr "History"
@@ -566,6 +583,7 @@ msgstr "Live"
 #. Desktop Progress pane
 #. Progress sub-tab: training load
 #: src/App.jsx
+#: src/views/mobile/MobileAnalytics.jsx
 #: src/views/mobile/MobileProgress.jsx
 msgid "Load"
 msgstr "Load"
@@ -583,6 +601,12 @@ msgstr "Loading vitals…"
 #: src/views/mobile/MobileSessionLog.jsx
 msgid "Loading…"
 msgstr "Loading…"
+
+#: src/views/CalendarView.jsx
+#: src/views/mobile/MobileSessionLog.jsx
+#: src/views/PlanView.jsx
+msgid "Log a session"
+msgstr "Log a session"
 
 #: src/views/mobile/MobileTrain.jsx
 msgid "Log sets against today’s template"
@@ -668,11 +692,14 @@ msgid "No metrics logged for this session."
 msgstr "No metrics logged for this session."
 
 #: src/views/mobile/MobileAnalytics.jsx
+#: src/views/mobile/MobileRecovery.jsx
 #: src/views/mobile/MobileToday.jsx
+#: src/views/RecoveryView.jsx
 msgid "No reading"
 msgstr "No reading"
 
 #: src/views/mobile/MobileToday.jsx
+#: src/views/OverviewView.jsx
 msgid "No reading this morning"
 msgstr "No reading this morning"
 
@@ -695,10 +722,6 @@ msgstr "No sessions logged yet."
 #: src/utils/stravaStatus.js
 msgid "No successful sync in {span}"
 msgstr "No successful sync in {span}"
-
-#: src/views/OverviewView.jsx
-msgid "No training-load reading — form status unknown."
-msgstr "No training-load reading — form status unknown."
 
 #: src/views/PlanView.jsx
 msgid "No upcoming planned sessions."
@@ -732,6 +755,26 @@ msgstr "Offline: no saved data yet."
 msgid "Older activities are fetched a page at a time to stay inside Strava rate limits."
 msgstr "Older activities are fetched a page at a time to stay inside Strava rate limits."
 
+#: src/views/mobile/MobileToday.jsx
+#: src/views/OverviewView.jsx
+msgid "Open Body"
+msgstr "Open Body"
+
+#: src/views/mobile/MobileAnalytics.jsx
+#: src/views/OverviewView.jsx
+msgid "Open History"
+msgstr "Open History"
+
+#: src/views/mobile/MobileRecovery.jsx
+#: src/views/RecoveryView.jsx
+msgid "Open Settings"
+msgstr "Open Settings"
+
+#: src/views/mobile/MobileAnalytics.jsx
+#: src/views/mobile/MobileToday.jsx
+msgid "Open Train"
+msgstr "Open Train"
+
 #. Button, busy
 #: src/components/StravaConnectPanel.jsx
 msgid "Opening Strava…"
@@ -749,6 +792,7 @@ msgstr "Overview"
 
 #. Desktop Train pane
 #: src/App.jsx
+#: src/views/PlanView.jsx
 msgid "Plan"
 msgstr "Plan"
 
@@ -765,8 +809,12 @@ msgid "Post:"
 msgstr "Post:"
 
 #: src/views/OverviewView.jsx
-msgid "Power-derived load is measured against rowing CP {cp}W and bike FTP {ftpW}W; revalidate with a test to sharpen it."
-msgstr "Power-derived load is measured against rowing CP {cp}W and bike FTP {ftpW}W; revalidate with a test to sharpen it."
+msgid "Power-derived load is measured against rowing CP {cp}W and bike FTP {ftp}W; revalidate with a test to sharpen it."
+msgstr "Power-derived load is measured against rowing CP {cp}W and bike FTP {ftp}W; revalidate with a test to sharpen it."
+
+#: src/views/OverviewView.jsx
+msgid "Power-derived load is measured against rowing CP {cp}W; revalidate with a test to sharpen it."
+msgstr "Power-derived load is measured against rowing CP {cp}W; revalidate with a test to sharpen it."
 
 #: src/views/OverviewView.jsx
 msgid "Power-derived load is unavailable while the CP anchor cannot be read."
@@ -821,7 +869,9 @@ msgstr "READINESS · {readingDate}"
 msgid "Readiness needs a resting heart rate. Sync vitals from Body."
 msgstr "Readiness needs a resting heart rate. Sync vitals from Body."
 
+#: src/views/mobile/MobileAnalytics.jsx
 #: src/views/mobile/MobileToday.jsx
+#: src/views/OverviewView.jsx
 msgid "Reading…"
 msgstr "Reading…"
 
@@ -890,8 +940,12 @@ msgid "Retry"
 msgstr "Retry"
 
 #: src/views/OverviewView.jsx
-msgid "Rowing CP {cp}W · bike FTP {ftpW}W"
-msgstr "Rowing CP {cp}W · bike FTP {ftpW}W"
+msgid "Rowing CP {cp}W"
+msgstr "Rowing CP {cp}W"
+
+#: src/views/OverviewView.jsx
+msgid "Rowing CP {cp}W · bike FTP {ftp}W"
+msgstr "Rowing CP {cp}W · bike FTP {ftp}W"
 
 #. {detail} is the server error message, shown as it came
 #: src/components/LogSessionForm.jsx
@@ -953,6 +1007,7 @@ msgstr "SESSIONS LOGGED"
 #: src/App.jsx
 #: src/components/mobile/MobileTopBar.jsx
 #: src/views/mobile/MobileSettings.jsx
+#: src/views/SettingsView.jsx
 msgid "Settings"
 msgstr "Settings"
 
@@ -1125,6 +1180,7 @@ msgstr "Sync failed. Try again."
 
 #. Button
 #: src/components/StravaConnectPanel.jsx
+#: src/views/mobile/MobileRecovery.jsx
 msgid "Sync now"
 msgstr "Sync now"
 
@@ -1180,6 +1236,10 @@ msgstr "The connection link was opened incorrectly. Start the connection again."
 msgid "The connection was missing permission to read your activities. Connect again and approve activity access."
 msgstr "The connection was missing permission to read your activities. Connect again and approve activity access."
 
+#: src/components/ThemeControl.jsx
+msgid "The dashboard stays dark. Light and Auto apply to the squat tool."
+msgstr "The dashboard stays dark. Light and Auto apply to the squat tool."
+
 #: src/utils/stravaStatus.js
 msgid "The last sync failed for an unrecognised reason. Try again."
 msgstr "The last sync failed for an unrecognised reason. Try again."
@@ -1212,6 +1272,8 @@ msgid "THIS WEEK"
 msgstr "THIS WEEK"
 
 #: src/views/mobile/MobileSettings.jsx
+#: src/views/mobile/MobileToday.jsx
+#: src/views/OverviewView.jsx
 msgid "Today"
 msgstr "Today"
 
@@ -1219,6 +1281,10 @@ msgstr "Today"
 #: src/views/mobile/MobileToday.jsx
 msgid "TODAY"
 msgstr "TODAY"
+
+#: src/components/LogSessionForm.jsx
+msgid "Top weight"
+msgstr "Top weight"
 
 #. Column: heaviest weight lifted, abbreviated
 #: src/components/LogEntry.jsx
@@ -1306,6 +1372,10 @@ msgstr "Vol"
 #: src/components/LogSessionForm.jsx
 msgid "Vol (2260kg)"
 msgstr "Vol (2260kg)"
+
+#: src/components/LogSessionForm.jsx
+msgid "Volume"
+msgstr "Volume"
 
 #. Compared with, e.g. vs your avg
 #. Compared with, e.g. vs your avg

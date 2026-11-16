@@ -26,8 +26,8 @@ initSentry();
 const themeStyle = document.createElement('style');
 themeStyle.id = 'theme-vars';
 // values, never THEME — THEME holds var() pointers and would self-reference.
-// Light at :root, so no surface depends on the attribute being present; dark
-// scoped by data-theme; an explicit light boundary isolates the legacy logger.
+// DEFAULT_THEME (dark) at :root. LIGHT stays under [data-theme='light'] so
+// /squat can still opt into it; DARK is repeated under [data-theme='dark'].
 themeStyle.textContent = [
   cssVars(DEFAULT_THEME),
   cssVars(LIGHT, "[data-theme='light']"),

@@ -10,6 +10,8 @@ import {
 import { Trans, useLingui } from '@lingui/react/macro';
 import { msg } from '@lingui/core/macro';
 import LogEntry from '../components/LogEntry.jsx';
+import ScreenHeader from '../components/ScreenHeader.jsx';
+import Button from '../components/Button.jsx';
 import LoadTooltip from '../components/LoadTooltip.jsx';
 import { tsbBand } from '../utils/trainingLoad.js';
 import { readinessStatusText } from '../utils/recoveryAnalytics.js';
@@ -40,6 +42,8 @@ export default function OverviewView({
   totalErgDist,
   totalSessions,
   isWide,
+  onOpenBody,
+  onOpenHistory,
 }) {
   // `latest` is null when the training-load read fails or returns no sessions;
   // tsbBand(null) is null, so the copy falls back rather than reading a fake 0.
@@ -57,9 +61,9 @@ export default function OverviewView({
   // Only what the anchors say; no phase is inferred when they are unset.
   const phase = anchors?.current_phase?.value ?? null;
   const block = anchors?.current_block?.value ?? null;
-  const ftpW = ftp ?? '—';
   return (
     <>
+      <ScreenHeader title={<Trans>Today</Trans>} />
       {phase && (
         <div style={{ display: 'flex', marginBottom: 8 }}>
           <div
@@ -99,8 +103,17 @@ export default function OverviewView({
           <Trans comment="Card heading, all capitals">READINESS</Trans>
         </div>
         <div style={{ fontSize: 22, fontWeight: 700, color: THEME.text }}>
-          {readiness?.score ?? '—'}
+          {readiness?.score != null ? (
+            readiness.score
+          ) : (
+            <Trans>No reading this morning</Trans>
+          )}
         </div>
+        {readiness?.score == null && (
+          <Button onClick={() => onOpenBody?.()}>
+            <Trans>Open Body</Trans>
+          </Button>
+        )}
         {readiness?.score != null && (
           <div style={{ fontSize: 10, color: THEME.textSubtle }}>
             {readinessStatusText(i18n, readiness.status)}
@@ -136,7 +149,7 @@ export default function OverviewView({
           [
             'watts',
             t({ message: 'LATEST WATTS', comment: 'Stat tile, all capitals' }),
-            latestErg?.avg_watts ? `${latestErg.avg_watts}W` : '—',
+            latestErg?.avg_watts ? `${latestErg.avg_watts}W` : '',
             t`working avg power`,
           ],
         ].map(([id, k, v, sub]) => (
@@ -199,7 +212,9 @@ export default function OverviewView({
           </div>
           <div style={{ fontSize: 9, color: THEME.textFaint }}>
             {cpAvailable
-              ? t`Rowing CP ${cp}W · bike FTP ${ftpW}W`
+              ? ftp != null
+                ? t`Rowing CP ${cp}W · bike FTP ${ftp}W`
+                : t`Rowing CP ${cp}W`
               : t`CP unavailable`}
           </div>
         </div>
@@ -213,146 +228,163 @@ export default function OverviewView({
             }}
           >
             <Trans comment="All capitals">TRAINING LOAD UNAVAILABLE</Trans>
+            <Button onClick={() => onOpenHistory?.()}>
+              <Trans>Open History</Trans>
+            </Button>
+          </div>
+        )}
+
+        {!latest && !loadUnavailable && (
+          <div style={{ fontSize: 12, color: THEME.muted, marginTop: 8 }}>
+            <Trans>Reading…</Trans>
           </div>
         )}
 
         {/* Current values */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3,1fr)',
-            gap: 6,
-            marginBottom: 12,
-            marginTop: 8,
-          }}
-        >
-          {[
-            [
-              'CTL',
-              t({ message: 'Fitness', comment: 'Subtitle of CTL' }),
-              latest ? latest.ctl : '—',
-              THEME.accent,
-            ],
-            [
-              'ATL',
-              t({ message: 'Fatigue', comment: 'Subtitle of ATL' }),
-              latest ? latest.atl : '—',
-              THEME.warning,
-            ],
-            [
-              'TSB',
-              t({ message: 'Form', comment: 'Subtitle of TSB' }),
-              latest ? (latest.tsb > 0 ? '+' : '') + latest.tsb : '—',
-              tsbColor,
-            ],
-          ].map(([k, sub, v, c]) => (
-            <div
-              key={k}
-              style={{
-                background: THEME.field,
-                borderRadius: 4,
-                padding: '8px 10px',
-              }}
-            >
+        {latest && (
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3,1fr)',
+              gap: 6,
+              marginBottom: 12,
+              marginTop: 8,
+            }}
+          >
+            {[
+              [
+                'CTL',
+                t({ message: 'Fitness', comment: 'Subtitle of CTL' }),
+                latest.ctl,
+                THEME.accent,
+              ],
+              [
+                'ATL',
+                t({ message: 'Fatigue', comment: 'Subtitle of ATL' }),
+                latest.atl,
+                THEME.warning,
+              ],
+              [
+                'TSB',
+                t({ message: 'Form', comment: 'Subtitle of TSB' }),
+                (latest.tsb > 0 ? '+' : '') + latest.tsb,
+                tsbColor,
+              ],
+            ].map(([k, sub, v, c]) => (
               <div
+                key={k}
                 style={{
-                  fontSize: 8,
-                  color: THEME.muted,
-                  letterSpacing: 2,
+                  background: THEME.field,
+                  borderRadius: 4,
+                  padding: '8px 10px',
                 }}
               >
-                {k} <span style={{ color: THEME.textDim }}>{sub}</span>
+                <div
+                  style={{
+                    fontSize: 8,
+                    color: THEME.muted,
+                    letterSpacing: 2,
+                  }}
+                >
+                  {k} <span style={{ color: THEME.textFaint }}>{sub}</span>
+                </div>
+                <div
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 700,
+                    color: c,
+                    marginTop: 2,
+                  }}
+                >
+                  {v}
+                </div>
               </div>
-              <div
-                style={{
-                  fontSize: 18,
-                  fontWeight: 700,
-                  color: c,
-                  marginTop: 2,
-                }}
-              >
-                {v}
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* Chart */}
-        <ResponsiveContainer width="100%" height={160}>
-          <LineChart
-            data={loadData}
-            margin={{ top: 4, right: 4, left: 0, bottom: 0 }}
-          >
-            <XAxis
-              dataKey="date"
-              tick={{
-                fontSize: 8,
-                fill: THEME.muted,
-                fontFamily: FONT.mono,
-              }}
-              axisLine={false}
-              tickLine={false}
-              interval={Math.floor(loadData.length / 5)}
-              tickFormatter={(d) => displayChartDate(i18n.locale, d)}
-            />
-            <YAxis
-              tick={{
-                fontSize: 8,
-                fill: THEME.muted,
-                fontFamily: FONT.mono,
-              }}
-              axisLine={false}
-              tickLine={false}
-              width={28}
-            />
-            <Tooltip content={<LoadTooltip />} />
-            <ReferenceLine y={0} stroke={THEME.border} strokeDasharray="2 2" />
-            <Line
-              type="monotone"
-              dataKey="ctl"
-              stroke={THEME.accent}
-              strokeWidth={2}
-              dot={false}
-              name="CTL"
-            />
-            <Line
-              type="monotone"
-              dataKey="atl"
-              stroke={THEME.warning}
-              strokeWidth={2}
-              dot={false}
-              name="ATL"
-            />
-            <Line
-              type="monotone"
-              dataKey="tsb"
-              stroke={tsbColor}
-              strokeWidth={1.5}
-              dot={false}
-              strokeDasharray="4 2"
-              name="TSB"
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        {latest && loadData.length > 0 && (
+          <ResponsiveContainer width="100%" height={160}>
+            <LineChart
+              data={loadData}
+              margin={{ top: 4, right: 4, left: 0, bottom: 0 }}
+            >
+              <XAxis
+                dataKey="date"
+                tick={{
+                  fontSize: 8,
+                  fill: THEME.muted,
+                  fontFamily: FONT.mono,
+                }}
+                axisLine={false}
+                tickLine={false}
+                interval={Math.floor(loadData.length / 5)}
+                tickFormatter={(d) => displayChartDate(i18n.locale, d)}
+              />
+              <YAxis
+                tick={{
+                  fontSize: 8,
+                  fill: THEME.muted,
+                  fontFamily: FONT.mono,
+                }}
+                axisLine={false}
+                tickLine={false}
+                width={28}
+              />
+              <Tooltip content={<LoadTooltip />} />
+              <ReferenceLine
+                y={0}
+                stroke={THEME.border}
+                strokeDasharray="2 2"
+              />
+              <Line
+                type="monotone"
+                dataKey="ctl"
+                stroke={THEME.accent}
+                strokeWidth={2}
+                dot={false}
+                name="CTL"
+              />
+              <Line
+                type="monotone"
+                dataKey="atl"
+                stroke={THEME.warning}
+                strokeWidth={2}
+                dot={false}
+                name="ATL"
+              />
+              <Line
+                type="monotone"
+                dataKey="tsb"
+                stroke={tsbColor}
+                strokeWidth={1.5}
+                dot={false}
+                strokeDasharray="4 2"
+                name="TSB"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
 
         {/* TSB status */}
-        <div
-          style={{
-            marginTop: 8,
-            fontSize: 10,
-            color: THEME.muted,
-            lineHeight: 1.5,
-          }}
-        >
-          {tsbCopy
-            ? i18n._(tsbCopy)
-            : t`No training-load reading — form status unknown.`}
-        </div>
+        {latest && tsbCopy && (
+          <div
+            style={{
+              marginTop: 8,
+              fontSize: 12,
+              color: THEME.muted,
+              lineHeight: 1.5,
+            }}
+          >
+            {i18n._(tsbCopy)}
+          </div>
+        )}
         <div
           style={{
             marginTop: 6,
             fontSize: 9,
-            color: THEME.textDim,
+            color: THEME.muted,
             lineHeight: 1.5,
           }}
         >
@@ -361,7 +393,9 @@ export default function OverviewView({
             weeks of data.
           </Trans>{' '}
           {cpAvailable
-            ? t`Power-derived load is measured against rowing CP ${cp}W and bike FTP ${ftpW}W; revalidate with a test to sharpen it.`
+            ? ftp != null
+              ? t`Power-derived load is measured against rowing CP ${cp}W and bike FTP ${ftp}W; revalidate with a test to sharpen it.`
+              : t`Power-derived load is measured against rowing CP ${cp}W; revalidate with a test to sharpen it.`
             : t`Power-derived load is unavailable while the CP anchor cannot be read.`}
         </div>
       </div>

@@ -1,6 +1,8 @@
 import { Plural, Trans, useLingui } from '@lingui/react/macro';
 import { plural } from '@lingui/core/macro';
 import WorkoutItem from '../components/WorkoutItem.jsx';
+import ScreenHeader from '../components/ScreenHeader.jsx';
+import Button from '../components/Button.jsx';
 import { logEntriesForDate } from '../utils/dateFormat.js';
 import { THEME } from '../constants/theme.js';
 
@@ -69,6 +71,7 @@ export default function CalendarView({
   cancelledSessions = [],
   dbStatus = 'ok',
   isWide,
+  onLog,
 }) {
   const { t, i18n } = useLingui();
   const banner = (
@@ -143,6 +146,7 @@ export default function CalendarView({
 
   return (
     <>
+      <ScreenHeader title={<Trans>Calendar</Trans>} />
       {banner}
       {staleError &&
         statusLine(t`Couldn't refresh sessions — showing what loaded earlier.`)}
@@ -259,7 +263,14 @@ export default function CalendarView({
           );
         })}
       </div>
-      {empty && statusLine(t`No sessions in this window.`)}
+      {empty && (
+        <>
+          {statusLine(t`No sessions in this window.`)}
+          <Button onClick={() => onLog?.()}>
+            <Trans>Log a session</Trans>
+          </Button>
+        </>
+      )}
     </>
   );
 }

@@ -15,7 +15,7 @@ const rail = { top: 'MON', big: '1', bottom: 'wk4' };
 describe('WorkoutItem', () => {
   it('renders an empty placeholder when there is no session', () => {
     render(<WorkoutItem session={null} />);
-    expect(screen.getByText('—')).toBeInTheDocument();
+    expect(screen.queryByText('—')).not.toBeInTheDocument();
   });
 
   it('renders the rail, today marker, and a completed session', () => {

@@ -12,9 +12,8 @@ import { msg } from '@lingui/core/macro';
 //   body     Readiness and the readings behind it — sleep, RHR, HRV.
 // The artboards draw a fifth, coach; it was retired in #414.
 //
-// Icons are still emoji. The artboards draw 18x18 glyphs; swapping them is
-// iconography, not information architecture, and is deliberately left out of
-// this change.
+// `icon` names a glyph in components/Icon.jsx. The tab bar and the sidebar
+// both read this list, so they cannot disagree about the mark.
 //
 // `label` stays the English string — the e2e suite and the destination tests
 // select by it. `message` is the same text as a Lingui descriptor, which the
@@ -24,19 +23,19 @@ export const DESTINATIONS = [
     id: 'today',
     label: 'Today',
     message: msg({ message: 'Today', comment: 'Mobile tab bar' }),
-    icon: '☀️',
+    icon: 'today',
   },
   {
     id: 'train',
     label: 'Train',
     message: msg({ message: 'Train', comment: 'Mobile tab bar' }),
-    icon: '🚣',
+    icon: 'train',
   },
   {
     id: 'progress',
     label: 'Progress',
     message: msg({ message: 'Progress', comment: 'Mobile tab bar' }),
-    icon: '📈',
+    icon: 'progress',
   },
   {
     id: 'body',
@@ -45,7 +44,7 @@ export const DESTINATIONS = [
       message: 'Body',
       comment: 'Mobile tab bar: readiness, sleep, heart rate',
     }),
-    icon: '❤️',
+    icon: 'body',
   },
 ];
 

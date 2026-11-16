@@ -126,8 +126,12 @@ test.describe('desktop shell', () => {
 
   test('calendar', async ({ page, context }) => {
     await openAuthed(page, context);
-    await expect(nav(page, 'Calendar')).toBeVisible();
-    await switchTo(page, nav(page, 'Calendar'));
+    const calendar = page.getByRole('button', {
+      name: 'Calendar',
+      exact: true,
+    });
+    await expect(calendar).toBeVisible();
+    await switchTo(page, calendar);
     await shot(page, 'desktop-calendar');
   });
 
@@ -157,9 +161,10 @@ test.describe('mobile shell', () => {
   // 390 < 767, so useIsMobile matches and main.jsx mounts MobileApp — an
   // entirely different component tree, which is why these shots are not
   // optional. BottomTabBar buttons hold an icon span and a label span, so the
-  // accessible name is the emoji plus the label; substring matching is enough
-  // and none of the four labels is a substring of another.
-  const tab = (page, label) => page.getByRole('button', { name: label });
+  // accessible name is the icon plus the label. Exact matching keeps the
+  // destination distinct from empty-state actions such as "Open Train".
+  const tab = (page, label) =>
+    page.getByRole('button', { name: label, exact: true });
 
   test('today', async ({ page, context }) => {
     await openAuthed(page, context);

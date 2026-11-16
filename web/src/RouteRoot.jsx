@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { ThemeContext, useTheme } from './hooks/useTheme.js';
-import { DARK, LIGHT } from './constants/themeValues.js';
+import { DARK } from './constants/themeValues.js';
 import { Capacitor } from '@capacitor/core';
 import { canonicalSquatUrl, isSquatPath } from './utils/squatRoute.js';
 import { THEME } from './constants/theme.js';
@@ -77,10 +77,13 @@ export default function RouteRoot() {
   const squat = onSquat();
   const theme = useTheme();
   const { resolved } = theme;
+  // The signed-in dashboard is dark regardless of the stored preference.
+  // /squat keeps the shared resolver.
+  const painted = squat ? resolved : 'dark';
   useEffect(() => {
     // SquatApp owns the document ground for its standalone surface.
     if (squat) return undefined;
-    const ground = (resolved === 'dark' ? DARK : LIGHT).bg;
+    const ground = DARK.bg;
     const body = document.body.style;
     const previous = body.backgroundColor;
     const meta = document.querySelector('meta[name="theme-color"]');
@@ -94,19 +97,19 @@ export default function RouteRoot() {
         else meta.setAttribute('content', previousMeta);
       }
     };
-  }, [resolved, squat]);
+  }, [squat]);
   return (
     <ThemeContext.Provider value={theme}>
       <div
         data-testid="theme-root"
-        data-theme={resolved}
+        data-theme={painted}
         style={{
           minHeight: '100vh',
           background: THEME.bg,
-          colorScheme: resolved,
+          colorScheme: painted,
         }}
       >
-        <Suspense fallback={<Ground theme={resolved} />}>
+        <Suspense fallback={<Ground theme={painted} />}>
           {squat ? <SquatApp /> : <AuthGate />}
         </Suspense>
       </div>

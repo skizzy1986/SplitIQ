@@ -83,7 +83,7 @@ export default function MobileSettings({ onBack, returnLabel, notice }) {
           <Trans>Settings</Trans>
         </h1>
       </header>
-      <SettingsView notice={notice} />
+      <SettingsView notice={notice} heading={false} />
       <button
         type="button"
         onClick={() => supabase.auth.signOut()}

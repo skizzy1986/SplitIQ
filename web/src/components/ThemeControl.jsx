@@ -21,6 +21,18 @@ function ThemeButtons({ preference, setPreference }) {
       aria-label={t`Theme`}
       style={{ display: 'flex', gap: SPACE.sm, flexWrap: 'wrap' }}
     >
+      <p
+        style={{
+          margin: 0,
+          flexBasis: '100%',
+          fontSize: TYPE.label.size,
+          color: THEME.textSubtle,
+        }}
+      >
+        <Trans>
+          The dashboard stays dark. Light and Auto apply to the squat tool.
+        </Trans>
+      </p>
       {[
         ['light', <Trans key="light">Light</Trans>],
         ['dark', <Trans key="dark">Dark</Trans>],

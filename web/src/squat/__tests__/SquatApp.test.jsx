@@ -10,6 +10,7 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import SquatApp, { PAGE_DESCRIPTION, PAGE_TITLE } from '../SquatApp.jsx';
+import { DARK } from '../../constants/themeValues.js';
 import { HEADER_HEIGHT } from '../components/SquatHeader.jsx';
 import { ACT_NOTE } from '../constants/activationBands.js';
 
@@ -125,7 +126,11 @@ describe('SquatApp', () => {
     await user.click(screen.getByRole('button', { name: /Switch to Light/ }));
     await user.click(screen.getByRole('button', { name: /Switch to Dark/ }));
     expect(container.firstChild).toHaveAttribute('data-theme', 'dark');
-    expect(document.body.style.backgroundColor).toBe('rgb(8, 8, 13)');
+    const probe = document.createElement('div');
+    probe.style.backgroundColor = DARK.bg;
+    expect(document.body.style.backgroundColor).toBe(
+      probe.style.backgroundColor
+    );
   });
 
   it('keeps the guide and form check without WebGL, and skips the download', async () => {

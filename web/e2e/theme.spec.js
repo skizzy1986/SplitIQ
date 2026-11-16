@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test';
 import { installAppFixtures } from './fixtures.js';
-import { DARK, LIGHT } from '../src/constants/themeValues.js';
+import { DARK } from '../src/constants/themeValues.js';
 
 for (const [name, width] of [
   ['desktop', 1280],
   ['mobile', 390],
 ]) {
-  test(`${name}: theme persists, follows Auto and keeps the logger light`, async ({
+  test(`${name}: the dashboard stays dark and the logger inherits it`, async ({
     page,
     context,
   }) => {
@@ -31,7 +31,7 @@ for (const [name, width] of [
         page
           .getByTestId('theme-root')
           .evaluate((el) =>
-            getComputedStyle(el).getPropertyValue('--color-bg').trim()
+            window.getComputedStyle(el).getPropertyValue('--color-bg').trim()
           )
       )
       .toBe(DARK.bg);
@@ -48,12 +48,12 @@ for (const [name, width] of [
     } else {
       await page.getByRole('group', { name: 'Theme', exact: true }).waitFor();
     }
-    await theme.getByRole('button', { name: 'Auto', exact: true }).click();
+    await theme.getByRole('button', { name: 'Light', exact: true }).click();
     await expect(page.getByTestId('theme-root')).toHaveAttribute(
       'data-theme',
-      'light'
+      'dark'
     );
-    await page.emulateMedia({ colorScheme: 'dark' });
+    await theme.getByRole('button', { name: 'Auto', exact: true }).click();
     await expect(page.getByTestId('theme-root')).toHaveAttribute(
       'data-theme',
       'dark'
@@ -65,19 +65,24 @@ for (const [name, width] of [
       await page
         .getByRole('button', { name: 'Back to Today', exact: true })
         .click();
-      await page.getByRole('button', { name: /Train/ }).click();
+      await page.getByRole('button', { name: 'Train', exact: true }).click();
       await page.getByRole('button', { name: /Strength session/ }).click();
     }
     const logger = page.locator('.slog');
-    await expect(logger).toHaveAttribute('data-theme', 'light');
+    await expect(logger).not.toHaveAttribute('data-theme', 'light');
     await expect
       .poll(() =>
         logger.evaluate((el) =>
-          getComputedStyle(el).getPropertyValue('--color-bg').trim()
+          window.getComputedStyle(el).getPropertyValue('--color-bg').trim()
         )
       )
-      .toBe(LIGHT.bg);
-    await expect(logger).toHaveCSS('color-scheme', 'light');
+      .toBe(DARK.bg);
+    await expect(logger).toHaveCSS('color-scheme', 'dark');
+    await page.goto('/squat');
+    await expect(page.getByTestId('theme-root')).toHaveAttribute(
+      'data-theme',
+      'light'
+    );
   });
 }
 

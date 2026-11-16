@@ -29,19 +29,22 @@ already; see the reconciliation note in `NOTES.md`.
 
 ## Where the state actually is
 
-The palette's fallback is light (#287). Dashboard and anatomy theme controls use
-Light / Dark / Auto and share `splitiq.theme`; Auto follows the OS when no explicit
-choice is stored. The legacy strength logger stays explicitly light until #79.
+**The signed-in dashboard is dark (#611).** Scott's decision, 2026-11-16: the `DARK`
+palette in `themeValues.js` is the new dark palette, the dashboard paints it whatever
+`splitiq.theme` holds, and a dashboard light theme is to come. `/squat` adopts the same
+dark palette and still follows Light / Dark / Auto, where Auto follows the OS when no
+explicit choice is stored. The legacy strength logger inherits the dark dashboard; its
+internal CSS is unchanged until #79.
 
-**Dark is retained as a second theme, not deleted.** `HANDOFF.md` §1 says dark is
-"dropped"; the design project's own `conventions.md`, revised 2026-08-22, overturns that
-in review — the erg room is dark at 5am and the live screen wants it. Light is primary and
-new work is designed on the light ground, but the dark values stay. Where the two
-disagree, `conventions.md` is newer.
+**The design documents above still describe the light redesign.** `HANDOFF.md`,
+`conventions.md`, the artboards and the generated `base.css` have no source for the new
+dark values yet, so `themeValues.js` is their only record. Until the design side
+catches up, take dark hexes from `themeValues.js` and structure, type and spacing from
+the documents.
 `web/src/constants/themeValues.js` holds the `LIGHT` and `DARK` palettes and sets
-`DEFAULT_THEME = LIGHT`. `web/src/main.jsx` emits it as `var(--color-*)` custom
-properties at `:root`, `DARK` under `[data-theme='dark']`, and the light palette
-under `[data-theme='light']` so a nested light surface can override a dark shell. `web/src/constants/theme.js` is a pointer table of `var(--color-*)`
+`DEFAULT_THEME = DARK`. `web/src/main.jsx` emits it as `var(--color-*)` custom
+properties at `:root`, `DARK` again under `[data-theme='dark']`, and the light palette
+under `[data-theme='light']` so `/squat` can opt into it. `web/src/constants/theme.js` is a pointer table of `var(--color-*)`
 strings with no hexes in it. `themeValues.js` is the only file allowed to write a
 palette hex down. The few off-palette literals left (mostly `StrengthLogger.jsx`, plus
 a few `#666` fallbacks) are pinned per file and per hex by `npm run check:colours`.

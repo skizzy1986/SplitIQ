@@ -69,10 +69,12 @@ describe('squat tool contrast (WCAG 1.4.3)', () => {
     expect(inks.size).toBeGreaterThan(4);
   });
 
-  it('the dark error ink would have failed — why the error is in text', () => {
+  it('the dark error ink clears AA on the inset', () => {
+    // The previous dark critical failed this pair, which is why error copy
+    // was set in text. The calm palette's critical clears it.
     expect(
       ratio(channels(DARK.critical), composite(GROUNDS.surfaceAlt, DARK))
-    ).toBeLessThan(4.5);
+    ).toBeGreaterThanOrEqual(4.5);
   });
 
   it('never uses muted for text — it misses AA on dark cards', () => {

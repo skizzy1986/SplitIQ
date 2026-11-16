@@ -4,12 +4,20 @@ name: PR title lint
 # well-formed Conventional Commit. This keeps main's history clean and machine-
 # readable. Allowed types match the prefixes this repo uses (incl. config /
 # housekeeping from WORKFLOW.md branch types).
+#
+# The title must also end with its issue number — `fix(strength): … (#567)` —
+# so every commit on main reads `… (#issue) (#PR)`: GitHub appends the PR
+# number on squash, and the bracket before it is always the issue
+# (WORKFLOW.md §3). Both rules run in the one job because the ruleset binds
+# that job's name: renaming it, or moving a rule to a second job, would leave
+# the rule unrequired until the ruleset was edited by hand.
 on:
   pull_request_target:
     types: [opened, edited, synchronize, reopened]
 
 permissions:
   pull-requests: read
+  issues: read
 
 jobs:
   validate:
@@ -34,3 +42,47 @@ jobs:
             config
             housekeeping
             revert
+
+      # No checkout: this workflow is pull_request_target, so it runs with the
+      # base repo's token. The title is read from the event payload as data and
+      # is never interpolated into a shell or evaluated.
+      #
+      # The script is unit-tested as it stands in this file by
+      # web/scripts/__tests__/title-lint.test.mjs — change the two together.
+      - name: Title ends with its issue number
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            // Dependabot opens PRs with no issue behind them. `user.login` is
+            // set by GitHub, not by the PR author, so this cannot be spoofed.
+            if (pr.user.login === 'dependabot[bot]') return;
+
+            const want =
+              'End the PR title with its issue number: ' +
+              '"<type>(<scope>): <what the change does> (#<issue>)". ' +
+              'GitHub adds the PR number itself on squash-merge. See WORKFLOW.md §3.';
+            const match = pr.title.match(/\S \(#(\d+)\)$/);
+            if (!match) {
+              throw new Error(`"${pr.title}" does not end with " (#<issue>)". ${want}`);
+            }
+            const number = Number(match[1]);
+            if (number === pr.number) {
+              throw new Error(`#${number} is this pull request's own number. ${want}`);
+            }
+            let issue;
+            try {
+              ({ data: issue } = await github.rest.issues.get({
+                ...context.repo,
+                issue_number: number,
+              }));
+            } catch (error) {
+              if (error.status === 404 || error.status === 410) {
+                throw new Error(`#${number} is not an issue in this repository. ${want}`);
+              }
+              throw error;
+            }
+            // The issues API also answers for pull requests, and marks them.
+            if (issue.pull_request) {
+              throw new Error(`#${number} is a pull request, not an issue. ${want}`);
+            }

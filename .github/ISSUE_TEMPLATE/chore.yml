@@ -1,5 +1,5 @@
 name: 🧹 Chore
-description: Config, infra, dependencies, docs, or housekeeping
+description: Config, infra, dependencies, docs, or housekeeping. Title it as a plain sentence — no "chore:" prefix.
 labels: ['type: chore']
 body:
   - type: textarea

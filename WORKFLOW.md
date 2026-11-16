@@ -26,7 +26,13 @@ scattered markdown files — if it's worth doing, it's worth one issue.
 
 A good issue has:
 - A clear, outcome-shaped **title** ("Deploy Google Health API vitals import",
-  not "health stuff").
+  not "health stuff"). It is a plain sentence: the symptom for a bug, the outcome
+  for a feature, `Epic: …` for an epic. **No `fix(scope):` prefix** — the `type:`
+  and `area:` labels say that, and a second copy in the title drifts from them; the
+  prefix belongs on the PR title (§3). No roadmap or decision IDs (`R12`, `D27`)
+  either: they go in the body. `issue-title-lint.yml` fails on a new or retitled
+  issue that has a prefix; an issue has no merge to block, so that is a red run,
+  not a gate.
 - A short **body**: what + why, and a checklist of acceptance criteria.
 - **Labels** for priority and area (below).
 - A **milestone** if it belongs to a themed batch of work.
@@ -60,7 +66,8 @@ is told so. The loop closes itself when the work ships.
    `Discussion: #<n>` works too. Then reply on the thread with the issue link. The weekly
    *SplitIQ Discussion drafts* task drafts both and does them on Scott's `promote` reply.
 2. **Build.** Branch, PR and merge as below. The PR closes the issue the normal way
-   (`Closes #<issue>`). A PR with no issue can carry the `Discussion:` line itself.
+   (`Closes #<issue>`). The `Discussion:` line is also read from the PR body, but the
+   PR still names an issue in its title (§3).
 3. **Ship.** When that PR merges into `main`, `.github/workflows/discussion-shipped.yml`
    replies on the thread: "Shipped: #PR closed #issue…". Nobody has to remember to.
 
@@ -79,10 +86,16 @@ a merged PR would post, dispatch `discussion-shipped.yml` with `pr=<number>`, ad
 Cut every branch from a freshly-fetched `origin/main`:
 
 ```bash
-git fetch origin && git checkout -b <type>/<short-slug> origin/main
+git fetch origin && git checkout -b <type>/<issue>-<short-slug> origin/main
 ```
 
 Branch **types**: `feature/`  `fix/`  `refactor/`  `housekeeping/`  `config/`.
+The issue number leads the slug (`fix/567-logger-sheet-cutoff`), so a branch
+says what it is for wherever it is listed. A session that is handed its branch
+(Kepler below; a cloud session's `ccr-…` or `claude/…`) keeps the name it was
+given. Branch names are convention, not a gate: a branch cannot be renamed
+under an open PR, so a failed check there could not be fixed. The PR title
+carries the number that is enforced (§3).
 Keep branches short-lived and **rebase** (never merge) to stay current:
 
 ```bash
@@ -111,6 +124,24 @@ worktree with Kepler's `worktree_delete`, never `git worktree remove` or `git br
   ```
   Closes #42
   ```
+
+- **Title the PR `<type>(<scope>): <what the change does> (#<issue>)`** —
+  `fix(strength): keep logger sheets inside the desktop window (#567)`. The
+  title becomes the squash commit and GitHub appends the PR number, so every
+  commit on `main` reads `… (#issue) (#PR)`: the last bracket is the PR, the one
+  before it is the issue. Four rules follow from that:
+  - **Never type the PR number.** GitHub adds it.
+  - **One issue number, at the very end.** A PR that closes more lists the rest
+    in the body (`Closes #N`), not the title.
+  - **No other ID schemes in the title** — no `R12`, `D27`, `slice 11` or
+    `PR 1/6`. The issue body carries them.
+  - **Every PR has an issue**, however small. If there is none, file one first.
+
+  `pr-title-lint.yml` enforces the type and the ending inside the required
+  title check: the number must be an existing issue here, not a pull request
+  and not the PR's own number. Dependabot PRs are the one exemption — they have
+  no issue. A branch type is not a title type (`feature/` → `feat:`); the
+  allowed title types are listed in that workflow.
 
 ## 4. CI gates (must be green to merge)
 

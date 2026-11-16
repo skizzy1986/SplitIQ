@@ -80,3 +80,19 @@
 - name: needs-attention
   color: 'b60205'
   description: 'Automation missed its window — a human must look'
+
+# ── 5. EPIC (set by epic-labels.yml, never by hand) ──────────────────────────
+# One per open epic, named `epic: <issue number> <short name>`. The workflow
+# copies it onto every sub-issue of that epic and onto each PR that names one
+# (WORKFLOW.md §1). An epic with no entry here is given a bare `epic: <n>`; to
+# name it, add the entry with `aliases: ['epic: <n>']` so the sync renames it
+# in place and nothing loses the label.
+- name: 'epic: 432 roadmap'
+  color: '6f42c1'
+  description: 'Sub-issues of #432 and their PRs. Set by epic-labels.yml, never by hand.'
+- name: 'epic: 511 coherence'
+  color: 'bf3989'
+  description: 'Sub-issues of #511 and their PRs. Set by epic-labels.yml, never by hand.'
+- name: 'epic: 382 squat v1'
+  color: '1f6feb'
+  description: 'Sub-issues of #382 and their PRs. Set by epic-labels.yml, never by hand.'

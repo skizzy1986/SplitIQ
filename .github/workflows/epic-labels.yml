@@ -1,0 +1,64 @@
+name: Epic labels
+
+# Keeps `epic: <n> …` labels in step with the sub-issue hierarchy (#586).
+#
+# A slice is a sub-issue of its epic; that hierarchy is the source of truth.
+# The label is the copy that shows in the issue and pull-request lists, where
+# sub-issues do not, so one glance or one filter finds an epic's whole body of
+# work. This job is the only thing that sets or removes it (WORKFLOW.md §1).
+#
+# Every run is a full reconcile, not a reaction to its event. GitHub has no
+# workflow trigger for "sub-issue added" (Events that trigger workflows, read
+# 2026-11-16), so linking an existing issue to an epic is picked up by the
+# daily run, or at once by dispatching this workflow.
+on:
+  issues:
+    types: [opened, reopened, labeled, unlabeled]
+  pull_request_target:
+    types: [opened, edited, reopened]
+  schedule:
+    - cron: '47 18 * * *' # daily, 02:47 Perth
+  workflow_dispatch:
+
+permissions: {}
+
+# One reconcile at a time: two overlapping runs would each plan from the same
+# stale read. A queued run still has to happen, so nothing is cancelled.
+concurrency:
+  group: epic-labels
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync epic labels
+    # A label change only matters here when it makes or unmakes an epic, or
+    # is someone applying an epic label by hand. Labels this job sets itself
+    # use GITHUB_TOKEN, which starts no workflow, so it cannot loop.
+    if: >-
+      github.event_name != 'issues' ||
+      github.event.action == 'opened' ||
+      github.event.action == 'reopened' ||
+      github.event.label.name == 'type: epic' ||
+      startsWith(github.event.label.name, 'epic: ')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    steps:
+      # pull_request_target runs with a write token, so only the base
+      # repository's own main is ever checked out: no PR-authored code runs
+      # here. PR titles are read through the API as data.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      # No install: the script uses only Node's built-ins and global fetch.
+      - name: Reconcile epic labels with the sub-issue hierarchy
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node web/scripts/epic-labels.mjs

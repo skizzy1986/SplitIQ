@@ -44,7 +44,7 @@ Every issue carries a stack-ranked priority (`P0`–`P3`), a `type:` label, and 
 | Dimension | Labels | Purpose |
 |---|---|---|
 | **Priority** | `P0`, `P1`, `P2`, `P3` | Relative stack rank (re-sorted often) |
-| **Type** | `type: epic`, `type: feature`, `type: bug`, `type: refactor`, `type: spike`, `type: chore`, `type: docs` | What kind of work it is |
+| **Type** | `type: epic`, `type: feature`, `type: bug`, `type: refactor`, `type: spike`, `type: chore`, `type: docs` | What kind of work it is. On an issue, set by hand. On a PR, set from the title's Conventional Commit type by `pr-type-label.yml`, never by hand: exactly one when the title has a recognised type, and never `type: epic` or `type: spike`. The type-to-label mapping lives only in that workflow |
 | **Area** | `area: anatomy`, `area: coherence`, `area: factory`, `area: backend`, `area: mobile`, `area: design`, `area: a11y` | Subsystem domain; each has one Kepler task group (see *Picking up work in Kepler*) |
 | **Automation state** | `routine-managed`, `needs-attention` | Set by workflows, never by hand: a scheduled Routine owns the issue; escalated when it misses its window (see *Doctrine SHA*) |
 | **Epic** | `epic: <n> <name>`, e.g. `epic: 432 roadmap` | Set by `epic-labels.yml`, never by hand: which epic an issue or PR belongs to (see *Epics*) |
@@ -237,7 +237,8 @@ worktree with Kepler's `worktree_delete`, never `git worktree remove` or `git br
   title check: the number must be an existing issue here, not a pull request
   and not the PR's own number. Dependabot PRs are the one exemption — they have
   no issue. A branch type is not a title type (`feature/` → `feat:`); the
-  allowed title types are listed in that workflow.
+  allowed title types are listed in that workflow. The title type also sets the
+  PR's `type:` label (`pr-type-label.yml`, §1), so retitling a PR relabels it.
 
 ## 4. CI gates (must be green to merge)
 
@@ -375,7 +376,7 @@ items views were deleted.
 | **Epics** | Table | `is:open` | Group **Parent issue** | Each epic's open sub-issues and their status |
 | **In review** | Table | `is:open status:"In review"` | (none) | What waits on a PR to land |
 | **Roadmap** | Roadmap | `label:"type: epic"` (no `is:open`, so finished epics stay as history) | Dates **Start → Target**, markers on Target, sort by Start, column **Sub-issues progress** | One bar per epic: how long it runs and how far it has got |
-| **Bugs** | Table | `is:open label:"type: bug"` | Sort **Labels** | What is broken |
+| **Bugs** | Table | `is:open is:issue label:"type: bug"` (`is:issue`, because fix PRs also carry `type: bug`, #589) | Sort **Labels** | What is broken |
 
 The Ready and In progress columns are no longer kept (#593), so no view filters on them.
 

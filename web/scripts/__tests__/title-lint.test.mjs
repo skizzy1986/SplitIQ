@@ -4,9 +4,10 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect, vi } from 'vitest';
 
-// The naming rules in WORKFLOW.md §1 and §3 are enforced by two inline
-// github-script steps. These tests run those scripts as they stand in the
-// workflow files, so a rule cannot be edited there without this noticing.
+// The naming and PR type-label rules in WORKFLOW.md §1 and §3 are enforced by
+// three inline github-script steps. These tests run those scripts as they
+// stand in the workflow files, so a rule cannot be edited there without this
+// noticing.
 
 const here = dirname(fileURLToPath(import.meta.url));
 const workflows = resolve(here, '../../../.github/workflows');
@@ -214,5 +215,233 @@ describe('issue title has no type prefix', () => {
       .match(/const TYPES = \[([^\]]+)\]/)[1]
       .match(/[a-z]+/g);
     expect(issueTypes).toEqual(prTypes);
+  });
+});
+
+describe('PR type label follows the title type', () => {
+  const repoRoot = resolve(here, '../../..');
+  const typeScriptText = scriptOf(
+    readFileSync(resolve(workflows, 'pr-type-label.yml'), 'utf8')
+  );
+  const typeScript = new AsyncFunction('github', 'context', typeScriptText);
+  // The mapping as the workflow declares it: its object literal, evaluated.
+  const TYPE_LABELS = new Function(
+    `return ${typeScriptText.match(/const TYPE_LABELS = (\{[^}]*\});/)[1]}`
+  )();
+
+  function fakeLabels(names = []) {
+    const listLabelsOnIssue = vi.fn(async () => ({
+      data: names.map((name) => ({ name })),
+    }));
+    const addLabels = vi.fn(async () => ({ data: [] }));
+    const removeLabel = vi.fn(async () => ({ data: [] }));
+    return { rest: { issues: { listLabelsOnIssue, addLabels, removeLabel } } };
+  }
+
+  function labelPr(
+    title,
+    { github = fakeLabels(), number = 600, login = 'skizzy1986' } = {}
+  ) {
+    return typeScript(github, {
+      repo: { owner: 'skizzy1986', repo: 'SplitIQ' },
+      payload: { pull_request: { title, number, user: { login } } },
+    });
+  }
+
+  const repo = { owner: 'skizzy1986', repo: 'SplitIQ', issue_number: 600 };
+  const removed = (github) =>
+    github.rest.issues.removeLabel.mock.calls.map(([args]) => args.name);
+  const serverError = () =>
+    Object.assign(new Error('Server Error'), { status: 500 });
+
+  it.each([
+    ['feat', 'type: feature'],
+    ['fix', 'type: bug'],
+    ['revert', 'type: bug'],
+    ['docs', 'type: docs'],
+    ['refactor', 'type: refactor'],
+    ['perf', 'type: refactor'],
+    ['test', 'type: chore'],
+    ['ci', 'type: chore'],
+    ['build', 'type: chore'],
+    ['chore', 'type: chore'],
+    ['style', 'type: chore'],
+    ['config', 'type: chore'],
+    ['housekeeping', 'type: chore'],
+  ])('labels a %s title "%s"', async (type, label) => {
+    const github = fakeLabels();
+    await labelPr(`${type}: x (#567)`, { github });
+    expect(github.rest.issues.listLabelsOnIssue).toHaveBeenCalledWith({
+      ...repo,
+      per_page: 100,
+    });
+    expect(github.rest.issues.addLabels).toHaveBeenCalledTimes(1);
+    expect(github.rest.issues.addLabels).toHaveBeenCalledWith({
+      ...repo,
+      labels: [label],
+    });
+    expect(github.rest.issues.removeLabel).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['a scope', 'fix(strength): x (#567)', 'type: bug'],
+    ['a breaking marker', 'feat!: x', 'type: feature'],
+    ['a scope and a breaking marker', 'refactor(squat)!: x', 'type: refactor'],
+  ])('reads the type through %s', async (_name, title, label) => {
+    const github = fakeLabels();
+    await labelPr(title, { github });
+    expect(github.rest.issues.addLabels).toHaveBeenCalledWith({
+      ...repo,
+      labels: [label],
+    });
+  });
+
+  it.each([
+    ['a capitalised type', 'Feat: x'],
+    ['an unknown type', 'wip: x'],
+    ['a plain sentence', 'Keep logger sheets inside the window'],
+    ['a GitHub revert title', 'Revert "feat: x"'],
+    ['an Object.prototype name', 'constructor: x'],
+    ['a prototype key', '__proto__: x'],
+    ['no space after the colon', 'feat:x'],
+  ])('makes no API call for %s', async (_name, title) => {
+    const github = fakeLabels(['type: docs']);
+    await expect(labelPr(title, { github })).resolves.toBeUndefined();
+    expect(github.rest.issues.listLabelsOnIssue).not.toHaveBeenCalled();
+    expect(github.rest.issues.addLabels).not.toHaveBeenCalled();
+    expect(github.rest.issues.removeLabel).not.toHaveBeenCalled();
+  });
+
+  it('only reads when the label is already right', async () => {
+    const github = fakeLabels(['type: feature', 'area: anatomy']);
+    await labelPr('feat: x (#567)', { github });
+    expect(github.rest.issues.listLabelsOnIssue).toHaveBeenCalledTimes(1);
+    expect(github.rest.issues.addLabels).not.toHaveBeenCalled();
+    expect(github.rest.issues.removeLabel).not.toHaveBeenCalled();
+  });
+
+  it('removes a stale type label beside the right one, without adding', async () => {
+    const github = fakeLabels(['type: feature', 'type: docs']);
+    await labelPr('feat: x (#567)', { github });
+    expect(github.rest.issues.addLabels).not.toHaveBeenCalled();
+    expect(github.rest.issues.removeLabel).toHaveBeenCalledWith({
+      ...repo,
+      name: 'type: docs',
+    });
+    expect(removed(github)).toEqual(['type: docs']);
+  });
+
+  it('adds the right label first, then removes every other type label', async () => {
+    const github = fakeLabels(['type: bug', 'type: docs']);
+    const order = [];
+    github.rest.issues.addLabels.mockImplementation(async ({ labels }) => {
+      order.push(`add ${labels[0]}`);
+    });
+    github.rest.issues.removeLabel.mockImplementation(async ({ name }) => {
+      order.push(`remove ${name}`);
+    });
+    await labelPr('feat: x (#567)', { github });
+    expect(order).toEqual([
+      'add type: feature',
+      'remove type: bug',
+      'remove type: docs',
+    ]);
+  });
+
+  it('never removes a label that is not a type label', async () => {
+    const github = fakeLabels([
+      'type: bug',
+      'area: anatomy',
+      'epic: 432 roadmap',
+      'P2',
+      'dependencies',
+    ]);
+    await labelPr('feat: x (#567)', { github });
+    expect(removed(github)).toEqual(['type: bug']);
+  });
+
+  it('removes type: epic and type: spike from a pull request', async () => {
+    const github = fakeLabels(['type: epic', 'type: spike']);
+    await labelPr('feat: x (#567)', { github });
+    expect(removed(github)).toEqual(['type: epic', 'type: spike']);
+  });
+
+  it('treats a label that is already gone (404) as removed', async () => {
+    const github = fakeLabels(['type: docs']);
+    github.rest.issues.removeLabel.mockRejectedValue(
+      Object.assign(new Error('Not Found'), { status: 404 })
+    );
+    await expect(
+      labelPr('feat: x (#567)', { github })
+    ).resolves.toBeUndefined();
+  });
+
+  it('surfaces any other removeLabel failure', async () => {
+    const github = fakeLabels(['type: docs']);
+    github.rest.issues.removeLabel.mockRejectedValue(serverError());
+    await expect(labelPr('feat: x (#567)', { github })).rejects.toThrow(
+      'Server Error'
+    );
+  });
+
+  it('removes nothing when adding the right label fails', async () => {
+    const github = fakeLabels(['type: docs']);
+    github.rest.issues.addLabels.mockRejectedValue(serverError());
+    await expect(labelPr('feat: x (#567)', { github })).rejects.toThrow(
+      'Server Error'
+    );
+    expect(github.rest.issues.removeLabel).not.toHaveBeenCalled();
+  });
+
+  it('surfaces a failure to read the current labels', async () => {
+    const github = fakeLabels();
+    github.rest.issues.listLabelsOnIssue.mockRejectedValue(serverError());
+    await expect(labelPr('feat: x (#567)', { github })).rejects.toThrow(
+      'Server Error'
+    );
+    expect(github.rest.issues.addLabels).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    'chore(deps): bump vite from 7.1.0 to 7.1.1',
+    'build(deps): bump vite from 7.1.0 to 7.1.1',
+  ])('labels Dependabot\'s "%s" as chore', async (title) => {
+    const github = fakeLabels();
+    await labelPr(title, { github, login: 'dependabot[bot]' });
+    expect(github.rest.issues.addLabels).toHaveBeenCalledWith({
+      ...repo,
+      labels: ['type: chore'],
+    });
+  });
+
+  it('maps only to type labels that exist, never epic or spike', () => {
+    const labelsYml = readFileSync(
+      resolve(repoRoot, '.github/labels.yml'),
+      'utf8'
+    );
+    const typeNames = [
+      ...labelsYml.matchAll(/^- name: '(type: [a-z]+)'/gm),
+    ].map((m) => m[1]);
+    expect(typeNames).toContain('type: feature');
+    const values = Object.values(TYPE_LABELS);
+    for (const label of values) expect(typeNames).toContain(label);
+    expect(values).not.toContain('type: epic');
+    expect(values).not.toContain('type: spike');
+  });
+
+  it('maps every type the PR title check allows, and no other', () => {
+    const prTypes = prWorkflow
+      .match(/types: \|\n((?:\s+[a-z]+\n)+)/)[1]
+      .trim()
+      .split(/\s+/);
+    expect(Object.keys(TYPE_LABELS).sort()).toEqual([...prTypes].sort());
+  });
+
+  it('keeps type labels out of the path labeler, which would strip them', () => {
+    const labelerYml = readFileSync(
+      resolve(repoRoot, '.github/labeler.yml'),
+      'utf8'
+    );
+    expect(labelerYml).not.toMatch(/^['"]?type: /m);
   });
 });

@@ -1,5 +1,9 @@
 # PR auto-labeler config (actions/labeler@v7). Maps changed paths to the area
 # labels defined in .github/labels.yml.
+#
+# `type:` labels on PRs come from .github/workflows/pr-type-label.yml, set from
+# the PR title. Never add a `type:` key here: the labeler runs with
+# `sync-labels: true`, so it would strip the title-derived label on every push.
 
 'area: anatomy':
   - changed-files:
@@ -43,8 +47,3 @@
           - 'web/src/constants/ui.js'
           - 'web/src/constants/tokens.js'
           - 'web/src/utils/themeCss.js'
-
-'type: docs':
-  - changed-files:
-      - any-glob-to-any-file:
-          - '**/*.md'

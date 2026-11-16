@@ -219,8 +219,9 @@ export default [
   {
     // Node build/CI scripts. They are in the lint scope because the design-sync
     // guard lives here and is CI-enforced — a gate that is itself ungated is how
-    // the barrel broke in the first place.
-    files: ['scripts/**/*.mjs'],
+    // the barrel broke in the first place. `.cjs` is in ESLint's default set
+    // alongside `.mjs`; without it here, `process` is `no-undef` in a script.
+    files: ['scripts/**/*.{mjs,cjs}'],
     languageOptions: {
       globals: {
         console: 'readonly',
@@ -232,7 +233,7 @@ export default [
   {
     // Vitest globals for the script tests. Flat config merges, so console and
     // process still come from the block above.
-    files: ['scripts/**/__tests__/**/*.mjs'],
+    files: ['scripts/**/__tests__/**/*.{mjs,cjs}'],
     languageOptions: {
       globals: {
         describe: 'readonly',

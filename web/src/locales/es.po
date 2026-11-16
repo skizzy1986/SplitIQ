@@ -13,7 +13,7 @@ msgid "＋ ADD TO HOME SCREEN"
 msgstr "＋ AGREGAR A LA PANTALLA DE INICIO"
 
 #. Splash word cycle, one discipline, all capitals
-#: src/components/mobile/SplashScreen.jsx
+#: src/components/SplashScreen.jsx
 msgid "BIKE"
 msgstr "BICI"
 
@@ -48,7 +48,7 @@ msgid "Enter email and password."
 msgstr "Ingresa tu correo y tu contraseña."
 
 #. Splash word cycle, one discipline, all capitals
-#: src/components/mobile/SplashScreen.jsx
+#: src/components/SplashScreen.jsx
 msgid "ERG"
 msgstr "ERGÓMETRO"
 
@@ -92,12 +92,12 @@ msgid "SIGNING IN…"
 msgstr "INICIANDO SESIÓN…"
 
 #. Splash word cycle, one discipline, all capitals
-#: src/components/mobile/SplashScreen.jsx
+#: src/components/SplashScreen.jsx
 msgid "STRENGTH"
 msgstr "FUERZA"
 
 #. Splash-screen loading caption, all capitals
-#: src/components/mobile/SplashScreen.jsx
+#: src/components/SplashScreen.jsx
 msgid "SYNCING TRAINING LOG"
 msgstr "SINCRONIZANDO REGISTRO DE ENTRENAMIENTO"
 

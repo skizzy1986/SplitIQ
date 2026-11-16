@@ -14,14 +14,14 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | Row | English | Español | Where / note |
 |---|---|---|---|
 | `xszP8W` | ＋ ADD TO HOME SCREEN | ＋ AGREGAR A LA PANTALLA DE INICIO | Install-the-app button, all capitals · src/AuthGate.jsx |
-| `V3Mep1` | BIKE | BICI | Splash word cycle, one discipline, all capitals · src/components/mobile/SplashScreen.jsx |
+| `V3Mep1` | BIKE | BICI | Splash word cycle, one discipline, all capitals · src/components/SplashScreen.jsx |
 | `bGQplw` | Body | Cuerpo | Mobile tab bar: readiness, sleep, heart rate · src/constants/destinations.js |
 | `vlj0xi` | Confirm your email address before signing in. | Confirma tu correo electrónico antes de iniciar sesión. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
 | `qGBulj` | Could not reach the server. Check your connection and try again. | No pudimos conectarnos con el servidor. Revisa tu conexión e inténtalo de nuevo. | Login error when the device is offline. Only shown in Spanish. · src/utils/authError.js |
 | `XfP7oA` | Disconnect Strava? Future activities will stop importing. Sessions already imported are never deleted — they stay in your log. | ¿Desconectar Strava? Las actividades futuras dejarán de importarse. Las sesiones que ya se importaron nunca se borran: se quedan en tu registro. | Browser confirmation dialog before disconnecting Strava · src/hooks/useStravaConnect.js |
 | `2e0dGW` | EMAIL | CORREO ELECTRÓNICO | Login form field label, all capitals · src/AuthGate.jsx |
 | `Md1Bvk` | Enter email and password. | Ingresa tu correo y tu contraseña. | Login form validation error. · src/AuthGate.jsx |
-| `J0GPZK` | ERG | ERGÓMETRO | Splash word cycle, one discipline, all capitals · src/components/mobile/SplashScreen.jsx |
+| `J0GPZK` | ERG | ERGÓMETRO | Splash word cycle, one discipline, all capitals · src/components/SplashScreen.jsx |
 | `Pwqkdw` | Loading… | Cargando… | Shown while the session or the app is loading · src/AuthGate.jsx |
 | `h2NQfe` | PASSWORD | CONTRASEÑA | Login form field label, all capitals · src/AuthGate.jsx |
 | `CP3D8G` | Progress | Progreso | Mobile tab bar · src/constants/destinations.js |
@@ -30,8 +30,8 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `fcWrnU` | Sign out | Cerrar sesión | Tooltip on the sign-out button · src/AuthGate.jsx |
 | `qc2maQ` | SIGN OUT | CERRAR SESIÓN | Floating button, all capitals · src/AuthGate.jsx |
 | `CcNLeM` | SIGNING IN… | INICIANDO SESIÓN… | Login button while the request is in flight · src/AuthGate.jsx |
-| `bSUnKi` | STRENGTH | FUERZA | Splash word cycle, one discipline, all capitals · src/components/mobile/SplashScreen.jsx |
-| `eriCGy` | SYNCING TRAINING LOG | SINCRONIZANDO REGISTRO DE ENTRENAMIENTO | Splash-screen loading caption, all capitals · src/components/mobile/SplashScreen.jsx |
+| `bSUnKi` | STRENGTH | FUERZA | Splash word cycle, one discipline, all capitals · src/components/SplashScreen.jsx |
+| `eriCGy` | SYNCING TRAINING LOG | SINCRONIZANDO REGISTRO DE ENTRENAMIENTO | Splash-screen loading caption, all capitals · src/components/SplashScreen.jsx |
 | `14ONxy` | The server took too long to answer. Try again. | El servidor tardó demasiado en responder. Inténtalo de nuevo. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
 | `6OobED` | This account cannot sign in. | Esta cuenta no puede iniciar sesión. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
 | `ecUA8p` | Today | Hoy | Mobile tab bar · src/constants/destinations.js |

@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { i18n } from '@lingui/core';
-import { messages as en } from '../../../locales/en.po';
-import { messages as es } from '../../../locales/es.po';
+import { messages as en } from '../../locales/en.po';
+import { messages as es } from '../../locales/es.po';
 import SplashScreen from '../SplashScreen.jsx';
 
 function stubReducedMotion() {

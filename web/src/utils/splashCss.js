@@ -1,4 +1,4 @@
-// Stylesheet for the splash (components/mobile/SplashScreen.jsx). It is a
+// Stylesheet for the splash (components/SplashScreen.jsx). It is a
 // string builder rather than inline styles because the splash needs keyframes,
 // and a keyframe cannot be expressed as a style object. Twin of themeCss.js.
 //

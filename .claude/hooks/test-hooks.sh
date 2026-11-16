@@ -262,6 +262,21 @@ expect_exit 0; expect_json hookSpecificOutput.additionalContext "STUB-main"
 expect_json hookSpecificOutput.additionalContext "web/src/a.js:1:1"; expect_stderr_empty
 done_case "L18 lint: backslash payload path is in scope"
 
+mkdir -p "$fx_lint/web/scripts"
+printf 'export const a = 1;\n' > "$fx_lint/web/scripts/a.mjs"
+begin
+run "$(payload "$fx_lint/web/scripts/a.mjs")" lint "$fx_lint"
+expect_exit 0; expect_json hookSpecificOutput.additionalContext "STUB-main"
+expect_json hookSpecificOutput.additionalContext "web/scripts/a.mjs:1:1"; expect_stderr_empty
+done_case "L33 lint: an .mjs file under web/scripts is linted"
+
+printf 'exports.a = 1;\n' > "$fx_lint/web/scripts/a.cjs"
+begin
+run "$(payload "$fx_lint/web/scripts/a.cjs")" lint "$fx_lint"
+expect_exit 0; expect_json hookSpecificOutput.additionalContext "STUB-main"
+expect_json hookSpecificOutput.additionalContext "web/scripts/a.cjs:1:1"; expect_stderr_empty
+done_case "L34 lint: a .cjs file under web/scripts is linted"
+
 fx_lint_win="${fx_lint//\//\\}\\"
 begin
 run "$(payload "$fx_lint/web/src/a.js")" lint "$fx_lint_win"
@@ -428,6 +443,21 @@ if [ -x "$root/web/node_modules/.bin/eslint" ]; then
   expect_exit 0
   expect_json hookSpecificOutput.additionalContext "no-unused-vars"
   done_case "L26 lint: backslash payload through real eslint"
+
+  # .mjs is outside the *.js|*.jsx case the hook used to match, so a miss here
+  # is a silent exit 0 — the same shape as #564. no-unused-vars is an error on
+  # scripts/*.mjs (the js/jsx block's warn override does not apply).
+  p_mjs="$root/web/scripts/__hooktest_mjs_${tag}__.mjs"
+  probes+=("$p_mjs")
+  printf 'const unused = 1;\n' > "$p_mjs"
+  begin
+  run "$(payload "$p_mjs")" lint "$root"
+  expect_exit 0
+  expect_json hookSpecificOutput.additionalContext "no-unused-vars"
+  expect_json hookSpecificOutput.additionalContext "web/scripts/${p_mjs##*/}:1:7"
+  expect_json hookSpecificOutput.additionalContext ":1:7 error"
+  expect_stderr_empty
+  done_case "L35 lint: an .mjs unused binding is a finding"
 else
   echo "skip  lint: eslint cases (run 'npm install' in web/)"
 fi

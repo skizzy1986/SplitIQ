@@ -128,8 +128,10 @@ focused question.
    origin/main --passWithNoTests --coverage`: the tests the diff reaches, with
    coverage of the changed files only (a `package.json` or Vite config change
    runs the whole suite). The full suite and the project-wide coverage
-   thresholds run in CI's Test & Coverage job, which is the gate. Then spawn `Test Results Analyzer` (model: sonnet, READ-ONLY) with the output and
-   the acceptance criteria. Task: interpret the results, flag untested criteria
+   thresholds run in CI's Test & Coverage job, which is the gate; a local
+   threshold failure on a partial run is not a CI failure.
+   Then spawn `Test Results Analyzer` (model: sonnet, READ-ONLY) with the
+   output and the acceptance criteria. Task: interpret the results, flag untested criteria
    and coverage gaps honestly. Conventions: `.claude/skills/testing-patterns.md`.
 
 6. **Review + Validate** — spawn both judges in parallel (READ-ONLY; Kepler

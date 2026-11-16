@@ -1,1 +1,2 @@
+git rev-parse -q --verify origin/main >/dev/null || { echo "pre-push: no origin/main ref; run: git fetch origin main"; exit 1; }
 cd web && npx vitest run --changed origin/main --passWithNoTests

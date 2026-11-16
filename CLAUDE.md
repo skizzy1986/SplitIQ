@@ -181,7 +181,7 @@ Projects `erg-dashboard` (app) and `erg-dashboard-functions` (edge functions).
   plain, no prefix. Rebase, never merge; `--force-with-lease` only. `main` blocks direct pushes and stale branches.
 - Before pushing: `npm run build`, `npm run lint`, `npm run format:check`; `.husky/pre-push`
   runs the tests the diff reaches (`npx vitest run --changed origin/main --passWithNoTests`).
-  CI runs the full suite and is the gate. Never `--no-verify` without a reason. Coverage
+  CI runs the full suite and is the gate. Never `--no-verify` without an explicit reason. Coverage
   thresholds live only in `web/vite.config.js`, only go up. Required checks: per `steward`, never a list.
 - Never hardcode credentials (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`). Never edit
   agent files in `.claude/agents/` or `.claude/agent-library/` (erg behaviour is applied

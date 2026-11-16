@@ -34,6 +34,10 @@ jobs:
             web:
               - 'web/**'
               - '.github/workflows/ci-web.yml'
+              # web/scripts/__tests__/title-lint.test.mjs reads these with fs, so
+              # the pre-push hook's --changed run cannot see them; CI must.
+              - '.github/workflows/pr-title-lint.yml'
+              - '.github/workflows/issue-title-lint.yml'
 
   lint:
     name: Lint & Format

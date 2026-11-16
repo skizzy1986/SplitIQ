@@ -7,7 +7,7 @@ import { render, screen, cleanup } from '@testing-library/react/dist/index.js';
 import RouteRoot from '../RouteRoot.jsx';
 import ErrorFallback from '../components/ErrorFallback.jsx';
 import AuthGate from '../AuthGate.jsx';
-import SplashScreen from '../components/mobile/SplashScreen.jsx';
+import SplashScreen from '../components/SplashScreen.jsx';
 
 const mocks = vi.hoisted(() => ({ isMobile: false, splash: true }));
 

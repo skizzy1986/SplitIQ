@@ -17,7 +17,7 @@ web/src/
   utils/          pure functions, unit-tested in utils/__tests__/
   hooks/          React hooks; Supabase calls via React Query
   components/     reusable JSX, props in
-    mobile/       mobile-only shared components (BottomTabBar, SplashScreen)
+    mobile/       mobile-only shared components (BottomTabBar)
   services/       device/native integrations (pm5Bluetooth.js)
   views/          desktop tabs, one file per tab, lazy-loaded from App.jsx
     mobile/       mobile tab views (MobileApp.jsx is the mobile shell)

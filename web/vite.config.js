@@ -111,17 +111,13 @@ export default defineConfig({
           },
           SQUAT_CODE_ROUTE,
           I18N_CODE_ROUTE,
-          // Before the generic rule: Workbox serves the first matching route.
+          // Supabase REST is not cached. The old NetworkFirst pattern matched
+          // mid-URL, so Workbox ignored it on the cross-origin host
+          // (workbox-routing 7.4.1 RegExpRoute: the match must start at index
+          // 0). Anchoring it would cache authenticated rows, and nothing
+          // clears Cache Storage on sign-out — why the health route below is
+          // NetworkOnly.
           HEALTH_NETWORK_ONLY_ROUTE,
-          {
-            urlPattern: /supabase\.co\/rest/,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'supabase-api',
-              networkTimeoutSeconds: 3,
-              expiration: { maxEntries: 50, maxAgeSeconds: 300 },
-            },
-          },
         ],
       },
       manifest: {
@@ -383,7 +379,7 @@ export default defineConfig({
           branches: 70,
         },
         'src/utils/splashCss.js': { lines: 80, functions: 80, branches: 70 },
-        'src/components/mobile/SplashScreen.jsx': {
+        'src/components/SplashScreen.jsx': {
           lines: 80,
           functions: 80,
           branches: 70,

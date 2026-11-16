@@ -32,7 +32,7 @@
     "prepare": "husky"
   },
   "lint-staged": {
-    "*.{js,jsx}": [
+    "*.{js,jsx,mjs,cjs}": [
       "eslint --fix",
       "prettier --write"
     ]

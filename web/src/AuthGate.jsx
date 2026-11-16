@@ -11,7 +11,7 @@ import { usePWAInstall } from './hooks/usePWAInstall.js';
 import { useIsMobile } from './hooks/useIsMobile.js';
 import { useSplashGate } from './hooks/useSplashGate.js';
 import { useInitialDataReady } from './hooks/useInitialDataReady.js';
-import SplashScreen from './components/mobile/SplashScreen.jsx';
+import SplashScreen from './components/SplashScreen.jsx';
 import { captureError } from './utils/sentry.js';
 import { THEME } from './constants/theme.js';
 import { FONT } from './constants/type.js';

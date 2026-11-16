@@ -13,7 +13,7 @@ msgid "＋ ADD TO HOME SCREEN"
 msgstr "＋ ADD TO HOME SCREEN"
 
 #. Splash word cycle, one discipline, all capitals
-#: src/components/mobile/SplashScreen.jsx
+#: src/components/SplashScreen.jsx
 msgid "BIKE"
 msgstr "BIKE"
 
@@ -48,7 +48,7 @@ msgid "Enter email and password."
 msgstr "Enter email and password."
 
 #. Splash word cycle, one discipline, all capitals
-#: src/components/mobile/SplashScreen.jsx
+#: src/components/SplashScreen.jsx
 msgid "ERG"
 msgstr "ERG"
 
@@ -92,12 +92,12 @@ msgid "SIGNING IN…"
 msgstr "SIGNING IN…"
 
 #. Splash word cycle, one discipline, all capitals
-#: src/components/mobile/SplashScreen.jsx
+#: src/components/SplashScreen.jsx
 msgid "STRENGTH"
 msgstr "STRENGTH"
 
 #. Splash-screen loading caption, all capitals
-#: src/components/mobile/SplashScreen.jsx
+#: src/components/SplashScreen.jsx
 msgid "SYNCING TRAINING LOG"
 msgstr "SYNCING TRAINING LOG"
 

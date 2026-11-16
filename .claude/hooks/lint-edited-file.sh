@@ -94,7 +94,7 @@ fi
 [ -n "$file" ] || exit 0
 
 case "$file" in
-  *.js | *.jsx) ;;
+  *.js | *.jsx | *.mjs | *.cjs) ;;
   *) exit 0 ;;
 esac
 

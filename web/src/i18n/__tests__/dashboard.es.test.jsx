@@ -94,7 +94,7 @@ vi.mock('../../hooks/useAnchors.js', () => ({
 import AuthGate from '../../AuthGate.jsx';
 import BottomTabBar from '../../components/mobile/BottomTabBar.jsx';
 import SettingsView from '../../views/SettingsView.jsx';
-import SplashScreen from '../../components/mobile/SplashScreen.jsx';
+import SplashScreen from '../../components/SplashScreen.jsx';
 import ErrorFallback from '../../components/ErrorFallback.jsx';
 import OverviewView from '../../views/OverviewView.jsx';
 import MobilityView from '../../views/MobilityView.jsx';

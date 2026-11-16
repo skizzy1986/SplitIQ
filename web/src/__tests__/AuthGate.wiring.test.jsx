@@ -41,7 +41,7 @@ vi.mock('../hooks/useSplashGate.js', () => ({
 vi.mock('../hooks/usePWAInstall.js', () => ({
   usePWAInstall: () => mocks.pwa,
 }));
-vi.mock('../components/mobile/SplashScreen.jsx', () => ({
+vi.mock('../components/SplashScreen.jsx', () => ({
   default: () => <div data-testid="splash-stub" />,
 }));
 vi.mock('../App.jsx', () => ({ default: () => <div>App-stub</div> }));

@@ -1,9 +1,9 @@
-import { THEME } from '../../constants/theme.js';
-import { splashCss } from '../../utils/splashCss.js';
-import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion.js';
-import { FONT } from '../../constants/type.js';
+import { THEME } from '../constants/theme.js';
+import { splashCss } from '../utils/splashCss.js';
+import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion.js';
+import { FONT } from '../constants/type.js';
 import { Trans, useLingui } from '@lingui/react/macro';
-import { brandLine } from '../../utils/brandLine.js';
+import { brandLine } from '../utils/brandLine.js';
 
 const CSS = splashCss(THEME);
 

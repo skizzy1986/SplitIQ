@@ -30,7 +30,7 @@ describe('HEALTH_NETWORK_ONLY_ROUTE', () => {
     }
   );
 
-  it('leaves every other table to the generic rule', () => {
+  it('does not match other tables', () => {
     for (const t of ['vitals', 'sessions', 'bp_readings_archive', 'anchors']) {
       expect(workboxMatches(re, `${BASE}/${t}?select=*`)).toBe(false);
     }
@@ -39,14 +39,14 @@ describe('HEALTH_NETWORK_ONLY_ROUTE', () => {
     );
   });
 
-  // vite.config.js cannot be imported outside Vite (see squatChunks.test.mjs),
-  // so the ordering is pinned at the source: Workbox's Router serves the
-  // FIRST registered route that matches, so this must precede the generic one.
-  it('is registered before the generic supabase rule in vite.config.js', () => {
+  // The unanchored NetworkFirst rule never matched a cross-origin URL
+  // (RegExpRoute requires index 0) and is gone. Re-adding that pattern, or a
+  // supabase-api cache in front of this route, would undo #526.
+  it('is registered, and vite.config.js has no supabase REST cache', () => {
     const src = readFileSync(join(process.cwd(), 'vite.config.js'), 'utf8');
     const health = src.indexOf('HEALTH_NETWORK_ONLY_ROUTE,');
-    const generic = src.indexOf("cacheName: 'supabase-api'");
     expect(health).toBeGreaterThan(-1);
-    expect(generic).toBeGreaterThan(health);
+    expect(src).not.toContain("cacheName: 'supabase-api'");
+    expect(src).not.toContain('supabase\\.co\\/rest');
   });
 });

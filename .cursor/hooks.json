@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeShellExecution": [
+      {
+        "command": "bash .cursor/hooks/block-secret-commit.sh",
+        "matcher": "git commit",
+        "timeout": 15
+      }
+    ]
+  }
+}

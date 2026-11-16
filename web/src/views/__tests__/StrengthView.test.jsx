@@ -28,8 +28,8 @@ const lifts = {
   'Lift B': [{ date: '1/2/01', e1rm: 20 }],
 };
 
-const renderView = () =>
-  render(<StrengthView strengthSessions={strengthSessions} />);
+const renderView = (props = {}) =>
+  render(<StrengthView strengthSessions={strengthSessions} {...props} />);
 
 describe('StrengthView', () => {
   beforeEach(() => hookState.mockReset());
@@ -78,7 +78,12 @@ describe('StrengthView', () => {
     hookState.mockReturnValue(
       loaded({ lifts: {}, setCount: 0, scoredCount: 0 })
     );
-    renderView();
+    const onLog = vi.fn();
+    renderView({ onLog });
+    fireEvent.click(
+      screen.getAllByRole('button', { name: 'Log a session' })[0]
+    );
+    expect(onLog).toHaveBeenCalledOnce();
     expect(
       screen.getByText('No strength sets logged yet.')
     ).toBeInTheDocument();
@@ -117,7 +122,10 @@ describe('StrengthView', () => {
       isPending: false,
       isError: true,
     });
-    renderView();
+    const onLog = vi.fn();
+    renderView({ onLog });
+    fireEvent.click(screen.getByRole('button', { name: 'Log a session' }));
+    expect(onLog).toHaveBeenCalledOnce();
     expect(
       screen.getByText('Strength history unavailable.')
     ).toBeInTheDocument();

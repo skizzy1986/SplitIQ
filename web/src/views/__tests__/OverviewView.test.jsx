@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, within, fireEvent } from '@testing-library/react';
 import {
   RHR_DEFAULT,
   HRV_DEFAULT,
@@ -126,6 +126,11 @@ describe('OverviewView', () => {
     expect(card.getByText(/No reading this morning/)).toBeInTheDocument();
     expect(card.queryByText('0')).toBeNull();
     expect(card.queryByText(/some were missing/)).toBeNull();
+    const onOpenBody = vi.fn();
+    render(<OverviewView {...baseProps} onOpenBody={onOpenBody} />);
+    const openBody = screen.getAllByRole('button', { name: 'Open Body' });
+    fireEvent.click(openBody[openBody.length - 1]);
+    expect(onOpenBody).toHaveBeenCalledOnce();
   });
 
   it('renders no roster text now that the today strip is gone', () => {
@@ -162,6 +167,18 @@ describe('OverviewView', () => {
       <OverviewView {...baseProps} latest={null} loadUnavailable={true} />
     );
     expect(screen.getByText('TRAINING LOAD UNAVAILABLE')).toBeInTheDocument();
+    const onOpenHistory = vi.fn();
+    render(
+      <OverviewView
+        {...baseProps}
+        latest={null}
+        loadUnavailable={true}
+        onOpenHistory={onOpenHistory}
+      />
+    );
+    const openHistory = screen.getAllByRole('button', { name: 'Open History' });
+    fireEvent.click(openHistory[openHistory.length - 1]);
+    expect(onOpenHistory).toHaveBeenCalledOnce();
     expect(screen.queryByText('—')).toBeNull();
     expect(screen.queryByText(/form status unknown/i)).toBeNull();
     expect(screen.queryByText('0')).toBeNull();

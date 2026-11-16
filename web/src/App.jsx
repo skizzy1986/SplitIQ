@@ -274,7 +274,12 @@ export default function App() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: SPACE.sm,
-                border: 'none',
+                borderTop: `2px solid ${
+                  route.destination === id ? THEME.accent : 'transparent'
+                }`,
+                borderRight: 'none',
+                borderBottom: 'none',
+                borderLeft: 'none',
                 borderRadius: RADIUS.md,
                 color: route.destination === id ? THEME.text : THEME.textSubtle,
                 background:
@@ -297,7 +302,12 @@ export default function App() {
               display: 'flex',
               alignItems: 'center',
               gap: SPACE.sm,
-              border: 'none',
+              borderTop: `2px solid ${
+                view === 'settings' ? THEME.accent : 'transparent'
+              }`,
+              borderRight: 'none',
+              borderBottom: 'none',
+              borderLeft: 'none',
               borderRadius: RADIUS.md,
               color: view === 'settings' ? THEME.text : THEME.textSubtle,
               background:

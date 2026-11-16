@@ -83,7 +83,7 @@ test.describe('dashboard smoke', () => {
       if (pane)
         await clickAndSettle(
           page,
-          page.getByRole('button', { name: pane, exact: true })
+          page.getByRole('tab', { name: pane, exact: true })
         );
 
       // The active tab button is highlighted with the accent border colour.
@@ -99,21 +99,21 @@ test.describe('dashboard smoke', () => {
   test('desktop pane URLs survive reload, Back/Forward and Settings return', async ({
     page,
   }) => {
-    await page.getByRole('button', { name: 'Calendar', exact: true }).click();
+    await page.getByRole('tab', { name: 'Calendar', exact: true }).click();
     await expect(page).toHaveURL(/#\/today\/calendar$/);
     await page.reload();
     await expect(
-      page.getByRole('button', { name: 'Calendar', exact: true })
+      page.getByRole('tab', { name: 'Calendar', exact: true })
     ).toHaveAttribute('aria-current', 'page');
     await page.getByRole('button', { name: 'Train', exact: true }).click();
     await expect(page).toHaveURL(/#\/train$/);
     await page.goBack();
     await expect(
-      page.getByRole('button', { name: 'Calendar', exact: true })
+      page.getByRole('tab', { name: 'Calendar', exact: true })
     ).toHaveAttribute('aria-current', 'page');
     await page.goForward();
     await expect(
-      page.getByRole('button', { name: 'Plan', exact: true })
+      page.getByRole('tab', { name: 'Plan', exact: true })
     ).toHaveAttribute('aria-current', 'page');
     await page.getByRole('button', { name: 'Settings', exact: true }).click();
     await page.getByRole('button', { name: 'Back', exact: true }).click();

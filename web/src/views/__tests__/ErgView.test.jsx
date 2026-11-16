@@ -16,7 +16,7 @@ vi.mock('../../hooks/useAnchors.js', () => ({
 
 import ErgView from '../ErgView.jsx';
 
-function renderView() {
+function renderView(props = {}) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
@@ -24,7 +24,7 @@ function renderView() {
     React.createElement(
       QueryClientProvider,
       { client },
-      React.createElement(ErgView, { tsbNow: 5, ctlNow: 50 })
+      React.createElement(ErgView, { tsbNow: 5, ctlNow: 50, ...props })
     )
   );
 }
@@ -278,7 +278,12 @@ describe('ErgView', () => {
 
     it('shows insufficient data in both trend sections with no sessions', () => {
       useErgSessionsMock.mockReturnValue({ data: [], isLoading: false });
-      const { container } = renderView();
+      const onLog = vi.fn();
+      const { container, getAllByRole } = renderView({ onLog });
+      for (const button of getAllByRole('button', { name: 'Log a session' })) {
+        fireEvent.click(button);
+      }
+      expect(onLog).toHaveBeenCalledTimes(2);
       const text = container.textContent;
       expect(text.match(/insufficient data/gi)).toHaveLength(2);
       expect(text).toContain(`0 of 3 ${POWER_GAP}`);
@@ -290,7 +295,12 @@ describe('ErgView', () => {
         data: powered(2, { hr: 125 }),
         isLoading: false,
       });
-      const { container } = renderView();
+      const onLog = vi.fn();
+      const { container, getAllByRole } = renderView({ onLog });
+      for (const button of getAllByRole('button', { name: 'Log a session' })) {
+        fireEvent.click(button);
+      }
+      expect(onLog).toHaveBeenCalledTimes(2);
       const text = container.textContent;
       expect(text.match(/insufficient data/gi)).toHaveLength(2);
       expect(text).toContain(`2 of 3 ${POWER_GAP}`);

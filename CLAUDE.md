@@ -179,10 +179,10 @@ Projects `erg-dashboard` (app) and `erg-dashboard-functions` (edge functions).
 - Names carry the issue number: branch `<type>/<issue>-<slug>` off a freshly fetched
   `origin/main`; PR title `<type>(<scope>): <change> (#<issue>)`, CI-enforced; issue titles
   plain, no prefix. Rebase, never merge; `--force-with-lease` only. `main` blocks direct pushes and stale branches.
-- Before pushing: `npm run build`, `npm test`, `npm run lint`, `npm run format:check`.
-  Never `--no-verify` the pre-commit hook without an explicit reason. Coverage
-  thresholds live only in `web/vite.config.js` and only go up. Derive the required
-  checks as `steward` describes; never quote a list.
+- Before pushing: `npm run build`, `npm run lint`, `npm run format:check`; `.husky/pre-push`
+  runs the tests the diff reaches (`npx vitest run --changed origin/main --passWithNoTests`).
+  CI runs the full suite and is the gate. Never `--no-verify` without an explicit reason. Coverage
+  thresholds live only in `web/vite.config.js`, only go up. Required checks: per `steward`, never a list.
 - Never hardcode credentials (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`). Never edit
   agent files in `.claude/agents/` or `.claude/agent-library/` (erg behaviour is applied
   at spawn time). CI, Vercel and edge-function runs post to `#build` in Slack.

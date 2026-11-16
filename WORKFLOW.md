@@ -47,8 +47,30 @@ Every issue carries a stack-ranked priority (`P0`–`P3`), a `type:` label, and 
 | **Type** | `type: epic`, `type: feature`, `type: bug`, `type: refactor`, `type: spike`, `type: chore`, `type: docs` | What kind of work it is |
 | **Area** | `area: anatomy`, `area: coherence`, `area: factory`, `area: backend`, `area: mobile`, `area: design`, `area: a11y` | Subsystem domain (mirrors Kepler Task Groups) |
 | **Automation state** | `routine-managed`, `needs-attention` | Set by workflows, never by hand: a scheduled Routine owns the issue; escalated when it misses its window (see *Doctrine SHA*) |
+| **Epic** | `epic: <n> <name>`, e.g. `epic: 432 roadmap` | Set by `epic-labels.yml`, never by hand: which epic an issue or PR belongs to (see *Epics*) |
 
 Priority is **relative and re-sorted often** — it's a stack rank, not a promise.
+
+### Epics
+
+An epic is an issue labelled `type: epic`, and **its issue number is the epic's
+one identifier**. There is no second numbering scheme for its slices.
+
+- **File each slice as a sub-issue of the epic** (*Create sub-issue* on the epic,
+  or `issue_write` with `parent_issue_number` from a session). The sub-issue
+  hierarchy is the source of truth: the epic shows its own progress, and an agent
+  reads the whole epic in one call. A "Part of #n" line in a body links nothing.
+- **`epic-labels.yml` copies the epic's label onto every descendant and onto each
+  open PR whose title names one** (`epic: 432 roadmap`). Sub-issues do not show
+  in the issue or PR lists; the label does, so one glance or one filter finds an
+  epic's whole body of work. Never apply or remove an `epic:` label by hand — the
+  next run puts it back the way the hierarchy says.
+- **Titles do not carry the epic number.** A PR title ends with its slice's
+  issue number (§3) and nothing else.
+- Making an *existing* issue a sub-issue fires no workflow event, so the label
+  arrives with the daily run. Dispatch `epic-labels.yml` to have it at once.
+- A new epic works with no setup: it is given a bare `epic: <n>` label. Give it
+  a name in `.github/labels.yml` when it has one.
 
 ### Ideas that start in Discussions
 

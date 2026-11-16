@@ -174,7 +174,7 @@ Projects `erg-dashboard` (app) and `erg-dashboard-functions` (edge functions).
 
 ## Shipping a change
 
-**GitHub Issue → branch → PR → CI → `main`** (`WORKFLOW.md`); status: "Split IQ" board.
+**GitHub Issue → branch → PR → CI → `main`** (`WORKFLOW.md`); status: "Split IQ" board. An epic's slices are its sub-issues.
 
 - Names carry the issue number: branch `<type>/<issue>-<slug>` off a freshly fetched
   `origin/main`; PR title `<type>(<scope>): <change> (#<issue>)`, CI-enforced; issue titles

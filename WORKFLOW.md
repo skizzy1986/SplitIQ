@@ -53,9 +53,19 @@ Priority is **relative and re-sorted often** — it's a stack rank, not a promis
 
 ### Epics
 
+An epic is an **outcome that needs more than one PR and has a finish line**: one
+sentence in its body saying when it is done. Every piece of work toward it is a
+sub-issue. A theme with no end is an `area:` label, not an epic. A roadmap horizon
+or track is a phase, recorded in the board's **Horizon** field, not an epic. (Applied
+2026-11-16: #382 went from `type: epic` to `type: feature`, its work being #432's H1;
+the Language track got its epic, #597.)
+
 An epic is an issue labelled `type: epic`, and **its issue number is the epic's
 one identifier**. There is no second numbering scheme for its slices.
 
+- **An epic gets Start and Target on the board when it is filed** (`project-board.yml`,
+  action `set`), so it draws as one bar on the Roadmap view (*Views*, below). Target is a
+  working target, revised as work lands.
 - **File each slice as a sub-issue of the epic** (*Create sub-issue* on the epic,
   or `issue_write` with `parent_issue_number` from a session). The sub-issue
   hierarchy is the source of truth: the epic shows its own progress, and an agent
@@ -71,22 +81,44 @@ one identifier**. There is no second numbering scheme for its slices.
   arrives with the daily run. Dispatch `epic-labels.yml` to have it at once.
 - A new epic works with no setup: it is given a bare `epic: <n>` label. Give it
   a name in `.github/labels.yml` when it has one.
+- **A new epic label, or a renamed one, goes on Kepler's skip list:** Kepler →
+  Automations → *Plan issues assigned to me* → Edit → *Without labels*. Miss it and
+  the epic's sub-issues start getting their own tasks again (*Picking up work in
+  Kepler*, rule 2).
 
 ### Picking up work in Kepler
 
 Work is grouped in three places: the epic (sub-issues), the labels, and Kepler task
-groups. These rules say how they fit together (decided 2026-11-16, #593).
+groups. These rules say how they fit together (decided 2026-11-16, #593; rule 1
+revised the same day, #599, after one task per sub-issue left many task pages and
+every session starting cold).
 
-1. **A task starts on a sub-issue, never on an epic.** An epic is not a unit of
-   work. A task started on one cuts a `kepler/<epic>-…` branch that no single PR can
-   close, which is how #565 and #582 both ended up closing #520. You can still see
-   the epic from a task: its sub-issues carry the `epic:` label (*Epics* above), and
-   each epic is a tab in the Kepler Dashboard. If the work has no sub-issue yet, file
-   one under the epic first.
-2. **Picking up an issue means assigning it to yourself.** Kepler's *Plan issues
-   assigned to me* automation then makes the Plan task and its branch (§2). The
-   assignee is the claim (#543): an assigned issue is taken, an unassigned one is
-   free. Unassign yourself if you drop it.
+1. **An epic gets one Kepler task; each sub-issue is a worktree inside it.** When an
+   epic spans roadmap horizons it gets **one task per horizon** instead, so no task
+   page gets overwhelming (#432 → one task for H0, one for H1). The task links the
+   epic and sits in the group for the epic's area (rule 3).
+   - Each sub-issue gets its own worktree in that task, on its own branch
+     `kepler/<sub-issue>-<type>/<slug>`, with its own session and its own PR whose
+     title ends `(#<sub-issue>)`. One PR per issue still holds. **The branch is named
+     after the sub-issue, never the epic:** a `kepler/<epic>-…` branch is one no single
+     PR can close, which is how #565 and #582 both ended up closing #520.
+   - Work through it in order: the next slice branches from `main` once the last one
+     merges, or from the last one's branch to keep going before it merges (record the
+     stacked target with `worktree_update`).
+   - The task's notes carry what each slice learned into the next session. That is why
+     it is one task.
+   - If the work has no sub-issue yet, file one under the epic first. Each epic is also
+     a tab in the Kepler Dashboard.
+2. **Picking up an issue means assigning it to yourself.** The assignee is the claim
+   (#543): an assigned issue is taken, an unassigned one is free. Unassign yourself if
+   you drop it.
+   - A **standalone issue** gets its own task: Kepler's *Plan issues assigned to me*
+     automation makes the Plan task and its branch (§2).
+   - A **sub-issue** does not. The automation skips it because it lists **every epic's
+     label under *Without labels*** (its form cannot take a raw `no:parent-issue`
+     filter). Picking up a sub-issue means assigning yourself and adding its worktree
+     to the epic's (or horizon's) task. Filing or renaming an epic label means
+     updating that list (*Epics* above).
 3. **Each area has one Kepler task group**, named exactly as below:
 
    | Area label | Kepler task group |
@@ -101,8 +133,8 @@ groups. These rules say how they fit together (decided 2026-11-16, #593).
 
    Kepler only creates a group when the first task goes into it, so a group can be
    missing until its area has work. Create it with the name above, spelled exactly.
-   Tasks made by automation (the stage 6 review) arrive with no group. Move each one
-   into the group for its PR's `area:` label.
+   A review runs when Scott starts one, as a session in the epic's task or the issue's
+   task (Kepler's *SplitIQ Stage 6 PR Review* automation was deleted 2026-11-16).
 4. **One source of truth per dimension.** Anything else showing that dimension is a
    copy. Where they disagree, fix the copy.
 
@@ -169,7 +201,8 @@ git push --force-with-lease origin <branch>   # safe force — never plain --for
 One issue per branch keeps PRs small and reviewable. If a branch starts solving
 two issues, split it.
 
-**A Kepler task arrives with its branch and worktree already cut** —
+**A Kepler task, or a sub-issue's worktree in its epic's task (§1), arrives with its
+branch and worktree already cut** —
 `kepler/<issue>-<type>/<slug>`, or `kepler/<type>/<slug>` with no issue. Use it as it
 is: do not cut a second branch or rename it. Rebase it before the first commit; it is
 only as fresh as the task. No workflow reads a branch prefix (every `push` trigger is
@@ -318,7 +351,7 @@ Four custom fields carry the product roadmap ([`docs/ROADMAP.md`](docs/ROADMAP.m
 |---|---|---|---|
 | **Horizon** | single select | `H0 Foundations` · `H1 Squat` · `H2 Movements` · `H3 Coach surfaces` · `Maintenance` | Which roadmap horizon the item belongs to; `Maintenance` is everything that is not roadmap work |
 | **Size** | single select | `S` · `M` · `L` | ≤ half a day · ≈ a day · 2+ days, the roadmap's own scale |
-| **Start** / **Target** | date | `YYYY-MM-DD` | The **horizon's planning window**, not a per-item commitment: H0 2026-11-07 → 2026-12-19, H1 2026-11-21 → 2027-02-28. Later horizons get dates when they are approved. |
+| **Start** / **Target** | date | `YYYY-MM-DD` | On an **epic**, its own run, set when it is filed; Target is a working target, revised as work lands (§1 *Epics*). On other items, the **horizon's planning window**, not a per-item commitment: H0 2026-11-07 → 2026-12-19, H1 2026-11-21 → 2027-02-28. Later horizons get dates when they are approved. |
 
 `project-board.yml` grew two actions for them. `fields` creates any of the four that is
 missing (idempotent). `set` takes one line per item and sets any field by name, Status
@@ -331,21 +364,24 @@ pending run**, so several dispatches queued at once cancel all but the last:
 
 `list` now prints the four columns beside Status.
 
-### Views worth having (owner clicks; views cannot be created through the API)
+### Views (owner clicks; views cannot be created through the API)
 
-1. **Board** by Status — the existing view; the day-to-day answer to "what's happening".
-2. **Roadmap** — layout *Roadmap*, date fields *Start → Target*, group by **Horizon**,
-   markers on *Target*. Filter `-horizon:Maintenance` so only roadmap work draws.
-3. **Epic tree** — layout *Table*, group by **Parent issue**, columns Status · Horizon ·
-   Size · Target. Sub-issues of #412 and #432 fall into their epics automatically.
-4. **Now** — layout *Table*, filter `is:open label:P0,P1`, group by **Assignees**,
-   sorted by Horizon. The short list for a 30-minute gap: the unassigned group is what
-   is free to pick up. (It filtered on Ready and In progress until those hand moves were
-   retired.)
+The board has five views (set 2026-11-16, #599). The old Table, Status Board and My
+items views were deleted.
+
+| Tab | Layout | Filter | Group / sort | Answers |
+|---|---|---|---|---|
+| **Now** | Table | `is:open label:P0,P1` | Group **Assignees**, sort **Horizon** | What is claimed, and what is free (*No assignees*) |
+| **Epics** | Table | `is:open` | Group **Parent issue** | Each epic's open sub-issues and their status |
+| **In review** | Table | `is:open status:"In review"` | (none) | What waits on a PR to land |
+| **Roadmap** | Roadmap | `label:"type: epic"` (no `is:open`, so finished epics stay as history) | Dates **Start → Target**, markers on Target, sort by Start, column **Sub-issues progress** | One bar per epic: how long it runs and how far it has got |
+| **Bugs** | Table | `is:open label:"type: bug"` | Sort **Labels** | What is broken |
+
+The Ready and In progress columns are no longer kept (#593), so no view filters on them.
 
 The built-in *Auto-add sub-issues* workflow (on) means a new sub-issue of an epic lands
-on the board with its parent set; give it a Horizon and Size with `set` and it appears in
-every view above.
+on the board with its parent set, so it appears under its epic in the Epics view; give it
+a Horizon and Size with `set`.
 
 > **Built-in workflows (configured 2026-11-05, *Project → ⋯ → Workflows*).**
 > **On:** Auto-add to project (repo `SplitIQ`, filter `is:issue,pr is:open`) ·

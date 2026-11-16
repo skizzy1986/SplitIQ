@@ -96,3 +96,7 @@
 - name: 'epic: 382 squat v1'
   color: '1f6feb'
   description: 'Sub-issues of #382 and their PRs. Set by epic-labels.yml, never by hand.'
+- name: 'epic: 597 spanish'
+  color: 'c5a000'
+  description: 'Sub-issues of #597 and their PRs. Set by epic-labels.yml, never by hand.'
+  aliases: ['epic: 597']

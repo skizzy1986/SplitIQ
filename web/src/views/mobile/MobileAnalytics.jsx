@@ -12,7 +12,9 @@ import { dateLocale, displayLogDate } from '../../utils/displayLocale.js';
 import { useSessions } from '../../hooks/useSessions.js';
 import { useTSSHistory } from '../../hooks/useTSSHistory.js';
 import { useAnchors } from '../../hooks/useAnchors.js';
-import { toISODate } from '../../utils/dateFormat.js';
+import { toISODate, toLogDate } from '../../utils/dateFormat.js';
+import ScreenHeader from '../../components/ScreenHeader.jsx';
+import Button from '../../components/Button.jsx';
 import { COMPLETED_STATUSES } from '../../constants/sessionStatus.js';
 import { FONT } from '../../constants/type.js';
 
@@ -25,7 +27,11 @@ function typeColor(type) {
   return THEME.muted;
 }
 
-export default function MobileAnalytics() {
+export default function MobileAnalytics({
+  onOpenHistory,
+  onOpenTrain,
+  heading = true,
+}) {
   const { t, i18n } = useLingui();
   const lang = i18n.locale;
   const tsbSignal = (tsb) => {
@@ -93,6 +99,7 @@ export default function MobileAnalytics() {
 
   return (
     <div style={{ padding: '16px 16px 24px', background: THEME.bg }}>
+      {heading && <ScreenHeader title={<Trans>Load</Trans>} />}
       <div
         style={{
           display: 'flex',
@@ -143,6 +150,11 @@ export default function MobileAnalytics() {
         >
           {signal}
         </div>
+        {loadUnavailable && (
+          <Button onClick={() => onOpenHistory?.()}>
+            <Trans>Open History</Trans>
+          </Button>
+        )}
       </div>
 
       <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
@@ -339,7 +351,7 @@ export default function MobileAnalytics() {
       </div>
 
       {(() => {
-        const today = new Date().toISOString().slice(0, 10);
+        const today = toISODate(toLogDate(new Date()));
         const upcoming = (sessionsData ?? [])
           .filter((s) => s.status === 'planned' && toISODate(s.date) >= today)
           .sort((a, b) => (toISODate(a.date) < toISODate(b.date) ? -1 : 1))
@@ -359,6 +371,9 @@ export default function MobileAnalytics() {
             {upcoming.length === 0 ? (
               <div style={{ fontSize: 12, color: THEME.muted }}>
                 <Trans>No upcoming sessions</Trans>
+                <Button onClick={() => onOpenTrain?.()}>
+                  <Trans>Open Train</Trans>
+                </Button>
               </div>
             ) : (
               upcoming.map((s) => (

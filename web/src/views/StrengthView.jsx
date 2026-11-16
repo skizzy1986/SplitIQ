@@ -9,7 +9,10 @@ import {
 } from 'recharts';
 import StrengthTooltip from '../components/StrengthTooltip.jsx';
 import LogEntry from '../components/LogEntry.jsx';
+import { Trans } from '@lingui/react/macro';
 import { THEME } from '../constants/theme.js';
+import ScreenHeader from '../components/ScreenHeader.jsx';
+import Button from '../components/Button.jsx';
 import { alpha } from '../utils/themeCss.js';
 import { FONT } from '../constants/type.js';
 import { useLiftHistory } from '../hooks/useLiftHistory.js';
@@ -153,7 +156,7 @@ function LiftTrend({ lifts, active, onSelect }) {
   );
 }
 
-export default function StrengthView({ strengthSessions }) {
+export default function StrengthView({ strengthSessions, onLog }) {
   const [activeLift, setActiveLift] = useState(null);
   const { data, isPending, isError } = useLiftHistory();
 
@@ -161,9 +164,23 @@ export default function StrengthView({ strengthSessions }) {
   if (isPending) {
     body = <div style={statusStyle}>Loading strength history…</div>;
   } else if (isError) {
-    body = <div style={statusStyle}>Strength history unavailable.</div>;
+    body = (
+      <div style={statusStyle}>
+        Strength history unavailable.
+        <Button onClick={() => onLog?.()}>
+          <Trans>Log a session</Trans>
+        </Button>
+      </div>
+    );
   } else if (data.setCount === 0) {
-    body = <div style={statusStyle}>No strength sets logged yet.</div>;
+    body = (
+      <div style={statusStyle}>
+        No strength sets logged yet.
+        <Button onClick={() => onLog?.()}>
+          <Trans>Log a session</Trans>
+        </Button>
+      </div>
+    );
   } else if (data.scoredCount === 0) {
     body = (
       <div style={statusStyle}>
@@ -182,6 +199,7 @@ export default function StrengthView({ strengthSessions }) {
 
   return (
     <>
+      <ScreenHeader title={<Trans>Strength</Trans>} />
       {/* e1RM chart */}
       <div
         style={{

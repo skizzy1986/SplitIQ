@@ -40,7 +40,7 @@ export function PaceTooltip({ active, payload }) {
         <span style={{ fontSize: 10, color: THEME.muted }}> /500m</span>
       </div>
       <div style={{ color: THEME.neutralAccent, fontSize: 10, marginTop: 2 }}>
-        {d.avg_watts != null ? `${d.avg_watts}W` : '—'}
+        {d.avg_watts != null ? `${d.avg_watts}W` : ''}
         {d.zone ? ` · ${d.zone}` : ''}
       </div>
     </div>

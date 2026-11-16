@@ -9,6 +9,7 @@ import { useTSSHistory } from '../../hooks/useTSSHistory.js';
 import { calcTrainingLoad } from '../../utils/trainingLoad.js';
 import StravaConnectPanel from '../../components/StravaConnectPanel.jsx';
 import SegmentedControl from '../../components/SegmentedControl.jsx';
+import ScreenHeader from '../../components/ScreenHeader.jsx';
 import { THEME } from '../../constants/theme.js';
 import { SPACE } from '../../constants/tokens.js';
 
@@ -43,8 +44,8 @@ export const PANE_MESSAGES = {
 
 export { PANES };
 
-function ErgPane() {
-  const { data: tssHistory, isLoading } = useTSSHistory();
+function ErgPane({ onLog }) {
+  const { data: tssHistory } = useTSSHistory();
   const load = useMemo(
     () => (tssHistory?.length ? calcTrainingLoad(tssHistory) : []),
     [tssHistory]
@@ -54,18 +55,26 @@ function ErgPane() {
     <ErgView
       tsbNow={latest ? latest.tsb : null}
       ctlNow={latest ? latest.ctl : null}
-      loadPending={isLoading}
+      heading={false}
+      onLog={onLog}
     />
   );
 }
 
-export default function MobileProgress() {
+export default function MobileProgress({ onOpenTrain }) {
   const { t, i18n } = useLingui();
   const [pane, setPane] = useState(PANES[0].id);
 
-  let body = <MobileAnalytics />;
-  if (pane === 'erg') body = <ErgPane />;
-  else if (pane === 'strength') body = <MobileStrength />;
+  let body = (
+    <MobileAnalytics
+      heading={false}
+      onOpenHistory={() => setPane('history')}
+      onOpenTrain={() => onOpenTrain?.()}
+    />
+  );
+  if (pane === 'erg') body = <ErgPane onLog={() => onOpenTrain?.()} />;
+  else if (pane === 'strength')
+    body = <MobileStrength onLog={() => onOpenTrain?.()} />;
   else if (pane === 'history') body = <MobileSessionLog />;
 
   return (
@@ -76,6 +85,7 @@ export default function MobileProgress() {
         padding: `0 ${SPACE.lg}px`,
       }}
     >
+      <ScreenHeader title={i18n._(PANE_MESSAGES[pane])} />
       <SegmentedControl
         label={t`Progress`}
         value={pane}

@@ -34,7 +34,7 @@ describe('MobileStrength', () => {
     });
     render(<MobileStrength />);
     expect(screen.getByText('Barbell Squat')).toBeInTheDocument();
-    expect(screen.getByText('—')).toBeInTheDocument();
+    expect(screen.queryByText('—')).not.toBeInTheDocument();
     expect(screen.getByText('33.0kg')).toBeInTheDocument();
     expect(screen.queryByText(EMPTY)).not.toBeInTheDocument();
   });

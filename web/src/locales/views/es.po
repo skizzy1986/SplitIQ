@@ -202,6 +202,11 @@ msgstr "PRESIÓN ARTERIAL"
 msgid "BLOODS · LIPID PANEL"
 msgstr "EXÁMENES DE SANGRE · PERFIL LIPÍDICO"
 
+#. Desktop body screen heading
+#: src/views/RecoveryView.jsx
+msgid "Body"
+msgstr "Cuerpo"
+
 #. Chart title, all capitals; kg stays as is
 #: src/views/mobile/MobileRecovery.jsx
 msgid "BODYWEIGHT — 14 DAYS (kg)"
@@ -209,6 +214,7 @@ msgstr "PESO CORPORAL — 14 DÍAS (kg)"
 
 #. Desktop Today pane
 #: src/App.jsx
+#: src/views/CalendarView.jsx
 msgid "Calendar"
 msgstr "Calendario"
 
@@ -499,6 +505,7 @@ msgstr "Fatiga alta: la carga reciente supera de lejos tu estado físico"
 #. Desktop Progress pane
 #. Progress sub-tab: past sessions
 #: src/App.jsx
+#: src/views/LogView.jsx
 #: src/views/mobile/MobileProgress.jsx
 msgid "History"
 msgstr "Historial"
@@ -576,6 +583,7 @@ msgstr "En vivo"
 #. Desktop Progress pane
 #. Progress sub-tab: training load
 #: src/App.jsx
+#: src/views/mobile/MobileAnalytics.jsx
 #: src/views/mobile/MobileProgress.jsx
 msgid "Load"
 msgstr "Carga"
@@ -593,6 +601,12 @@ msgstr "Cargando signos vitales…"
 #: src/views/mobile/MobileSessionLog.jsx
 msgid "Loading…"
 msgstr "Cargando…"
+
+#: src/views/CalendarView.jsx
+#: src/views/mobile/MobileSessionLog.jsx
+#: src/views/PlanView.jsx
+msgid "Log a session"
+msgstr "Registrar una sesión"
 
 #: src/views/mobile/MobileTrain.jsx
 msgid "Log sets against today’s template"
@@ -678,7 +692,9 @@ msgid "No metrics logged for this session."
 msgstr "No hay métricas registradas para esta sesión."
 
 #: src/views/mobile/MobileAnalytics.jsx
+#: src/views/mobile/MobileRecovery.jsx
 #: src/views/mobile/MobileToday.jsx
+#: src/views/RecoveryView.jsx
 msgid "No reading"
 msgstr "Sin lectura"
 
@@ -740,6 +756,22 @@ msgid "Older activities are fetched a page at a time to stay inside Strava rate 
 msgstr "Las actividades más antiguas se traen una página a la vez para no superar los límites de uso de Strava."
 
 #: src/views/mobile/MobileToday.jsx
+#: src/views/OverviewView.jsx
+msgid "Open Body"
+msgstr "Abrir Cuerpo"
+
+#: src/views/mobile/MobileAnalytics.jsx
+#: src/views/OverviewView.jsx
+msgid "Open History"
+msgstr "Abrir Historial"
+
+#: src/views/mobile/MobileRecovery.jsx
+#: src/views/RecoveryView.jsx
+msgid "Open Settings"
+msgstr "Abrir Configuración"
+
+#: src/views/mobile/MobileAnalytics.jsx
+#: src/views/mobile/MobileToday.jsx
 msgid "Open Train"
 msgstr "Abrir Entrenar"
 
@@ -760,6 +792,7 @@ msgstr "Resumen"
 
 #. Desktop Train pane
 #: src/App.jsx
+#: src/views/PlanView.jsx
 msgid "Plan"
 msgstr "Plan"
 
@@ -970,6 +1003,7 @@ msgstr "SESIONES REGISTRADAS"
 #: src/App.jsx
 #: src/components/mobile/MobileTopBar.jsx
 #: src/views/mobile/MobileSettings.jsx
+#: src/views/SettingsView.jsx
 msgid "Settings"
 msgstr "Configuración"
 
@@ -1142,6 +1176,7 @@ msgstr "Falló la sincronización. Inténtalo de nuevo."
 
 #. Button
 #: src/components/StravaConnectPanel.jsx
+#: src/views/mobile/MobileRecovery.jsx
 msgid "Sync now"
 msgstr "Sincronizar ahora"
 
@@ -1233,6 +1268,8 @@ msgid "THIS WEEK"
 msgstr "ESTA SEMANA"
 
 #: src/views/mobile/MobileSettings.jsx
+#: src/views/mobile/MobileToday.jsx
+#: src/views/OverviewView.jsx
 msgid "Today"
 msgstr "Hoy"
 

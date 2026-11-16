@@ -4,12 +4,14 @@ import LogEntry from '../components/LogEntry.jsx';
 import { SRPE_GUIDE } from '../constants/trainingConfig.js';
 import { SRPE_GUIDE_MESSAGES } from '../constants/srpeGuideMessages.js';
 import { THEME } from '../constants/theme.js';
+import ScreenHeader from '../components/ScreenHeader.jsx';
 
 // ── LOG VIEW (session log form + sRPE reference + logged history) ──
 export default function LogView({ logDisplaySessions, isWide, onSaved }) {
   const { i18n } = useLingui();
   return (
     <>
+      <ScreenHeader title={<Trans>History</Trans>} />
       <div
         style={{
           background: THEME.raised,

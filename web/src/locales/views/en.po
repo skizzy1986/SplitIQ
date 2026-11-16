@@ -202,6 +202,11 @@ msgstr "BLOOD PRESSURE"
 msgid "BLOODS · LIPID PANEL"
 msgstr "BLOODS · LIPID PANEL"
 
+#. Desktop body screen heading
+#: src/views/RecoveryView.jsx
+msgid "Body"
+msgstr "Body"
+
 #. Chart title, all capitals; kg stays as is
 #: src/views/mobile/MobileRecovery.jsx
 msgid "BODYWEIGHT — 14 DAYS (kg)"
@@ -209,6 +214,7 @@ msgstr "BODYWEIGHT — 14 DAYS (kg)"
 
 #. Desktop Today pane
 #: src/App.jsx
+#: src/views/CalendarView.jsx
 msgid "Calendar"
 msgstr "Calendar"
 
@@ -499,6 +505,7 @@ msgstr "High fatigue — recent load well above fitness"
 #. Desktop Progress pane
 #. Progress sub-tab: past sessions
 #: src/App.jsx
+#: src/views/LogView.jsx
 #: src/views/mobile/MobileProgress.jsx
 msgid "History"
 msgstr "History"
@@ -576,6 +583,7 @@ msgstr "Live"
 #. Desktop Progress pane
 #. Progress sub-tab: training load
 #: src/App.jsx
+#: src/views/mobile/MobileAnalytics.jsx
 #: src/views/mobile/MobileProgress.jsx
 msgid "Load"
 msgstr "Load"
@@ -593,6 +601,12 @@ msgstr "Loading vitals…"
 #: src/views/mobile/MobileSessionLog.jsx
 msgid "Loading…"
 msgstr "Loading…"
+
+#: src/views/CalendarView.jsx
+#: src/views/mobile/MobileSessionLog.jsx
+#: src/views/PlanView.jsx
+msgid "Log a session"
+msgstr "Log a session"
 
 #: src/views/mobile/MobileTrain.jsx
 msgid "Log sets against today’s template"
@@ -678,7 +692,9 @@ msgid "No metrics logged for this session."
 msgstr "No metrics logged for this session."
 
 #: src/views/mobile/MobileAnalytics.jsx
+#: src/views/mobile/MobileRecovery.jsx
 #: src/views/mobile/MobileToday.jsx
+#: src/views/RecoveryView.jsx
 msgid "No reading"
 msgstr "No reading"
 
@@ -740,6 +756,22 @@ msgid "Older activities are fetched a page at a time to stay inside Strava rate 
 msgstr "Older activities are fetched a page at a time to stay inside Strava rate limits."
 
 #: src/views/mobile/MobileToday.jsx
+#: src/views/OverviewView.jsx
+msgid "Open Body"
+msgstr "Open Body"
+
+#: src/views/mobile/MobileAnalytics.jsx
+#: src/views/OverviewView.jsx
+msgid "Open History"
+msgstr "Open History"
+
+#: src/views/mobile/MobileRecovery.jsx
+#: src/views/RecoveryView.jsx
+msgid "Open Settings"
+msgstr "Open Settings"
+
+#: src/views/mobile/MobileAnalytics.jsx
+#: src/views/mobile/MobileToday.jsx
 msgid "Open Train"
 msgstr "Open Train"
 
@@ -760,6 +792,7 @@ msgstr "Overview"
 
 #. Desktop Train pane
 #: src/App.jsx
+#: src/views/PlanView.jsx
 msgid "Plan"
 msgstr "Plan"
 
@@ -970,6 +1003,7 @@ msgstr "SESSIONS LOGGED"
 #: src/App.jsx
 #: src/components/mobile/MobileTopBar.jsx
 #: src/views/mobile/MobileSettings.jsx
+#: src/views/SettingsView.jsx
 msgid "Settings"
 msgstr "Settings"
 
@@ -1142,6 +1176,7 @@ msgstr "Sync failed. Try again."
 
 #. Button
 #: src/components/StravaConnectPanel.jsx
+#: src/views/mobile/MobileRecovery.jsx
 msgid "Sync now"
 msgstr "Sync now"
 
@@ -1233,6 +1268,8 @@ msgid "THIS WEEK"
 msgstr "THIS WEEK"
 
 #: src/views/mobile/MobileSettings.jsx
+#: src/views/mobile/MobileToday.jsx
+#: src/views/OverviewView.jsx
 msgid "Today"
 msgstr "Today"
 

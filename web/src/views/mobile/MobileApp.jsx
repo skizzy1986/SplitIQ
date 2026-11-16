@@ -128,6 +128,7 @@ export default function MobileApp() {
         onStartSession={() => {
           navigate('train');
         }}
+        onOpenBody={() => navigate('body')}
       />
     );
   else if (route === 'settings')
@@ -140,8 +141,9 @@ export default function MobileApp() {
     );
   else if (route === 'train')
     content = <MobileTrain mode={trainMode} onMode={setTrainMode} />;
-  else if (route === 'progress') content = <MobileProgress />;
-  else content = <MobileRecovery />;
+  else if (route === 'progress')
+    content = <MobileProgress onOpenTrain={() => navigate('train')} />;
+  else content = <MobileRecovery onOpenSettings={openSettings} />;
 
   return (
     <div

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Trans } from '@lingui/react/macro';
 import {
   LineChart,
   Line,
@@ -12,6 +13,8 @@ import ErgTooltip from '../components/ErgTooltip.jsx';
 import LogEntry from '../components/LogEntry.jsx';
 import PaceTrendChart from '../components/PaceTrendChart.jsx';
 import { FTP_TEST, derivePaceZones } from '../constants/trainingConfig.js';
+import ScreenHeader from '../components/ScreenHeader.jsx';
+import Button from '../components/Button.jsx';
 import {
   MIN_TREND_POINTS,
   workingPowerSeries,
@@ -65,7 +68,7 @@ function withinLast7Days(dateStr) {
   return d >= cutoff && d <= now;
 }
 
-export default function ErgView({ tsbNow, ctlNow }) {
+export default function ErgView({ tsbNow, ctlNow, onLog, heading = true }) {
   const [tidScope, setTidScope] = useState(30);
   const ergQuery = useErgSessions();
   const sessions = ergQuery.data ?? [];
@@ -111,6 +114,7 @@ export default function ErgView({ tsbNow, ctlNow }) {
 
   return (
     <>
+      {heading && <ScreenHeader title={<Trans>Erg</Trans>} />}
       {/* ── SECTION 1 · PERFORMANCE SUMMARY ── */}
       <div style={card}>
         <div
@@ -133,7 +137,7 @@ export default function ErgView({ tsbNow, ctlNow }) {
           <div style={statCard}>
             <div style={statLabel}>FITNESS (CTL)</div>
             <div style={{ fontSize: 15, fontWeight: 700, color: THEME.accent }}>
-              {ctlNow != null ? Math.round(ctlNow) : '—'}
+              {ctlNow != null ? Math.round(ctlNow) : <Trans>No reading</Trans>}
             </div>
           </div>
           <div style={statCard}>
@@ -141,7 +145,11 @@ export default function ErgView({ tsbNow, ctlNow }) {
             <div
               style={{ fontSize: 15, fontWeight: 700, color: THEME.positive }}
             >
-              {eff.length ? eff.at(-1).wpb.toFixed(2) : '—'}
+              {eff.length ? (
+                eff.at(-1).wpb.toFixed(2)
+              ) : (
+                <Trans>No reading</Trans>
+              )}
             </div>
           </div>
           <div style={statCard}>
@@ -155,7 +163,7 @@ export default function ErgView({ tsbNow, ctlNow }) {
           <div style={statCard}>
             <div style={statLabel}>FORM (TSB)</div>
             <div style={{ fontSize: 15, fontWeight: 700, color: tsbColor }}>
-              {tsbNow != null ? tsbNow : '—'}
+              {tsbNow != null ? tsbNow : <Trans>No reading</Trans>}
             </div>
           </div>
         </div>
@@ -237,6 +245,9 @@ export default function ErgView({ tsbNow, ctlNow }) {
           <div style={insufficient}>
             Insufficient data — {power.length} of {MIN_TREND_POINTS} sessions
             with power logged.
+            <Button onClick={() => onLog?.()}>
+              <Trans>Log a session</Trans>
+            </Button>
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={180}>
@@ -349,6 +360,9 @@ export default function ErgView({ tsbNow, ctlNow }) {
           <div style={insufficient}>
             Insufficient data — {eff.length} of {MIN_TREND_POINTS} sessions with
             power and heart rate.
+            <Button onClick={() => onLog?.()}>
+              <Trans>Log a session</Trans>
+            </Button>
           </div>
         ) : (
           <div

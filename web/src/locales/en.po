@@ -47,6 +47,10 @@ msgstr "EMAIL"
 msgid "Enter email and password."
 msgstr "Enter email and password."
 
+#: src/views/ErgView.jsx
+msgid "Erg"
+msgstr "Erg"
+
 #. Splash word cycle, one discipline, all capitals
 #: src/components/SplashScreen.jsx
 msgid "ERG"
@@ -56,6 +60,16 @@ msgstr "ERG"
 #: src/AuthGate.jsx
 msgid "Loading…"
 msgstr "Loading…"
+
+#: src/views/ErgView.jsx
+#: src/views/mobile/MobileStrength.jsx
+#: src/views/StrengthView.jsx
+msgid "Log a session"
+msgstr "Log a session"
+
+#: src/views/ErgView.jsx
+msgid "No reading"
+msgstr "No reading"
 
 #. Login form field label, all capitals
 #: src/AuthGate.jsx
@@ -86,6 +100,10 @@ msgstr "Sign out"
 #: src/AuthGate.jsx
 msgid "SIGNING IN…"
 msgstr "SIGNING IN…"
+
+#: src/views/StrengthView.jsx
+msgid "Strength"
+msgstr "Strength"
 
 #. Splash word cycle, one discipline, all capitals
 #: src/components/SplashScreen.jsx

@@ -27,6 +27,8 @@ import { readinessStatusText } from '../utils/recoveryAnalytics.js';
 import { displayLogDate } from '../utils/displayLocale.js';
 import { toLogDate, clockTime } from '../utils/dateFormat.js';
 import { THEME } from '../constants/theme.js';
+import Button from '../components/Button.jsx';
+import ScreenHeader from '../components/ScreenHeader.jsx';
 import { alpha } from '../utils/themeCss.js';
 import { FONT } from '../constants/type.js';
 
@@ -247,7 +249,7 @@ function HealthSections() {
 // useVitals — they used to come from the static `recoveryLog` constant, so this
 // screen showed June numbers while mobile showed today's. Baselines are the
 // rolling personal ones, not two constants hand-set in June.
-export default function RecoveryView({ isWide }) {
+export default function RecoveryView({ isWide, onOpenSettings }) {
   const { t, i18n } = useLingui();
   const {
     latest: today,
@@ -275,6 +277,9 @@ export default function RecoveryView({ isWide }) {
   const hrvNote = personalBaselines.hrvPersonal ? yourAvg : populationDefault;
   return (
     <>
+      <ScreenHeader
+        title={<Trans comment="Desktop body screen heading">Body</Trans>}
+      />
       {(() => {
         const readingDate = today?.date;
         if (!today)
@@ -333,7 +338,7 @@ export default function RecoveryView({ isWide }) {
                       letterSpacing: -1,
                     }}
                   >
-                    {readiness.score == null ? '—' : readiness.score}
+                    {readiness.score == null ? t`No reading` : readiness.score}
                     <span style={{ fontSize: 14, color: THEME.muted }}>
                       /100
                     </span>
@@ -423,7 +428,7 @@ export default function RecoveryView({ isWide }) {
                 [
                   'hrv',
                   'HRV',
-                  today.hrv != null ? `${today.hrv} ms` : '—',
+                  today.hrv != null ? `${today.hrv} ms` : t`No reading`,
                   today.hrv != null
                     ? `${hrvNote} ${hrvBaseline}`
                     : t`needs overnight wear`,
@@ -438,7 +443,7 @@ export default function RecoveryView({ isWide }) {
                 [
                   'sleep',
                   t({ message: 'SLEEP', comment: 'All capitals' }),
-                  today.sleep != null ? `${today.sleep}h` : '—',
+                  today.sleep != null ? `${today.sleep}h` : t`No reading`,
                   today.sleep != null ? t`target 7h+` : t`needs overnight wear`,
                   today.sleep == null
                     ? THEME.textFaint
@@ -451,7 +456,9 @@ export default function RecoveryView({ isWide }) {
                 [
                   'sleepScore',
                   t({ message: 'SLEEP SCORE', comment: 'All capitals' }),
-                  today.sleepScore != null ? `${today.sleepScore}` : '—',
+                  today.sleepScore != null
+                    ? `${today.sleepScore}`
+                    : t`No reading`,
                   `Fitbit`,
                   today.sleepScore == null
                     ? THEME.textFaint
@@ -592,6 +599,9 @@ export default function RecoveryView({ isWide }) {
         );
       })()}
       <HealthSections />
+      <Button onClick={() => onOpenSettings?.()}>
+        <Trans>Open Settings</Trans>
+      </Button>
     </>
   );
 }

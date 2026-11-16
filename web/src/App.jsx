@@ -382,6 +382,7 @@ export default function App() {
                 plannedSessions={plannedSessions}
                 loggedKeys={loggedKeys}
                 isWide={isWide}
+                onLog={() => navigate('progress/history')}
               />
             )}
 
@@ -393,6 +394,7 @@ export default function App() {
                 cancelledSessions={cancelledSessions}
                 dbStatus={dbStatus}
                 isWide={isWide}
+                onLog={() => navigate('progress/history')}
               />
             )}
 
@@ -408,29 +410,45 @@ export default function App() {
                 totalErgDist={totalErgDist}
                 totalSessions={totalSessions}
                 isWide={isWide}
+                onOpenBody={() => navigate('body')}
+                onOpenHistory={() => navigate('progress/history')}
               />
             )}
 
-            {view === 'load' && <LoadView />}
+            {view === 'load' && (
+              <LoadView
+                onOpenHistory={() => navigate('progress/history')}
+                onOpenTrain={() => navigate('train')}
+              />
+            )}
 
             {/* ── ERG VIEW ── */}
             {view === 'erg' && (
               <ErgView
                 tsbNow={latest?.tsb ?? null}
                 ctlNow={latest?.ctl ?? null}
+                onLog={() => navigate('train')}
               />
             )}
 
             {/* ── STRENGTH VIEW ── */}
             {view === 'strength' && (
-              <StrengthView strengthSessions={strengthSessions} />
+              <StrengthView
+                strengthSessions={strengthSessions}
+                onLog={() => navigate('train/logger')}
+              />
             )}
 
             {/* ── MOBILITY VIEW ── */}
             {view === 'mobility' && <MobilityView />}
 
             {/* ── RECOVERY VIEW ── */}
-            {view === 'recovery' && <RecoveryView isWide={isWide} />}
+            {view === 'recovery' && (
+              <RecoveryView
+                isWide={isWide}
+                onOpenSettings={() => navigate('settings')}
+              />
+            )}
 
             {/* ── LOG VIEW ── */}
             {view === 'log' && (

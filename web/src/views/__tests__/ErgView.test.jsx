@@ -307,7 +307,7 @@ describe('ErgView', () => {
       expect(text).not.toContain(POWER_GAP);
       expect(text).toContain(`0 of 3 ${EFF_GAP}`);
       expect(text.match(/insufficient data/gi)).toHaveLength(1);
-      expect(getByText('W / BPM').nextSibling.textContent).toBe('—');
+      expect(getByText('W / BPM').nextSibling.textContent).toBe('No reading');
     });
 
     it('fills the W / BPM tile and the efficiency stats from three sessions with heart rate', () => {

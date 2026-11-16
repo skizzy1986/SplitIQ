@@ -3,6 +3,7 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro';
 import { msg } from '@lingui/core/macro';
 import { useSessions } from '../../hooks/useSessions.js';
 import { THEME } from '../../constants/theme.js';
+import Button from '../../components/Button.jsx';
 import { alpha } from '../../utils/themeCss.js';
 import { dateLocale } from '../../utils/displayLocale.js';
 import {
@@ -43,6 +44,7 @@ function formatDate(dateStr, lang) {
 export default function MobileSessionLog() {
   const { i18n } = useLingui();
   const [activeFilter, setActiveFilter] = useState('all');
+  const [LogForm, setLogForm] = useState(null);
   const { data, isLoading, error } = useSessions({ mode: 'all' });
 
   const filtered = (data ?? []).filter((s) => {
@@ -168,6 +170,21 @@ export default function MobileSessionLog() {
           }}
         >
           <Trans>No sessions found</Trans>
+          <div style={{ marginTop: 16 }}>
+            {LogForm ? (
+              <LogForm />
+            ) : (
+              <Button
+                onClick={() =>
+                  import('../../components/LogSessionForm.jsx').then((mod) =>
+                    setLogForm(() => mod.default)
+                  )
+                }
+              >
+                <Trans>Log a session</Trans>
+              </Button>
+            )}
+          </div>
         </div>
       )}
 

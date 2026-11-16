@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Trans } from '@lingui/react/macro';
 import { workoutAccent } from '../utils/formatting.js';
 import { THEME } from '../constants/theme.js';
+import { TYPE } from '../constants/tokens.js';
 import { alpha } from '../utils/themeCss.js';
 
 export default function WorkoutItem({
@@ -133,7 +134,9 @@ export default function WorkoutItem({
               </span>
             </div>
           ) : (
-            <span style={{ fontSize: 11, color: THEME.textFaint }}>—</span>
+            <span
+              style={{ fontSize: TYPE.label.size, color: THEME.textFaint }}
+            />
           )}
         </div>
         {hasDetail && (

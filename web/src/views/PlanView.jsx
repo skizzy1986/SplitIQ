@@ -1,9 +1,16 @@
 import { Trans } from '@lingui/react/macro';
 import LogEntry from '../components/LogEntry.jsx';
+import ScreenHeader from '../components/ScreenHeader.jsx';
+import Button from '../components/Button.jsx';
 import { THEME } from '../constants/theme.js';
 
 // ── PLAN VIEW (today + future prescriptions from status='planned') ──
-export default function PlanView({ plannedSessions, loggedKeys, isWide }) {
+export default function PlanView({
+  plannedSessions,
+  loggedKeys,
+  isWide,
+  onLog,
+}) {
   // session dates are "M/D/YY" → Date for sorting/today-filtering
   const parsePlanDate = (k) => {
     const [m, d, y] = (k || '').split('/').map(Number);
@@ -21,6 +28,7 @@ export default function PlanView({ plannedSessions, loggedKeys, isWide }) {
     .sort((a, b) => a.dt - b.dt);
   return (
     <>
+      <ScreenHeader title={<Trans>Plan</Trans>} />
       <div
         style={{
           background: THEME.raised,
@@ -56,6 +64,11 @@ export default function PlanView({ plannedSessions, loggedKeys, isWide }) {
           }}
         >
           <Trans>No upcoming planned sessions.</Trans>
+          <div style={{ marginTop: 12 }}>
+            <Button onClick={() => onLog?.()}>
+              <Trans>Log a session</Trans>
+            </Button>
+          </div>
         </div>
       ) : (
         <div

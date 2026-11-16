@@ -10,6 +10,8 @@ import {
 import { Trans, useLingui } from '@lingui/react/macro';
 import { msg } from '@lingui/core/macro';
 import LogEntry from '../components/LogEntry.jsx';
+import ScreenHeader from '../components/ScreenHeader.jsx';
+import Button from '../components/Button.jsx';
 import LoadTooltip from '../components/LoadTooltip.jsx';
 import { tsbBand } from '../utils/trainingLoad.js';
 import { readinessStatusText } from '../utils/recoveryAnalytics.js';
@@ -40,6 +42,8 @@ export default function OverviewView({
   totalErgDist,
   totalSessions,
   isWide,
+  onOpenBody,
+  onOpenHistory,
 }) {
   // `latest` is null when the training-load read fails or returns no sessions;
   // tsbBand(null) is null, so the copy falls back rather than reading a fake 0.
@@ -59,6 +63,7 @@ export default function OverviewView({
   const block = anchors?.current_block?.value ?? null;
   return (
     <>
+      <ScreenHeader title={<Trans>Today</Trans>} />
       {phase && (
         <div style={{ display: 'flex', marginBottom: 8 }}>
           <div
@@ -104,6 +109,11 @@ export default function OverviewView({
             <Trans>No reading this morning</Trans>
           )}
         </div>
+        {readiness?.score == null && (
+          <Button onClick={() => onOpenBody?.()}>
+            <Trans>Open Body</Trans>
+          </Button>
+        )}
         {readiness?.score != null && (
           <div style={{ fontSize: 10, color: THEME.textSubtle }}>
             {readinessStatusText(i18n, readiness.status)}
@@ -139,7 +149,7 @@ export default function OverviewView({
           [
             'watts',
             t({ message: 'LATEST WATTS', comment: 'Stat tile, all capitals' }),
-            latestErg?.avg_watts ? `${latestErg.avg_watts}W` : '—',
+            latestErg?.avg_watts ? `${latestErg.avg_watts}W` : '',
             t`working avg power`,
           ],
         ].map(([id, k, v, sub]) => (
@@ -218,6 +228,9 @@ export default function OverviewView({
             }}
           >
             <Trans comment="All capitals">TRAINING LOAD UNAVAILABLE</Trans>
+            <Button onClick={() => onOpenHistory?.()}>
+              <Trans>Open History</Trans>
+            </Button>
           </div>
         )}
 

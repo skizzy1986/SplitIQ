@@ -1,9 +1,11 @@
 import React from 'react';
 import { useStrengthPRs } from '../../hooks/useStrengthPRs.js';
+import { Trans } from '@lingui/react/macro';
 import { THEME } from '../../constants/theme.js';
 import { FONT } from '../../constants/type.js';
+import Button from '../../components/Button.jsx';
 
-export default function MobileStrength() {
+export default function MobileStrength({ onLog }) {
   const { data, isLoading, isError } = useStrengthPRs();
 
   return (
@@ -62,6 +64,9 @@ export default function MobileStrength() {
           }}
         >
           Strength records unavailable.
+          <Button onClick={() => onLog?.()}>
+            <Trans>Log a session</Trans>
+          </Button>
         </div>
       )}
 
@@ -75,6 +80,9 @@ export default function MobileStrength() {
           }}
         >
           No strength PRs yet — log your first session
+          <Button onClick={() => onLog?.()}>
+            <Trans>Log a session</Trans>
+          </Button>
         </div>
       )}
 
@@ -117,7 +125,7 @@ export default function MobileStrength() {
               >
                 {pr.best_e1rm_kg != null
                   ? pr.best_e1rm_kg.toFixed(1) + 'kg'
-                  : '—'}
+                  : ''}
               </div>
               {pr.heaviest_kg != null && (
                 <div style={{ fontSize: 10, color: THEME.muted, marginTop: 4 }}>

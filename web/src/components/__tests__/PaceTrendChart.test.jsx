@@ -67,8 +67,11 @@ describe('PaceTrendChart', () => {
         payload: { date_display: '6/1', pace_500m_str: '2:20.0' },
       },
     ];
-    const { getByText } = render(<PaceTooltip active payload={payload} />);
-    expect(getByText(/—/)).toBeTruthy();
+    const { getByText, queryByText } = render(
+      <PaceTooltip active payload={payload} />
+    );
+    expect(getByText(/2:20.0/)).toBeTruthy();
+    expect(queryByText('—')).toBeNull();
   });
 
   it('CustomDot returns null without coordinates', () => {

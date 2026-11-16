@@ -1,6 +1,19 @@
-import { useState, useEffect, useMemo, Component, lazy, Suspense } from 'react';
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  Component,
+  lazy,
+  Suspense,
+} from 'react';
 import { captureError } from './utils/sentry.js';
-import { useSessionLog } from './hooks/useSessionLog.js';
+import { useSessions } from './hooks/useSessions.js';
+import { selectSessionLog } from './utils/sessionLog.js';
+import { useDesktopRoute } from './hooks/useDesktopRoute.js';
+import { DESKTOP_PANES } from './utils/desktopRoute.js';
+import { DESTINATIONS } from './constants/destinations.js';
+import { RADIUS, SPACE, TYPE } from './constants/tokens.js';
 import { useTSSHistory } from './hooks/useTSSHistory.js';
 import {
   readStravaCallback,
@@ -31,6 +44,7 @@ const ErgView = lazy(() => import('./views/ErgView.jsx'));
 const RecoveryView = lazy(() => import('./views/RecoveryView.jsx'));
 const StrengthView = lazy(() => import('./views/StrengthView.jsx'));
 const MobilityView = lazy(() => import('./views/MobilityView.jsx'));
+const LoadView = lazy(() => import('./views/mobile/MobileAnalytics.jsx'));
 const OverviewView = lazy(() => import('./views/OverviewView.jsx'));
 const CalendarView = lazy(() => import('./views/CalendarView.jsx'));
 const PlanView = lazy(() => import('./views/PlanView.jsx'));
@@ -83,84 +97,68 @@ class ErrorBoundary extends Component {
   }
 }
 
-// ── PROGRAM STRUCTURE ─────────────────────────────────────────
-// Based on: polarized TID (Seiler 2010, Silva Oliveira et al. 2024),
-// British Rowing training matrix, Pete Plan continuous improvement model
+// A live tool stays mounted after its first visit: navigating to Body or
+// Settings must not disconnect the PM5 or discard an in-progress strength draft.
+function LiveTool({ active, children }) {
+  const [visited, setVisited] = useState(active);
+  if (active && !visited) setVisited(true);
+  if (!active && !visited) return null;
+  return (
+    <div hidden={!active}>
+      <ErrorBoundary>
+        <Suspense fallback={null}>{children}</Suspense>
+      </ErrorBoundary>
+    </div>
+  );
+}
 
-// ── STRENGTH GUIDELINES ───────────────────────────────────────
-// Concurrent training: heavy/low-rep compounds minimise interference
-// effect (Wilson et al. 2012) while maximising force transfer to
-// rowing drive & pedal stroke. Pump work isolated to low-cost muscles.
+const PANE_LABELS = {
+  overview: msg({ message: 'Overview', comment: 'Desktop Today pane' }),
+  calendar: msg({ message: 'Calendar', comment: 'Desktop Today pane' }),
+  plan: msg({ message: 'Plan', comment: 'Desktop Train pane' }),
+  live: msg({ message: 'Live', comment: 'Desktop live erg pane' }),
+  logger: msg({ message: 'Logger', comment: 'Desktop strength logging pane' }),
+  mobility: msg({ message: 'Mobility', comment: 'Desktop Train pane' }),
+  load: msg({ message: 'Load', comment: 'Desktop Progress pane' }),
+  erg: msg({ message: 'Erg', comment: 'Desktop Progress pane' }),
+  strength: msg({ message: 'Strength', comment: 'Desktop Progress pane' }),
+  history: msg({ message: 'History', comment: 'Desktop Progress pane' }),
+};
 
-// ── LOG ENTRY COMPONENT ───────────────────────────────────────
-
-// ── SHARED WORKOUT ITEM ───────────────────────────────────────
-// ONE component for every workout display (calendar, microcycle,
-// today-strip detail). Self-contained expand/collapse with note +
-// fuel. Pass the day object (am/pm/note/fuel) + accent color + an
-
-// ── CUSTOM CHART TOOLTIP ──────────────────────────────────────
-
-// ── LOG SESSION FORM — writes a strength session to Supabase ───
-// Proof-of-concept write path. Strength only for now (erg pulls from
-// Strava). On submit: insert into the `sessions` table, then call
-// onSaved() so the parent re-fetches and the new entry appears.
-// ── MAIN APP ──────────────────────────────────────────────────
-// The desktop tabs. Labels are message descriptors, translated at render, so
-// a language switch relabels the nav without remounting a tab.
-const NAV = [
-  ['overview', msg({ message: 'Overview', comment: 'Desktop nav tab' })],
-  ['calendar', msg({ message: 'Calendar', comment: 'Desktop nav tab' })],
-  ['plan', msg({ message: 'Plan', comment: 'Desktop nav tab' })],
-  [
-    'live',
-    msg({ message: 'Live', comment: 'Desktop nav tab: live erg session' }),
-  ],
-  [
-    'erg',
-    msg({ message: 'Erg', comment: 'Desktop nav tab: rowing ergometer' }),
-  ],
-  ['strength', msg({ message: 'Strength', comment: 'Desktop nav tab' })],
-  [
-    'logger',
-    msg({
-      message: 'Logger',
-      comment: 'Desktop nav tab: log strength sets live',
-    }),
-  ],
-  ['mobility', msg({ message: 'Mobility', comment: 'Desktop nav tab' })],
-  ['recovery', msg({ message: 'Recovery', comment: 'Desktop nav tab' })],
-  ['log', msg({ message: 'Log', comment: 'Desktop nav tab: past sessions' })],
-  ['settings', msg({ message: 'Settings', comment: 'Desktop nav tab' })],
-];
+const navStyle = {
+  minHeight: 44,
+  borderRadius: RADIUS.sm,
+  padding: `${SPACE.sm}px ${SPACE.md}px`,
+  fontSize: TYPE.body.size,
+  fontWeight: TYPE.label.weight,
+  fontFamily: FONT.sans,
+  cursor: 'pointer',
+  background: 'transparent',
+};
 
 export default function App() {
   const { _ } = useLingui();
-  // The Strava OAuth callback returns to `…#/settings?strava=…`. There is no
-  // router here — `view` is useState and nothing else reads the location — so
-  // without this the whole OAuth outcome, errors included, would land on
-  // Overview with no feedback. Read during the FIRST render rather than from an
-  // effect: the params only exist on the render right after the redirect, and
-  // setting `view` from an effect would render Overview and then swap it.
-  const stravaCallback = useMemo(
-    () =>
-      typeof window === 'undefined'
-        ? null
-        : readStravaCallback(window.location),
-    []
+  const [initialCallback] = useState(() => readStravaCallback(window.location));
+  const [noticeCallback, setNoticeCallback] = useState(initialCallback);
+  const [route, navigate] = useDesktopRoute(
+    initialCallback ? 'settings' : null
   );
-  // Built at render, not memoised on the callback: its text is translated, and
-  // a language switch while the notice is showing must re-read it. useLingui
-  // above re-renders App on that switch.
-  const stravaNotice = stravaCallbackMessage(stravaCallback);
-  const [view, setView] = useState(stravaCallback ? 'settings' : 'overview');
-  // Clearing the URL is an external-system update, so it belongs in an effect.
-  // Without it a refresh replays a stale OAuth result.
+  const view = route.pane === 'history' ? 'log' : route.pane;
+  const stravaNotice = stravaCallbackMessage(noticeCallback);
+  if (noticeCallback && view !== 'settings') setNoticeCallback(null);
+  const settingsRef = useRef(null);
+  const returnRoute = useRef('today');
+  const previousRoute = useRef(route.path);
   useEffect(() => {
-    if (stravaCallback && typeof window !== 'undefined') {
-      clearStravaCallbackFromUrl(window);
+    if (route.path !== 'settings') {
+      if (previousRoute.current === 'settings') settingsRef.current?.focus();
+      returnRoute.current = route.path;
     }
-  }, [stravaCallback]);
+    previousRoute.current = route.path;
+  }, [route.path]);
+  useEffect(() => {
+    if (initialCallback) clearStravaCallbackFromUrl(window);
+  }, [initialCallback]);
   const [vw, setVw] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 1200
   ); // viewport width → responsive layout
@@ -174,15 +172,20 @@ export default function App() {
   const isWide = vw >= 900; // desktop — use the extra width
   const containerMax = isWide ? 1100 : 680;
 
+  const sessions = useSessions({ mode: 'all' });
   const {
-    dbStatus,
     loggedSessions,
     cancelledSessions,
     logDisplaySessions,
     plannedSessions,
     loggedKeys,
-    fetchSessions,
-  } = useSessionLog();
+  } = useMemo(() => selectSessionLog(sessions.data ?? []), [sessions.data]);
+  const dbStatus = sessions.isLoading
+    ? 'loading'
+    : sessions.isError
+      ? 'error'
+      : 'ok';
+  const fetchSessions = sessions.refetch;
 
   // Live CTL/ATL/TSB. Previously calcTrainingLoad(DAILY_TSS) — a static seed
   // that stopped on 2026-06-13, so every headline load number on desktop was
@@ -191,7 +194,7 @@ export default function App() {
   // calcTrainingLoad reduces over isoDates[0], so an empty series would walk
   // from an Invalid Date. Guard rather than let it produce a garbage row.
   const loadData = useMemo(
-    () => (tssHistory.length ? calcTrainingLoad(tssHistory) : []),
+    () => (tssHistory?.length ? calcTrainingLoad(tssHistory) : []),
     [tssHistory]
   );
   const latest = loadData[loadData.length - 1] ?? null;
@@ -287,43 +290,109 @@ export default function App() {
           width: '100%',
         }}
       >
-        {/* NAV */}
-        <div
+        <nav
+          aria-label={_(msg`Main navigation`)}
           style={{
             display: 'flex',
+            gap: SPACE.sm,
             flexWrap: 'wrap',
-            gap: 5,
-            margin: '18px 0 16px',
+            margin: `${SPACE.lg}px 0`,
           }}
         >
-          {NAV.map(([v, label]) => (
+          {DESTINATIONS.map(({ id, message }) => (
             <button
-              key={v}
-              onClick={() => setView(v)}
+              key={id}
+              type="button"
+              aria-current={route.destination === id ? 'page' : undefined}
+              onClick={() => navigate(id)}
               style={{
-                flex: '1 1 auto',
-                minWidth: 0,
-                background: view === v ? THEME.border : 'transparent',
-                border:
-                  view === v
-                    ? `1px solid ${THEME.accent}`
-                    : `1px solid ${THEME.border}`,
-                color: view === v ? THEME.accent : THEME.muted,
-                borderRadius: 6,
-                padding: '8px 6px',
-                fontSize: 9,
-                letterSpacing: 0.5,
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                fontFamily: FONT.mono,
+                ...navStyle,
+                flex: 1,
+                border: `1px solid ${route.destination === id ? THEME.accent : THEME.border}`,
+                color: route.destination === id ? THEME.accent : THEME.muted,
               }}
             >
-              {_(label).toUpperCase()}
+              {_(message)}
             </button>
           ))}
-        </div>
+        </nav>
+        <button
+          ref={settingsRef}
+          type="button"
+          aria-current={view === 'settings' ? 'page' : undefined}
+          onClick={() => navigate('settings')}
+          style={{
+            ...navStyle,
+            border: `1px solid ${view === 'settings' ? THEME.accent : THEME.border}`,
+            color: view === 'settings' ? THEME.accent : THEME.text,
+            marginRight: SPACE.sm,
+            marginBottom: SPACE.md,
+          }}
+        >
+          <Trans>Settings</Trans>
+        </button>
+        {route.destination && DESKTOP_PANES[route.destination].length > 1 && (
+          <nav
+            aria-label={_(msg`Sections`)}
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: SPACE.sm,
+              marginBottom: SPACE.lg,
+            }}
+          >
+            {DESKTOP_PANES[route.destination].map((pane, index) => (
+              <button
+                key={pane}
+                type="button"
+                aria-current={route.pane === pane ? 'page' : undefined}
+                onClick={() =>
+                  navigate(
+                    index === 0
+                      ? route.destination
+                      : `${route.destination}/${pane}`
+                  )
+                }
+                style={{
+                  ...navStyle,
+                  border: `1px solid ${route.pane === pane ? THEME.accent : THEME.border}`,
+                  color: route.pane === pane ? THEME.accent : THEME.muted,
+                }}
+              >
+                {_(PANE_LABELS[pane])}
+              </button>
+            ))}
+          </nav>
+        )}
+        {view === 'settings' && (
+          <button
+            type="button"
+            onClick={() => navigate(returnRoute.current)}
+            style={{
+              ...navStyle,
+              border: `1px solid ${THEME.border}`,
+              color: THEME.text,
+              marginBottom: SPACE.md,
+            }}
+          >
+            <Trans>Back</Trans>
+          </button>
+        )}
 
-        <ErrorBoundary>
+        <LiveTool active={view === 'logger'}>
+          <StrengthLogger />
+        </LiveTool>
+        <LiveTool active={view === 'live'}>
+          <ErgLiveView
+            plannedSessions={plannedSessions}
+            onSessionSaved={() => {
+              navigate('progress/history');
+              fetchSessions();
+            }}
+          />
+        </LiveTool>
+
+        <ErrorBoundary key={route.path}>
           {/* Inside the boundary, so a lazy chunk that fails to load or a
               tab that throws on first render is still caught and reported.
               The fallback is null on purpose: a tab is a full-page swap, and
@@ -331,20 +400,6 @@ export default function App() {
               as a flicker. React.lazy resolves each module once, so only the
               first visit to a tab can suspend at all. */}
           <Suspense fallback={null}>
-            {/* ── STRENGTH LOGGER VIEW (live set/rep logging → sessions) ── */}
-            {view === 'logger' && <StrengthLogger />}
-
-            {/* ── LIVE ERG VIEW (Bluetooth PM5 → real-time metrics → session save) ── */}
-            {view === 'live' && (
-              <ErgLiveView
-                plannedSessions={plannedSessions}
-                onSessionSaved={() => {
-                  setView('log');
-                  fetchSessions();
-                }}
-              />
-            )}
-
             {/* ── PLAN VIEW (today + future prescriptions from status='planned') ── */}
             {view === 'plan' && (
               <PlanView
@@ -379,6 +434,8 @@ export default function App() {
                 isWide={isWide}
               />
             )}
+
+            {view === 'load' && <LoadView />}
 
             {/* ── ERG VIEW ── */}
             {view === 'erg' && (

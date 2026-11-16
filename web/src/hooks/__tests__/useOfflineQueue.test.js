@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 
@@ -16,14 +16,17 @@ vi.mock('../../supabaseClient', () => ({
 
 vi.mock('../../utils/sentry.js', () => ({ captureError: vi.fn() }));
 
+import { SessionOwnerContext } from '../useSessionOwner.js';
 import { captureError } from '../../utils/sentry.js';
 import {
-  enqueueSession,
+  enqueueSession as rawEnqueueSession,
   useOfflineQueue,
   normalizeQueuedSession,
 } from '../useOfflineQueue';
 
 const QUEUE_KEY = 'erg_pending_sessions';
+const enqueueSession = (row) =>
+  rawEnqueueSession({ user_id: 'user-123', ...row });
 
 function makeClient() {
   return new QueryClient({
@@ -31,9 +34,17 @@ function makeClient() {
   });
 }
 
-function makeWrapper(client) {
+function makeWrapper(client, owner = 'user-123') {
   return function Wrapper({ children }) {
-    return React.createElement(QueryClientProvider, { client }, children);
+    return React.createElement(
+      QueryClientProvider,
+      { client },
+      React.createElement(
+        SessionOwnerContext.Provider,
+        { value: owner },
+        children
+      )
+    );
   };
 }
 
@@ -53,50 +64,44 @@ beforeEach(async () => {
   });
 });
 
-describe('useOfflineQueue drainQueue user_id backfill', () => {
-  it('backfills user_id from the authenticated user when the queued row lacks one', async () => {
+describe('useOfflineQueue replay ownership', () => {
+  it('never attributes a legacy row with missing user_id to the next authenticated account', async () => {
     getUserMock.mockResolvedValue({ data: { user: { id: 'user-123' } } });
-    enqueueSession({ date: '2026-06-25', type: 'erg', label: 'Test' });
-
-    renderHook(() => useOfflineQueue(), {
-      wrapper: makeWrapper(makeClient()),
+    rawEnqueueSession({
+      date: '2026-06-25',
+      type: 'erg',
+      label: 'Unknown owner',
     });
-
-    await waitFor(() => expect(insertMock).toHaveBeenCalledTimes(1));
-    const row = insertMock.mock.calls[0][0];
-    expect(row.user_id).toBe('user-123');
-    // The transient queue marker must be stripped before insert.
-    expect(row._queuedAt).toBeUndefined();
-    // Successful drain empties the queue.
-    expect(localStorage.getItem(QUEUE_KEY)).toBe('[]');
+    renderHook(() => useOfflineQueue(), { wrapper: makeWrapper(makeClient()) });
+    await waitFor(() => expect(getUserMock).toHaveBeenCalled());
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(insertMock).not.toHaveBeenCalled();
+    expect(JSON.parse(localStorage.getItem(QUEUE_KEY))).toHaveLength(1);
   });
 
-  it('preserves an existing user_id on the queued row over the auth fallback', async () => {
-    getUserMock.mockResolvedValue({ data: { user: { id: 'auth-fallback' } } });
+  it('does not replay a row owned by another account', async () => {
+    getUserMock.mockResolvedValue({ data: { user: { id: 'user-123' } } });
     enqueueSession({
       date: '2026-06-25',
       type: 'erg',
       user_id: 'original-owner',
     });
-
-    renderHook(() => useOfflineQueue(), {
-      wrapper: makeWrapper(makeClient()),
-    });
-
-    await waitFor(() => expect(insertMock).toHaveBeenCalledTimes(1));
-    expect(insertMock.mock.calls[0][0].user_id).toBe('original-owner');
+    renderHook(() => useOfflineQueue(), { wrapper: makeWrapper(makeClient()) });
+    await waitFor(() => expect(getUserMock).toHaveBeenCalled());
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(insertMock).not.toHaveBeenCalled();
+    expect(JSON.parse(localStorage.getItem(QUEUE_KEY))[0].user_id).toBe(
+      'original-owner'
+    );
   });
 
-  it('uses undefined user_id when no auth user is available rather than throwing', async () => {
+  it('does not attempt an insert without a verified replay user', async () => {
     getUserMock.mockResolvedValue({ data: { user: null } });
     enqueueSession({ date: '2026-06-25', type: 'erg' });
-
-    renderHook(() => useOfflineQueue(), {
-      wrapper: makeWrapper(makeClient()),
-    });
-
-    await waitFor(() => expect(insertMock).toHaveBeenCalledTimes(1));
-    expect(insertMock.mock.calls[0][0].user_id).toBeUndefined();
+    renderHook(() => useOfflineQueue(), { wrapper: makeWrapper(makeClient()) });
+    await waitFor(() => expect(getUserMock).toHaveBeenCalled());
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(insertMock).not.toHaveBeenCalled();
   });
 
   it('retains rows that fail to insert so they can be retried', async () => {
@@ -357,4 +362,145 @@ describe('useOfflineQueue drain invalidation', () => {
     expect(remaining).toHaveLength(1);
     expect(remaining[0].label).toBe('fails');
   });
+});
+
+describe('offline replay across an account change', () => {
+  it('does not duplicate or overwrite the queue after an in-flight insert fails across an account change', async () => {
+    const { startPrivateSession } =
+      await import('../../utils/privateSessionState.js');
+    getUserMock.mockResolvedValue({ data: { user: { id: 'account-A' } } });
+    let resolveInsert;
+    insertMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveInsert = resolve;
+        })
+    );
+    enqueueSession({ date: '1/2/26', type: 'erg', user_id: 'account-A' });
+    renderHook(() => useOfflineQueue(), {
+      wrapper: makeWrapper(makeClient(), 'account-A'),
+    });
+    await waitFor(() => expect(insertMock).toHaveBeenCalledTimes(1));
+    startPrivateSession();
+    enqueueSession({ date: '1/3/26', type: 'erg', user_id: 'account-B' });
+    resolveInsert({ error: { code: '08006', message: 'old request failed' } });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    // A's row is retained once for A's own replay; the stale drain neither
+    // duplicates it nor drops B's row.
+    const rows = JSON.parse(localStorage.getItem(QUEUE_KEY));
+    expect(rows.map((row) => row.user_id)).toEqual(['account-A', 'account-B']);
+  });
+});
+
+describe('offline queue producer and drain races', () => {
+  it('rejects a retained producer callback after an account change', async () => {
+    Object.defineProperty(navigator, 'onLine', {
+      value: false,
+      configurable: true,
+    });
+    const { startPrivateSession } =
+      await import('../../utils/privateSessionState.js');
+    const { result } = renderHook(() => useOfflineQueue(), {
+      wrapper: makeWrapper(makeClient()),
+    });
+    const oldAdd = result.current.addToQueue;
+    startPrivateSession();
+    enqueueSession({
+      date: '6/26/26',
+      label: 'new account',
+      user_id: 'account-B',
+    });
+    act(() => {
+      expect(oldAdd({ date: '6/25/26', label: 'old account' })).toBe(false);
+    });
+    expect(
+      JSON.parse(localStorage.getItem(QUEUE_KEY)).map((row) => row.label)
+    ).toEqual(['new account']);
+  });
+
+  it('stamps the current context owner and refuses a mismatched supplied owner', () => {
+    Object.defineProperty(navigator, 'onLine', {
+      value: false,
+      configurable: true,
+    });
+    const { result } = renderHook(() => useOfflineQueue(), {
+      wrapper: makeWrapper(makeClient()),
+    });
+    act(() => {
+      result.current.addToQueue({ date: '6/25/26', label: 'offline' });
+    });
+    act(() => {
+      expect(
+        result.current.addToQueue({
+          date: '6/25/26',
+          label: 'foreign',
+          user_id: 'other',
+        })
+      ).toBe(false);
+    });
+    const rows = JSON.parse(localStorage.getItem(QUEUE_KEY));
+    expect(rows).toHaveLength(1);
+    expect(rows[0].user_id).toBe('user-123');
+  });
+
+  it.each([false, true])(
+    'preserves work appended during an in-flight drain (insert fails: %s)',
+    async (failed) => {
+      getUserMock.mockResolvedValue({ data: { user: { id: 'user-123' } } });
+      let release;
+      insertMock.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            release = resolve;
+          })
+      );
+      enqueueSession({ date: '6/25/26', label: 'first' });
+      renderHook(() => useOfflineQueue(), {
+        wrapper: makeWrapper(makeClient()),
+      });
+      await waitFor(() => expect(insertMock).toHaveBeenCalledTimes(1));
+      enqueueSession({ date: '6/25/26', label: 'appended' });
+      const appendedId = JSON.parse(localStorage.getItem(QUEUE_KEY))[1]
+        ._queueId;
+      expect(insertMock.mock.calls[0][0]).not.toHaveProperty('_queueId');
+      expect(insertMock.mock.calls[0][0]).not.toHaveProperty('_queuedAt');
+      release({ error: failed ? { code: '08006', message: 'network' } : null });
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      const remaining = JSON.parse(localStorage.getItem(QUEUE_KEY));
+      expect(remaining.map((row) => row.label)).toEqual(
+        failed ? ['first', 'appended'] : ['appended']
+      );
+      expect(remaining.at(-1)._queueId).toBe(appendedId);
+    }
+  );
+});
+
+it('does not show unknown or foreign work in the current owner pending count', () => {
+  Object.defineProperty(navigator, 'onLine', {
+    value: false,
+    configurable: true,
+  });
+  rawEnqueueSession({ user_id: 'other', label: 'foreign' });
+  rawEnqueueSession({ label: 'unknown' });
+  enqueueSession({ label: 'mine' });
+  const { result } = renderHook(() => useOfflineQueue(), {
+    wrapper: makeWrapper(makeClient()),
+  });
+  expect(result.current.pending).toBe(1);
+});
+
+it('does not queue or replay without an authenticated owner context', async () => {
+  enqueueSession({ label: 'existing' });
+  const { result } = renderHook(() => useOfflineQueue(), {
+    wrapper: makeWrapper(makeClient(), null),
+  });
+  act(() => {
+    expect(
+      result.current.addToQueue({ user_id: 'user-123', label: 'new' })
+    ).toBe(false);
+  });
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  expect(getUserMock).not.toHaveBeenCalled();
+  expect(insertMock).not.toHaveBeenCalled();
+  expect(result.current.pending).toBe(0);
 });

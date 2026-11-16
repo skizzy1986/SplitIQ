@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useSessionOwner } from '../hooks/useSessionOwner.js';
+import { privateSessionGeneration } from '../utils/privateSessionState.js';
 import { useQueryClient } from '@tanstack/react-query';
 import { usePM5 } from '../hooks/usePM5';
 import { useOfflineQueue } from '../hooks/useOfflineQueue';
@@ -565,6 +567,10 @@ export default function ErgLiveView({ plannedSessions = [], onSessionSaved }) {
   const { addToQueue, pending } = useOfflineQueue();
   const queryClient = useQueryClient();
   const [saveState, setSaveState] = useState('idle');
+  const ownerId = useSessionOwner();
+  const [producerGeneration] = useState(privateSessionGeneration);
+  const isCurrentProducer = () =>
+    producerGeneration === privateSessionGeneration();
   // idle | saving | saved | queued | failed
 
   // sessions.date is text "M/D/YY", so both sides are normalised to ISO before
@@ -576,6 +582,7 @@ export default function ErgLiveView({ plannedSessions = [], onSessionSaved }) {
     null;
 
   async function saveSession({ srpe, notes }) {
+    if (!isCurrentProducer()) return;
     setSaveState('saving');
 
     const now = new Date();
@@ -584,12 +591,23 @@ export default function ErgLiveView({ plannedSessions = [], onSessionSaved }) {
     ).padStart(2, '0')}`;
 
     let user = null;
-    let authFailed = false;
+    let authFailed;
     try {
       const { data } = await supabase.auth.getUser();
       user = data?.user ?? null;
+      authFailed = !user;
     } catch {
       authFailed = true;
+    }
+
+    // A deferred auth response must not reattribute the old screen's summary
+    // after an account change. The owner context also covers offline auth failure.
+    if (!isCurrentProducer()) return;
+    if (ownerId && user && ownerId !== user.id) return;
+    const userId = ownerId ?? user?.id;
+    if (!userId) {
+      setSaveState('failed');
+      return;
     }
 
     const row = {
@@ -607,12 +625,13 @@ export default function ErgLiveView({ plannedSessions = [], onSessionSaved }) {
       status: 'logged',
       source: 'bluetooth',
       exercises: notes ? [{ name: 'Notes', notes }] : [],
-      user_id: user?.id,
+      user_id: userId,
     };
 
     const queue = () => {
+      if (!isCurrentProducer()) return;
       try {
-        addToQueue(row);
+        if (addToQueue(row) === false) return;
         setSaveState('queued');
       } catch {
         // localStorage quota exceeded — the row is nowhere. Say so instead of
@@ -626,6 +645,7 @@ export default function ErgLiveView({ plannedSessions = [], onSessionSaved }) {
       return;
     }
 
+    if (!isCurrentProducer()) return;
     let dbError;
     try {
       ({ error: dbError } = await supabase.from('sessions').insert(row));
@@ -633,6 +653,7 @@ export default function ErgLiveView({ plannedSessions = [], onSessionSaved }) {
       dbError = err;
     }
 
+    if (!isCurrentProducer()) return;
     if (!dbError || isDuplicate(dbError)) {
       invalidateSessionQueries(queryClient);
       setSaveState('saved');

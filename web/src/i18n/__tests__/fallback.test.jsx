@@ -1,6 +1,8 @@
 import { i18n } from '@lingui/core';
 import { messages as en } from '../../locales/en.po';
 import { messages as es } from '../../locales/es.po';
+import { messages as viewsEn } from '../../locales/views/en.po';
+import { messages as viewsEs } from '../../locales/views/es.po';
 import {
   ensureLocale,
   registerCatalogs,
@@ -39,15 +41,21 @@ describe('the English fallback', () => {
   });
 
   it('ships a Spanish catalog with every English id, each translated', () => {
-    const ids = Object.keys(en);
-    expect(ids.length).toBeGreaterThan(50);
-    expect(Object.keys(es).sort()).toEqual(ids.sort());
-    i18n.load('es', es);
-    i18n.activate('es');
-    for (const id of ids) {
-      const text = i18n._(idOnly(id), { count: 2, 0: 'x' });
-      expect(text, id).toBeTruthy();
-      expect(text, id).not.toBe(id);
+    expect(Object.keys({ ...en, ...viewsEn }).length).toBeGreaterThan(50);
+    for (const [source, translated] of [
+      [en, es],
+      [viewsEn, viewsEs],
+    ]) {
+      const ids = Object.keys(source);
+      expect(ids.length).toBeGreaterThan(0);
+      expect(Object.keys(translated).sort()).toEqual(ids.sort());
+      i18n.load('es', translated);
+      i18n.activate('es');
+      for (const id of ids) {
+        const text = i18n._(idOnly(id), { count: 2, 0: 'x' });
+        expect(text, id).toBeTruthy();
+        expect(text, id).not.toBe(id);
+      }
     }
   });
 });

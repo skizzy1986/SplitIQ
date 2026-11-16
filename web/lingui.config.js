@@ -7,6 +7,13 @@ import { formatter } from '@lingui/format-po';
 // file stays in the boot catalog, which AuthGate imports statically. A file is
 // in exactly one of the two: listed here, or not.
 export const VIEWS_SOURCES = [
+  'src/App.jsx',
+  'src/utils/stravaStatus.js',
+  'src/utils/stravaCallback.js',
+  'src/views/SettingsView.jsx',
+  'src/views/mobile/MobileSettings.jsx',
+  'src/components/StravaConnectPanel.jsx',
+  'src/components/ThemeControl.jsx',
   'src/views/OverviewView.jsx',
   'src/views/CalendarView.jsx',
   'src/views/PlanView.jsx',

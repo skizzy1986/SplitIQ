@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSessionOwner } from './useSessionOwner.js';
 import { useQueryClient } from '@tanstack/react-query';
 import { Capacitor } from '@capacitor/core';
 import { Network } from '@capacitor/network';
@@ -7,7 +8,10 @@ import { toLogDate } from '../utils/dateFormat.js';
 import { invalidateSessionQueries } from '../utils/invalidateSessionQueries.js';
 import { captureError } from '../utils/sentry.js';
 
-const QUEUE_KEY = 'erg_pending_sessions';
+import {
+  QUEUE_KEY,
+  privateSessionGeneration,
+} from '../utils/privateSessionState.js';
 
 // Rows queued by older builds carry column names that do not exist on
 // `sessions` (`watts`, `distance`) and ISO/numeric shapes the table rejects, so
@@ -52,50 +56,77 @@ function writeQueue(items) {
 
 export function enqueueSession(session) {
   const q = readQueue();
-  q.push({ ...session, _queuedAt: Date.now() });
+  q.push({
+    ...session,
+    _queuedAt: Date.now(),
+    _queueId: window.crypto.randomUUID(),
+  });
   writeQueue(q);
 }
 
 // Both the `online` listener and the mount-time sync can fire in the same tick;
 // without this guard each row is inserted twice.
-let draining = false;
+let drainingGeneration = null;
 
-async function drainQueue() {
-  if (draining) return 0;
-  draining = true;
+async function drainQueue(ownerId) {
+  if (!ownerId) return 0;
+  const generation = privateSessionGeneration();
+  if (drainingGeneration === generation) return 0;
+  drainingGeneration = generation;
   try {
-    const q = readQueue();
+    const q = readQueue().map((row) => ({
+      ...row,
+      _queueId: row._queueId ?? window.crypto.randomUUID(),
+    }));
     if (q.length === 0) return 0;
+    // Persist legacy IDs before awaiting anything, so appended work and retries
+    // can be reconciled by identity rather than overwriting a stale snapshot.
+    writeQueue(q);
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    const failed = [];
+    if (generation !== privateSessionGeneration() || user?.id !== ownerId)
+      return 0;
+    const delivered = new Set();
     for (const session of q) {
-      const { _queuedAt, ...rest } = session;
-      const row = { ...rest, user_id: rest.user_id ?? user?.id };
+      if (generation !== privateSessionGeneration()) return 0;
+      // Unknown ownership is never assigned to whoever happens to sign in next.
+      // AuthGate separately quarantines legacy unassigned/mismatched local work.
+      if (session.user_id !== user.id) continue;
+      const { _queuedAt, _queueId, ...row } = session;
       const { error } = await supabase.from('sessions').insert(row);
+      if (generation !== privateSessionGeneration()) return 0;
       if (error && !isDuplicate(error)) {
         captureError(error, { source: 'useOfflineQueue', op: 'drainQueue' });
-        failed.push(session);
+      } else {
+        delivered.add(session._queueId);
       }
     }
-    writeQueue(failed);
-    return q.length - failed.length;
+    const remaining = readQueue().filter((row) => !delivered.has(row._queueId));
+    writeQueue(remaining);
+    return delivered.size;
   } finally {
-    draining = false;
+    if (drainingGeneration === generation) drainingGeneration = null;
   }
 }
 
 export function useOfflineQueue() {
-  const [pending, setPending] = useState(readQueue().length);
+  const ownerId = useSessionOwner();
+  const countPending = () =>
+    ownerId ? readQueue().filter((row) => row?.user_id === ownerId).length : 0;
+  const [pending, setPending] = useState(countPending);
+  const [generation] = useState(privateSessionGeneration);
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    let active = true;
     const sync = async (connected) => {
-      if (connected) {
-        const synced = await drainQueue();
-        if (synced > 0) {
-          setPending(readQueue().length);
+      if (active && connected && generation === privateSessionGeneration()) {
+        const synced = await drainQueue(ownerId);
+        if (active && generation === privateSessionGeneration() && synced > 0) {
+          setPending(
+            readQueue().filter((row) => row?.user_id === ownerId).length
+          );
           // Once after the loop, not per row: N×3 refetch triggers would race
           // the inserts still in flight.
           invalidateSessionQueries(queryClient);
@@ -108,23 +139,33 @@ export function useOfflineQueue() {
       Network.addListener('networkStatusChange', ({ connected }) =>
         sync(connected)
       ).then((h) => {
-        networkHandle = h;
+        if (active) networkHandle = h;
+        else h.remove();
       });
       Network.getStatus().then(({ connected }) => sync(connected));
       return () => {
+        active = false;
         networkHandle?.remove();
       };
     } else {
       const webSync = () => sync(navigator.onLine);
       window.addEventListener('online', webSync);
       webSync();
-      return () => window.removeEventListener('online', webSync);
+      return () => {
+        active = false;
+        window.removeEventListener('online', webSync);
+      };
     }
-  }, [queryClient]);
+  }, [queryClient, generation, ownerId]);
 
   function addToQueue(session) {
-    enqueueSession(session);
-    setPending(readQueue().length);
+    if (generation !== privateSessionGeneration()) return false;
+    const userId = ownerId;
+    if (!userId || (session.user_id && session.user_id !== userId))
+      return false;
+    enqueueSession({ ...session, user_id: userId });
+    setPending(readQueue().filter((row) => row?.user_id === ownerId).length);
+    return true;
   }
 
   return { pending, addToQueue };

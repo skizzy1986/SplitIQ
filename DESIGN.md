@@ -10,10 +10,10 @@
 | Document | Kind | What it settles |
 |---|---|---|
 | [`web/.design-sync/HANDOFF.md`](web/.design-sync/HANDOFF.md) | **Normative** | The light redesign: palette, the `var(--color-*)` token seam, the role rename, Archivo weight 500, the component inventory, the order of work. Highest authority. |
-| [`web/.design-sync/DESIGN_BRIEF.md`](web/.design-sync/DESIGN_BRIEF.md) | **Prescriptive** | Diagnosis and the IA target — 13 tabs → 5 destinations, the type and spacing scales, slices S-1…S7. Where the handoff is silent, this decides. |
+| [`web/.design-sync/DESIGN_BRIEF.md`](web/.design-sync/DESIGN_BRIEF.md) | **Prescriptive** | Diagnosis and the historical IA target (superseded by VISION.md: four destinations on desktop and mobile), the type and spacing scales, slices S-1…S7. Where the handoff is silent, this decides. |
 | [`web/.design-sync/CLAUDE.md`](web/.design-sync/CLAUDE.md) | **Briefing** | What a Claude Design session needs to know about SplitIQ: the domain, the destinations, which numbers are real, the chart rules. The design-side mirror of the repo's `CLAUDE.md`. |
 | [`web/.design-sync/conventions.md`](web/.design-sync/conventions.md) | **Style guide** | Tokens, accent pairs, type, layering, chart rules, and the gotchas the design side has already paid for. Light-primary. Inlined into the design agent's prompt, so it is the one file guaranteed to be read. Mirror — the project holds the source. |
-| [`web/.design-sync/designs/`](web/.design-sync/designs/) | **The designs** | Eight self-contained HTML artboards — five mobile destinations, three desktop deep dives. Open in a browser, no build step. Compiled snapshots — the editable `.dc.html` source lives in the design project. Do not edit; they are overwritten on sync. |
+| [`web/.design-sync/designs/`](web/.design-sync/designs/) | **The designs** | Self-contained historical HTML artboards; their old destination counts are superseded by VISION.md. Open in a browser, no build step. Compiled snapshots — the editable `.dc.html` source lives in the design project. Do not edit; they are overwritten on sync. |
 | [`web/.design-sync/splitiq-load.js`](web/.design-sync/splitiq-load.js) | **The model** | The one module every artboard reads for form, CTL/ATL/TSB, `tsbBand()`, readiness and `readinessSeries()`, the six-zone table, erg watts/splits and e1RM. `HANDOFF.md` §5 asks the app for the same single `lib/load.js`. Numbers that are matched rather than derived drift. |
 | [`web/.design-sync/splitiq-light-tokens.css`](web/.design-sync/splitiq-light-tokens.css) | **The tokens** | The full light declaration list with every contrast ratio measured. What the flip (`#251`) implements. |
 | [`web/.design-sync/PROJECT-CONTEXT.md`](web/.design-sync/PROJECT-CONTEXT.md) | Mechanics | The design project's own briefing: which side owns what, and what neither side can see. Mirror — the project holds the source. |
@@ -29,7 +29,9 @@ already; see the reconciliation note in `NOTES.md`.
 
 ## Where the state actually is
 
-The app is **light by default**. The flip shipped in #287.
+The palette's fallback is light (#287). Dashboard and anatomy theme controls use
+Light / Dark / Auto and share `splitiq.theme`; Auto follows the OS when no explicit
+choice is stored. The legacy strength logger stays explicitly light until #79.
 
 **Dark is retained as a second theme, not deleted.** `HANDOFF.md` §1 says dark is
 "dropped"; the design project's own `conventions.md`, revised 2026-08-22, overturns that
@@ -38,8 +40,8 @@ new work is designed on the light ground, but the dark values stay. Where the tw
 disagree, `conventions.md` is newer.
 `web/src/constants/themeValues.js` holds the `LIGHT` and `DARK` palettes and sets
 `DEFAULT_THEME = LIGHT`. `web/src/main.jsx` emits it as `var(--color-*)` custom
-properties at `:root` and emits `DARK` only under `[data-theme='dark']`, for a surface
-that opts in. `web/src/constants/theme.js` is a pointer table of `var(--color-*)`
+properties at `:root`, `DARK` under `[data-theme='dark']`, and the light palette
+under `[data-theme='light']` so a nested light surface can override a dark shell. `web/src/constants/theme.js` is a pointer table of `var(--color-*)`
 strings with no hexes in it. `themeValues.js` is the only file allowed to write a
 palette hex down. The few off-palette literals left (mostly `StrengthLogger.jsx`, plus
 a few `#666` fallbacks) are pinned per file and per hex by `npm run check:colours`.
@@ -60,20 +62,20 @@ recorded — the importer, later). Both clear AA on `surface`, `raised` and `fie
 No existing value moved. Scene colours for the 3D view land with it (PR2).
 `check:colours` also rejects three.js `0xRRGGBB` literals under `web/src/squat/`.
 
-## The platform split — mobile does the doing, desktop does the understanding
+## Shared destinations, layouts suited to the screen
 
-Decided 2026-08-24, and it decides what gets built where. Sessions are logged
-mid-workout with a heart rate still coming down, so every **live** surface is
-mobile-only: the prescription card, the watt band gauge, the set logger, the rest
-timer, the sRPE prompt. Build each of those once, for the phone.
+The 2026-11-13 vision amendment (#511/#515) supersedes the earlier platform split:
+The target is **Today, Train, Progress and Body on both screen sizes**, with Settings as a
+separate screen. Desktop retains its analytical layouts; it does not simply stretch
+the mobile screens. Train includes the existing live erg and strength logger paths.
+The previous rule that Train has no desktop counterpart no longer applies.
 
-Desktop is the analytical layer — long windows, many series at once, the full zone
-table, sortable logs, periodisation, the reasoning behind a call. **The five
-destinations are the mobile IA.** A desktop screen named after one of them is the
-analysis *behind* that destination, not the same screen at a wider width — and
-**Train has no desktop counterpart at all**, which is why the desktop nav rail
-carries five chips rather than six. A nav rail lists destinations that exist;
-a destination that does not exist on a platform is omitted, not dimmed.
+R37 and the R33 disposition were approved on 2026-11-15. R38 (#582) implements this
+structure, retaining the existing analytical views as panes
+and keeping Settings separately routed. Live erg and strength tools remain mounted
+after their first visit so navigation preserves an active session.
+The anatomy engine stays public and independently lazy-loaded. R22 owns the
+exercise-to-anatomy link; the shell migration does not duplicate that work.
 
 ## The property boundary — the one hard rule
 

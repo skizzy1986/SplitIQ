@@ -35,6 +35,8 @@ vi.mock('../../../components/StravaConnectPanel.jsx', () => ({
 import { i18n } from '@lingui/core';
 import { messages as en } from '../../../locales/en.po';
 import { messages as es } from '../../../locales/es.po';
+import { messages as viewsEn } from '../../../locales/views/en.po';
+import { messages as viewsEs } from '../../../locales/views/es.po';
 import MobileApp from '../MobileApp.jsx';
 import MobileSettings from '../MobileSettings.jsx';
 import { DESTINATIONS } from '../../../constants/destinations.js';
@@ -276,7 +278,7 @@ describe('the destinations are unchanged', () => {
 
 describe('in Spanish', () => {
   it('names Back after the origin tab in Spanish', async () => {
-    i18n.load('es', { ...en, ...es });
+    i18n.load('es', { ...en, ...viewsEn, ...es, ...viewsEs });
     i18n.activate('es');
     const user = userEvent.setup();
     render(<MobileApp />);
@@ -288,7 +290,7 @@ describe('in Spanish', () => {
   });
 
   it('names the screen, Back and Sign out in Spanish', () => {
-    i18n.load('es', { ...en, ...es });
+    i18n.load('es', { ...en, ...viewsEn, ...es, ...viewsEs });
     i18n.activate('es');
     window.location.hash = '#/settings';
     render(<MobileApp />);

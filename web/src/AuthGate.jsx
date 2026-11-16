@@ -1,5 +1,12 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect, useRef, useContext, lazy, Suspense } from 'react';
 import { supabase } from './supabaseClient.js';
+import { QueryClientContext } from '@tanstack/react-query';
+import { SessionOwnerContext } from './hooks/useSessionOwner.js';
+import {
+  startPrivateSession,
+  storedSessionOwner,
+  rememberSessionOwner,
+} from './utils/privateSessionState.js';
 import { usePWAInstall } from './hooks/usePWAInstall.js';
 import { useIsMobile } from './hooks/useIsMobile.js';
 import { useSplashGate } from './hooks/useSplashGate.js';
@@ -320,6 +327,9 @@ function InstallButton() {
 // undefined = still checking, null = logged out, object = signed in.
 function Gate() {
   const [session, setSession] = useState(undefined);
+  // Login can render standalone; the signed-in app receives this client in main.
+  const queryClient = useContext(QueryClientContext);
+  const ownerRef = useRef(undefined);
   const [authFailed, setAuthFailed] = useState(false);
   const isMobile = useIsMobile();
   const dataReady = useInitialDataReady();
@@ -332,21 +342,48 @@ function Gate() {
   });
 
   useEffect(() => {
+    let active = true;
+    let revision = 0;
+    const acceptSession = (next) => {
+      if (!active) return;
+      const nextOwner = next?.user?.id ?? null;
+      const previous =
+        ownerRef.current === undefined
+          ? storedSessionOwner()
+          : ownerRef.current;
+      if (ownerRef.current === undefined || ownerRef.current !== nextOwner) {
+        queryClient?.clear();
+      }
+      // Any owner change starts a new private session: stale callbacks are cut
+      // off and ownerless legacy work is quarantined. Owned unsynced work stays.
+      if (previous !== nextOwner && (previous !== null || nextOwner)) {
+        startPrivateSession();
+      }
+      ownerRef.current = nextOwner;
+      rememberSessionOwner(nextOwner);
+      setSession(next);
+    };
+    const initialRevision = revision;
     supabase.auth
       .getSession()
-      .then(({ data }) => setSession(data.session))
+      .then(({ data }) => {
+        if (revision === initialRevision) acceptSession(data.session);
+      })
       .catch((error) => {
-        // Outside react-query, so nothing else captures this. Falling through
-        // to Login is the right recovery, but silently would hide a real outage.
+        if (!active || revision !== initialRevision) return;
         captureError(error, { where: 'AuthGate.getSession' });
         setAuthFailed(true);
-        setSession(null);
+        acceptSession(null);
       });
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) =>
-      setSession(s)
-    );
-    return () => sub.subscription.unsubscribe();
-  }, []);
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
+      revision += 1;
+      acceptSession(next);
+    });
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
+  }, [queryClient]);
 
   let body;
   if (session === undefined) {
@@ -355,7 +392,10 @@ function Gate() {
     body = showSplash ? null : <Login />;
   } else {
     body = (
-      <>
+      <SessionOwnerContext.Provider
+        key={session.user?.id}
+        value={session.user?.id ?? null}
+      >
         {/* On a phone the floating button sat over the top bar's Settings button, so
             sign-out lives on the mobile Settings screen instead. Held back
             while the splash covers the page, or Tab reaches a hidden button. */}
@@ -367,7 +407,7 @@ function Gate() {
         <Suspense fallback={showSplash ? null : <LoadingPane />}>
           {isMobile ? <MobileApp /> : <App />}
         </Suspense>
-      </>
+      </SessionOwnerContext.Provider>
     );
   }
 

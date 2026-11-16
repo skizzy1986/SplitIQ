@@ -17,7 +17,7 @@ import {
   handleMutationError,
 } from './utils/queryErrorHandlers.js';
 import ErrorFallback from './components/ErrorFallback.jsx';
-import { DARK, DEFAULT_THEME } from './constants/themeValues.js';
+import { DARK, LIGHT, DEFAULT_THEME } from './constants/themeValues.js';
 import { cssVars } from './utils/themeCss.js';
 import './fonts.css';
 
@@ -27,9 +27,10 @@ const themeStyle = document.createElement('style');
 themeStyle.id = 'theme-vars';
 // values, never THEME — THEME holds var() pointers and would self-reference.
 // Light at :root, so no surface depends on the attribute being present; dark
-// scoped under [data-theme='dark'] for a surface that opts in.
+// scoped by data-theme; an explicit light boundary isolates the legacy logger.
 themeStyle.textContent = [
   cssVars(DEFAULT_THEME),
+  cssVars(LIGHT, "[data-theme='light']"),
   cssVars(DARK, "[data-theme='dark']"),
 ].join('\n');
 document.head.appendChild(themeStyle);

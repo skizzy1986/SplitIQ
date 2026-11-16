@@ -40,9 +40,11 @@ when coach access is specified.
 It is built as a **hobby and a learning exercise, to a public-quality standard**.
 That is not a contradiction: building it properly is the interesting way to build
 it. The widened audience makes other users a design requirement, where it used to be
-an option left open: nothing may assume an audience of one. Sign-up was opened on
-2026-11-14 (roadmap D25, which reverses the invite-only D3), behind a privacy notice
-and a consent and age declaration.
+an option left open: nothing may assume an audience of one. Open registration was
+approved on 2026-11-14 (roadmap D25, which reverses the invite-only D3). R31 / #561
+is in progress: the web sign-up path includes a privacy notice and consent and age
+declarations. The live signups switch stays off until slices 1, 2 and 4 merge;
+approval of the direction is not evidence that registration has shipped.
 
 It is still **not a business**, and no decision here should be read as planning for
 one (roadmap D4). The coach capability does not change that. Any account can be a
@@ -145,7 +147,7 @@ expert depth, and the user chooses which.
 - **Depth is a preference, not a tier.** Nothing is locked.
 - **The four destinations are the simple depth's structure on every screen size:**
   Today, Train, Progress, Body (`web/src/constants/destinations.js`). The desktop
-  tab row predates them and folds into them once the cull has landed.
+  tab row was folded into them by R38.
 
 ### Personal data belongs in the database, not the source
 
@@ -167,7 +169,8 @@ retroactive.
 
 Decided 2026-11-13 that coaches work with athletes' data. The rules below are the
 principle that work is specified against. None of it is built: every user table is
-owner-only today, and there is no sign-up path.
+owner-only today. Open registration is separate work in progress (R31 / #561);
+it does not grant coach access.
 
 - **Owner-only stays the default.** Coach access is added policy on top of it. No
   existing policy is loosened to make room.
@@ -187,9 +190,10 @@ owner-only today, and there is no sign-up path.
 - **The database enforces it.** Access is row-level security, tested as denied by
   default. Hiding something in the UI is not access control.
 
-Open before this is specified: the sign-up path (roadmap R31), the privacy reading
-under *Obligations* below, and athletes under 18, whose consent is not theirs alone
-to give.
+Before coach access is specified, complete the privacy research (R33) and settle
+the consent and age boundary in R37. R31's approved registration policy is web-only
+with a self-declared 18+ requirement; it does not resolve consent for minors or
+replace the coach grant invitation (R41).
 
 ## What stays, unchanged
 
@@ -244,8 +248,11 @@ code written to the rule under *The shape*, not a revival of these files.
 - The code is proprietary (`LICENSE`), with named exceptions in `PERMISSIONS.md`.
 - **Other people's data** (added 2026-11-13). Holding a second person's training or
   health data may bring privacy-law duties with it, business or not. That has
-  **not yet been read**. It is an open item before any coach reads an athlete's
-  row, and before a second person's health records are stored at all.
+  been researched in the draft [R33 note](docs/coherence/PRIVACY_RESEARCH.md).
+  Applicability and operating arrangements remain unresolved. Scott considered the
+  research and approved the coach specification on 2026-11-15; development of the
+  private, non-commercial app continues. This stays an open item before any coach reads an athlete's row,
+  and before a second person's health records are stored at all.
 
 ## How to read this against the rest of the docs
 
@@ -256,9 +263,10 @@ this file.
 
 `docs/ROADMAP.md` was decided on 2026-11-07, before the amendment. It recorded the
 amendment on 2026-11-13 as decisions D13–D18 and a second track for the log (L1–L3):
-coach access is specified now and built after its H2, invite-only; the self-serve
-planner ships before coach-set plans; and the privacy reading starts with a research
-note. This file still wins wherever the two disagree.
+coach access is specified before the desktop IA and built after H2; coach grants
+are invite-based, while D25 separately approves open account registration. The
+self-serve planner ships before coach-set plans, and the privacy reading starts
+with a research note. This file still wins wherever the two disagree.
 
 Roadmap D4 ("not a business" is absolute) is unchanged and is relied on above.
 

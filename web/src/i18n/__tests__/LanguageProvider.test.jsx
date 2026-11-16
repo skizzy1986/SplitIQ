@@ -17,6 +17,7 @@ import {
 } from '../locale.js';
 import { LANG_KEY } from '../lang.js';
 import '../dashboard.js';
+import '../views.js';
 import { messages as en } from '../../locales/en.po';
 
 const sentry = vi.hoisted(() => ({ captureError: vi.fn() }));

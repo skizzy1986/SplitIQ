@@ -16,14 +16,54 @@ msgstr "· planned · ⊘ cancelled"
 msgid "{cancelledCount, plural, one {⊘ {cancelledCount} CANCELLED} other {⊘ {cancelledCount} CANCELLED}}"
 msgstr "{cancelledCount, plural, one {⊘ {cancelledCount} CANCELLED} other {⊘ {cancelledCount} CANCELLED}}"
 
+#: src/utils/stravaStatus.js
+msgid "{cause} {failed} of {attempted} activities have failed since connecting."
+msgstr "{cause} {failed} of {attempted} activities have failed since connecting."
+
+#: src/utils/stravaStatus.js
+msgid "{count, plural, one {{count} activity matched more than one existing session and were skipped} other {{count} activities matched more than one existing session and were skipped}}"
+msgstr "{count, plural, one {{count} activity matched more than one existing session and were skipped} other {{count} activities matched more than one existing session and were skipped}}"
+
+#: src/utils/stravaStatus.js
+msgid "{count, plural, one {{count} activity matched sessions already in the log.} other {{count} activities matched sessions already in the log.}}"
+msgstr "{count, plural, one {{count} activity matched sessions already in the log.} other {{count} activities matched sessions already in the log.}}"
+
+#: src/utils/stravaStatus.js
+msgid "{count, plural, one {{count} day} other {{count} days}}"
+msgstr "{count, plural, one {{count} day} other {{count} days}}"
+
 #: src/views/mobile/MobileSessionLog.jsx
 msgid "{count, plural, one {{count} logged} other {{count} logged}}"
 msgstr "{count, plural, one {{count} logged} other {{count} logged}}"
+
+#: src/utils/stravaStatus.js
+msgid "{count, plural, one {{count} session imported since connecting} other {{count} sessions imported since connecting}}"
+msgstr "{count, plural, one {{count} session imported since connecting} other {{count} sessions imported since connecting}}"
+
+#: src/utils/stravaStatus.js
+msgid "{daysAgo, plural, one {{daysAgo} day ago} other {{daysAgo} days ago}}"
+msgstr "{daysAgo, plural, one {{daysAgo} day ago} other {{daysAgo} days ago}}"
 
 #. Day badge, all capitals: sessions done that day
 #: src/views/CalendarView.jsx
 msgid "{doneCount, plural, one {✓ DONE} other {✓ DONE ×{doneCount}}}"
 msgstr "{doneCount, plural, one {✓ DONE} other {✓ DONE ×{doneCount}}}"
+
+#: src/utils/stravaStatus.js
+msgid "{hours, plural, one {{hours} hour ago} other {{hours} hours ago}}"
+msgstr "{hours, plural, one {{hours} hour ago} other {{hours} hours ago}}"
+
+#: src/utils/stravaStatus.js
+msgid "{importedText}; {matchedText}"
+msgstr "{importedText}; {matchedText}"
+
+#: src/utils/stravaStatus.js
+msgid "{importedText}. New Strava activities are imported automatically."
+msgstr "{importedText}. New Strava activities are imported automatically."
+
+#: src/utils/stravaStatus.js
+msgid "{minutes, plural, one {{minutes} minute ago} other {{minutes} minutes ago}}"
+msgstr "{minutes, plural, one {{minutes} minute ago} other {{minutes} minutes ago}}"
 
 #: src/components/LogSessionForm.jsx
 msgid "＋ add exercise"
@@ -42,6 +82,11 @@ msgstr "● TODAY"
 #: src/views/OverviewView.jsx
 msgid "⚠️ Fatigued — recent load above fitness"
 msgstr "⚠️ Fatigued — recent load above fitness"
+
+#. Shown in place of a dashboard tab that crashed
+#: src/App.jsx
+msgid "⚠️ This section hit a render error and was isolated to protect the rest of the dashboard."
+msgstr "⚠️ This section hit a render error and was isolated to protect the rest of the dashboard."
 
 #: src/views/OverviewView.jsx
 msgid "⚡ Neutral — recent load and fitness balanced"
@@ -90,6 +135,12 @@ msgstr "6/19/26"
 msgid "8-WEEK TSS HISTORY"
 msgstr "8-WEEK TSS HISTORY"
 
+#. Followed by a list of Strava activity numbers
+#. placeholder {0}: (connection?.ambiguous_activity_ids ?? []).join(', ')
+#: src/components/StravaConnectPanel.jsx
+msgid "Activity ids: {0}"
+msgstr "Activity ids: {0}"
+
 #: src/components/LogSessionForm.jsx
 msgid "Add a session label (e.g. Lower 2)."
 msgstr "Add a session label (e.g. Lower 2)."
@@ -103,6 +154,10 @@ msgstr "Add at least one exercise."
 msgid "All"
 msgstr "All"
 
+#: src/components/ThemeControl.jsx
+msgid "Auto"
+msgstr "Auto"
+
 #. Average heart rate, all capitals
 #: src/components/LogEntry.jsx
 msgid "AVG HR"
@@ -112,6 +167,15 @@ msgstr "AVG HR"
 #: src/components/LogEntry.jsx
 msgid "AVG WATTS"
 msgstr "AVG WATTS"
+
+#: src/App.jsx
+msgid "Back"
+msgstr "Back"
+
+#. Settings back button; destination is a mobile tab name
+#: src/views/mobile/MobileSettings.jsx
+msgid "Back to {destination}"
+msgstr "Back to {destination}"
 
 #. After "vs": compared with the baseline
 #. Chart reference line label
@@ -143,6 +207,15 @@ msgstr "BLOODS · LIPID PANEL"
 msgid "BODYWEIGHT — 14 DAYS (kg)"
 msgstr "BODYWEIGHT — 14 DAYS (kg)"
 
+#. Desktop Today pane
+#: src/App.jsx
+msgid "Calendar"
+msgstr "Calendar"
+
+#: src/views/mobile/MobileSessionLog.jsx
+msgid "Cancelled"
+msgstr "Cancelled"
+
 #. Badge, all capitals
 #: src/components/LogEntry.jsx
 msgid "CANCELLED"
@@ -156,6 +229,11 @@ msgstr "Cancelled — this session was not completed."
 #: src/utils/recoveryAnalytics.js
 msgid "CAUTION"
 msgstr "CAUTION"
+
+#. Loading state
+#: src/components/StravaConnectPanel.jsx
+msgid "Checking Strava connection…"
+msgstr "Checking Strava connection…"
 
 #. Blood pressure reading taken under proper resting conditions
 #: src/views/RecoveryView.jsx
@@ -181,14 +259,37 @@ msgstr "Composite of RHR vs baseline, HRV vs baseline, sleep, and training load 
 msgid "Connect Google Health to populate this view"
 msgstr "Connect Google Health to populate this view"
 
+#. Button
+#: src/components/StravaConnectPanel.jsx
+msgid "Connect Strava"
+msgstr "Connect Strava"
+
+#: src/utils/stravaStatus.js
+msgid "Connect Strava to import rides and runs into the training calendar automatically."
+msgstr "Connect Strava to import rides and runs into the training calendar automatically."
+
 #: src/views/mobile/MobileTrain.jsx
 msgid "Connect the PM5 and row against a watt band"
 msgstr "Connect the PM5 and row against a watt band"
+
+#: src/utils/stravaStatus.js
+msgid "Connected · waiting for the first sync"
+msgstr "Connected · waiting for the first sync"
 
 #. sRPE scale, effort 1-2: the talk test
 #: src/constants/srpeGuideMessages.js
 msgid "Could do all day. Full conversation, nose-breathing."
 msgstr "Could do all day. Full conversation, nose-breathing."
+
+#. Error state heading
+#: src/components/StravaConnectPanel.jsx
+msgid "Could not read the Strava connection status"
+msgstr "Could not read the Strava connection status"
+
+#. Error after pressing Connect Strava
+#: src/components/StravaConnectPanel.jsx
+msgid "Could not start the Strava connection. Try again."
+msgstr "Could not start the Strava connection. Try again."
 
 #. {what} is the card's title in lower case, e.g. blood pressure
 #: src/components/HealthRecordCard.jsx
@@ -211,6 +312,10 @@ msgstr "CP unavailable"
 msgid "CTL builds over 42 days — values will be underestimated until ~6 weeks of data."
 msgstr "CTL builds over 42 days — values will be underestimated until ~6 weeks of data."
 
+#: src/components/ThemeControl.jsx
+msgid "Dark"
+msgstr "Dark"
+
 #. Field label, all capitals. The date is stored month/day/year; in Spanish say so, e.g. FECHA (MES/DÍA/AÑO)
 #: src/components/LogSessionForm.jsx
 msgctxt "log-form-date"
@@ -226,6 +331,16 @@ msgstr "Decision limits:"
 #: src/views/RecoveryView.jsx
 msgid "default"
 msgstr "default"
+
+#. Button
+#: src/components/StravaConnectPanel.jsx
+msgid "Disconnect"
+msgstr "Disconnect"
+
+#. Button, busy
+#: src/components/StravaConnectPanel.jsx
+msgid "Disconnecting…"
+msgstr "Disconnecting…"
 
 #. Metric, all capitals
 #: src/components/LogEntry.jsx
@@ -248,7 +363,9 @@ msgstr "easy · talk in sentences (UT2)"
 msgid "Easy (UT2)"
 msgstr "Easy (UT2)"
 
+#. Desktop Progress pane
 #. Session filter chip
+#: src/App.jsx
 #: src/views/mobile/MobileSessionLog.jsx
 msgid "Erg"
 msgstr "Erg"
@@ -369,7 +486,9 @@ msgstr "HDL Cholesterol (male)"
 msgid "High fatigue — recent load well above fitness"
 msgstr "High fatigue — recent load well above fitness"
 
+#. Desktop Progress pane
 #. Progress sub-tab: past sessions
+#: src/App.jsx
 #: src/views/mobile/MobileProgress.jsx
 msgid "History"
 msgstr "History"
@@ -384,15 +503,41 @@ msgstr "HORMONE PANEL"
 msgid "HRV TREND — 14 DAYS"
 msgstr "HRV TREND — 14 DAYS"
 
+#: src/utils/stravaStatus.js
+msgid "Importing history — {imported} imported, {adopted} matched to existing sessions. Continuing automatically."
+msgstr "Importing history — {imported} imported, {adopted} matched to existing sessions. Continuing automatically."
+
 #. Card title, all capitals
 #: src/views/RecoveryView.jsx
 msgid "INJURY WATCH"
 msgstr "INJURY WATCH"
 
+#. Settings section heading above the Strava panel
+#: src/views/SettingsView.jsx
+msgid "Integrations"
+msgstr "Integrations"
+
+#: src/utils/stravaStatus.js
+msgid "just now"
+msgstr "just now"
+
+#. Settings section heading above the language control
+#: src/views/SettingsView.jsx
+msgid "Language"
+msgstr "Language"
+
 #. Calendar legend: the window shown, all capitals
 #: src/views/CalendarView.jsx
 msgid "LAST 3 DAYS · TODAY · NEXT 13 ·"
 msgstr "LAST 3 DAYS · TODAY · NEXT 13 ·"
+
+#: src/utils/stravaStatus.js
+msgid "Last sync {when}"
+msgstr "Last sync {when}"
+
+#: src/utils/stravaStatus.js
+msgid "Last sync did not finish cleanly"
+msgstr "Last sync did not finish cleanly"
 
 #. Stat tile, all capitals
 #: src/views/OverviewView.jsx
@@ -404,12 +549,23 @@ msgstr "LATEST WATTS"
 msgid "LDL Cholesterol"
 msgstr "LDL Cholesterol"
 
+#: src/components/ThemeControl.jsx
+msgid "Light"
+msgstr "Light"
+
 #. Lipid decision limit, e.g. limit 3.0 mmol/L
 #: src/views/RecoveryView.jsx
 msgid "limit {target} {unit}"
 msgstr "limit {target} {unit}"
 
+#. Desktop live erg pane
+#: src/App.jsx
+msgid "Live"
+msgstr "Live"
+
+#. Desktop Progress pane
 #. Progress sub-tab: training load
+#: src/App.jsx
 #: src/views/mobile/MobileProgress.jsx
 msgid "Load"
 msgstr "Load"
@@ -441,6 +597,11 @@ msgstr "LOG STRENGTH SESSION"
 msgid "logged total"
 msgstr "logged total"
 
+#. Desktop strength logging pane
+#: src/App.jsx
+msgid "Logger"
+msgstr "Logger"
+
 #. Example session name: the second lower-body session
 #: src/components/LogSessionForm.jsx
 msgid "Lower 2"
@@ -450,6 +611,10 @@ msgstr "Lower 2"
 msgid "Lower is better. A rising trend over several days = accumulating fatigue. HRV trend builds as more nights are logged."
 msgstr "Lower is better. A rising trend over several days = accumulating fatigue. HRV trend builds as more nights are logged."
 
+#: src/App.jsx
+msgid "Main navigation"
+msgstr "Main navigation"
+
 #. sRPE scale, effort 9-10
 #: src/constants/srpeGuideMessages.js
 msgid "Max"
@@ -458,6 +623,11 @@ msgstr "Max"
 #: src/components/LogSessionForm.jsx
 msgid "max · can't talk"
 msgstr "max · can't talk"
+
+#. Desktop Train pane
+#: src/App.jsx
+msgid "Mobility"
+msgstr "Mobility"
 
 #: src/components/LogSessionForm.jsx
 msgid "moderate · short sentences (UT1)"
@@ -522,6 +692,10 @@ msgstr "No sessions in this window."
 msgid "No sessions logged yet."
 msgstr "No sessions logged yet."
 
+#: src/utils/stravaStatus.js
+msgid "No successful sync in {span}"
+msgstr "No successful sync in {span}"
+
 #: src/views/OverviewView.jsx
 msgid "No training-load reading — form status unknown."
 msgstr "No training-load reading — form status unknown."
@@ -538,18 +712,45 @@ msgstr "No upcoming sessions"
 msgid "No vitals recorded yet"
 msgstr "No vitals recorded yet"
 
+#: src/utils/stravaStatus.js
+msgid "Nothing already imported is affected — reconnecting resumes from where it stopped."
+msgstr "Nothing already imported is affected — reconnecting resumes from where it stopped."
+
 #: src/views/mobile/MobileToday.jsx
 msgid "Nothing prescribed today."
 msgstr "Nothing prescribed today."
+
+#: src/utils/stravaStatus.js
+msgid "Nothing was overwritten. Resolve the duplicates in the log, then sync again."
+msgstr "Nothing was overwritten. Resolve the duplicates in the log, then sync again."
 
 #: src/components/HealthRecordCard.jsx
 msgid "Offline: no saved data yet."
 msgstr "Offline: no saved data yet."
 
+#: src/utils/stravaStatus.js
+msgid "Older activities are fetched a page at a time to stay inside Strava rate limits."
+msgstr "Older activities are fetched a page at a time to stay inside Strava rate limits."
+
+#. Button, busy
+#: src/components/StravaConnectPanel.jsx
+msgid "Opening Strava…"
+msgstr "Opening Strava…"
+
 #. Strava is a brand; RE is relative effort; HR is heart rate
 #: src/views/LogView.jsx
 msgid "Over-rating easy work is the common error — anchor to the talk test. TRIANGULATION: sRPE (felt) + Strava RE (HR-dist) + watts/HR (output) cross-checked every session. All agree = confidence; diverge = early fatigue/stress signal."
 msgstr "Over-rating easy work is the common error — anchor to the talk test. TRIANGULATION: sRPE (felt) + Strava RE (HR-dist) + watts/HR (output) cross-checked every session. All agree = confidence; diverge = early fatigue/stress signal."
+
+#. Desktop Today pane
+#: src/App.jsx
+msgid "Overview"
+msgstr "Overview"
+
+#. Desktop Train pane
+#: src/App.jsx
+msgid "Plan"
+msgstr "Plan"
 
 #. Badge, all capitals
 #. Day badge, all capitals
@@ -641,6 +842,11 @@ msgstr "RECENT"
 msgid "RECENT SESSIONS"
 msgstr "RECENT SESSIONS"
 
+#. Button
+#: src/components/StravaConnectPanel.jsx
+msgid "Reconnect"
+msgstr "Reconnect"
+
 #. Training zone name
 #: src/constants/srpeGuideMessages.js
 msgid "Recovery"
@@ -678,6 +884,11 @@ msgstr "RESTING HR TREND"
 msgid "RESTING HR TREND — 14 DAYS"
 msgstr "RESTING HR TREND — 14 DAYS"
 
+#. Button in the error state
+#: src/components/StravaConnectPanel.jsx
+msgid "Retry"
+msgstr "Retry"
+
 #: src/views/OverviewView.jsx
 msgid "Rowing CP {cp}W · bike FTP {ftpW}W"
 msgstr "Rowing CP {cp}W · bike FTP {ftpW}W"
@@ -699,6 +910,10 @@ msgstr "SAVING…"
 #: src/views/mobile/MobileToday.jsx
 msgid "Scored on the readings that arrived — some were missing."
 msgstr "Scored on the readings that arrived — some were missing."
+
+#: src/App.jsx
+msgid "Sections"
+msgstr "Sections"
 
 #: src/components/LogEntry.jsx
 msgid "Session · {duration}"
@@ -735,9 +950,16 @@ msgid "SESSIONS LOGGED"
 msgstr "SESSIONS LOGGED"
 
 #. Mobile top bar button that opens Settings
+#: src/App.jsx
 #: src/components/mobile/MobileTopBar.jsx
+#: src/views/mobile/MobileSettings.jsx
 msgid "Settings"
 msgstr "Settings"
+
+#. Section eyebrow, all capitals
+#: src/views/SettingsView.jsx
+msgid "SETTINGS"
+msgstr "SETTINGS"
 
 #. Concept2 and Fitbod are brand names: keep them
 #: src/views/LogView.jsx
@@ -748,6 +970,10 @@ msgstr "Share Concept2 links or Fitbod screenshots to add sessions. sRPE capture
 #: src/constants/srpeGuideMessages.js
 msgid "Short phrases only. Genuinely taxing. Threshold/AT."
 msgstr "Short phrases only. Genuinely taxing. Threshold/AT."
+
+#: src/views/mobile/MobileSettings.jsx
+msgid "Sign out"
+msgstr "Sign out"
 
 #. Injury onset date
 #: src/views/RecoveryView.jsx
@@ -772,6 +998,14 @@ msgstr "SLEEP — 14 DAYS"
 #: src/views/RecoveryView.jsx
 msgid "SLEEP SCORE"
 msgstr "SLEEP SCORE"
+
+#: src/utils/stravaStatus.js
+msgid "Some activities could not be saved to the database. Run the sync again."
+msgstr "Some activities could not be saved to the database. Run the sync again."
+
+#: src/utils/stravaCallback.js
+msgid "Something went wrong finishing the connection. Try again."
+msgstr "Something went wrong finishing the connection. Try again."
 
 #. Training zone name
 #: src/constants/srpeGuideMessages.js
@@ -803,8 +1037,67 @@ msgstr "START SESSION"
 msgid "Steady (UT1)"
 msgstr "Steady (UT1)"
 
+#: src/utils/stravaStatus.js
+msgid "Strava access was revoked. Reconnect to resume importing."
+msgstr "Strava access was revoked. Reconnect to resume importing."
+
+#: src/utils/stravaStatus.js
+msgid "Strava caps how many activities can be read per 15 minutes. Nothing was lost; importing continues from where it stopped."
+msgstr "Strava caps how many activities can be read per 15 minutes. Nothing was lost; importing continues from where it stopped."
+
+#: src/utils/stravaCallback.js
+msgid "Strava connected. Your history is importing now — it continues in the background."
+msgstr "Strava connected. Your history is importing now — it continues in the background."
+
+#. Screen reader only: name of the Strava settings panel
+#: src/components/StravaConnectPanel.jsx
+msgid "Strava connection"
+msgstr "Strava connection"
+
+#: src/utils/stravaCallback.js
+msgid "Strava connection cancelled. Nothing was changed — connect whenever you are ready."
+msgstr "Strava connection cancelled. Nothing was changed — connect whenever you are ready."
+
+#: src/utils/stravaCallback.js
+msgid "Strava could not be connected. {why}"
+msgstr "Strava could not be connected. {why}"
+
+#: src/utils/stravaCallback.js
+msgid "Strava did not send back an authorisation code. Start the connection again."
+msgstr "Strava did not send back an authorisation code. Start the connection again."
+
+#: src/utils/stravaStatus.js
+msgid "Strava is having problems. The next sync will retry."
+msgstr "Strava is having problems. The next sync will retry."
+
+#: src/utils/stravaStatus.js
+msgid "Strava not connected"
+msgstr "Strava not connected"
+
+#: src/utils/stravaStatus.js
+msgid "Strava rate limit reached. Importing pauses until it resets."
+msgstr "Strava rate limit reached. Importing pauses until it resets."
+
+#: src/utils/stravaStatus.js
+msgid "Strava rate limit reached. Sync resumes at {resumesAt}."
+msgstr "Strava rate limit reached. Sync resumes at {resumesAt}."
+
+#: src/utils/stravaStatus.js
+msgid "Strava rate limit reached. Sync resumes shortly."
+msgstr "Strava rate limit reached. Sync resumes shortly."
+
+#: src/utils/stravaStatus.js
+msgid "Strava rejected the connection attempt. Connect again to retry."
+msgstr "Strava rejected the connection attempt. Connect again to retry."
+
+#: src/utils/stravaCallback.js
+msgid "Strava rejected the connection attempt. Try connecting again."
+msgstr "Strava rejected the connection attempt. Try connecting again."
+
+#. Desktop Progress pane
 #. Progress sub-tab
 #. Session filter chip
+#: src/App.jsx
 #: src/views/mobile/MobileProgress.jsx
 #: src/views/mobile/MobileSessionLog.jsx
 msgid "Strength"
@@ -825,10 +1118,30 @@ msgstr "Strength session"
 msgid "SUBMIT SESSION"
 msgstr "SUBMIT SESSION"
 
+#. Error after pressing Sync now
+#: src/components/StravaConnectPanel.jsx
+msgid "Sync failed. Try again."
+msgstr "Sync failed. Try again."
+
+#. Button
+#: src/components/StravaConnectPanel.jsx
+msgid "Sync now"
+msgstr "Sync now"
+
+#. Button, busy
+#: src/components/StravaConnectPanel.jsx
+msgid "Syncing…"
+msgstr "Syncing…"
+
 #. sRPE scale, effort 5-6: the talk test
 #: src/constants/srpeGuideMessages.js
 msgid "Talking in sentences but aware of breathing. Working but controlled."
 msgstr "Talking in sentences but aware of breathing. Working but controlled."
+
+#. Desktop footer hint. Concept2 and Fitbod are brand names: keep them.
+#: src/App.jsx
+msgid "Tap any session to expand · Share Concept2 links or Fitbod screenshots to log sessions"
+msgstr "Tap any session to expand · Share Concept2 links or Fitbod screenshots to log sessions"
 
 #: src/views/RecoveryView.jsx
 msgid "target 7h+"
@@ -838,15 +1151,69 @@ msgstr "target 7h+"
 msgid "Target met"
 msgstr "Target met"
 
+#: src/utils/stravaCallback.js
+msgid "That is a different Strava account from the one already connected. Disconnect the current account first."
+msgstr "That is a different Strava account from the one already connected. Disconnect the current account first."
+
+#: src/utils/stravaCallback.js
+msgid "The connection did not complete. Try again."
+msgstr "The connection did not complete. Try again."
+
+#: src/utils/stravaStatus.js
+msgid "The connection is missing activity read permission. Reconnect and approve activity access."
+msgstr "The connection is missing activity read permission. Reconnect and approve activity access."
+
+#. Error state detail
+#: src/components/StravaConnectPanel.jsx
+msgid "The connection itself may be fine — only this status read failed."
+msgstr "The connection itself may be fine — only this status read failed."
+
+#: src/utils/stravaCallback.js
+msgid "The connection link had expired or been used already. Start the connection again."
+msgstr "The connection link had expired or been used already. Start the connection again."
+
+#: src/utils/stravaCallback.js
+msgid "The connection link was opened incorrectly. Start the connection again."
+msgstr "The connection link was opened incorrectly. Start the connection again."
+
+#: src/utils/stravaCallback.js
+msgid "The connection was missing permission to read your activities. Connect again and approve activity access."
+msgstr "The connection was missing permission to read your activities. Connect again and approve activity access."
+
+#: src/utils/stravaStatus.js
+msgid "The last sync failed for an unrecognised reason. Try again."
+msgstr "The last sync failed for an unrecognised reason. Try again."
+
+#: src/utils/stravaStatus.js
+msgid "The limit has reset — you can sync again now."
+msgstr "The limit has reset — you can sync again now."
+
 #. Banner lead-in, all capitals
 #: src/views/PlanView.jsx
 msgid "THE PLAN."
 msgstr "THE PLAN."
 
+#: src/utils/stravaStatus.js
+msgid "The scheduled import has not run recently. Sync now to catch up."
+msgstr "The scheduled import has not run recently. Sync now to catch up."
+
+#: src/utils/stravaStatus.js
+msgid "The Strava token could not be refreshed. Reconnect to resume importing."
+msgstr "The Strava token could not be refreshed. Reconnect to resume importing."
+
+#: src/components/ThemeControl.jsx
+#: src/views/SettingsView.jsx
+msgid "Theme"
+msgstr "Theme"
+
 #. Section heading, all capitals
 #: src/views/mobile/MobileToday.jsx
 msgid "THIS WEEK"
 msgstr "THIS WEEK"
+
+#: src/views/mobile/MobileSettings.jsx
+msgid "Today"
+msgstr "Today"
 
 #. Section heading, all capitals
 #: src/views/mobile/MobileToday.jsx
@@ -913,8 +1280,8 @@ msgid "UPCOMING"
 msgstr "UPCOMING"
 
 #: src/views/PlanView.jsx
-msgid "Upcoming prescriptions from Coach (today forward). A dashed border marks a planned session; tap any card for the targets. Cards mark ✓ done once you log the matching session."
-msgstr "Upcoming prescriptions from Coach (today forward). A dashed border marks a planned session; tap any card for the targets. Cards mark ✓ done once you log the matching session."
+msgid "Upcoming planned sessions (today forward). A dashed border marks a planned session; tap any card for the targets. Cards mark ✓ done once you log the matching session."
+msgstr "Upcoming planned sessions (today forward). A dashed border marks a planned session; tap any card for the targets. Cards mark ✓ done once you log the matching session."
 
 #. sRPE scale, effort 1-2
 #: src/constants/srpeGuideMessages.js
@@ -954,6 +1321,10 @@ msgstr "Words impossible. All-out. Race/test efforts only."
 #: src/views/OverviewView.jsx
 msgid "working avg power"
 msgstr "working avg power"
+
+#: src/utils/stravaStatus.js
+msgid "Working backwards from {from}."
+msgstr "Working backwards from {from}."
 
 #. Followed by a number: your own average
 #. Followed by a number: your own average

@@ -132,3 +132,9 @@ describe('useHashRoute — non-destination screens', () => {
     expect(result.current[0]).toBe('today');
   });
 });
+
+it('opens a desktop pane URL at the same destination on mobile', () => {
+  window.location.hash = '#/progress/history';
+  const { result } = renderHook(() => useHashRoute());
+  expect(result.current[0]).toBe('progress');
+});

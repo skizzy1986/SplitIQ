@@ -5,10 +5,8 @@ import { invalidateSessionQueries } from '../utils/invalidateSessionQueries.js';
 // Same shape as useVitalsSync: a thin mutation over an edge function, with the
 // cache invalidation the write implies.
 //
-// `onSynced` is not redundant with the invalidation. useSessionLog reads
-// sessions through a raw useState/useEffect fetch that no react-query
-// invalidation can reach (#194), so without the callback newly imported Strava
-// sessions would not appear until a manual reload.
+// Prefix invalidation reaches the shared recent and full-history readers.
+// onSynced remains an optional notification for existing integration callers.
 export function useStravaSync({ onSynced } = {}) {
   const queryClient = useQueryClient();
   return useMutation({

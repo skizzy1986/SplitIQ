@@ -1,6 +1,8 @@
 import { i18n } from '@lingui/core';
 import { messages as en } from '../../locales/en.po';
 import { messages as es } from '../../locales/es.po';
+import { messages as viewsEn } from '../../locales/views/en.po';
+import { messages as viewsEs } from '../../locales/views/es.po';
 import { describeConnection } from '../stravaStatus.js';
 import { stravaCallbackMessage } from '../stravaCallback.js';
 
@@ -20,7 +22,7 @@ describe('Strava status wording', () => {
     expect(describeConnection(c, NOW).detail).toMatch(
       /^1234 sessions imported/
     );
-    i18n.load('es', { ...en, ...es });
+    i18n.load('es', { ...en, ...viewsEn, ...es, ...viewsEs });
     i18n.activate('es');
     expect(describeConnection(c, NOW).detail).toMatch(
       /^1234 sesiones importadas/
@@ -29,7 +31,7 @@ describe('Strava status wording', () => {
 
   describe('in Spanish', () => {
     beforeEach(() => {
-      i18n.load('es', { ...en, ...es });
+      i18n.load('es', { ...en, ...viewsEn, ...es, ...viewsEs });
       i18n.activate('es');
     });
 

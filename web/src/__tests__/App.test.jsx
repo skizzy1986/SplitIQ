@@ -1,13 +1,8 @@
+import { useState } from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within, act } from '@testing-library/react';
 
-// App.jsx fetches sessions directly via the supabase client:
-//   supabase.from('sessions').select('*')
-//     .order('date_iso', { ascending: false, nullsFirst: false })
-//     .order('id', { ascending: false })
-// Two chained .order() calls (#232-D), so `order` returns the chain and the
-// chain itself is the thenable — resolving with representative rows covering
-// every render branch of the mapping.
+// Representative raw rows exercise the shared selector and desktop prop wiring.
 const rows = [
   {
     id: 'erg-1',
@@ -86,26 +81,43 @@ const rows = [
   },
 ];
 
-const sessionsChain = {
-  select: () => sessionsChain,
-  order: () => sessionsChain,
-  then: (resolve, reject) =>
-    Promise.resolve({ data: rows, error: null }).then(resolve, reject),
-};
-
-vi.mock('../supabaseClient.js', () => ({
-  supabase: {
-    from: () => sessionsChain,
-  },
+const refetchMock = vi.fn();
+vi.mock('../hooks/useSessions.js', () => ({
+  useSessions: () => ({
+    data: rows,
+    isLoading: false,
+    isError: false,
+    refetch: refetchMock,
+  }),
 }));
 
 // Stub every child module App imports so the test drives App's own routing and
 // mapping logic in isolation (utils + constants run for real).
 vi.mock('../StrengthLogger.jsx', () => ({
-  default: () => <div>StrengthLogger-stub</div>,
+  default: function Logger() {
+    const [count, setCount] = useState(0);
+    return (
+      <div>
+        StrengthLogger-stub
+        <button onClick={() => setCount(count + 1)}>Sets {count}</button>
+      </div>
+    );
+  },
 }));
 vi.mock('../views/ErgLiveView.jsx', () => ({
-  default: () => <div>ErgLiveView-stub</div>,
+  default: function Live({ onSessionSaved }) {
+    const [watts, setWatts] = useState(100);
+    return (
+      <div>
+        ErgLiveView-stub
+        <button onClick={() => setWatts(watts + 1)}>Watts {watts}</button>
+        <button onClick={onSessionSaved}>Save erg</button>
+      </div>
+    );
+  },
+}));
+vi.mock('../views/mobile/MobileAnalytics.jsx', () => ({
+  default: () => <div>LoadView-stub</div>,
 }));
 // Flipped by the error-boundary test so one tab's render throws on demand.
 let settingsThrows = false;
@@ -196,6 +208,8 @@ const LIVE_TSS = [
 ];
 
 beforeEach(() => {
+  window.history.replaceState(null, '', '/');
+  refetchMock.mockReset();
   settingsThrows = false;
   captureErrorMock.mockReset();
   tssHistoryMock.mockReset();
@@ -206,20 +220,30 @@ beforeEach(() => {
   });
 });
 
-// nav label (uppercased) → the stub marker its branch renders.
 const NAV = [
-  ['OVERVIEW', 'OverviewView-stub'],
-  ['CALENDAR', 'CalendarView-stub'],
-  ['PLAN', 'PlanView-stub'],
-  ['LIVE', 'ErgLiveView-stub'],
-  ['ERG', 'ErgView-stub'],
-  ['STRENGTH', 'StrengthView-stub'],
-  ['LOGGER', 'StrengthLogger-stub'],
-  ['MOBILITY', 'MobilityView-stub'],
-  ['RECOVERY', 'RecoveryView-stub'],
-  ['LOG', 'LogView-stub'],
-  ['SETTINGS', 'SettingsView-stub'],
+  ['Today', 'Overview', 'OverviewView-stub'],
+  ['Today', 'Calendar', 'CalendarView-stub'],
+  ['Train', 'Plan', 'PlanView-stub'],
+  ['Train', 'Live', 'ErgLiveView-stub'],
+  ['Train', 'Logger', 'StrengthLogger-stub'],
+  ['Train', 'Mobility', 'MobilityView-stub'],
+  ['Progress', 'Load', 'LoadView-stub'],
+  ['Progress', 'Erg', 'ErgView-stub'],
+  ['Progress', 'Strength', 'StrengthView-stub'],
+  ['Progress', 'History', 'LogView-stub'],
+  ['Body', null, 'RecoveryView-stub'],
+  ['Settings', null, 'SettingsView-stub'],
 ];
+
+function press(label) {
+  fireEvent.click(screen.getByRole('button', { name: label, exact: true }));
+}
+async function hashTo(hash) {
+  await act(async () => {
+    window.history.replaceState(null, '', `/${hash}`);
+    window.dispatchEvent(new window.HashChangeEvent('hashchange'));
+  });
+}
 
 describe('App', () => {
   it('renders the header, full nav, and routes every tab to its view', async () => {
@@ -237,23 +261,19 @@ describe('App', () => {
     expect(screen.queryByText(/STRENGTH · BASE/)).toBeNull();
     expect(screen.queryByText(/beta/)).toBeNull();
 
-    // Eleven tabs: Coach retired in #414, Program and Journal in #418.
-    expect(NAV).toHaveLength(11);
-    const navRow = screen.getByRole('button', {
-      name: 'OVERVIEW',
-    }).parentElement;
-    expect(navRow.querySelectorAll('button')).toHaveLength(11);
-    for (const [label] of NAV) {
-      expect(screen.getByRole('button', { name: label })).toBeInTheDocument();
-    }
+    const primary = screen.getByRole('navigation', { name: 'Main navigation' });
+    expect(
+      within(primary)
+        .getAllByRole('button')
+        .map((button) => button.textContent)
+    ).toEqual(['Today', 'Train', 'Progress', 'Body']);
+    expect(
+      within(primary).queryByRole('button', { name: 'Settings' })
+    ).toBeNull();
     expect(screen.queryByRole('button', { name: 'COACH' })).toBeNull();
-    expect(screen.queryByRole('button', { name: 'PROGRAM' })).toBeNull();
-    expect(screen.queryByRole('button', { name: 'JOURNAL' })).toBeNull();
-
-    // Every tab is lazy (#331), so its content arrives when the chunk
-    // resolves rather than in the click’s own tick — findBy, not getBy.
-    for (const [label, marker] of NAV) {
-      fireEvent.click(screen.getByRole('button', { name: label }));
+    for (const [destination, pane, marker] of NAV) {
+      press(destination);
+      if (pane) press(pane);
       expect(await screen.findByText(marker)).toBeInTheDocument();
     }
   }, 30000);
@@ -325,13 +345,14 @@ describe('App', () => {
     expect(screen.getByTestId('overview-counted')).toHaveTextContent('2');
     expect(screen.getByTestId('overview-total')).toHaveTextContent('2');
 
-    fireEvent.click(screen.getByRole('button', { name: 'CALENDAR' }));
+    press('Calendar');
     expect(await screen.findByTestId('calendar-counted')).toHaveTextContent(
       '2'
     );
     expect(screen.getByTestId('calendar-cancelled')).toHaveTextContent('1');
 
-    fireEvent.click(screen.getByRole('button', { name: 'LOG' }));
+    press('Progress');
+    press('History');
     expect(await screen.findByTestId('logview-shown')).toHaveTextContent('3');
   }, 30000);
 
@@ -345,7 +366,7 @@ describe('App', () => {
     await screen.findByText('OverviewView-stub');
 
     settingsThrows = true;
-    fireEvent.click(screen.getByRole('button', { name: 'SETTINGS' }));
+    press('Settings');
 
     // The throw now happens on the far side of a Suspense boundary. The
     // ErrorBoundary sits OUTSIDE that Suspense precisely so it still
@@ -368,4 +389,73 @@ describe('App', () => {
 
     expect(screen.getByText('SPLITIQ')).toBeInTheDocument();
   }, 30000);
+  it('reloads a linked pane and follows external Back/Forward hash changes', async () => {
+    window.history.replaceState(null, '', '/#/progress/strength');
+    render(<App />);
+    await screen.findByText('StrengthView-stub');
+    expect(screen.getByRole('button', { name: 'Progress' })).toHaveAttribute(
+      'aria-current',
+      'page'
+    );
+    await hashTo('#/today/calendar');
+    await screen.findByText('CalendarView-stub');
+    await hashTo('#/progress/strength');
+    await screen.findByText('StrengthView-stub');
+    expect(screen.getByRole('button', { name: 'Strength' })).toHaveAttribute(
+      'aria-current',
+      'page'
+    );
+  });
+
+  it('returns from Settings to the exact prior pane and restores Settings focus', async () => {
+    render(<App />);
+    await screen.findByText('OverviewView-stub');
+    press('Calendar');
+    await screen.findByText('CalendarView-stub');
+    press('Settings');
+    await screen.findByText('SettingsView-stub');
+    expect(window.location.hash).toBe('#/settings');
+    press('Back');
+    await screen.findByText('CalendarView-stub');
+    expect(window.location.hash).toBe('#/today/calendar');
+    expect(screen.getByRole('button', { name: 'Settings' })).toHaveFocus();
+  });
+
+  it('preserves started logger and live state while visiting other destinations', async () => {
+    render(<App />);
+    await screen.findByText('OverviewView-stub');
+    expect(screen.queryByText('StrengthLogger-stub')).toBeNull();
+    expect(screen.queryByText('ErgLiveView-stub')).toBeNull();
+    press('Train');
+    press('Logger');
+    await screen.findByText('StrengthLogger-stub');
+    press('Sets 0');
+    press('Body');
+    await screen.findByText('RecoveryView-stub');
+    expect(screen.getByText('StrengthLogger-stub')).not.toBeVisible();
+    press('Train');
+    press('Logger');
+    expect(screen.getByRole('button', { name: 'Sets 1' })).toBeVisible();
+    press('Live');
+    await screen.findByText('ErgLiveView-stub');
+    press('Watts 100');
+    press('Settings');
+    await screen.findByText('SettingsView-stub');
+    press('Back');
+    expect(screen.getByRole('button', { name: 'Watts 101' })).toBeVisible();
+    press('Save erg');
+    await screen.findByText('LogView-stub');
+    expect(window.location.hash).toBe('#/progress/history');
+    expect(refetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('normalizes legacy and unknown links without adding phantom history', async () => {
+    window.history.replaceState(null, '', '/#/log');
+    render(<App />);
+    await screen.findByText('LogView-stub');
+    expect(window.location.hash).toBe('#/progress/history');
+    await hashTo('#/missing');
+    await screen.findByText('OverviewView-stub');
+    expect(window.location.hash).toBe('#/today');
+  });
 });

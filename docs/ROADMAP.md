@@ -81,7 +81,7 @@ through `/orchestrate <item>` with its own Gate 2 and Gate 3, one PR per item, `
 | R4 | Migration for the `exercises` seed and the three un-migrated views | [#435](https://github.com/skizzy1986/SplitIQ/issues/435) | M | R22. **#429 first**, or the migration can merge and never apply | Open. Its blocker #429 is done ([#451](https://github.com/skizzy1986/SplitIQ/pull/451)) |
 | R5 | Backup gaps | [#428](https://github.com/skizzy1986/SplitIQ/issues/428) | M | R31 | **Done** — [#552](https://github.com/skizzy1986/SplitIQ/pull/552) |
 | R6 | Reorientation slices 4b–12 | [#417–#425](https://github.com/skizzy1986/SplitIQ/issues/412) | per #412 | — | **Done** — all nine slices, the last in [#562](https://github.com/skizzy1986/SplitIQ/pull/562) |
-| R33 | Privacy research note (D17): what holding another person's training and health data requires, from primary sources (the Privacy Act, OAIC guidance), marked as not legal advice. Scott decides after it whether a professional opinion is needed | — | S | R37, all of L3. R31 proceeds without it as an accepted risk (D25) | Not started |
+| R33 | **Research considered (2026-11-15):** [privacy note and Scott's disposition](coherence/PRIVACY_RESEARCH.md). Privacy research note (D17): what holding another person's training and health data requires, from primary sources (the Privacy Act, OAIC guidance), marked as not legal advice. Scott decides after it whether a professional opinion is needed | — | S | R37, all of L3. R31 proceeds without it as an accepted risk (D25) | Research considered; R37 approved for self-use development |
 
 H1 may run beside slices 4b–12 under D6's fences: #416 first; no `CLAUDE.md` edits outside
 slice 11 (#424); at most two open PRs, one cull and one roadmap; rebase on the shared files
@@ -140,7 +140,7 @@ athlete's shared log is a different surface and lives in L3.
 | R28 | Printable coaching card: phase cues, form check labelled "Reference ideal, modelled", sources and link | M | R10 |
 | R29 | Present mode: large controls, panels hidden, offline after first visit | M | R8, R17 |
 | R30 | Annotation: pinned muscles plus a short note in the URL hash (parked, no evidence yet) | M | R11 |
-| R31 | Open sign-up, password reset, remove `VITALS_USER_ID` pinning. **In progress** as [#561](https://github.com/skizzy1986/SplitIQ/issues/561) in six slices (D25): the sign-up form, a per-user `sessions` unique index, password reset, first run, de-pinning, and Android deep links if needed. The Supabase signups switch stays off until slices 1, 2 and 4 merge. L3's coach invite path (R41) is separate | L | R3 and R5 (done); R33 accepted as a risk (D25) |
+| R31 | Open sign-up, password reset, remove `VITALS_USER_ID` pinning. **In progress** as [#561](https://github.com/skizzy1986/SplitIQ/issues/561) in six slices (D25): the sign-up form, a per-user `sessions` unique index, password reset, first run, de-pinning, and Android deep links if needed. The Supabase signups switch stays off until slices 1, 2 and 4 merge. Slice 1's sign-out cleanup follows D28: keep owner-tagged unsynced work, quarantine only ownerless work. L3's coach invite path (R41) is separate | L | R3 and R5 (done); R33 accepted as a risk (D25) |
 | R32 | Rowing stroke anatomy feasibility note, research only (D5): no 3D stroke anatomy was found anywhere, and rowing coaches' stated pain is team data admin, not stroke understanding | S | after R21 |
 
 **Parked, signal needed:** measured-rep importer and OpenCap overlay (pipeline roadmap
@@ -184,14 +184,21 @@ takes the roadmap PR slot in turn with H1 (D16).
 Done when every user-visible name says SplitIQ, the desktop uses the four destinations with
 URLs, and the dashboard has a light/dark/auto control.
 
+Status (2026-11-16): R34–R38 are done; R36 and R38 landed in #582 after Scott approved
+the [R33/R37 packet](coherence/COACH_ACCESS_SPEC.md) on 2026-11-15 (D28). R39 (depth),
+R40 (planner), R41–R43 (coach implementation) and R45 (design pass) remain separate
+work; shipping L1 does not complete the expanded #511 epic. Open PRs that collide with
+#582 are resolved in the order D29 sets.
+
 | # | Item | Size | Depends on |
 |---|---|---|---|
-| R34 | One name everywhere (B): user-visible self-names, the APK display name and `applicationId` (a new Android identity, accepted at #511's Gate 1), version read from `package.json`, a phase-free eyebrow, a PWA description from `VISION.md`, and a guard test. The README title belongs to #424 | S–M | — |
-| R35 | Residue the cull misses (C): the unowned list in #511 §5. May ship with R34 | S | — |
-| R36 | Dashboard theme control honouring `splitiq.theme` (F). `StrengthLogger.jsx` stays light until #79. Re-measure the dashboard entry budget first | M | — |
-| R37 | Coach access **spec only** (D): relationship and consent, per-category grants, RLS read policies, the plan-write policy, the invite path, and how the `coach_log` / `source = 'coach'` names are reconciled. Runs to Gate 2 and stops (D14) | M | R33 |
-| R38 | Desktop adopts the four destinations with URL routing and one session hook (E) | L | R6 slices #420–#423, R37 |
+| R34 | **Done (#524).** One name everywhere (B): user-visible self-names, the APK display name and `applicationId` (a new Android identity, accepted at #511's Gate 1), version read from `package.json`, a phase-free eyebrow, a PWA description from `VISION.md`, and a guard test. The README title belongs to #424 | S–M | — |
+| R35 | **Done (#524).** Residue the cull misses (C): the unowned list in #511 §5. May ship with R34 | S | — |
+| R36 | **Done (#582).** Dashboard theme control honouring `splitiq.theme` (F). `StrengthLogger.jsx` stays light until #79. Re-measure the dashboard entry budget first | M | — |
+| R37 | **Spec approved (2026-11-15):** [coach-access contract](coherence/COACH_ACCESS_SPEC.md). Coach access **spec only** (D): relationship and consent, per-category grants, RLS read policies, the plan-write policy, the invite path, and how the `coach_log` / `source = 'coach'` names are reconciled. Runs to Gate 2 and stops (D14) | M | R33 |
+| R38 | **Done (#582):** shared owner-scoped recent/full sessions, account isolation and desktop routing. Desktop adopts the four destinations with hash URL routing and one session hook (E). First unify recent/full-history queries and invalidation without losing records, then migrate the shell | L | R6 slices #420–#423, R37 |
 | R39 | Depth preference: simple or expert per user, simple by default (`VISION.md`, *One dataset, two depths*). Not in #511; added here so the principle has an item | M–L | R38 |
+| R45 | Dashboard design and UI pass. Scott's judgement on the #582 preview (2026-11-16): the four-destination shell works but the dashboard needs a major design pass and UI improvements. Starts with a design critique and accessibility review of the shipped desktop and mobile screens against `DESIGN.md`; its Gate 1 decides scope and order. Not sized, not scheduled. Pair with R39 so the simple depth is designed rather than retrofitted. The squat tool's polish stays with R44 (D19) | L | R38; R39 by preference |
 
 ### L2 — Deterministic planning (after the cull)
 
@@ -227,7 +234,7 @@ included, and a native speaker has signed off the copy.
 | I1 | Mobile Settings screen, reached from a gear on Today; sign-out moves into it on mobile (PR-M) | **Done** — [#508](https://github.com/skizzy1986/SplitIQ/pull/508) | — |
 | I2 | Lingui 6 foundation and the dashboard shell in Spanish: login and toggle, splash, nav, Settings → Idioma, the Strava panel, error states, mobile Settings (PR-1) | **Done** — [#522](https://github.com/skizzy1986/SplitIQ/pull/522) | I1 |
 | I3 | The settled views (Phase 2a): Overview, Calendar, Plan, Log, Recovery; mobile Today, Progress, Body and the Train picker. Adds a second, lazily loaded "views" catalog so view text stays off first paint | **Done** — [#533](https://github.com/skizzy1986/SplitIQ/pull/533) | I2 |
-| I4 | The remaining views (Phase 2b), each in or after the PR that settles it: Live and the mobile Strength pane after #518/#519; Erg after #422; Mobility after #423; Strength and the logger after #520. Until then those screens are English inside Spanish menus, which D20 accepts | Waiting | #518, #519, #422, #423, #520 |
+| I4 | The remaining views (Phase 2b), each in or after the PR that settles it: Live and the mobile Strength pane after #518/#519; Erg after #422; Mobility after #423; Strength and the logger after #520, re-scoped against R38 (D29). Until then those screens are English inside Spanish menus, which D20 accepts | Waiting | #518, #519, #422, #423, #520 |
 | I5 | `/squat` chrome on Lingui (PR-2): controls, labels, notices and the guide shell. Expect a `SQUAT_ENTRY` raise under #504, because the Lingui runtime then counts in the squat entry | Not started | I2 |
 | I6 | `/squat` prose (PR-3): guide prose, muscle names and roles from the pinned manifest, synonyms, rep summaries, as an id-keyed overlay so `content.test.js` stays unedited | Not started | I5 |
 | I7 | Native-speaker sign-off: Scott's Colombian reviewer works through `REVIEW-es-CO.md`; corrections land as follow-up PRs, and `review.es-CO.json` moves to `reviewed` once the copy is final | Pending — waived as a merge gate (D22) | — |
@@ -333,5 +340,7 @@ The next entry-growing change needs a #504 raise or the `RealtimeClient` reclaim
 | D25 | 2026-11-14 (Gate 1 2026-11-15): **Reverses D3, and D14's "open sign-up (R31) stays parked".** Registration opens now, as R31 / [#561](https://github.com/skizzy1986/SplitIQ/issues/561), in six slices. The rules: email confirmation required, a self-declared 18+ tick-box (a declaration, not verification), a short privacy notice with a required consent tick, and web only (the APK offers no sign-up). The Supabase signups switch stays off until slices 1, 2 and 4 merge. R33 is not done, and opening without it is an accepted risk; R33 still gates coach access (D17). Coach access itself is unchanged: specified now, built after H2 (D14) |
 | D26 | 2026-11-15: The bundle gate measures the build production ships (#465). CI builds with a placeholder `VITE_SENTRY_DSN`, the size script fails a first paint without the Sentry init path, and `ENTRY` 157 → 208 and `SQUAT_ENTRY` 124 → 173 are re-based to the measured figure + ~2 KB. A correction, not growth: production carried the SDK all along. Deferring the SDK off first paint is not chosen now |
 | D27 | 2026-11-15: R13 and R14 are re-scoped to what is left of them. R12 (#557) made the barbell optional and data-driven, so R13 is the static muscle sets and their attach frame. R8 (#463) deleted `derivePhase`, `PHASE_CHIPS`, `DIRECTIONS` and the thresholds, so R14 is the direction words in `anatomy/utils/rep.js`, phases read through the movement config, and the five-phase layout. Build order for the open H0/H1 items: R4, R13, R14, R10, R9, R16, R15 |
+| D28 | 2026-11-15/16: Scott approved R37 and the R33 disposition: privacy and legal consideration continues but does not halt development of the private, non-commercial app; this is not a claim of exemption nor approval of a public or commercial rollout. R38 then shipped (#582): desktop maps Overview/Calendar to Today, Plan/Live/Logger/Mobility to Train, Load/Erg/Strength/History to Progress and Recovery to Body, with Settings separately routed and legacy hashes normalised. Owner-tagged unsynced work (offline queue, strength draft) survives sign-out and session expiry; only ownerless legacy work is quarantined. No coach data access is enabled. R45 records the dashboard design pass Scott called for after the preview |
+| D29 | 2026-11-16: Order after #582, which collides with three open PRs. (1) Merge #582, after confirming the offline-pending count is 0 on each device. (2) #565 is closed or cut down to a **Log a session / Resume session** action that opens Train → Logger: embedding the logger inside Strength contradicts R38 (the logger lives in Train and stays mounted) and would mount two loggers on one draft. #520 is re-scoped to that action. (3) #556 rebases, keeping #582's save guards in `ErgLiveView.jsx` and regenerating the catalogs. (4) #558 drops its `useSessionLog.js` hunk (file deleted) and makes the #264 fix in `utils/sessionLog.js`. (5) #561 adopts D28's sign-out policy |
 
 A changed decision is a new row here with the date, not an edit to the old one.

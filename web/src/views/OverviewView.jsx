@@ -286,7 +286,7 @@ export default function OverviewView({
                     letterSpacing: 2,
                   }}
                 >
-                  {k} <span style={{ color: THEME.textDim }}>{sub}</span>
+                  {k} <span style={{ color: THEME.textFaint }}>{sub}</span>
                 </div>
                 <div
                   style={{
@@ -384,7 +384,7 @@ export default function OverviewView({
           style={{
             marginTop: 6,
             fontSize: 9,
-            color: THEME.textDim,
+            color: THEME.muted,
             lineHeight: 1.5,
           }}
         >
@@ -393,7 +393,9 @@ export default function OverviewView({
             weeks of data.
           </Trans>{' '}
           {cpAvailable
-            ? t`Power-derived load is measured against rowing CP ${cp}W and bike FTP ${ftp}W; revalidate with a test to sharpen it.`
+            ? ftp != null
+              ? t`Power-derived load is measured against rowing CP ${cp}W and bike FTP ${ftp}W; revalidate with a test to sharpen it.`
+              : t`Power-derived load is measured against rowing CP ${cp}W; revalidate with a test to sharpen it.`
             : t`Power-derived load is unavailable while the CP anchor cannot be read.`}
         </div>
       </div>

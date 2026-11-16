@@ -236,10 +236,7 @@ const NAV = [
 ];
 
 function press(label) {
-  const button = screen.queryByRole('button', { name: label, exact: true });
-  fireEvent.click(
-    button ?? screen.getByRole('tab', { name: label, exact: true })
-  );
+  fireEvent.click(screen.getByRole('button', { name: label, exact: true }));
 }
 async function hashTo(hash) {
   await act(async () => {
@@ -401,10 +398,22 @@ describe('App', () => {
     await screen.findByText('CalendarView-stub');
     await hashTo('#/progress/strength');
     await screen.findByText('StrengthView-stub');
-    expect(screen.getByRole('tab', { name: 'Strength' })).toHaveAttribute(
-      'aria-selected',
-      'true'
+    expect(screen.getByRole('button', { name: 'Strength' })).toHaveAttribute(
+      'aria-current',
+      'page'
     );
+  });
+
+  it('renders the sidebar foot inside the sidebar, after the navigation', () => {
+    render(<App sidebarFoot={<button type="button">Sign out</button>} />);
+    const sidebar = screen.getByRole('complementary');
+    const signOut = within(sidebar).getByRole('button', { name: 'Sign out' });
+    const nav = within(sidebar).getByRole('navigation', {
+      name: 'Main navigation',
+    });
+    // 0x04 is DOCUMENT_POSITION_FOLLOWING: sign-out comes after the nav.
+    expect(nav.compareDocumentPosition(signOut) & 0x04).toBeTruthy();
+    expect(signOut.style.position).toBe('');
   });
 
   it('returns from Settings to the exact prior pane and restores Settings focus', async () => {

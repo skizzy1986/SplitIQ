@@ -147,6 +147,20 @@ describe('OverviewView', () => {
     expect(screen.queryByText(/190W/)).not.toBeInTheDocument();
   });
 
+  it('leaves bike FTP out of the load footnote when there is no FTP anchor', () => {
+    useAnchorsMock.mockReturnValue({
+      anchors: {},
+      cp: 205,
+      ftp: null,
+      cpAvailable: true,
+    });
+    render(<OverviewView {...baseProps} />);
+    expect(
+      screen.getByText(/measured against rowing CP 205W; revalidate/)
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/bike FTP/)).not.toBeInTheDocument();
+  });
+
   it('says CP is unavailable rather than showing a stale threshold', () => {
     useAnchorsMock.mockReturnValue({
       anchors: {},

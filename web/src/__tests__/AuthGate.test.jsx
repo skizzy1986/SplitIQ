@@ -46,7 +46,9 @@ vi.mock('../hooks/usePWAInstall.js', () => ({
 vi.mock('../components/SplashScreen.jsx', () => ({
   default: () => <div data-testid="splash-stub" />,
 }));
-vi.mock('../App.jsx', () => ({ default: () => <div>App-stub</div> }));
+vi.mock('../App.jsx', () => ({
+  default: ({ sidebarFoot }) => <div>App-stub{sidebarFoot}</div>,
+}));
 vi.mock('../views/mobile/MobileApp.jsx', () => ({
   default: () => <div>MobileApp-stub</div>,
 }));
@@ -358,7 +360,7 @@ describe('AuthGate boot behaviour', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
-  it('signs out through the floating button once authed', async () => {
+  it('signs out through the sidebar-foot button once authed', async () => {
     mocks.isMobile = false;
     mocks.dataReady = true;
     const d = deferred();
@@ -394,7 +396,7 @@ describe('AuthGate boot behaviour', () => {
     expect(screen.getByTitle('Sign out')).toBeTruthy();
   });
 
-  it('has no floating sign-out on mobile, where Settings carries it', async () => {
+  it('passes no sign-out to the shell on mobile, where Settings carries it', async () => {
     const d = deferred();
     mocks.getSession = d.promise;
 

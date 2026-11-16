@@ -126,7 +126,10 @@ test.describe('desktop shell', () => {
 
   test('calendar', async ({ page, context }) => {
     await openAuthed(page, context);
-    const calendar = page.getByRole('tab', { name: 'Calendar', exact: true });
+    const calendar = page.getByRole('button', {
+      name: 'Calendar',
+      exact: true,
+    });
     await expect(calendar).toBeVisible();
     await switchTo(page, calendar);
     await shot(page, 'desktop-calendar');

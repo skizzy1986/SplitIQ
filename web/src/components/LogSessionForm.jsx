@@ -4,7 +4,7 @@ import { Trans, useLingui } from '@lingui/react/macro';
 import { msg } from '@lingui/core/macro';
 import { supabase } from '../supabaseClient.js';
 import { THEME } from '../constants/theme.js';
-import { toISODate, toLogDate } from '../utils/dateFormat.js';
+import { toLogDate } from '../utils/dateFormat.js';
 import { invalidateSessionQueries } from '../utils/invalidateSessionQueries.js';
 
 // Kept as descriptors, not text, so a message already on screen follows a
@@ -137,7 +137,7 @@ export default function LogSessionForm({ onSaved }) {
 
   const inp = {
     background: THEME.field,
-    border: `1px solid ${THEME.border}`,
+    border: `1px solid ${THEME.textFaint}`,
     borderRadius: 4,
     padding: '7px 9px',
     fontSize: 16,
@@ -247,12 +247,9 @@ export default function LogSessionForm({ onSaved }) {
           </label>
           <input
             id="log-date"
-            type="date"
             style={inp}
-            value={toISODate(date)}
-            onChange={(e) =>
-              setDate(e.target.value ? toLogDate(e.target.value) : '')
-            }
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
             placeholder={t({
               message: '6/19/26',
               comment:

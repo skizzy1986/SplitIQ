@@ -73,7 +73,7 @@ function Login() {
 
   const inp = {
     background: THEME.field,
-    border: `1px solid ${THEME.border}`,
+    border: `1px solid ${THEME.textFaint}`,
     borderRadius: 5,
     padding: '11px 12px',
     fontSize: 14,
@@ -260,17 +260,15 @@ function LoadingPane() {
   );
 }
 
-// ── SIGN-OUT BUTTON (floating, top-right) ────────────────────────
+// ── SIGN-OUT BUTTON (desktop sidebar foot) ───────────────────────
+// Owned here, rendered by App at the foot of its sidebar: in the flow, so it
+// never sits over a sheet or the rest bar and follows the nav in Tab order.
 function SignOutButton() {
   const { t } = useLingui();
   return (
     <button
       onClick={() => supabase.auth.signOut()}
       style={{
-        position: 'fixed',
-        left: 16,
-        bottom: 'calc(16px + env(safe-area-inset-bottom, 0px))',
-        zIndex: 1000,
         minHeight: 44,
         minWidth: 44,
         background: THEME.raised,
@@ -400,16 +398,18 @@ function Gate() {
         key={session.user?.id}
         value={session.user?.id ?? null}
       >
-        {/* On a phone the floating button sat over the top bar's Settings button, so
-            sign-out lives on the mobile Settings screen instead. Held back
-            while the splash covers the page, or Tab reaches a hidden button. */}
-        {!isMobile && !showSplash && <SignOutButton />}
         {/* The shell chunk is fetched here rather than at first paint. The
             splash is already covering this window; once it has dismissed at
             its ceiling, fall back to the same pane the unresolved branch uses, so a slow
             chunk reads as loading rather than as a blank screen. */}
         <Suspense fallback={showSplash ? null : <LoadingPane />}>
-          {isMobile ? <MobileApp /> : <App />}
+          {/* On a phone sign-out lives on the mobile Settings screen. Held back
+              while the splash covers the page, or Tab reaches a hidden button. */}
+          {isMobile ? (
+            <MobileApp />
+          ) : (
+            <App sidebarFoot={showSplash ? null : <SignOutButton />} />
+          )}
         </Suspense>
       </SessionOwnerContext.Provider>
     );

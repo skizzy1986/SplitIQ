@@ -338,10 +338,16 @@ export default function RecoveryView({ isWide, onOpenSettings }) {
                       letterSpacing: -1,
                     }}
                   >
-                    {readiness.score == null ? t`No reading` : readiness.score}
-                    <span style={{ fontSize: 14, color: THEME.muted }}>
-                      /100
-                    </span>
+                    {readiness.score == null ? (
+                      t`No reading`
+                    ) : (
+                      <>
+                        {readiness.score}
+                        <span style={{ fontSize: 14, color: THEME.muted }}>
+                          /100
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>

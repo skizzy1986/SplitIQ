@@ -48,6 +48,46 @@ describe('MobileAnalytics', () => {
     ).not.toBeInTheDocument();
   });
 
+  // #611: a chart card with a title and no chart, or a tile with a label and
+  // no number, reads as data. Missing load leaves only the outage line.
+  it.each([
+    ['unavailable', false],
+    ['pending', true],
+  ])('draws no load tiles or chart cards while load is %s', (_, isLoading) => {
+    mockUseTSSHistory.mockReturnValue({ data: [], isLoading });
+    mockUseSessions.mockReturnValue({ data: [] });
+    render(<MobileAnalytics />);
+    for (const text of [
+      'FITNESS / CTL',
+      'FATIGUE / ATL',
+      '30-DAY LOAD TREND',
+      '8-WEEK TSS HISTORY',
+    ]) {
+      expect(screen.queryByText(text)).not.toBeInTheDocument();
+    }
+    expect(screen.queryByText('Reading…') !== null).toBe(isLoading);
+  });
+
+  it('draws the load tiles and chart cards once there is a reading', () => {
+    mockUseTSSHistory.mockReturnValue({
+      data: [
+        { date: '2026-06-12', tss: 100, note: '' },
+        { date: '2026-06-13', tss: 100, note: '' },
+      ],
+      isLoading: false,
+    });
+    mockUseSessions.mockReturnValue({ data: [] });
+    render(<MobileAnalytics />);
+    for (const text of [
+      'FITNESS / CTL',
+      'FATIGUE / ATL',
+      '30-DAY LOAD TREND',
+      '8-WEEK TSS HISTORY',
+    ]) {
+      expect(screen.getByText(text)).toBeInTheDocument();
+    }
+  });
+
   it('scores a power-only session in the recent list, matching the chart', () => {
     // This list used to keep a private sRPE-only formula, so a Strava-imported
     // session with watts but no sRPE read 0 here while the chart counted it.

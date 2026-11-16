@@ -2,10 +2,12 @@ import { THEME } from '../constants/theme.js';
 import { RADIUS, SPACE, TYPE } from '../constants/tokens.js';
 import { FONT } from '../constants/type.js';
 
+// A labelled <nav> of buttons, not an ARIA tabs widget: the panes it switches
+// are routes on desktop, and tab roles promise arrow-key behaviour this does
+// not have.
 export default function SegmentedControl({ label, items, value, onChange }) {
   return (
-    <div
-      role="tablist"
+    <nav
       aria-label={label}
       style={{
         display: 'flex',
@@ -23,8 +25,6 @@ export default function SegmentedControl({ label, items, value, onChange }) {
           <button
             key={item.id}
             type="button"
-            role="tab"
-            aria-selected={on}
             aria-current={on ? 'page' : undefined}
             onClick={() => onChange(item.id)}
             style={{
@@ -44,6 +44,6 @@ export default function SegmentedControl({ label, items, value, onChange }) {
           </button>
         );
       })}
-    </div>
+    </nav>
   );
 }

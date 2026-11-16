@@ -392,9 +392,9 @@ describe('LogSessionForm in Spanish', () => {
     render(withClient(<LogSessionForm />));
     open();
     expect(screen.getByText('FECHA (MES/DÍA/AÑO)')).toBeInTheDocument();
-    // The control is type=date, so the visible value is ISO. The write stays M/D/YY.
-    expect(screen.getByLabelText(/FECHA/)).toHaveAttribute('type', 'date');
-    expect(screen.getByDisplayValue('2031-01-02')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('mm/dd/aa')).toBeInTheDocument();
+    // What it writes is untouched: today, as sessions.date stores it.
+    expect(screen.getByDisplayValue(mdy(0))).toBeInTheDocument();
     fireEvent.click(screen.getByText('ENVIAR SESIÓN'));
     expect(
       screen.getByText(
@@ -421,8 +421,8 @@ describe('LogSessionForm in Spanish', () => {
     };
     const enRow = await submit(() => {
       fireEvent.click(screen.getByText('＋ LOG A STRENGTH SESSION'));
-      fireEvent.change(screen.getByLabelText(/DATE/), {
-        target: { value: '2026-03-04' },
+      fireEvent.change(screen.getByPlaceholderText('6/19/26'), {
+        target: { value: '3/4/26' },
       });
       fireEvent.change(screen.getByPlaceholderText('Lower 2'), {
         target: { value: 'Lower 2' },
@@ -435,8 +435,8 @@ describe('LogSessionForm in Spanish', () => {
     inSpanish();
     const esRow = await submit(() => {
       open();
-      fireEvent.change(screen.getByLabelText(/FECHA/), {
-        target: { value: '2026-03-04' },
+      fireEvent.change(screen.getByPlaceholderText('mm/dd/aa'), {
+        target: { value: '3/4/26' },
       });
       fireEvent.change(screen.getByPlaceholderText('Tren inferior 2'), {
         target: { value: 'Lower 2' },
@@ -738,10 +738,10 @@ describe('Mobile in Spanish', () => {
     expect(screen.getByText('Sesión de fuerza')).toBeInTheDocument();
     render(<MobileProgress />);
     expect(
-      screen.getByRole('tablist', { name: 'Progreso' })
+      screen.getByRole('navigation', { name: 'Progreso' })
     ).toBeInTheDocument();
     for (const name of ['Carga', 'Historial', 'Fuerza']) {
-      expect(screen.getByRole('tab', { name })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name })).toBeInTheDocument();
     }
   });
 });

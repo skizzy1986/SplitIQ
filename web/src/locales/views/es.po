@@ -813,6 +813,10 @@ msgid "Power-derived load is measured against rowing CP {cp}W and bike FTP {ftp}
 msgstr "La carga derivada de la potencia se mide frente a la CP de remo de {cp}W y el FTP de bici de {ftp}W; vuelve a validarla con una prueba para afinarla."
 
 #: src/views/OverviewView.jsx
+msgid "Power-derived load is measured against rowing CP {cp}W; revalidate with a test to sharpen it."
+msgstr "La carga derivada de la potencia se mide frente a la CP de remo de {cp}W; vuelve a validarla con una prueba para afinarla."
+
+#: src/views/OverviewView.jsx
 msgid "Power-derived load is unavailable while the CP anchor cannot be read."
 msgstr "La carga derivada de la potencia no está disponible mientras no se pueda leer el ancla de CP."
 

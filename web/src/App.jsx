@@ -138,7 +138,7 @@ const navStyle = {
   background: 'transparent',
 };
 
-export default function App() {
+export default function App({ sidebarFoot = null }) {
   const { _ } = useLingui();
   const [initialCallback] = useState(() => readStravaCallback(window.location));
   const [noticeCallback, setNoticeCallback] = useState(initialCallback);
@@ -222,7 +222,9 @@ export default function App() {
         color: THEME.text,
         fontFamily: FONT.sans,
         display: 'flex',
-        overflowX: 'hidden',
+        // clip, not hidden: hidden would make this a scroll container and the
+        // sticky sidebar would stick to it instead of the viewport.
+        overflowX: 'clip',
         maxWidth: '100vw',
         boxSizing: 'border-box',
       }}
@@ -233,8 +235,13 @@ export default function App() {
           flex: 'none',
           display: 'flex',
           flexDirection: 'column',
+          position: 'sticky',
+          top: 0,
+          alignSelf: 'flex-start',
+          height: '100vh',
+          overflowY: 'auto',
           borderRight: `1px solid ${THEME.divider}`,
-          padding: '28px 16px 80px',
+          padding: '28px 16px',
           boxSizing: 'border-box',
         }}
       >
@@ -320,6 +327,11 @@ export default function App() {
             <Trans>Settings</Trans>
           </button>
         </nav>
+        {sidebarFoot && (
+          <div style={{ marginTop: 'auto', paddingTop: SPACE.lg }}>
+            {sidebarFoot}
+          </div>
+        )}
       </aside>
       <div
         style={{
@@ -484,7 +496,7 @@ export default function App() {
             border: `1px solid ${THEME.border}`,
             borderRadius: 6,
             fontSize: 10,
-            color: THEME.textDim,
+            color: THEME.muted,
             textAlign: 'center',
             lineHeight: 1.7,
           }}

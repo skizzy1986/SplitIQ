@@ -43,7 +43,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `hdxhKx` | We could not sign you in. Try again. | No pudimos iniciar sesión. Inténtalo de nuevo. | Login error for any unrecognised cause. Only shown in Spanish. · src/utils/authError.js |
 | `y1oEoC` | Wrong email or password. | Correo o contraseña incorrectos. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
 
-## Dashboard views (src/locales/views, 293 strings)
+## Dashboard views (src/locales/views, 294 strings)
 
 | Row | English | Español | Where / note |
 |---|---|---|---|
@@ -218,6 +218,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `iQ1n2D` | PLANNED | PLANIFICADA | Badge, all capitals · Day badge, all capitals · src/components/LogEntry.jsx · src/views/CalendarView.jsx |
 | `7F65H5` | Post: | Después: | Meal after the session · src/components/WorkoutItem.jsx |
 | `K9Pm4P` | Power-derived load is measured against rowing CP {cp}W and bike FTP {ftp}W; revalidate with a test to sharpen it. | La carga derivada de la potencia se mide frente a la CP de remo de {cp}W y el FTP de bici de {ftp}W; vuelve a validarla con una prueba para afinarla. | src/views/OverviewView.jsx |
+| `S4k530` | Power-derived load is measured against rowing CP {cp}W; revalidate with a test to sharpen it. | La carga derivada de la potencia se mide frente a la CP de remo de {cp}W; vuelve a validarla con una prueba para afinarla. | src/views/OverviewView.jsx |
 | `dCOvJh` | Power-derived load is unavailable while the CP anchor cannot be read. | La carga derivada de la potencia no está disponible mientras no se pueda leer el ancla de CP. | src/views/OverviewView.jsx |
 | `lb62Hm` | Pre: | Antes: | Meal before the session · src/components/WorkoutItem.jsx |
 | `iG7qUe` | Prescription — targets below. | Prescripción: objetivos abajo. | src/components/LogEntry.jsx |

@@ -20,7 +20,7 @@ import { useLiftHistory } from '../hooks/useLiftHistory.js';
 const statusStyle = {
   padding: '20px 0',
   textAlign: 'center',
-  color: THEME.textDim,
+  color: THEME.muted,
   fontSize: 11,
 };
 

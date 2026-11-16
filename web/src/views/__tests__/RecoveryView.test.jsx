@@ -124,6 +124,13 @@ describe('RecoveryView', () => {
     expect(screen.getByText(/BLOODS · LIPID PANEL/)).toBeInTheDocument();
   });
 
+  it('does not append /100 to a readiness score it cannot compute', () => {
+    setRows([day({ rhr: null, hrv: null })]);
+    renderView();
+    expect(screen.getAllByText('No reading').length).toBeGreaterThan(0);
+    expect(screen.queryByText('/100')).not.toBeInTheDocument();
+  });
+
   it('reports READY when vitals are at baseline', () => {
     setRows([day()]);
     renderView();

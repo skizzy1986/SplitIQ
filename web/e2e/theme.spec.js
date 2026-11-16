@@ -31,7 +31,7 @@ for (const [name, width] of [
         page
           .getByTestId('theme-root')
           .evaluate((el) =>
-            getComputedStyle(el).getPropertyValue('--color-bg').trim()
+            window.getComputedStyle(el).getPropertyValue('--color-bg').trim()
           )
       )
       .toBe(DARK.bg);
@@ -60,7 +60,7 @@ for (const [name, width] of [
     );
     if (width > 767) {
       await page.getByRole('button', { name: 'Train', exact: true }).click();
-      await page.getByRole('tab', { name: 'Logger', exact: true }).click();
+      await page.getByRole('button', { name: 'Logger', exact: true }).click();
     } else {
       await page
         .getByRole('button', { name: 'Back to Today', exact: true })
@@ -73,7 +73,7 @@ for (const [name, width] of [
     await expect
       .poll(() =>
         logger.evaluate((el) =>
-          getComputedStyle(el).getPropertyValue('--color-bg').trim()
+          window.getComputedStyle(el).getPropertyValue('--color-bg').trim()
         )
       )
       .toBe(DARK.bg);

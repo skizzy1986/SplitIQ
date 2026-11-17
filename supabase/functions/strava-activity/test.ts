@@ -349,11 +349,11 @@ console.log("\nSA-01 auth and request (http.ts)");
 
   const noSub = await serveRequest(post({ session_id: SESSION }, null), serveDeps);
   check("SA-01 no sub is 401 unauthorized", noSub.status === 401 && (await noSub.json()).error === "unauthorized", noSub.status);
-  const noAuth = await serveRequest(
+  const bare = await serveRequest(
     new Request("https://example.invalid", { method: "POST", body: JSON.stringify({ session_id: SESSION }) }),
     serveDeps,
   );
-  check("SA-01 no bearer is 401", noAuth.status === 401, noAuth.status);
+  check("SA-01 no bearer is 401", bare.status === 401, bare.status);
 
   const get = await serveRequest(post(null, USER, "GET"), serveDeps);
   check("SA-01 GET is 405", get.status === 405, get.status);
@@ -470,7 +470,8 @@ const cachedPayload = normaliseActivity(DETAIL, KEYED);
   check("SA-03 a fresh fetch carries the activity's Strava url", (r.body as Row).url === "https://www.strava.com/activities/777000111",
     (r.body as Row).url);
   check("SA-03 url is not stored in the cached row or its payload",
-    !("url" in (row.payload as Row)) && !("url" in row) && !JSON.stringify(row.payload).includes("strava.com"), row.payload);
+    // No URL of any kind in the cache, not only this host.
+    !("url" in (row.payload as Row)) && !("url" in row) && !/https?:/i.test(JSON.stringify(row.payload)), row.payload);
   check("SA-03 the cached payload carries the version, the response does not",
     (row.payload as Row).v === CACHE_PAYLOAD_VERSION && !("v" in (r.body as Row)), [(row.payload as Row).v, Object.keys(r.body)]);
   check("SA-03 fetched_at is now", row.fetched_at === iso(NOW), row.fetched_at);

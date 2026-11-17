@@ -630,10 +630,15 @@ supabase functions deploy strava-activity
 awkward to read:
 
 - `ok`: `cached`, `origin` (`inserted` | `adopted`), `strava_activity_id`,
-  `fetched_at`, `expires_at`, `activity` (`sport_type`, `device_name`,
+  `url`, `fetched_at`, `expires_at`, `activity` (`sport_type`, `device_name`,
   `elapsed_time_s`, `moving_time_s`, `distance_m`, `total_elevation_gain_m`,
   `calories`, `device_watts`, `laps[]`) and `streams` (each of the seven an array
-  or null);
+  or null). `url` is the activity's page on Strava
+  (`https://www.strava.com/activities/<strava_activity_id>`, from
+  `stravaActivityUrl` in `normalise.ts`), built by the server from the link row so
+  the browser never holds the Strava host (a frontend guard test forbids it in
+  `web/src`); it is derivable, so it is never cached, and no other status carries
+  it;
 - `rate_limited` with `retry_at`;
 - `not_linked`, `not_connected`, `auth_failed`, `gone`,
   `garmin_attribution_pending`, `upstream_error`.
@@ -807,7 +812,7 @@ the reconnect patch and its wiring into the callback; that one also needs
 `--allow-read=strava-oauth-callback/index.ts`, run from `supabase/functions`).
 The session page's function (#647) has its own suite,
 `deno run --allow-env strava-activity/test.ts` from `supabase/functions`
-(222 — the HTTP shell, the request flow and its cache, rate-limit holds, refused
+(265 — the HTTP shell, the request flow and its cache, rate-limit holds, refused
 grants, the normaliser, and what may reach Sentry). No network, no database, no dependence on the
 machine's clock or timezone. Wired into `.github/workflows/ci-functions.yml`;
 that job's steps are **hardcoded**, so a new function's tests are not

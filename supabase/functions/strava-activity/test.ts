@@ -11,7 +11,7 @@ import { refreshAccessToken, STREAM_KEYS } from "../strava-import/client.ts";
 import { harness, silenceSentry } from "../strava-import/testkit.ts";
 import { type ActivityDeps, handleActivityRequest } from "./handler.ts";
 import { CORS, serveRequest } from "./http.ts";
-import { CACHE_PAYLOAD_VERSION, CACHE_TTL_MS, normaliseActivity } from "./normalise.ts";
+import { CACHE_PAYLOAD_VERSION, CACHE_TTL_MS, normaliseActivity, stravaActivityUrl } from "./normalise.ts";
 
 const { check, finish } = harness();
 const restoreSentry = silenceSentry();
@@ -309,6 +309,8 @@ const run = async (deps: ActivityDeps, sessionId = SESSION, userId = USER) => {
   const r = await handleActivityRequest(deps, userId, sessionId);
   runCount++;
   check(`run#${runCount} (${r.body.status}) is HTTP 200`, r.httpStatus === 200, r.httpStatus);
+  // `url` belongs to `ok` only.
+  if (r.body.status !== "ok") check(`run#${runCount} (${r.body.status}) carries no url`, !("url" in r.body), r.body);
   return r;
 };
 
@@ -452,6 +454,7 @@ const cachedPayload = normaliseActivity(DETAIL, KEYED);
   check("SA-03 ... fetched_at/expires_at come from the row",
     b.fetched_at === iso(NOW - 3600_000) && b.expires_at === iso(NOW + 3600_000), [b.fetched_at, b.expires_at]);
   check("SA-03 ... origin and strava_activity_id from the link", b.origin === "inserted" && b.strava_activity_id === ACT);
+  check("SA-03 ... a cache hit carries the activity's Strava url", b.url === "https://www.strava.com/activities/777000111", b.url);
   net.restore();
 }
 {
@@ -464,6 +467,10 @@ const cachedPayload = normaliseActivity(DETAIL, KEYED);
   const span = Date.parse(String(row.expires_at)) - Date.parse(String(row.fetched_at));
   check("SA-03 the upsert's expires_at is within 7 days of fetched_at", span > 0 && span <= 7 * 86400_000 && span === CACHE_TTL_MS, span);
   check("SA-03 ... and is six days exactly, as a literal (518400000 ms)", span === 518400000 && CACHE_TTL_MS === 518400000, span);
+  check("SA-03 a fresh fetch carries the activity's Strava url", (r.body as Row).url === "https://www.strava.com/activities/777000111",
+    (r.body as Row).url);
+  check("SA-03 url is not stored in the cached row or its payload",
+    !("url" in (row.payload as Row)) && !("url" in row) && !JSON.stringify(row.payload).includes("strava.com"), row.payload);
   check("SA-03 the cached payload carries the version, the response does not",
     (row.payload as Row).v === CACHE_PAYLOAD_VERSION && !("v" in (r.body as Row)), [(row.payload as Row).v, Object.keys(r.body)]);
   check("SA-03 fetched_at is now", row.fetched_at === iso(NOW), row.fetched_at);
@@ -675,7 +682,7 @@ console.log("\nSA-07 streams and normalising");
   check("SA-07 streams has exactly the contract's keys",
     Object.keys(st).sort().join() === "cadence,distance,heartrate,moving,time,velocity_smooth,watts", Object.keys(st));
   check("SA-07 the top level has exactly the contract's keys",
-    Object.keys(b).sort().join() === "activity,cached,expires_at,fetched_at,origin,status,strava_activity_id,streams", Object.keys(b));
+    Object.keys(b).sort().join() === "activity,cached,expires_at,fetched_at,origin,status,strava_activity_id,streams,url", Object.keys(b));
   check("SA-07 the cache version `v` is not in the response", !("v" in b) && !JSON.stringify(b).includes('"v":'), Object.keys(b));
   check("SA-07 the detail and streams fetches each carry an AbortSignal (the timeout)",
     net.of("detail")[0]?.init?.signal instanceof AbortSignal && net.of("streams")[0]?.init?.signal instanceof AbortSignal);
@@ -860,6 +867,26 @@ console.log("\nSA-12 nothing upstream reaches Sentry (B5)");
       captures[0]?.message === "strava detail failed: SyntaxError", captures[0]?.message);
     net.restore();
   }
+}
+
+// ---------------------------------------------------------------------------
+console.log("\nSA-13 the activity-page url has one definition");
+// ---------------------------------------------------------------------------
+{
+  check("SA-13 stravaActivityUrl builds the activity page", stravaActivityUrl(123456789) === "https://www.strava.com/activities/123456789",
+    stravaActivityUrl(123456789));
+  // The cache-hit top level has the same key set as a fresh fetch, url included.
+  const { net, deps } = setup({
+    links: [link({ origin: "adopted" })],
+    cache: [{ session_id: SESSION, user_id: USER, strava_activity_id: ACT, payload: cachedPayload, fetched_at: iso(NOW), expires_at: iso(NOW + 3600_000) }],
+  });
+  const r = await run(deps);
+  const b = r.body as Row;
+  check("SA-13 a cache hit has exactly the contract's top-level keys, url included",
+    b.cached === true &&
+      Object.keys(b).sort().join() === "activity,cached,expires_at,fetched_at,origin,status,strava_activity_id,streams,url", Object.keys(b));
+  check("SA-13 ... its url is built from the link's activity id", b.url === stravaActivityUrl(ACT) && b.origin === "adopted", b.url);
+  net.restore();
 }
 
 restoreSentry();

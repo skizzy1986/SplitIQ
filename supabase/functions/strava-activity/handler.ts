@@ -42,6 +42,7 @@ import {
   type CachedPayload,
   type CachedStreams,
   normaliseActivity,
+  stravaActivityUrl,
 } from "./normalise.ts";
 
 export const FN = "strava-activity";
@@ -67,6 +68,8 @@ export type ActivityResponse =
     cached: boolean;
     origin: "inserted" | "adopted";
     strava_activity_id: number;
+    /** The activity's page on Strava (stravaActivityUrl); on `ok` only, never cached. */
+    url: string;
     fetched_at: string;
     expires_at: string;
     activity: CachedActivity;
@@ -210,6 +213,7 @@ export async function handleActivityRequest(
       cached: true,
       origin: link.origin,
       strava_activity_id: activityId,
+      url: stravaActivityUrl(activityId),
       fetched_at: iso(Date.parse(cached.fetched_at)),
       expires_at: iso(Date.parse(cached.expires_at)),
       activity: cached.payload.activity,
@@ -301,6 +305,7 @@ export async function handleActivityRequest(
     cached: false,
     origin: link.origin,
     strava_activity_id: activityId,
+    url: stravaActivityUrl(activityId),
     fetched_at: row.fetched_at,
     expires_at: row.expires_at,
     activity: payload.activity,

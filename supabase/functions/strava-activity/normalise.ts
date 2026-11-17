@@ -22,6 +22,15 @@ export const CACHE_TTL_MS = 6 * 24 * 3600 * 1000;
  */
 export const CACHE_PAYLOAD_VERSION = 1;
 
+/**
+ * The activity's page on Strava, for the session page's "View on Strava" link.
+ * Built here so the browser never holds the Strava host (a frontend guard test
+ * forbids it in web/src). Derivable from the id, so never cached.
+ */
+export function stravaActivityUrl(activityId: number): string {
+  return `https://www.strava.com/activities/${activityId}`;
+}
+
 export type Lap = {
   start_index: number | null;
   end_index: number | null;

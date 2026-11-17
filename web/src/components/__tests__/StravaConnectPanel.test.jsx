@@ -70,6 +70,7 @@ describe('StravaConnectPanel', () => {
     mockState(null);
     render(<StravaConnectPanel />);
     expect(screen.getByText(/Strava not connected/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Could not read/i)).toBeNull();
 
     const connect = screen.getByRole('button', { name: 'Connect Strava' });
     expect(screen.queryByRole('button', { name: 'Sync now' })).toBeNull();
@@ -184,6 +185,8 @@ describe('StravaConnectPanel', () => {
     expect(
       screen.getByText(/Could not read the Strava connection status/i)
     ).toBeInTheDocument();
+    expect(screen.getByText('Try again in a moment.')).toBeInTheDocument();
+    expect(screen.queryByText(/may be fine/i)).toBeNull();
     expect(screen.queryByText(/Strava not connected/i)).toBeNull();
     expect(screen.queryByRole('button', { name: 'Connect Strava' })).toBeNull();
 

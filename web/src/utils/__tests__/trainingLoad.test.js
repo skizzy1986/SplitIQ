@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { calcTrainingLoad, sessionLoad } from '../trainingLoad.js';
+import {
+  calcTrainingLoad,
+  sessionLoad,
+  sessionLoadBasis,
+} from '../trainingLoad.js';
 
 const ANCHORS = { cp: 205, ftp: 250 };
 
@@ -114,6 +118,94 @@ describe('sessionLoad', () => {
     ).toBe(0);
     expect(sessionLoad({ srpe: 7 }, ANCHORS)).toBe(0);
     expect(sessionLoad(undefined, ANCHORS)).toBe(0);
+  });
+});
+
+// Every session fixture the sessionLoad cases above use, with the anchors
+// each was scored against.
+const LOAD_FIXTURES = [
+  [{ duration: '60:00', srpe: 7 }, ANCHORS],
+  [{ duration: '30:00', srpe: 8 }, ANCHORS],
+  [{ duration: '60:00', srpe: 7, type: 'erg', avg_watts: 180 }, ANCHORS],
+  [{ duration: '60:00', srpe: null, type: 'erg', avg_watts: 180 }, ANCHORS],
+  [{ duration: '60:00', srpe: null, type: 'erg', avg_watts: 205 }, ANCHORS],
+  [{ duration: '21:13', srpe: null, type: 'erg', avg_watts: 118 }, ANCHORS],
+  [{ duration: '60:00', srpe: null, type: 'cycling', avg_watts: 196 }, ANCHORS],
+  [{ duration: '60:00', srpe: null, type: 'bike', avg_watts: 196 }, ANCHORS],
+  [{ duration: '60:00', srpe: null, type: 'ride', avg_watts: 196 }, ANCHORS],
+  [
+    { duration: '50:08', srpe: null, type: 'strength', avg_watts: 200 },
+    ANCHORS,
+  ],
+  [
+    { duration: '60:00', srpe: null, type: 'erg', avg_watts: 152 },
+    { cp: null, ftp: 250 },
+  ],
+  [{ duration: '60:00', srpe: null, type: 'erg', avg_watts: 152 }, {}],
+  [{ duration: '60:00', srpe: null, type: 'erg', avg_watts: 152 }, undefined],
+  [{ duration: '45:00', srpe: null, type: 'erg' }, ANCHORS],
+  [{ duration: '45:00', srpe: null, type: 'erg', avg_watts: 0 }, ANCHORS],
+  [{ duration: 'garbage', srpe: 7, type: 'erg' }, ANCHORS],
+  [{ srpe: 7 }, ANCHORS],
+  [undefined, ANCHORS],
+];
+
+describe('sessionLoadBasis', () => {
+  it.each(LOAD_FIXTURES)(
+    'gives the same load as sessionLoad for %o',
+    (session, anchors) => {
+      expect(sessionLoadBasis(session, anchors).load).toBe(
+        sessionLoad(session, anchors)
+      );
+    }
+  );
+
+  it('names sRPE as the basis when it scored the session', () => {
+    expect(
+      sessionLoadBasis({ duration: '60:00', srpe: 7, avg_watts: 180 }, ANCHORS)
+    ).toEqual({
+      load: 70,
+      basis: 'srpe',
+      reason: null,
+      threshold: null,
+      intensity: null,
+    });
+  });
+
+  it('names power against CP for a row and against FTP for a ride', () => {
+    const row = sessionLoadBasis(
+      { duration: '60:00', srpe: null, type: 'erg', avg_watts: 205 },
+      ANCHORS
+    );
+    expect(row).toMatchObject({ basis: 'power', threshold: 205, load: 100 });
+    expect(row.intensity).toBeCloseTo(1);
+    const ride = sessionLoadBasis(
+      { duration: '60:00', srpe: null, type: 'cycling', avg_watts: 196 },
+      ANCHORS
+    );
+    expect(ride).toMatchObject({ basis: 'power', threshold: 250, load: 61 });
+  });
+
+  it.each([
+    [{ duration: 'garbage', srpe: 7, type: 'erg' }, 'no_duration'],
+    [{ duration: '50:00', srpe: null, type: 'strength' }, 'no_power_model'],
+    [{ duration: '60:00', srpe: null, type: 'erg', avg_watts: 0 }, 'no_watts'],
+  ])('gives zero and the reason for %o', (session, reason) => {
+    expect(sessionLoadBasis(session, ANCHORS)).toMatchObject({
+      load: 0,
+      basis: 'none',
+      reason,
+      intensity: null,
+    });
+  });
+
+  it('gives no_anchor when the anchor is missing', () => {
+    expect(
+      sessionLoadBasis(
+        { duration: '60:00', srpe: null, type: 'erg', avg_watts: 150 },
+        { cp: null, ftp: 250 }
+      )
+    ).toMatchObject({ load: 0, basis: 'none', reason: 'no_anchor' });
   });
 });
 

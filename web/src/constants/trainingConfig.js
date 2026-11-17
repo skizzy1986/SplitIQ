@@ -80,3 +80,38 @@ export function derivePaceZones(cp) {
     };
   });
 }
+
+// Coggan's seven power levels as fractions of FTP: Allen and Coggan, "Training
+// and Racing with a Power Meter" (boundaries as tabulated at
+// https://biketips.com/coggan-power-zones/): active recovery below 55%,
+// endurance 56-75, tempo 76-90, threshold 91-105, VO2 max 106-120, anaerobic
+// capacity 121-150, neuromuscular above 150. Written here as half-open
+// [low, high) fractions so no watt falls between two levels.
+const CYCLING_POWER_PCT = [
+  { zone: 'Z1', key: 'active_recovery', color: THEME.muted, pctLow: 0 },
+  { zone: 'Z2', key: 'endurance', color: THEME.accent, pctLow: 0.55 },
+  { zone: 'Z3', key: 'tempo', color: THEME.positive, pctLow: 0.75 },
+  { zone: 'Z4', key: 'threshold', color: THEME.caution, pctLow: 0.9 },
+  { zone: 'Z5', key: 'vo2max', color: THEME.warning, pctLow: 1.05 },
+  { zone: 'Z6', key: 'anaerobic', color: THEME.critical, pctLow: 1.2 },
+  { zone: 'Z7', key: 'neuromuscular', color: THEME.accentAlt2, pctLow: 1.5 },
+];
+
+// Derive the cycling power levels from the live `anchors.bike_ftp`. Pure, like
+// derivePaceZones: never called with a constant. Z7 is open-ended (wattsHigh
+// null, pctHigh null).
+export function deriveCyclingZones(ftp) {
+  return CYCLING_POWER_PCT.map(({ zone, key, color, pctLow }, i) => {
+    const next = CYCLING_POWER_PCT[i + 1];
+    const pctHigh = next ? next.pctLow : null;
+    return {
+      zone,
+      key,
+      color,
+      pctLow,
+      pctHigh,
+      wattsLow: Math.round(ftp * pctLow),
+      wattsHigh: pctHigh == null ? null : Math.round(ftp * pctHigh),
+    };
+  });
+}

@@ -81,6 +81,34 @@ msgstr "{keep, plural, one {Se conservará {keep} sesión importada con tu propi
 msgid "{minutes, plural, one {{minutes} minute ago} other {{minutes} minutes ago}}"
 msgstr "{minutes, plural, one {hace {minutes} minuto} other {hace {minutes} minutos}}"
 
+#: src/views/SessionView.jsx
+msgid "{minutes} minutes of cycling at an average {speed} km/h."
+msgstr "{minutes} minutos de ciclismo a un promedio de {speed} km/h."
+
+#: src/views/SessionView.jsx
+msgid "{minutes} minutes of cycling at an average {watts} W, most of it in {zoneName}."
+msgstr "{minutes} minutos de ciclismo a un promedio de {watts} W, la mayor parte en {zoneName}."
+
+#: src/views/SessionView.jsx
+msgid "{minutes} minutes of cycling at an average {watts} W."
+msgstr "{minutes} minutos de ciclismo a un promedio de {watts} W."
+
+#: src/views/SessionView.jsx
+msgid "{minutes} minutes of cycling."
+msgstr "{minutes} minutos de ciclismo."
+
+#: src/views/SessionView.jsx
+msgid "{minutes} minutes of rowing at an average {pace} /500 m, most of it in {zoneName}."
+msgstr "{minutes} minutos de remo a un ritmo promedio de {pace} /500 m, la mayor parte en {zoneName}."
+
+#: src/views/SessionView.jsx
+msgid "{minutes} minutes of rowing at an average {pace} /500 m."
+msgstr "{minutes} minutos de remo a un ritmo promedio de {pace} /500 m."
+
+#: src/views/SessionView.jsx
+msgid "{minutes} minutes of rowing."
+msgstr "{minutes} minutos de remo."
+
 #: src/utils/stravaDisconnect.js
 msgid "{restore, plural, one {Strava power and heart rate removed from {restore} session you logged yourself.} other {Strava power and heart rate removed from {restore} sessions you logged yourself.}}"
 msgstr "{restore, plural, one {Se quitaron la potencia y la frecuencia cardíaca de Strava de {restore} sesión que registraste tú.} other {Se quitaron la potencia y la frecuencia cardíaca de Strava de {restore} sesiones que registraste tú.}}"
@@ -96,6 +124,10 @@ msgstr "{unlink, plural, one {Se conservó {unlink} sesión tal como estaba, sin
 #: src/utils/stravaDisconnect.js
 msgid "{unlink, plural, one {{unlink} session linked to Strava outside the importer will be kept as it is, with the Strava link removed.} other {{unlink} sessions linked to Strava outside the importer will be kept as they are, with the Strava link removed.}}"
 msgstr "{unlink, plural, one {Se conservará tal como está {unlink} sesión vinculada a Strava fuera del importador, sin el vínculo con Strava.} other {Se conservarán tal como están {unlink} sesiones vinculadas a Strava fuera del importador, sin el vínculo con Strava.}}"
+
+#: src/components/session/ZoneBar.jsx
+msgid "{unpowered} min of moving time had no power reading and is not in any zone."
+msgstr "{unpowered} min de tiempo en movimiento no tuvieron lectura de potencia y no están en ninguna zona."
 
 #: src/components/LogSessionForm.jsx
 msgid "＋ add exercise"
@@ -167,9 +199,26 @@ msgstr "mm/dd/aa"
 msgid "8-WEEK TSS HISTORY"
 msgstr "HISTORIAL DE TSS · 8 SEMANAS"
 
+#: src/views/SessionView.jsx
+msgid "A cycling session."
+msgstr "Una sesión de ciclismo."
+
+#: src/views/SessionView.jsx
+msgid "A rowing session."
+msgstr "Una sesión de remo."
+
 #: src/utils/stravaDisconnect.js
 msgid "Access at Strava revoked."
 msgstr "Se revocó el acceso en Strava."
+
+#: src/views/SessionView.jsx
+msgid "Across the session"
+msgstr "A lo largo de la sesión"
+
+#. Cycling power level (Coggan Z1)
+#: src/components/session/zoneLabels.js
+msgid "Active recovery"
+msgstr "Recuperación activa"
 
 #. Followed by a list of Strava activity numbers
 #. placeholder {0}: (connection?.ambiguous_activity_ids ?? []).join(', ')
@@ -190,9 +239,56 @@ msgstr "Agrega al menos un ejercicio."
 msgid "All"
 msgstr "Todas"
 
+#. Rowing zone; keep as is
+#: src/components/session/zoneLabels.js
+msgid "AN"
+msgstr "AN"
+
+#. Cycling power level (Coggan Z6)
+#: src/components/session/zoneLabels.js
+msgid "Anaerobic capacity"
+msgstr "Capacidad anaeróbica"
+
+#. Rowing zone; keep as is
+#: src/components/session/zoneLabels.js
+msgid "AT"
+msgstr "AT"
+
 #: src/components/ThemeControl.jsx
 msgid "Auto"
 msgstr "Automático"
+
+#: src/components/session/SessionSummary.jsx
+msgid "Average cadence"
+msgstr "Cadencia promedio"
+
+#: src/components/session/SessionSummary.jsx
+msgid "Average heart rate"
+msgstr "Frecuencia cardíaca promedio"
+
+#: src/components/session/SessionSummary.jsx
+msgid "Average pace"
+msgstr "Ritmo promedio"
+
+#: src/components/session/SessionSummary.jsx
+msgid "Average power"
+msgstr "Potencia promedio"
+
+#: src/components/session/SessionSummary.jsx
+msgid "Average power {watts} W. Your rides in the 30 days before averaged {mean} W across {count} sessions."
+msgstr "Potencia promedio {watts} W. Tus salidas en bici de los 30 días anteriores promediaron {mean} W en {count} sesiones."
+
+#: src/components/session/SessionSummary.jsx
+msgid "Average power {watts} W. Your rowing sessions in the 30 days before averaged {mean} W across {count} sessions."
+msgstr "Potencia promedio {watts} W. Tus sesiones de remo de los 30 días anteriores promediaron {mean} W en {count} sesiones."
+
+#: src/components/session/SessionSummary.jsx
+msgid "Average speed"
+msgstr "Velocidad promedio"
+
+#: src/components/session/SessionSummary.jsx
+msgid "Average stroke rate"
+msgstr "Frecuencia de palada promedio"
 
 #. Average heart rate, all capitals
 #: src/components/LogEntry.jsx
@@ -205,6 +301,7 @@ msgid "AVG WATTS"
 msgstr "VATIOS PROM."
 
 #: src/App.jsx
+#: src/views/SessionView.jsx
 msgid "Back"
 msgstr "Volver"
 
@@ -248,11 +345,28 @@ msgstr "Cuerpo"
 msgid "BODYWEIGHT — 14 DAYS (kg)"
 msgstr "PESO CORPORAL — 14 DÍAS (kg)"
 
+#. Session caption list item
+#: src/components/session/ProvenanceNote.jsx
+msgid "cadence"
+msgstr "cadencia"
+
+#: src/components/session/TraceTooltip.jsx
+msgid "Cadence"
+msgstr "Cadencia"
+
+#: src/components/session/SessionTrace.jsx
+msgid "Cadence across {over}, between {lo} and {hi} rpm."
+msgstr "Cadencia durante {over}, entre {lo} y {hi} rpm."
+
 #. Desktop Today pane
 #: src/App.jsx
 #: src/views/CalendarView.jsx
 msgid "Calendar"
 msgstr "Calendario"
+
+#: src/components/session/SessionSummary.jsx
+msgid "Calories"
+msgstr "Calorías"
 
 #. Button
 #: src/components/StravaConnectPanel.jsx
@@ -304,6 +418,11 @@ msgstr "Combina la RHR frente a la línea base, la HRV frente a la línea base, 
 #: src/views/RecoveryView.jsx
 msgid "Composite of RHR vs baseline, HRV vs baseline, sleep, and training load (TSB unavailable — excluded from this score). Heuristic, not validated — cross-check against sRPE and how you actually feel."
 msgstr "Combina la RHR frente a la línea base, la HRV frente a la línea base, el sueño y la carga de entrenamiento (TSB no disponible: queda fuera de este puntaje). Es una heurística, no está validada: contrástala con el sRPE y con cómo te sientes de verdad."
+
+#. Anchor status
+#: src/components/session/ZoneBar.jsx
+msgid "confirmed"
+msgstr "confirmado"
 
 #. Google Health is a brand name: keep it
 #: src/views/mobile/MobileRecovery.jsx
@@ -377,6 +496,10 @@ msgstr "La CTL se construye en 42 días: los valores quedarán subestimados hast
 msgid "Dark"
 msgstr "Oscuro"
 
+#: src/components/session/SessionSummary.jsx
+msgid "Date"
+msgstr "Fecha"
+
 #. Field label, all capitals. The date is stored month/day/year; in Spanish say so, e.g. FECHA (MES/DÍA/AÑO)
 #: src/components/LogSessionForm.jsx
 msgctxt "log-form-date"
@@ -392,6 +515,15 @@ msgstr "Límites de decisión:"
 #: src/views/RecoveryView.jsx
 msgid "default"
 msgstr "predeterminado"
+
+#. Session caption; the list is translated item by item
+#: src/components/session/ProvenanceNote.jsx
+msgid "Derived here: {derivedText}."
+msgstr "Calculado aquí: {derivedText}."
+
+#: src/components/session/SessionSummary.jsx
+msgid "Device"
+msgstr "Dispositivo"
 
 #. Button
 #: src/components/StravaConnectPanel.jsx
@@ -417,10 +549,23 @@ msgstr "¿Desconectar Strava y eliminar sus datos?"
 msgid "Disconnecting…"
 msgstr "Desconectando…"
 
+#. Session caption list item
+#: src/components/session/ProvenanceNote.jsx
+msgid "distance"
+msgstr "distancia"
+
+#: src/components/session/SessionSummary.jsx
+msgid "Distance"
+msgstr "Distancia"
+
 #. Metric, all capitals
 #: src/components/LogEntry.jsx
 msgid "DISTANCE"
 msgstr "DISTANCIA"
+
+#: src/components/session/SessionSummary.jsx
+msgid "Duration"
+msgstr "Duración"
 
 #. Field label, all capitals
 #. Metric, all capitals
@@ -441,6 +586,19 @@ msgstr "fácil · hablas en oraciones (UT2)"
 #: src/constants/srpeGuideMessages.js
 msgid "Easy (UT2)"
 msgstr "Fácil (UT2)"
+
+#: src/components/session/SessionSummary.jsx
+msgid "Elapsed"
+msgstr "Tiempo total"
+
+#: src/components/session/SessionSummary.jsx
+msgid "Elevation gain"
+msgstr "Desnivel positivo"
+
+#. Cycling power level (Coggan Z2)
+#: src/components/session/zoneLabels.js
+msgid "Endurance"
+msgstr "Resistencia"
 
 #. Desktop Progress pane
 #. Progress sub-tab: rowing
@@ -562,6 +720,19 @@ msgstr "Colesterol HDL (mujeres)"
 msgid "HDL Cholesterol (male)"
 msgstr "Colesterol HDL (hombres)"
 
+#. Session caption list item
+#: src/components/session/ProvenanceNote.jsx
+msgid "heart rate"
+msgstr "frecuencia cardíaca"
+
+#: src/components/session/TraceTooltip.jsx
+msgid "Heart rate"
+msgstr "Frecuencia cardíaca"
+
+#: src/components/session/SessionTrace.jsx
+msgid "Heart rate across {over}, between {lo} and {hi} bpm."
+msgstr "Frecuencia cardíaca durante {over}, entre {lo} y {hi} bpm."
+
 #. Training form (TSB) band
 #: src/utils/trainingLoad.js
 msgid "High fatigue — recent load well above fitness"
@@ -584,6 +755,11 @@ msgstr "PERFIL HORMONAL"
 #: src/views/mobile/MobileRecovery.jsx
 msgid "HRV TREND — 14 DAYS"
 msgstr "TENDENCIA DE HRV — 14 DÍAS"
+
+#. Session page provenance
+#: src/components/session/sourceCopy.js
+msgid "Imported from Strava."
+msgstr "Importado de Strava."
 
 #: src/utils/stravaStatus.js
 msgid "Importing history — {imported} imported, {adopted} matched to existing sessions. Continuing automatically."
@@ -648,14 +824,33 @@ msgstr "En vivo"
 #. Desktop Progress pane
 #. Progress sub-tab: training load
 #: src/App.jsx
+#: src/components/session/SessionSummary.jsx
 #: src/views/mobile/MobileAnalytics.jsx
 #: src/views/mobile/MobileProgress.jsx
 msgid "Load"
 msgstr "Carga"
 
+#. Session caption list item
+#: src/components/session/ProvenanceNote.jsx
+msgid "load from average power against your anchor"
+msgstr "carga a partir de la potencia promedio frente a tu referencia"
+
+#. Session caption list item
+#: src/components/session/ProvenanceNote.jsx
+msgid "load from your sRPE and duration"
+msgstr "carga a partir de tu sRPE y la duración"
+
 #: src/views/CalendarView.jsx
 msgid "Loading sessions…"
 msgstr "Cargando sesiones…"
+
+#: src/views/SessionView.jsx
+msgid "Loading the session"
+msgstr "Cargando la sesión"
+
+#: src/views/SessionView.jsx
+msgid "Loading the trace"
+msgstr "Cargando el trazado"
 
 #: src/views/RecoveryView.jsx
 msgid "Loading vitals…"
@@ -713,6 +908,19 @@ msgstr "Máximo"
 msgid "max · can't talk"
 msgstr "máximo · no puedes hablar"
 
+#: src/components/session/SessionSummary.jsx
+msgid "Max heart rate"
+msgstr "Frecuencia cardíaca máxima"
+
+#: src/components/session/SessionSummary.jsx
+msgid "Max power"
+msgstr "Potencia máxima"
+
+#. Session caption; the list is translated item by item
+#: src/components/session/ProvenanceNote.jsx
+msgid "Measured by the device: {measuredText}."
+msgstr "Medido por el dispositivo: {measuredText}."
+
 #. Desktop Train pane
 #: src/App.jsx
 msgid "Mobility"
@@ -726,6 +934,11 @@ msgstr "moderado · oraciones cortas (UT1)"
 msgid "needs overnight wear"
 msgstr "requiere usarlo de noche"
 
+#. Cycling power level (Coggan Z7)
+#: src/components/session/zoneLabels.js
+msgid "Neuromuscular power"
+msgstr "Potencia neuromuscular"
+
 #. Training form (TSB) band
 #: src/utils/trainingLoad.js
 msgid "Neutral — balanced"
@@ -735,10 +948,18 @@ msgstr "Neutral: en equilibrio"
 msgid "No blood pressure readings yet."
 msgstr "Todavía no hay mediciones de presión arterial."
 
+#: src/components/session/SessionTrace.jsx
+msgid "No cadence was recorded for this session."
+msgstr "No se registró cadencia en esta sesión."
+
 #. Readiness status when there is no resting heart rate, all capitals
 #: src/utils/recoveryAnalytics.js
 msgid "NO DATA"
 msgstr "SIN DATOS"
+
+#: src/components/session/SessionTrace.jsx
+msgid "No heart rate was recorded for this session."
+msgstr "No se registró frecuencia cardíaca en esta sesión."
 
 #: src/views/RecoveryView.jsx
 msgid "No hormone results yet."
@@ -756,12 +977,25 @@ msgstr "Todavía no hay resultados del perfil lipídico."
 msgid "No metrics logged for this session."
 msgstr "No hay métricas registradas para esta sesión."
 
+#: src/components/session/SessionTrace.jsx
+msgid "No power or speed was recorded, so there is no pace trace."
+msgstr "No se registró potencia ni velocidad, así que no hay trazado de ritmo."
+
+#: src/components/session/SessionTrace.jsx
+msgid "No power was recorded on this ride, so there is no power trace and no zones."
+msgstr "No se registró potencia en esta salida, así que no hay trazado de potencia ni zonas."
+
 #: src/views/mobile/MobileAnalytics.jsx
 #: src/views/mobile/MobileRecovery.jsx
 #: src/views/mobile/MobileToday.jsx
 #: src/views/RecoveryView.jsx
 msgid "No reading"
 msgstr "Sin lectura"
+
+#. Trace tooltip over a gap
+#: src/components/session/TraceTooltip.jsx
+msgid "No reading at this moment"
+msgstr "Sin lectura en este momento"
 
 #: src/views/mobile/MobileToday.jsx
 #: src/views/OverviewView.jsx
@@ -784,6 +1018,10 @@ msgstr "No hay sesiones en este período."
 msgid "No sessions logged yet."
 msgstr "Todavía no hay sesiones registradas."
 
+#: src/components/session/SessionTrace.jsx
+msgid "No stroke rate was recorded for this session."
+msgstr "No se registró frecuencia de palada en esta sesión."
+
 #: src/utils/stravaStatus.js
 msgid "No successful sync in {span}"
 msgstr "Ninguna sincronización exitosa en {span}"
@@ -799,6 +1037,26 @@ msgstr "No hay sesiones próximas"
 #: src/views/mobile/MobileRecovery.jsx
 msgid "No vitals recorded yet"
 msgstr "Todavía no hay signos vitales registrados"
+
+#: src/components/session/SessionSummary.jsx
+msgid "Not scored: no duration is recorded."
+msgstr "Sin puntuar: no hay duración registrada."
+
+#: src/components/session/SessionSummary.jsx
+msgid "Not scored: no sRPE and no average power are recorded."
+msgstr "Sin puntuar: no hay sRPE ni potencia promedio registrados."
+
+#: src/components/session/SessionSummary.jsx
+msgid "Not scored: no sRPE, and no bike FTP anchor to measure power against."
+msgstr "Sin puntuar: no hay sRPE ni una referencia de FTP de bici con la cual medir la potencia."
+
+#: src/components/session/SessionSummary.jsx
+msgid "Not scored: no sRPE, and no rowing CP anchor to measure power against."
+msgstr "Sin puntuar: no hay sRPE ni una referencia de CP de remo con la cual medir la potencia."
+
+#: src/components/session/SessionSummary.jsx
+msgid "Not scored: no sRPE, and this session type has no power model."
+msgstr "Sin puntuar: no hay sRPE, y este tipo de sesión no tiene modelo de potencia."
 
 #: src/utils/stravaDisconnect.js
 msgid "Nothing in your log came from Strava; nothing will be removed."
@@ -824,6 +1082,16 @@ msgstr "Sin conexión: todavía no hay datos guardados."
 msgid "Older activities are fetched a page at a time to stay inside Strava rate limits."
 msgstr "Las actividades más antiguas se traen una página a la vez para no superar los límites de uso de Strava."
 
+#. Session page: a strength or other session
+#: src/components/session/SessionState.jsx
+msgid "Only completed rowing and cycling sessions open here."
+msgstr "Aquí solo se abren sesiones completadas de remo y ciclismo."
+
+#. Link from a log row to its session page
+#: src/components/LogEntry.jsx
+msgid "Open"
+msgstr "Abrir"
+
 #: src/views/mobile/MobileToday.jsx
 #: src/views/OverviewView.jsx
 msgid "Open Body"
@@ -838,6 +1106,10 @@ msgstr "Abrir Historial"
 #: src/views/RecoveryView.jsx
 msgid "Open Settings"
 msgstr "Abrir Configuración"
+
+#: src/components/LogEntry.jsx
+msgid "Open the session page for {label}"
+msgstr "Abrir la página de la sesión {label}"
 
 #: src/views/mobile/MobileAnalytics.jsx
 #: src/views/mobile/MobileToday.jsx
@@ -859,6 +1131,28 @@ msgstr "El error común es sobrevalorar el trabajo fácil: guíate por la prueba
 msgid "Overview"
 msgstr "Resumen"
 
+#: src/components/session/TraceTooltip.jsx
+msgid "Pace"
+msgstr "Ritmo"
+
+#: src/components/session/SessionTrace.jsx
+msgid "Pace across {over}, between {fast} and {slow} per 500 m; average {avg}."
+msgstr "Ritmo durante {over}, entre {fast} y {slow} por 500 m; promedio {avg}."
+
+#: src/components/session/SessionTrace.jsx
+msgid "Pace across {over}, between {fast} and {slow} per 500 m."
+msgstr "Ritmo durante {over}, entre {fast} y {slow} por 500 m."
+
+#. Session caption list item
+#: src/components/session/ProvenanceNote.jsx
+msgid "pace from distance and time"
+msgstr "ritmo a partir de la distancia y el tiempo"
+
+#. Session caption list item
+#: src/components/session/ProvenanceNote.jsx
+msgid "pace from power"
+msgstr "ritmo a partir de la potencia"
+
 #. Desktop Train pane
 #: src/App.jsx
 #: src/views/PlanView.jsx
@@ -876,6 +1170,23 @@ msgstr "PLANIFICADA"
 #: src/components/WorkoutItem.jsx
 msgid "Post:"
 msgstr "Después:"
+
+#. Session caption list item
+#: src/components/session/ProvenanceNote.jsx
+msgid "power"
+msgstr "potencia"
+
+#: src/components/session/TraceTooltip.jsx
+msgid "Power"
+msgstr "Potencia"
+
+#: src/components/session/SessionTrace.jsx
+msgid "Power across {over}, between {lo} and {hi} W; average {avg} W."
+msgstr "Potencia durante {over}, entre {lo} y {hi} W; promedio {avg} W."
+
+#: src/components/session/SessionTrace.jsx
+msgid "Power across {over}, between {lo} and {hi} W."
+msgstr "Potencia durante {over}, entre {lo} y {hi} W."
 
 #: src/views/OverviewView.jsx
 msgid "Power-derived load is measured against rowing CP {cp}W and bike FTP {ftp}W; revalidate with a test to sharpen it."
@@ -909,6 +1220,11 @@ msgstr "Prioriza la recuperación hoy"
 #: src/views/mobile/MobileProgress.jsx
 msgid "Progress"
 msgstr "Progreso"
+
+#. Anchor status
+#: src/components/session/ZoneBar.jsx
+msgid "provisional"
+msgstr "provisional"
 
 #: src/views/OverviewView.jsx
 msgid "Readiness"
@@ -970,7 +1286,9 @@ msgstr "Reconectar"
 msgid "Reconnect to keep Strava data in your log; without access it will be removed."
 msgstr "Reconecta para conservar los datos de Strava en tu registro; sin acceso, se quitarán."
 
+#. Rowing training zone
 #. Training zone name
+#: src/components/session/zoneLabels.js
 #: src/constants/srpeGuideMessages.js
 msgid "Recovery"
 msgstr "Recuperación"
@@ -1009,6 +1327,8 @@ msgstr "TENDENCIA DE FC EN REPOSO — 14 DÍAS"
 
 #. Button in the error state
 #. Button in the error state
+#. Button: load again
+#: src/components/session/SessionState.jsx
 #: src/components/StravaConnectPanel.jsx
 msgid "Retry"
 msgstr "Reintentar"
@@ -1035,6 +1355,18 @@ msgstr "¡Guardado! La sesión se agregó a tu historial."
 msgid "SAVING…"
 msgstr "GUARDANDO…"
 
+#: src/components/session/SessionSummary.jsx
+msgid "Scored from average power {watts} W against your bike FTP {threshold} W (intensity {factor})."
+msgstr "Puntuado con la potencia promedio de {watts} W frente a tu FTP de bici de {threshold} W (intensidad {factor})."
+
+#: src/components/session/SessionSummary.jsx
+msgid "Scored from average power {watts} W against your rowing CP {threshold} W (intensity {factor})."
+msgstr "Puntuado con la potencia promedio de {watts} W frente a tu CP de remo de {threshold} W (intensidad {factor})."
+
+#: src/components/session/SessionSummary.jsx
+msgid "Scored from sRPE {srpe} and the duration."
+msgstr "Puntuado con el sRPE {srpe} y la duración."
+
 #: src/views/mobile/MobileToday.jsx
 msgid "Scored on the readings that arrived — some were missing."
 msgstr "Se puntuó con las lecturas que llegaron; faltaron algunas."
@@ -1042,6 +1374,10 @@ msgstr "Se puntuó con las lecturas que llegaron; faltaron algunas."
 #: src/App.jsx
 msgid "Sections"
 msgstr "Secciones"
+
+#: src/views/SessionView.jsx
+msgid "Session"
+msgstr "Sesión"
 
 #: src/components/LogEntry.jsx
 msgid "Session · {duration}"
@@ -1061,6 +1397,10 @@ msgstr "HISTORIAL DE SESIONES:"
 msgid "Session logged."
 msgstr "Sesión registrada."
 
+#: src/views/SessionView.jsx
+msgid "Session not found"
+msgstr "Sesión no encontrada"
+
 #. Screen heading, all capitals
 #. Stat label, all capitals
 #: src/views/mobile/MobileSessionLog.jsx
@@ -1077,9 +1417,11 @@ msgstr "No se pudieron cargar las sesiones."
 msgid "SESSIONS LOGGED"
 msgstr "SESIONES REGISTRADAS"
 
+#. Link to the Settings screen
 #. Mobile top bar button that opens Settings
 #: src/App.jsx
 #: src/components/mobile/MobileTopBar.jsx
+#: src/components/session/SessionState.jsx
 #: src/views/mobile/MobileSettings.jsx
 #: src/views/SettingsView.jsx
 msgid "Settings"
@@ -1135,6 +1477,15 @@ msgstr "Algunas actividades no se pudieron guardar en la base de datos. Vuelve a
 #: src/utils/stravaCallback.js
 msgid "Something went wrong finishing the connection. Try again."
 msgstr "Algo salió mal al terminar la conexión. Inténtalo de nuevo."
+
+#: src/components/session/TraceTooltip.jsx
+msgid "Speed"
+msgstr "Velocidad"
+
+#. Session caption list item
+#: src/components/session/ProvenanceNote.jsx
+msgid "speed from distance and time"
+msgstr "velocidad a partir de la distancia y el tiempo"
 
 #: src/utils/stravaDisconnect.js
 msgid "SplitIQ's access at Strava had already ended."
@@ -1211,6 +1562,11 @@ msgstr "Strava desconectado."
 msgid "Strava is having problems. The next sync will retry."
 msgstr "Strava tiene problemas. La próxima sincronización lo volverá a intentar."
 
+#. Session page: trace unavailable
+#: src/components/session/sourceCopy.js
+msgid "Strava is not connected, so there is no trace for this session."
+msgstr "Strava no está conectado, así que no hay trazado para esta sesión."
+
 #: src/utils/stravaStatus.js
 msgid "Strava limits how many activities can be read in a given period. Nothing was lost; importing continues from where it stopped."
 msgstr "Strava limita cuántas actividades se pueden leer en un periodo determinado. No se perdió nada; la importación sigue desde donde se detuvo."
@@ -1231,6 +1587,11 @@ msgstr "Se alcanzó el límite de uso de Strava. La sincronización se reanuda a
 msgid "Strava rate limit reached. Sync resumes shortly."
 msgstr "Se alcanzó el límite de uso de Strava. La sincronización se reanuda pronto."
 
+#. Session page: trace unavailable
+#: src/components/session/sourceCopy.js
+msgid "Strava refused the current grant, so the trace did not load."
+msgstr "Strava rechazó la autorización actual, así que el trazado no cargó."
+
 #: src/utils/stravaStatus.js
 msgid "Strava rejected the connection attempt. Connect again to retry."
 msgstr "Strava rechazó el intento de conexión. Vuelve a conectar para reintentarlo."
@@ -1238,6 +1599,16 @@ msgstr "Strava rechazó el intento de conexión. Vuelve a conectar para reintent
 #: src/utils/stravaCallback.js
 msgid "Strava rejected the connection attempt. Try connecting again."
 msgstr "Strava rechazó el intento de conexión. Intenta conectarte de nuevo."
+
+#. Session page: trace unavailable. {time} is a clock time, HH:MM
+#: src/components/session/sourceCopy.js
+msgid "Strava’s request limit is reached. The trace can load again after {time}."
+msgstr "Se alcanzó el límite de solicitudes de Strava. El trazado puede cargar de nuevo después de las {time}."
+
+#. Session page: trace unavailable
+#: src/components/session/sourceCopy.js
+msgid "Strava’s request limit is reached. The trace can load again later."
+msgstr "Se alcanzó el límite de solicitudes de Strava. El trazado puede cargar de nuevo más tarde."
 
 #. Desktop Progress pane
 #. Progress sub-tab
@@ -1258,10 +1629,37 @@ msgstr "FUERZA"
 msgid "Strength session"
 msgstr "Sesión de fuerza"
 
+#. Session caption list item
+#: src/components/session/ProvenanceNote.jsx
+msgid "stroke rate"
+msgstr "frecuencia de palada"
+
+#: src/components/session/TraceTooltip.jsx
+msgid "Stroke rate"
+msgstr "Frecuencia de palada"
+
+#: src/components/session/SessionTrace.jsx
+msgid "Stroke rate across {over}, between {lo} and {hi} spm."
+msgstr "Frecuencia de palada durante {over}, entre {lo} y {hi} spm."
+
 #. Button, all capitals
 #: src/components/LogSessionForm.jsx
 msgid "SUBMIT SESSION"
 msgstr "ENVIAR SESIÓN"
+
+#: src/components/session/SessionSummary.jsx
+msgid "Summary"
+msgstr "Resumen"
+
+#. Session page provenance: the row was logged in the app
+#: src/components/session/sourceCopy.js
+msgid "Summary from your log; trace from Strava."
+msgstr "Resumen de tu registro; trazado de Strava."
+
+#. Session page provenance when no device trace exists
+#: src/components/session/ProvenanceNote.jsx
+msgid "Summary from your log."
+msgstr "Resumen de tu registro."
 
 #. Error after pressing Sync now
 #: src/components/StravaConnectPanel.jsx
@@ -1296,6 +1694,11 @@ msgstr "meta 7h+"
 #: src/views/mobile/MobileRecovery.jsx
 msgid "Target met"
 msgstr "Meta cumplida"
+
+#. Cycling power level (Coggan Z3)
+#: src/components/session/zoneLabels.js
+msgid "Tempo"
+msgstr "Tempo"
 
 #: src/utils/stravaCallback.js
 msgid "That is a different Strava account from the one already connected. Disconnect the current account first."
@@ -1342,19 +1745,72 @@ msgstr "EL PLAN."
 msgid "The scheduled import has not run recently. Sync now to catch up."
 msgstr "La importación programada no se ha ejecutado últimamente. Sincroniza ahora para ponerte al día."
 
+#. Session page: the row failed to load
+#: src/components/session/SessionState.jsx
+msgid "The session could not be loaded."
+msgstr "No se pudo cargar la sesión."
+
 #: src/utils/stravaStatus.js
 msgid "The Strava token could not be refreshed. Reconnect to resume importing."
 msgstr "No se pudo renovar el token de Strava. Reconecta para seguir importando."
+
+#. Session page: network or server error
+#: src/components/session/SessionState.jsx
+msgid "The trace could not be loaded."
+msgstr "No se pudo cargar el trazado."
+
+#. Session page: trace unavailable, unknown source
+#: src/components/session/sourceCopy.js
+msgid "The trace for this session is not available."
+msgstr "El trazado de esta sesión no está disponible."
 
 #: src/components/ThemeControl.jsx
 #: src/views/SettingsView.jsx
 msgid "Theme"
 msgstr "Tema"
 
+#. Session page: not found
+#: src/components/session/SessionState.jsx
+msgid "There is no session with this id in your log."
+msgstr "No hay ninguna sesión con este id en tu registro."
+
+#. Session page: trace unavailable
+#: src/components/session/sourceCopy.js
+msgid "This activity is no longer on Strava, so there is no trace."
+msgstr "Esta actividad ya no está en Strava, así que no hay trazado."
+
+#. Session page: trace unavailable. Garmin is a brand name
+#: src/components/session/sourceCopy.js
+msgid "This activity was recorded on a Garmin device. Its trace appears once Garmin attribution is in place."
+msgstr "Esta actividad se registró en un dispositivo Garmin. El trazado aparece cuando la atribución de Garmin esté lista."
+
+#. Session page: no series source
+#: src/components/session/SessionState.jsx
+msgid "This session has a summary only; no trace is linked to it."
+msgstr "Esta sesión solo tiene resumen; no tiene un trazado vinculado."
+
+#. Session page zones
+#: src/components/session/ZoneBar.jsx
+msgid "This session has no power reading, so no time in zone."
+msgstr "Esta sesión no tiene lectura de potencia, así que no hay tiempo en zona."
+
 #. Section heading, all capitals
 #: src/views/mobile/MobileToday.jsx
 msgid "THIS WEEK"
 msgstr "ESTA SEMANA"
+
+#. Cycling power level (Coggan Z4)
+#: src/components/session/zoneLabels.js
+msgid "Threshold"
+msgstr "Umbral"
+
+#: src/views/SessionView.jsx
+msgid "Time in zone"
+msgstr "Tiempo en zona"
+
+#: src/components/session/ZoneBar.jsx
+msgid "Time in zone: {summary}."
+msgstr "Tiempo en zona: {summary}."
 
 #: src/views/mobile/MobileSettings.jsx
 #: src/views/mobile/MobileToday.jsx
@@ -1385,6 +1841,11 @@ msgstr "Peso máx. (70kg)"
 #: src/utils/healthRecords.js
 msgid "Total Cholesterol"
 msgstr "Colesterol total"
+
+#. Rowing zone; keep as is
+#: src/components/session/zoneLabels.js
+msgid "TR"
+msgstr "TR"
 
 #: src/views/mobile/MobileRecovery.jsx
 #: src/views/RecoveryView.jsx
@@ -1430,6 +1891,11 @@ msgstr "Inténtalo de nuevo en un momento."
 msgid "TSS LOGGED"
 msgstr "TSS REGISTRADO"
 
+#. Anchor status
+#: src/components/session/ZoneBar.jsx
+msgid "unvalidated"
+msgstr "sin validar"
+
 #. Section heading, all capitals
 #: src/views/mobile/MobileAnalytics.jsx
 msgid "UPCOMING"
@@ -1438,6 +1904,16 @@ msgstr "PRÓXIMAS"
 #: src/views/PlanView.jsx
 msgid "Upcoming planned sessions (today forward). A dashed border marks a planned session; tap any card for the targets. Cards mark ✓ done once you log the matching session."
 msgstr "Sesiones planificadas de hoy en adelante. Un borde discontinuo indica una sesión planificada; toca cualquier tarjeta para ver los objetivos. Las tarjetas muestran ✓ cuando registras la sesión correspondiente."
+
+#. Rowing zone; keep as is
+#: src/components/session/zoneLabels.js
+msgid "UT1"
+msgstr "UT1"
+
+#. Rowing zone; keep as is
+#: src/components/session/zoneLabels.js
+msgid "UT2"
+msgstr "UT2"
 
 #. sRPE scale, effort 1-2
 #: src/constants/srpeGuideMessages.js
@@ -1452,6 +1928,11 @@ msgstr "muy fácil · conversación completa"
 #: src/views/RecoveryView.jsx
 msgid "VITALS UNAVAILABLE"
 msgstr "SIGNOS VITALES NO DISPONIBLES"
+
+#. Cycling power level (Coggan Z5)
+#: src/components/session/zoneLabels.js
+msgid "VO2 max"
+msgstr "VO2 máx"
 
 #. Column: total volume lifted, abbreviated
 #: src/components/LogEntry.jsx
@@ -1473,10 +1954,18 @@ msgstr "Volumen"
 msgid "vs {baselineLabel}"
 msgstr "vs. {baselineLabel}"
 
+#: src/components/session/ProvenanceNote.jsx
+msgid "Where this data comes from"
+msgstr "De dónde vienen estos datos"
+
 #. sRPE scale, effort 9-10: the talk test
 #: src/constants/srpeGuideMessages.js
 msgid "Words impossible. All-out. Race/test efforts only."
 msgstr "Imposible hablar. A tope. Solo en competencias o pruebas."
+
+#: src/components/session/SessionSummary.jsx
+msgid "Work"
+msgstr "Trabajo"
 
 #: src/views/OverviewView.jsx
 msgid "working avg power"
@@ -1496,3 +1985,39 @@ msgstr "tu promedio"
 #: src/utils/stravaDisconnect.js
 msgid "Your training load will be recalculated. This cannot be undone."
 msgstr "Tu carga de entrenamiento se volverá a calcular. Esto no se puede deshacer."
+
+#. Session caption list item
+#: src/components/session/ProvenanceNote.jsx
+msgid "zones from your bike FTP anchor"
+msgstr "zonas a partir de tu referencia de FTP de bici"
+
+#: src/components/session/ZoneBar.jsx
+msgid "Zones from your bike FTP, {value} W ({status})."
+msgstr "Zonas a partir de tu FTP de bici, {value} W ({status})."
+
+#: src/components/session/ZoneBar.jsx
+msgid "Zones from your bike FTP, {value} W."
+msgstr "Zonas a partir de tu FTP de bici, {value} W."
+
+#. Session caption list item
+#: src/components/session/ProvenanceNote.jsx
+msgid "zones from your rowing CP anchor"
+msgstr "zonas a partir de tu referencia de CP de remo"
+
+#: src/components/session/ZoneBar.jsx
+msgid "Zones from your rowing CP, {value} W ({status})."
+msgstr "Zonas a partir de tu CP de remo, {value} W ({status})."
+
+#: src/components/session/ZoneBar.jsx
+msgid "Zones from your rowing CP, {value} W."
+msgstr "Zonas a partir de tu CP de remo, {value} W."
+
+#. Session page zones
+#: src/components/session/ZoneBar.jsx
+msgid "Zones need a bike FTP anchor, and none is set, so no zones are drawn."
+msgstr "Las zonas necesitan una referencia de FTP de bici, y no hay ninguna, así que no se dibujan zonas."
+
+#. Session page zones
+#: src/components/session/ZoneBar.jsx
+msgid "Zones need a rowing CP anchor, and none is set, so no zones are drawn."
+msgstr "Las zonas necesitan una referencia de CP de remo, y no hay ninguna, así que no se dibujan zonas."

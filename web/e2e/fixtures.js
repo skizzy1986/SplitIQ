@@ -109,6 +109,91 @@ export async function clickAndSettle(
   }
 }
 
+// The session page against synthetic data: one completed erg row for
+// `sessionId` and a `strava-activity` answer with a 20-minute trace. Every
+// number is invented. Registered after stubSupabase, so it wins for these
+// two URLs (Playwright runs matching routes newest first).
+export const SESSION_FIXTURE_ID = 2;
+export async function stubSessionPage(context, sessionId = SESSION_FIXTURE_ID) {
+  const cors = {
+    'access-control-allow-origin': '*',
+    'access-control-allow-headers': '*',
+  };
+  const row = {
+    id: sessionId,
+    user_id: '00000000-0000-0000-0000-000000000000',
+    date: '6/14/26',
+    date_iso: '2026-06-14',
+    type: 'erg',
+    label: 'Synthetic steady row',
+    duration: '20:00',
+    srpe: 5,
+    prs: null,
+    exercises: null,
+    coach_note: null,
+    status: 'completed',
+    distance_m: 4800,
+    avg_watts: 180,
+    avg_hr: 140,
+    source: 'strava',
+    strava_activity_id: 1000001,
+  };
+  await context.route(
+    new RegExp(
+      `test-project\\.supabase\\.co/rest/v1/sessions\\?.*id=eq\\.${sessionId}`
+    ),
+    (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        headers: cors,
+        body: JSON.stringify([row]),
+      })
+  );
+  const n = 1200;
+  const time = Array.from({ length: n }, (_, i) => i);
+  const body = {
+    status: 'ok',
+    cached: false,
+    origin: 'inserted',
+    strava_activity_id: 1000001,
+    // Synthetic placeholder; the real function builds this URL server-side.
+    url: 'https://activities.example.test/1000001',
+    fetched_at: '2026-06-14T08:00:00Z',
+    expires_at: '2026-06-20T08:00:00Z',
+    activity: {
+      sport_type: 'Rowing',
+      device_name: 'Synthetic Monitor',
+      elapsed_time_s: n,
+      moving_time_s: n,
+      distance_m: n * 4,
+      total_elevation_gain_m: 0,
+      calories: 200,
+      device_watts: true,
+      laps: [],
+    },
+    streams: {
+      time,
+      distance: time.map((i) => i * 4),
+      watts: time.map((i) => 170 + (i % 40)),
+      heartrate: time.map((i) => 125 + Math.floor(i / 60)),
+      cadence: time.map(() => 22),
+      velocity_smooth: time.map(() => 4),
+      moving: time.map(() => true),
+    },
+  };
+  await context.route(
+    /test-project\.supabase\.co\/functions\/v1\/strava-activity/,
+    (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        headers: cors,
+        body: JSON.stringify(body),
+      })
+  );
+}
+
 export async function installAppFixtures(context, { now } = {}) {
   await stubSupabase(context);
   await seedSession(context, now);

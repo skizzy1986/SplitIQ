@@ -52,6 +52,16 @@ const CalendarView = lazy(() => import('./views/CalendarView.jsx'));
 const PlanView = lazy(() => import('./views/PlanView.jsx'));
 const LogView = lazy(() => import('./views/LogView.jsx'));
 const SettingsView = lazy(() => import('./views/SettingsView.jsx'));
+const SessionView = lazy(() => import('./views/SessionView.jsx'));
+
+// After leaving a session page, put focus back on the link that opened it.
+// The list it lives in may still be mounting, so look for a few frames.
+function focusSessionLink(id, frames = 10) {
+  const el = document.querySelector(`[data-session-link="${id}"]`);
+  if (el) el.focus();
+  else if (frames > 0)
+    window.requestAnimationFrame(() => focusSessionLink(id, frames - 1));
+}
 
 // ── ERROR BOUNDARY (beta hardening) ───────────────────────────
 // Isolates render failures so one bad tab doesn't white-screen the app.
@@ -151,13 +161,28 @@ export default function App({ sidebarFoot = null }) {
   const settingsRef = useRef(null);
   const returnRoute = useRef('today');
   const previousRoute = useRef(route.path);
+  const previousSession = useRef(null);
+  // Whether the open session page was reached from inside the app (so Back
+  // can pop history) rather than by a deep link or reload.
+  const sessionFromApp = useRef(false);
+  const firstRoute = useRef(true);
   useEffect(() => {
-    if (route.path !== 'settings') {
+    if (route.pane === 'session') {
+      sessionFromApp.current = !firstRoute.current;
+    } else if (route.path !== 'settings') {
       if (previousRoute.current === 'settings') settingsRef.current?.focus();
+      if (previousSession.current != null)
+        focusSessionLink(previousSession.current);
       returnRoute.current = route.path;
     }
     previousRoute.current = route.path;
-  }, [route.path]);
+    previousSession.current = route.sessionId ?? null;
+    firstRoute.current = false;
+  }, [route.path, route.pane, route.sessionId]);
+  const leaveSession = () => {
+    if (sessionFromApp.current) window.history.back();
+    else navigate('progress/history');
+  };
   useEffect(() => {
     if (initialCallback) clearStravaCallbackFromUrl(window);
   }, [initialCallback]);
@@ -484,6 +509,15 @@ export default function App({ sidebarFoot = null }) {
             {/* ── SETTINGS VIEW (integrations: Strava today, more later) ── */}
             {view === 'settings' && (
               <SettingsView onSynced={fetchSessions} notice={stravaNotice} />
+            )}
+
+            {view === 'session' && (
+              <SessionView
+                key={route.sessionId}
+                sessionId={route.sessionId}
+                onBack={leaveSession}
+                layout="desktop"
+              />
             )}
           </Suspense>
         </ErrorBoundary>

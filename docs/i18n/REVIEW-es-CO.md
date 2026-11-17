@@ -42,7 +42,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `hdxhKx` | We could not sign you in. Try again. | No pudimos iniciar sesión. Inténtalo de nuevo. | Login error for any unrecognised cause. Only shown in Spanish. · src/utils/authError.js |
 | `y1oEoC` | Wrong email or password. | Correo o contraseña incorrectos. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
 
-## Dashboard views (src/locales/views, 316 strings)
+## Dashboard views (src/locales/views, 433 strings)
 
 | Row | English | Español | Where / note |
 |---|---|---|---|
@@ -64,10 +64,18 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `dgqjPM` | {keep, plural, one {{keep} imported session kept, without Strava power and heart rate.} other {{keep} imported sessions kept, without Strava power and heart rate.}} | {keep, plural, one {Se conservó {keep} sesión importada, sin la potencia ni la frecuencia cardíaca de Strava.} other {Se conservaron {keep} sesiones importadas, sin la potencia ni la frecuencia cardíaca de Strava.}} | src/utils/stravaDisconnect.js |
 | `kJOby-` | {keep, plural, one {{keep} imported session with your own sRPE or notes will be kept, without Strava power and heart rate.} other {{keep} imported sessions with your own sRPE or notes will be kept, without Strava power and heart rate.}} | {keep, plural, one {Se conservará {keep} sesión importada con tu propio sRPE o tus notas, sin la potencia ni la frecuencia cardíaca de Strava.} other {Se conservarán {keep} sesiones importadas con tu propio sRPE o tus notas, sin la potencia ni la frecuencia cardíaca de Strava.}} | src/utils/stravaDisconnect.js |
 | `mJpJDC` | {minutes, plural, one {{minutes} minute ago} other {{minutes} minutes ago}} | {minutes, plural, one {hace {minutes} minuto} other {hace {minutes} minutos}} | src/utils/stravaStatus.js |
+| `PunNSS` | {minutes} minutes of cycling at an average {speed} km/h. | {minutes} minutos de ciclismo a un promedio de {speed} km/h. | src/views/SessionView.jsx |
+| `lL7ztB` | {minutes} minutes of cycling at an average {watts} W, most of it in {zoneName}. | {minutes} minutos de ciclismo a un promedio de {watts} W, la mayor parte en {zoneName}. | src/views/SessionView.jsx |
+| `IsFkL8` | {minutes} minutes of cycling at an average {watts} W. | {minutes} minutos de ciclismo a un promedio de {watts} W. | src/views/SessionView.jsx |
+| `1wdm4T` | {minutes} minutes of cycling. | {minutes} minutos de ciclismo. | src/views/SessionView.jsx |
+| `Z_8Z-x` | {minutes} minutes of rowing at an average {pace} /500 m, most of it in {zoneName}. | {minutes} minutos de remo a un ritmo promedio de {pace} /500 m, la mayor parte en {zoneName}. | src/views/SessionView.jsx |
+| `OlzhtN` | {minutes} minutes of rowing at an average {pace} /500 m. | {minutes} minutos de remo a un ritmo promedio de {pace} /500 m. | src/views/SessionView.jsx |
+| `WPdKkl` | {minutes} minutes of rowing. | {minutes} minutos de remo. | src/views/SessionView.jsx |
 | `PhnrbH` | {restore, plural, one {Strava power and heart rate removed from {restore} session you logged yourself.} other {Strava power and heart rate removed from {restore} sessions you logged yourself.}} | {restore, plural, one {Se quitaron la potencia y la frecuencia cardíaca de Strava de {restore} sesión que registraste tú.} other {Se quitaron la potencia y la frecuencia cardíaca de Strava de {restore} sesiones que registraste tú.}} | src/utils/stravaDisconnect.js |
 | `nOVWI9` | {restore, plural, one {Strava power and heart rate will be removed from {restore} session you logged yourself.} other {Strava power and heart rate will be removed from {restore} sessions you logged yourself.}} | {restore, plural, one {Se quitarán la potencia y la frecuencia cardíaca de Strava de {restore} sesión que registraste tú.} other {Se quitarán la potencia y la frecuencia cardíaca de Strava de {restore} sesiones que registraste tú.}} | src/utils/stravaDisconnect.js |
 | `CJAViv` | {unlink, plural, one {{unlink} session kept as it was, with the Strava link removed.} other {{unlink} sessions kept as they were, with the Strava link removed.}} | {unlink, plural, one {Se conservó {unlink} sesión tal como estaba, sin el vínculo con Strava.} other {Se conservaron {unlink} sesiones tal como estaban, sin el vínculo con Strava.}} | src/utils/stravaDisconnect.js |
 | `Q1BsRB` | {unlink, plural, one {{unlink} session linked to Strava outside the importer will be kept as it is, with the Strava link removed.} other {{unlink} sessions linked to Strava outside the importer will be kept as they are, with the Strava link removed.}} | {unlink, plural, one {Se conservará tal como está {unlink} sesión vinculada a Strava fuera del importador, sin el vínculo con Strava.} other {Se conservarán tal como están {unlink} sesiones vinculadas a Strava fuera del importador, sin el vínculo con Strava.}} | src/utils/stravaDisconnect.js |
+| `LYH6Hg` | {unpowered} min of moving time had no power reading and is not in any zone. | {unpowered} min de tiempo en movimiento no tuvieron lectura de potencia y no están en ninguna zona. | src/components/session/ZoneBar.jsx |
 | `v77_zP` | ＋ add exercise | ＋ agregar ejercicio | src/components/LogSessionForm.jsx |
 | `r5Xvbj` | ＋ LOG A STRENGTH SESSION | ＋ REGISTRAR UNA SESIÓN DE FUERZA | Button, all capitals · src/components/LogSessionForm.jsx |
 | `k6NFYN` | ● TODAY | ● HOY | Marks today in the calendar, all capitals · src/components/WorkoutItem.jsx |
@@ -83,15 +91,30 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `XMMmV2` | 30-DAY LOAD TREND | TENDENCIA DE CARGA · 30 DÍAS | Chart title, all capitals · src/views/mobile/MobileAnalytics.jsx |
 | `mdEzyZ` | 6/19/26 | mm/dd/aa | Date field placeholder. The app stores month/day/year, so in Spanish write the format (mm/dd/aa) rather than a sample date a reader would take as day/month · src/components/LogSessionForm.jsx |
 | `4VXqzE` | 8-WEEK TSS HISTORY | HISTORIAL DE TSS · 8 SEMANAS | Chart title, all capitals; TSS stays as is · src/views/mobile/MobileAnalytics.jsx |
+| `I7ivWQ` | A cycling session. | Una sesión de ciclismo. | src/views/SessionView.jsx |
+| `_jWxW-` | A rowing session. | Una sesión de remo. | src/views/SessionView.jsx |
 | `0Q8dUF` | Access at Strava revoked. | Se revocó el acceso en Strava. | src/utils/stravaDisconnect.js |
+| `GNgMDz` | Across the session | A lo largo de la sesión | src/views/SessionView.jsx |
+| `Jp1XPs` | Active recovery | Recuperación activa | Cycling power level (Coggan Z1) · src/components/session/zoneLabels.js |
 | `OJnS4k` | Activity ids: {0} | ID de actividades: {0} | Followed by a list of Strava activity numbers · placeholder {0}: (connection?.ambiguous_activity_ids ?? []).join(', ') · src/components/StravaConnectPanel.jsx |
 | `PEeHLd` | Add a session label (e.g. Lower 2). | Agrega un nombre para la sesión (p. ej., Tren inferior 2). | src/components/LogSessionForm.jsx |
 | `ka1Xir` | Add at least one exercise. | Agrega al menos un ejercicio. | src/components/LogSessionForm.jsx |
 | `N40H-G` | All | Todas | Session filter chip · src/views/mobile/MobileSessionLog.jsx |
+| `DXBDkj` | AN | AN | Rowing zone; keep as is · src/components/session/zoneLabels.js |
+| `Ufz7rP` | Anaerobic capacity | Capacidad anaeróbica | Cycling power level (Coggan Z6) · src/components/session/zoneLabels.js |
+| `H9MruT` | AT | AT | Rowing zone; keep as is · src/components/session/zoneLabels.js |
 | `R9Khdg` | Auto | Automático | src/components/ThemeControl.jsx |
+| `D-EJ69` | Average cadence | Cadencia promedio | src/components/session/SessionSummary.jsx |
+| `mv6_9E` | Average heart rate | Frecuencia cardíaca promedio | src/components/session/SessionSummary.jsx |
+| `Ek0SSf` | Average pace | Ritmo promedio | src/components/session/SessionSummary.jsx |
+| `d67Fbb` | Average power | Potencia promedio | src/components/session/SessionSummary.jsx |
+| `aFuiOb` | Average power {watts} W. Your rides in the 30 days before averaged {mean} W across {count} sessions. | Potencia promedio {watts} W. Tus salidas en bici de los 30 días anteriores promediaron {mean} W en {count} sesiones. | src/components/session/SessionSummary.jsx |
+| `JYNFqA` | Average power {watts} W. Your rowing sessions in the 30 days before averaged {mean} W across {count} sessions. | Potencia promedio {watts} W. Tus sesiones de remo de los 30 días anteriores promediaron {mean} W en {count} sesiones. | src/components/session/SessionSummary.jsx |
+| `4zUd3z` | Average speed | Velocidad promedio | src/components/session/SessionSummary.jsx |
+| `m8m8H-` | Average stroke rate | Frecuencia de palada promedio | src/components/session/SessionSummary.jsx |
 | `zhxQBS` | AVG HR | FC PROM. | Average heart rate, all capitals · src/components/LogEntry.jsx |
 | `pZomf-` | AVG WATTS | VATIOS PROM. | Average power, all capitals · src/components/LogEntry.jsx |
-| `iH8pgl` | Back | Volver | src/App.jsx |
+| `iH8pgl` | Back | Volver | src/App.jsx · src/views/SessionView.jsx |
 | `m8KGUx` | Back to {destination} | Volver a {destination} | Settings back button; destination is a mobile tab name · src/views/mobile/MobileSettings.jsx |
 | `moKkl9` | baseline | línea base | After "vs": compared with the baseline · Chart reference line label · src/views/mobile/MobileRecovery.jsx · src/views/RecoveryView.jsx |
 | `LxO1i3` | Baselines are your own rolling 28-day trimmed mean. | Las líneas base son tu propio promedio recortado de los últimos 28 días. | src/views/RecoveryView.jsx |
@@ -100,7 +123,11 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `eEV8x8` | BLOODS · LIPID PANEL | EXÁMENES DE SANGRE · PERFIL LIPÍDICO | Card title, all capitals: blood test, cholesterol panel · src/views/RecoveryView.jsx |
 | `bGQplw` | Body | Cuerpo | Desktop body screen heading · src/views/RecoveryView.jsx |
 | `e0F-Wf` | BODYWEIGHT — 14 DAYS (kg) | PESO CORPORAL — 14 DÍAS (kg) | Chart title, all capitals; kg stays as is · src/views/mobile/MobileRecovery.jsx |
+| `khJ5Qr` | cadence | cadencia | Session caption list item · src/components/session/ProvenanceNote.jsx |
+| `4VcKfR` | Cadence | Cadencia | src/components/session/TraceTooltip.jsx |
+| `i6NHwE` | Cadence across {over}, between {lo} and {hi} rpm. | Cadencia durante {over}, entre {lo} y {hi} rpm. | src/components/session/SessionTrace.jsx |
 | `AjVXBS` | Calendar | Calendario | Desktop Today pane · src/App.jsx · src/views/CalendarView.jsx |
+| `9P5ptB` | Calories | Calorías | src/components/session/SessionSummary.jsx |
 | `dEgA5A` | Cancel | Cancelar | Button · src/components/StravaConnectPanel.jsx |
 | `vv7kpg` | Cancelled | Cancelada | src/views/mobile/MobileSessionLog.jsx |
 | `-6w-0_` | CANCELLED | CANCELADA | Badge, all capitals · src/components/LogEntry.jsx |
@@ -112,6 +139,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `9ka0UE` | Collected {collected} | Tomada el {collected} | When the blood sample was taken · src/views/RecoveryView.jsx |
 | `ee5U1M` | Composite of RHR vs baseline, HRV vs baseline, sleep, and training load (TSB {tsbSigned}). Heuristic, not validated — cross-check against sRPE and how you actually feel. | Combina la RHR frente a la línea base, la HRV frente a la línea base, el sueño y la carga de entrenamiento (TSB {tsbSigned}). Es una heurística, no está validada: contrástala con el sRPE y con cómo te sientes de verdad. | {tsbSigned} is the signed form value, e.g. +4.2 · src/views/RecoveryView.jsx |
 | `bt_S9M` | Composite of RHR vs baseline, HRV vs baseline, sleep, and training load (TSB unavailable — excluded from this score). Heuristic, not validated — cross-check against sRPE and how you actually feel. | Combina la RHR frente a la línea base, la HRV frente a la línea base, el sueño y la carga de entrenamiento (TSB no disponible: queda fuera de este puntaje). Es una heurística, no está validada: contrástala con el sRPE y con cómo te sientes de verdad. | src/views/RecoveryView.jsx |
+| `p9GXgv` | confirmed | confirmado | Anchor status · src/components/session/ZoneBar.jsx |
 | `rJ7VtO` | Connect Google Health to populate this view | Conecta Google Health para llenar esta vista | Google Health is a brand name: keep it · src/views/mobile/MobileRecovery.jsx |
 | `OPQd1-` | Connect Strava | Conectar Strava | Button · src/components/StravaConnectPanel.jsx |
 | `nnqtTB` | Connect Strava to import rowing and cycling activities into the training calendar automatically. | Conecta Strava para importar automáticamente tus actividades de remo y ciclismo al calendario de entrenamiento. | src/utils/stravaStatus.js |
@@ -128,19 +156,28 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `rQjZxs` | CP unavailable | CP no disponible | src/views/OverviewView.jsx |
 | `DUMjBi` | CTL builds over 42 days — values will be underestimated until ~6 weeks of data. | La CTL se construye en 42 días: los valores quedarán subestimados hasta tener ~6 semanas de datos. | src/views/OverviewView.jsx |
 | `pvnfJD` | Dark | Oscuro | src/components/ThemeControl.jsx |
+| `mYGY3B` | Date | Fecha | src/components/session/SessionSummary.jsx |
 | `mMScjF` | DATE | FECHA (MES/DÍA/AÑO) | Field label, all capitals. The date is stored month/day/year; in Spanish say so, e.g. FECHA (MES/DÍA/AÑO) · context: log-form-date · src/components/LogSessionForm.jsx |
 | `r2_GnS` | Decision limits: | Límites de decisión: | Followed by the names of the guideline sources · src/views/RecoveryView.jsx |
 | `Bn9-El` | default | predeterminado | Followed by a number: the population default baseline · src/views/RecoveryView.jsx |
+| `NsszZt` | Derived here: {derivedText}. | Calculado aquí: {derivedText}. | Session caption; the list is translated item by item · src/components/session/ProvenanceNote.jsx |
+| `PEHQTf` | Device | Dispositivo | src/components/session/SessionSummary.jsx |
 | `-K0AvT` | Disconnect | Desconectar | Button · src/components/StravaConnectPanel.jsx |
 | `-Svq9F` | Disconnect and delete | Desconectar y eliminar | Button that confirms disconnecting Strava and deleting its data · src/utils/stravaDisconnect.js |
 | `EG459f` | Disconnect failed. Nothing was changed. Try again. | No se pudo desconectar. No se cambió nada. Inténtalo de nuevo. | Error after confirming a Strava disconnect · src/components/StravaConnectPanel.jsx |
 | `D2Ms9q` | Disconnect Strava and delete its data? | ¿Desconectar Strava y eliminar sus datos? | src/utils/stravaDisconnect.js |
 | `MpIMfg` | Disconnecting… | Desconectando… | Button, busy · src/components/StravaConnectPanel.jsx |
+| `bDkZ8F` | distance | distancia | Session caption list item · src/components/session/ProvenanceNote.jsx |
+| `GPeIuw` | Distance | Distancia | src/components/session/SessionSummary.jsx |
 | `0-AhBt` | DISTANCE | DISTANCIA | Metric, all capitals · src/components/LogEntry.jsx |
+| `lkz6PL` | Duration | Duración | src/components/session/SessionSummary.jsx |
 | `n6udpp` | DURATION | DURACIÓN | Field label, all capitals · Metric, all capitals · src/components/LogEntry.jsx · src/components/LogSessionForm.jsx |
 | `qN2bsY` | e1RM | e1RM | src/components/LogSessionForm.jsx |
 | `sNHOAx` | easy · talk in sentences (UT2) | fácil · hablas en oraciones (UT2) | src/components/LogSessionForm.jsx |
 | `HBUUJ7` | Easy (UT2) | Fácil (UT2) | sRPE scale, effort 3-4 · src/constants/srpeGuideMessages.js |
+| `JFnJqF` | Elapsed | Tiempo total | src/components/session/SessionSummary.jsx |
+| `c3aKIi` | Elevation gain | Desnivel positivo | src/components/session/SessionSummary.jsx |
+| `nhCuze` | Endurance | Resistencia | Cycling power level (Coggan Z2) · src/components/session/zoneLabels.js |
 | `cFg0mZ` | Erg | Ergómetro | Desktop Progress pane · Progress sub-tab: rowing · Session filter chip · src/App.jsx · src/views/mobile/MobileProgress.jsx · src/views/mobile/MobileSessionLog.jsx |
 | `qfFW0N` | erg + strength | ergómetro + fuerza | src/views/OverviewView.jsx |
 | `xYJEnn` | ERG DISTANCE | DISTANCIA EN ERGÓMETRO | Stat tile, all capitals · src/views/OverviewView.jsx |
@@ -165,10 +202,14 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `d99m4E` | Hard (threshold) | Duro (umbral) | sRPE scale, effort 7-8 · src/constants/srpeGuideMessages.js |
 | `Ls-Ift` | HDL Cholesterol (female) | Colesterol HDL (mujeres) | Blood lipid marker; decision limit for women · src/utils/healthRecords.js |
 | `3QkZCj` | HDL Cholesterol (male) | Colesterol HDL (hombres) | Blood lipid marker; decision limit for men · src/utils/healthRecords.js |
+| `MP7nnS` | heart rate | frecuencia cardíaca | Session caption list item · src/components/session/ProvenanceNote.jsx |
+| `bcsF7s` | Heart rate | Frecuencia cardíaca | src/components/session/TraceTooltip.jsx |
+| `K7-s0i` | Heart rate across {over}, between {lo} and {hi} bpm. | Frecuencia cardíaca durante {over}, entre {lo} y {hi} bpm. | src/components/session/SessionTrace.jsx |
 | `qGrPbG` | High fatigue — recent load well above fitness | Fatiga alta: la carga reciente supera de lejos tu estado físico | Training form (TSB) band · src/utils/trainingLoad.js |
 | `0caMy7` | History | Historial | Desktop Progress pane · Progress sub-tab: past sessions · src/App.jsx · src/views/LogView.jsx · src/views/mobile/MobileProgress.jsx |
 | `qsHYae` | HORMONE PANEL | PERFIL HORMONAL | Card title, all capitals · src/views/RecoveryView.jsx |
 | `6NloOG` | HRV TREND — 14 DAYS | TENDENCIA DE HRV — 14 DÍAS | Chart title, all capitals; HRV stays as is · src/views/mobile/MobileRecovery.jsx |
+| `MQAH8I` | Imported from Strava. | Importado de Strava. | Session page provenance · src/components/session/sourceCopy.js |
 | `KpFRBw` | Importing history — {imported} imported, {adopted} matched to existing sessions. Continuing automatically. | Importando historial: {imported} importadas, {adopted} vinculadas a sesiones existentes. Sigue automáticamente. | src/utils/stravaStatus.js |
 | `FLn-wp` | INJURY WATCH | SEGUIMIENTO DE LESIONES | Card title, all capitals · src/views/RecoveryView.jsx |
 | `nbfdhU` | Integrations | Integraciones | Settings section heading above the Strava panel · src/views/SettingsView.jsx |
@@ -182,8 +223,12 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `1njn7W` | Light | Claro | src/components/ThemeControl.jsx |
 | `U6e-ld` | limit {target} {unit} | límite {target} {unit} | Lipid decision limit, e.g. limit 3.0 mmol/L · src/views/RecoveryView.jsx |
 | `dF6vP6` | Live | En vivo | Desktop live erg pane · src/App.jsx |
-| `axf51R` | Load | Carga | Desktop Progress pane · Progress sub-tab: training load · src/App.jsx · src/views/mobile/MobileAnalytics.jsx · src/views/mobile/MobileProgress.jsx |
+| `axf51R` | Load | Carga | Desktop Progress pane · Progress sub-tab: training load · src/App.jsx · src/components/session/SessionSummary.jsx · src/views/mobile/MobileAnalytics.jsx · src/views/mobile/MobileProgress.jsx |
+| `lyexpf` | load from average power against your anchor | carga a partir de la potencia promedio frente a tu referencia | Session caption list item · src/components/session/ProvenanceNote.jsx |
+| `sXjbU3` | load from your sRPE and duration | carga a partir de tu sRPE y la duración | Session caption list item · src/components/session/ProvenanceNote.jsx |
 | `SxT-I_` | Loading sessions… | Cargando sesiones… | src/views/CalendarView.jsx |
+| `QddnkB` | Loading the session | Cargando la sesión | src/views/SessionView.jsx |
+| `EPGELC` | Loading the trace | Cargando el trazado | src/views/SessionView.jsx |
 | `SVUEE0` | Loading vitals… | Cargando signos vitales… | src/views/RecoveryView.jsx |
 | `Pwqkdw` | Loading… | Cargando… | src/components/HealthRecordCard.jsx · src/views/mobile/MobileRecovery.jsx · src/views/mobile/MobileSessionLog.jsx |
 | `9qsGwv` | Log a session | Registrar una sesión | src/views/CalendarView.jsx · src/views/mobile/MobileSessionLog.jsx · src/views/PlanView.jsx |
@@ -196,42 +241,69 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `HRha_x` | Main navigation | Navegación principal | src/App.jsx |
 | `CK1KXz` | Max | Máximo | sRPE scale, effort 9-10 · src/constants/srpeGuideMessages.js |
 | `-AvfQb` | max · can't talk | máximo · no puedes hablar | src/components/LogSessionForm.jsx |
+| `uMl2hu` | Max heart rate | Frecuencia cardíaca máxima | src/components/session/SessionSummary.jsx |
+| `clTV0L` | Max power | Potencia máxima | src/components/session/SessionSummary.jsx |
+| `tYDvzx` | Measured by the device: {measuredText}. | Medido por el dispositivo: {measuredText}. | Session caption; the list is translated item by item · src/components/session/ProvenanceNote.jsx |
 | `Rs3GvY` | Mobility | Movilidad | Desktop Train pane · src/App.jsx |
 | `G9QKXj` | moderate · short sentences (UT1) | moderado · oraciones cortas (UT1) | src/components/LogSessionForm.jsx |
 | `CWwrj6` | needs overnight wear | requiere usarlo de noche | src/views/RecoveryView.jsx |
+| `ivLomN` | Neuromuscular power | Potencia neuromuscular | Cycling power level (Coggan Z7) · src/components/session/zoneLabels.js |
 | `IJ4SwP` | Neutral — balanced | Neutral: en equilibrio | Training form (TSB) band · src/utils/trainingLoad.js |
 | `JAhfrY` | No blood pressure readings yet. | Todavía no hay mediciones de presión arterial. | src/views/RecoveryView.jsx |
+| `F-lAgi` | No cadence was recorded for this session. | No se registró cadencia en esta sesión. | src/components/session/SessionTrace.jsx |
 | `Kav4av` | NO DATA | SIN DATOS | Readiness status when there is no resting heart rate, all capitals · src/utils/recoveryAnalytics.js |
+| `cfsFlz` | No heart rate was recorded for this session. | No se registró frecuencia cardíaca en esta sesión. | src/components/session/SessionTrace.jsx |
 | `P-fLNn` | No hormone results yet. | Todavía no hay resultados hormonales. | src/views/RecoveryView.jsx |
 | `70_-mV` | No injuries logged yet. | Todavía no hay lesiones registradas. | src/views/RecoveryView.jsx |
 | `SAnepG` | No lipid results yet. | Todavía no hay resultados del perfil lipídico. | src/views/RecoveryView.jsx |
 | `intItA` | No metrics logged for this session. | No hay métricas registradas para esta sesión. | src/components/LogEntry.jsx |
+| `A1dE6j` | No power or speed was recorded, so there is no pace trace. | No se registró potencia ni velocidad, así que no hay trazado de ritmo. | src/components/session/SessionTrace.jsx |
+| `T_V4Zy` | No power was recorded on this ride, so there is no power trace and no zones. | No se registró potencia en esta salida, así que no hay trazado de potencia ni zonas. | src/components/session/SessionTrace.jsx |
 | `xAr6uG` | No reading | Sin lectura | src/views/mobile/MobileAnalytics.jsx · src/views/mobile/MobileRecovery.jsx · src/views/mobile/MobileToday.jsx · src/views/RecoveryView.jsx |
+| `Wt7fuF` | No reading at this moment | Sin lectura en este momento | Trace tooltip over a gap · src/components/session/TraceTooltip.jsx |
 | `_f3NT2` | No reading this morning | Sin lectura esta mañana | src/views/mobile/MobileToday.jsx · src/views/OverviewView.jsx |
 | `kH6z2k` | No RHR reading — nothing to score | Sin lectura de RHR: no hay nada que puntuar | src/views/RecoveryView.jsx |
 | `Rjz3_y` | No sessions found | No se encontraron sesiones | src/views/mobile/MobileSessionLog.jsx |
 | `KdSIjD` | No sessions in this window. | No hay sesiones en este período. | src/views/CalendarView.jsx |
 | `MtucEn` | No sessions logged yet. | Todavía no hay sesiones registradas. | src/views/mobile/MobileToday.jsx |
+| `CW-aXj` | No stroke rate was recorded for this session. | No se registró frecuencia de palada en esta sesión. | src/components/session/SessionTrace.jsx |
 | `x9cgKh` | No successful sync in {span} | Ninguna sincronización exitosa en {span} | src/utils/stravaStatus.js |
 | `WUxHQb` | No upcoming planned sessions. | No hay sesiones planificadas próximas. | src/views/PlanView.jsx |
 | `3jc046` | No upcoming sessions | No hay sesiones próximas | src/views/mobile/MobileAnalytics.jsx |
 | `GDcDFt` | No vitals recorded yet | Todavía no hay signos vitales registrados | src/views/mobile/MobileRecovery.jsx |
+| `UDSQoS` | Not scored: no duration is recorded. | Sin puntuar: no hay duración registrada. | src/components/session/SessionSummary.jsx |
+| `idOGFH` | Not scored: no sRPE and no average power are recorded. | Sin puntuar: no hay sRPE ni potencia promedio registrados. | src/components/session/SessionSummary.jsx |
+| `8Kmmv4` | Not scored: no sRPE, and no bike FTP anchor to measure power against. | Sin puntuar: no hay sRPE ni una referencia de FTP de bici con la cual medir la potencia. | src/components/session/SessionSummary.jsx |
+| `-KHRA3` | Not scored: no sRPE, and no rowing CP anchor to measure power against. | Sin puntuar: no hay sRPE ni una referencia de CP de remo con la cual medir la potencia. | src/components/session/SessionSummary.jsx |
+| `P1LWZ9` | Not scored: no sRPE, and this session type has no power model. | Sin puntuar: no hay sRPE, y este tipo de sesión no tiene modelo de potencia. | src/components/session/SessionSummary.jsx |
 | `2YEfZW` | Nothing in your log came from Strava; nothing will be removed. | Nada de tu registro vino de Strava; no se quitará nada. | src/utils/stravaDisconnect.js |
 | `qhISLS` | Nothing in your log came from Strava. | Nada de tu registro vino de Strava. | src/utils/stravaDisconnect.js |
 | `CiVpeY` | Nothing prescribed today. | Nada programado para hoy. | src/views/mobile/MobileToday.jsx |
 | `m7A34A` | Nothing was overwritten. Resolve the duplicates in the log, then sync again. | No se sobrescribió nada. Resuelve los duplicados en el registro y vuelve a sincronizar. | src/utils/stravaStatus.js |
 | `n0LeU6` | Offline: no saved data yet. | Sin conexión: todavía no hay datos guardados. | src/components/HealthRecordCard.jsx |
 | `ZGyogo` | Older activities are fetched a page at a time to stay inside Strava rate limits. | Las actividades más antiguas se traen una página a la vez para no superar los límites de uso de Strava. | src/utils/stravaStatus.js |
+| `AQLYR5` | Only completed rowing and cycling sessions open here. | Aquí solo se abren sesiones completadas de remo y ciclismo. | Session page: a strength or other session · src/components/session/SessionState.jsx |
+| `1TNIig` | Open | Abrir | Link from a log row to its session page · src/components/LogEntry.jsx |
 | `Xjpq7w` | Open Body | Abrir Cuerpo | src/views/mobile/MobileToday.jsx · src/views/OverviewView.jsx |
 | `vp3F07` | Open History | Abrir Historial | src/views/mobile/MobileAnalytics.jsx · src/views/OverviewView.jsx |
 | `F37c1s` | Open Settings | Abrir Configuración | src/views/mobile/MobileRecovery.jsx · src/views/RecoveryView.jsx |
+| `EEeUQr` | Open the session page for {label} | Abrir la página de la sesión {label} | src/components/LogEntry.jsx |
 | `SyBHo9` | Open Train | Abrir Entrenar | src/views/mobile/MobileAnalytics.jsx · src/views/mobile/MobileToday.jsx |
 | `mdAnsd` | Opening Strava… | Abriendo Strava… | Button, busy · src/components/StravaConnectPanel.jsx |
 | `eRUsoR` | Over-rating easy work is the common error — anchor to the talk test. TRIANGULATION: sRPE (felt) + Strava RE (HR-dist) + watts/HR (output) cross-checked every session. All agree = confidence; diverge = early fatigue/stress signal. | El error común es sobrevalorar el trabajo fácil: guíate por la prueba del habla. TRIANGULACIÓN: sRPE (percibido) + RE de Strava (FC-dist.) + vatios/FC (producción), contrastados en cada sesión. Todos coinciden = confianza; si difieren = señal temprana de fatiga o estrés. | Strava is a brand; RE is relative effort; HR is heart rate · src/views/LogView.jsx |
 | `6_dCYd` | Overview | Resumen | Desktop Today pane · src/App.jsx |
+| `CfN7gN` | Pace | Ritmo | src/components/session/TraceTooltip.jsx |
+| `2qq8q8` | Pace across {over}, between {fast} and {slow} per 500 m; average {avg}. | Ritmo durante {over}, entre {fast} y {slow} por 500 m; promedio {avg}. | src/components/session/SessionTrace.jsx |
+| `0XMm_A` | Pace across {over}, between {fast} and {slow} per 500 m. | Ritmo durante {over}, entre {fast} y {slow} por 500 m. | src/components/session/SessionTrace.jsx |
+| `8olOJA` | pace from distance and time | ritmo a partir de la distancia y el tiempo | Session caption list item · src/components/session/ProvenanceNote.jsx |
+| `NXnuca` | pace from power | ritmo a partir de la potencia | Session caption list item · src/components/session/ProvenanceNote.jsx |
 | `GdgCoi` | Plan | Plan | Desktop Train pane · src/App.jsx · src/views/PlanView.jsx |
 | `iQ1n2D` | PLANNED | PLANIFICADA | Badge, all capitals · Day badge, all capitals · src/components/LogEntry.jsx · src/views/CalendarView.jsx |
 | `7F65H5` | Post: | Después: | Meal after the session · src/components/WorkoutItem.jsx |
+| `KwjyNG` | power | potencia | Session caption list item · src/components/session/ProvenanceNote.jsx |
+| `NHfDC5` | Power | Potencia | src/components/session/TraceTooltip.jsx |
+| `TPYpxM` | Power across {over}, between {lo} and {hi} W; average {avg} W. | Potencia durante {over}, entre {lo} y {hi} W; promedio {avg} W. | src/components/session/SessionTrace.jsx |
+| `eh_w5-` | Power across {over}, between {lo} and {hi} W. | Potencia durante {over}, entre {lo} y {hi} W. | src/components/session/SessionTrace.jsx |
 | `K9Pm4P` | Power-derived load is measured against rowing CP {cp}W and bike FTP {ftp}W; revalidate with a test to sharpen it. | La carga derivada de la potencia se mide frente a la CP de remo de {cp}W y el FTP de bici de {ftp}W; vuelve a validarla con una prueba para afinarla. | src/views/OverviewView.jsx |
 | `S4k530` | Power-derived load is measured against rowing CP {cp}W; revalidate with a test to sharpen it. | La carga derivada de la potencia se mide frente a la CP de remo de {cp}W; vuelve a validarla con una prueba para afinarla. | src/views/OverviewView.jsx |
 | `dCOvJh` | Power-derived load is unavailable while the CP anchor cannot be read. | La carga derivada de la potencia no está disponible mientras no se pueda leer el ancla de CP. | src/views/OverviewView.jsx |
@@ -240,6 +312,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `xkKuw9` | Prioritise recovery — reduce or rest | Prioriza la recuperación: reduce o descansa | src/views/RecoveryView.jsx |
 | `5OpNRF` | Prioritise recovery today | Prioriza la recuperación hoy | src/views/mobile/MobileRecovery.jsx |
 | `CP3D8G` | Progress | Progreso | src/views/mobile/MobileProgress.jsx |
+| `jEZ6Lf` | provisional | provisional | Anchor status · src/components/session/ZoneBar.jsx |
 | `kRXcWA` | Readiness | Disposición | src/views/OverviewView.jsx |
 | `UaG2b4` | READINESS | DISPOSICIÓN | All capitals · Card heading, all capitals · Card heading, all capitals · src/views/mobile/MobileRecovery.jsx · src/views/mobile/MobileToday.jsx · src/views/OverviewView.jsx |
 | `LO2EaV` | READINESS — 7 DAYS | DISPOSICIÓN — 7 DÍAS | Chart title, all capitals · src/views/mobile/MobileRecovery.jsx |
@@ -251,29 +324,34 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `sJzPor` | RECENT SESSIONS | SESIONES RECIENTES | Section heading, all capitals · Section heading, all capitals · src/views/mobile/MobileAnalytics.jsx · src/views/OverviewView.jsx |
 | `gcoiFh` | Reconnect | Reconectar | Button · src/components/StravaConnectPanel.jsx |
 | `M4rohH` | Reconnect to keep Strava data in your log; without access it will be removed. | Reconecta para conservar los datos de Strava en tu registro; sin acceso, se quitarán. | src/utils/stravaStatus.js |
-| `P9wzG_` | Recovery | Recuperación | Training zone name · src/constants/srpeGuideMessages.js |
+| `P9wzG_` | Recovery | Recuperación | Rowing training zone · Training zone name · src/components/session/zoneLabels.js · src/constants/srpeGuideMessages.js |
 | `cwpus4` | RECOVERY | RECUPERACIÓN | Screen heading, all capitals · src/views/mobile/MobileRecovery.jsx |
 | `2t2fqH` | ref | ref. | Short for "reference range" before a lab range, e.g. "ref 0.5–1.0" · src/utils/healthRecords.js |
 | `9i9Bip` | resolved {date} | resuelta el {date} | Injury resolved date · src/views/RecoveryView.jsx |
 | `BPmK5_` | RESTING HR | FC EN REPOSO | All capitals · All capitals · src/views/mobile/MobileRecovery.jsx · src/views/RecoveryView.jsx |
 | `KqWf7J` | RESTING HR TREND | TENDENCIA DE FC EN REPOSO | Chart title, all capitals · src/views/RecoveryView.jsx |
 | `RTFfQq` | RESTING HR TREND — 14 DAYS | TENDENCIA DE FC EN REPOSO — 14 DÍAS | Chart title, all capitals · src/views/mobile/MobileRecovery.jsx |
-| `6gRgw8` | Retry | Reintentar | Button in the error state · Button in the error state · src/components/StravaConnectPanel.jsx |
+| `6gRgw8` | Retry | Reintentar | Button in the error state · Button in the error state · Button: load again · src/components/session/SessionState.jsx · src/components/StravaConnectPanel.jsx |
 | `cJp6m0` | Rowing CP {cp}W | CP de remo {cp}W | src/views/OverviewView.jsx |
 | `kBKd0c` | Rowing CP {cp}W · bike FTP {ftp}W | CP de remo {cp}W · FTP de bici {ftp}W | src/views/OverviewView.jsx |
 | `zG0ocl` | Save failed: {detail} | No se pudo guardar: {detail} | {detail} is the server error message, shown as it came · src/components/LogSessionForm.jsx |
 | `wEEld0` | Saved! Session added to your log. | ¡Guardado! La sesión se agregó a tu historial. | src/components/LogSessionForm.jsx |
 | `I4hZK1` | SAVING… | GUARDANDO… | Button, busy, all capitals · src/components/LogSessionForm.jsx |
+| `IGtO85` | Scored from average power {watts} W against your bike FTP {threshold} W (intensity {factor}). | Puntuado con la potencia promedio de {watts} W frente a tu FTP de bici de {threshold} W (intensidad {factor}). | src/components/session/SessionSummary.jsx |
+| `J6bV0E` | Scored from average power {watts} W against your rowing CP {threshold} W (intensity {factor}). | Puntuado con la potencia promedio de {watts} W frente a tu CP de remo de {threshold} W (intensidad {factor}). | src/components/session/SessionSummary.jsx |
+| `eIdIwi` | Scored from sRPE {srpe} and the duration. | Puntuado con el sRPE {srpe} y la duración. | src/components/session/SessionSummary.jsx |
 | `MC_dgX` | Scored on the readings that arrived — some were missing. | Se puntuó con las lecturas que llegaron; faltaron algunas. | src/views/mobile/MobileToday.jsx |
 | `R4OWFD` | Sections | Secciones | src/App.jsx |
+| `CqO9qC` | Session | Sesión | src/views/SessionView.jsx |
 | `Mo7fYT` | Session · {duration} | Sesión · {duration} | src/components/LogEntry.jsx |
 | `Fe81wO` | SESSION LABEL | NOMBRE DE LA SESIÓN | Field label, all capitals · src/components/LogSessionForm.jsx |
 | `KG6Erq` | SESSION LOG: | HISTORIAL DE SESIONES: | Banner lead-in, all capitals · src/views/LogView.jsx |
 | `CJZIZT` | Session logged. | Sesión registrada. | src/components/LogEntry.jsx |
+| `3Aerm-` | Session not found | Sesión no encontrada | src/views/SessionView.jsx |
 | `bppwtk` | SESSIONS | SESIONES | Screen heading, all capitals · Stat label, all capitals · src/views/mobile/MobileSessionLog.jsx · src/views/mobile/MobileToday.jsx |
 | `ffCJn3` | Sessions could not be loaded. | No se pudieron cargar las sesiones. | src/views/CalendarView.jsx |
 | `a-E6u3` | SESSIONS LOGGED | SESIONES REGISTRADAS | Stat tile, all capitals · src/views/OverviewView.jsx |
-| `Tz0i8g` | Settings | Configuración | Mobile top bar button that opens Settings · src/App.jsx · src/components/mobile/MobileTopBar.jsx · src/views/mobile/MobileSettings.jsx · src/views/SettingsView.jsx |
+| `Tz0i8g` | Settings | Configuración | Link to the Settings screen · Mobile top bar button that opens Settings · src/App.jsx · src/components/mobile/MobileTopBar.jsx · src/components/session/SessionState.jsx · src/views/mobile/MobileSettings.jsx · src/views/SettingsView.jsx |
 | `F28qJt` | SETTINGS | CONFIGURACIÓN | Section eyebrow, all capitals · src/views/SettingsView.jsx |
 | `FKcroQ` | Share Concept2 links or Fitbod screenshots to add sessions. sRPE captured every session. | Comparte enlaces de Concept2 o capturas de pantalla de Fitbod para agregar sesiones. El sRPE se registra en cada sesión. | Concept2 and Fitbod are brand names: keep them · src/views/LogView.jsx |
 | `UTQjd8` | Short phrases only. Genuinely taxing. Threshold/AT. | Solo frases cortas. Realmente exigente. Umbral/AT. | sRPE scale, effort 7-8: the talk test · src/constants/srpeGuideMessages.js |
@@ -284,6 +362,8 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `jI9fA1` | SLEEP SCORE | PUNTAJE DE SUEÑO | All capitals · All capitals · src/views/mobile/MobileRecovery.jsx · src/views/RecoveryView.jsx |
 | `OqpWY6` | Some activities could not be saved to the database. Run the sync again. | Algunas actividades no se pudieron guardar en la base de datos. Vuelve a sincronizar. | src/utils/stravaStatus.js |
 | `7-kTea` | Something went wrong finishing the connection. Try again. | Algo salió mal al terminar la conexión. Inténtalo de nuevo. | src/utils/stravaCallback.js |
+| `l9wI00` | Speed | Velocidad | src/components/session/TraceTooltip.jsx |
+| `pXBndC` | speed from distance and time | velocidad a partir de la distancia y el tiempo | Session caption list item · src/components/session/ProvenanceNote.jsx |
 | `a8VA-2` | SplitIQ's access at Strava had already ended. | El acceso de SplitIQ en Strava ya había terminado. | src/utils/stravaDisconnect.js |
 | `VNbzs6` | Sprint | Sprint | Training zone name · src/constants/srpeGuideMessages.js |
 | `AlJs8G` | sRPE — talk-test anchored | sRPE — según la prueba del habla | sRPE stays as is · src/components/LogSessionForm.jsx |
@@ -301,17 +381,27 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `JNZ_Bm` | Strava did not send back an authorisation code. Start the connection again. | Strava no devolvió un código de autorización. Vuelve a iniciar la conexión. | src/utils/stravaCallback.js |
 | `mfKYxJ` | Strava disconnected. | Strava desconectado. | src/utils/stravaDisconnect.js |
 | `mlUx6O` | Strava is having problems. The next sync will retry. | Strava tiene problemas. La próxima sincronización lo volverá a intentar. | src/utils/stravaStatus.js |
+| `4wChfP` | Strava is not connected, so there is no trace for this session. | Strava no está conectado, así que no hay trazado para esta sesión. | Session page: trace unavailable · src/components/session/sourceCopy.js |
 | `gU7drG` | Strava limits how many activities can be read in a given period. Nothing was lost; importing continues from where it stopped. | Strava limita cuántas actividades se pueden leer en un periodo determinado. No se perdió nada; la importación sigue desde donde se detuvo. | src/utils/stravaStatus.js |
 | `snAOUC` | Strava not connected | Strava no está conectado | src/utils/stravaStatus.js |
 | `DU55u-` | Strava rate limit reached. Importing pauses until it resets. | Se alcanzó el límite de uso de Strava. La importación se pausa hasta que se restablezca. | src/utils/stravaStatus.js |
 | `P0qUKp` | Strava rate limit reached. Sync resumes at {resumesAt}. | Se alcanzó el límite de uso de Strava. La sincronización se reanuda a las {resumesAt}. | src/utils/stravaStatus.js |
 | `DxaKOO` | Strava rate limit reached. Sync resumes shortly. | Se alcanzó el límite de uso de Strava. La sincronización se reanuda pronto. | src/utils/stravaStatus.js |
+| `Hdn3Mm` | Strava refused the current grant, so the trace did not load. | Strava rechazó la autorización actual, así que el trazado no cargó. | Session page: trace unavailable · src/components/session/sourceCopy.js |
 | `jbnNuS` | Strava rejected the connection attempt. Connect again to retry. | Strava rechazó el intento de conexión. Vuelve a conectar para reintentarlo. | src/utils/stravaStatus.js |
 | `LfffJJ` | Strava rejected the connection attempt. Try connecting again. | Strava rechazó el intento de conexión. Intenta conectarte de nuevo. | src/utils/stravaCallback.js |
+| `GKhvlG` | Strava’s request limit is reached. The trace can load again after {time}. | Se alcanzó el límite de solicitudes de Strava. El trazado puede cargar de nuevo después de las {time}. | Session page: trace unavailable. {time} is a clock time, HH:MM · src/components/session/sourceCopy.js |
+| `k_J2Z-` | Strava’s request limit is reached. The trace can load again later. | Se alcanzó el límite de solicitudes de Strava. El trazado puede cargar de nuevo más tarde. | Session page: trace unavailable · src/components/session/sourceCopy.js |
 | `JR0j-9` | Strength | Fuerza | Desktop Progress pane · Progress sub-tab · Session filter chip · src/App.jsx · src/views/mobile/MobileProgress.jsx · src/views/mobile/MobileSessionLog.jsx |
 | `bSUnKi` | STRENGTH | FUERZA | Badge, all capitals · src/views/mobile/MobileSessionLog.jsx |
 | `_Wuql6` | Strength session | Sesión de fuerza | Start a strength session · src/views/mobile/MobileTrain.jsx |
+| `QDjyW8` | stroke rate | frecuencia de palada | Session caption list item · src/components/session/ProvenanceNote.jsx |
+| `-BAPZk` | Stroke rate | Frecuencia de palada | src/components/session/TraceTooltip.jsx |
+| `N-bc9S` | Stroke rate across {over}, between {lo} and {hi} spm. | Frecuencia de palada durante {over}, entre {lo} y {hi} spm. | src/components/session/SessionTrace.jsx |
 | `iOPXuJ` | SUBMIT SESSION | ENVIAR SESIÓN | Button, all capitals · src/components/LogSessionForm.jsx |
+| `dXoieq` | Summary | Resumen | src/components/session/SessionSummary.jsx |
+| `Pz39pG` | Summary from your log; trace from Strava. | Resumen de tu registro; trazado de Strava. | Session page provenance: the row was logged in the app · src/components/session/sourceCopy.js |
+| `2KTjSm` | Summary from your log. | Resumen de tu registro. | Session page provenance when no device trace exists · src/components/session/ProvenanceNote.jsx |
 | `3PLhiH` | Sync failed. Try again. | Falló la sincronización. Inténtalo de nuevo. | Error after pressing Sync now · src/components/StravaConnectPanel.jsx |
 | `lb_UU4` | Sync now | Sincronizar ahora | Button · src/components/StravaConnectPanel.jsx · src/views/mobile/MobileRecovery.jsx |
 | `ZDY7Fy` | Syncing… | Sincronizando… | Button, busy · src/components/StravaConnectPanel.jsx |
@@ -319,6 +409,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `l-7Vmo` | Tap any session to expand · Share Concept2 links or Fitbod screenshots to log sessions | Toca cualquier sesión para ver el detalle · Comparte enlaces de Concept2 o capturas de pantalla de Fitbod para registrar sesiones | Desktop footer hint. Concept2 and Fitbod are brand names: keep them. · src/App.jsx |
 | `AZt0eV` | target 7h+ | meta 7h+ | src/views/RecoveryView.jsx |
 | `PdtP5B` | Target met | Meta cumplida | src/views/mobile/MobileRecovery.jsx |
+| `tfxhsx` | Tempo | Tempo | Cycling power level (Coggan Z3) · src/components/session/zoneLabels.js |
 | `lK2Rxb` | That is a different Strava account from the one already connected. Disconnect the current account first. | Esa es una cuenta de Strava distinta de la que ya está conectada. Primero desconecta la cuenta actual. | src/utils/stravaCallback.js |
 | `a4CYJj` | The connection did not complete. Try again. | La conexión no se completó. Inténtalo de nuevo. | src/utils/stravaCallback.js |
 | `1iC7R3` | The connection is missing activity read permission. Reconnect and approve activity access. | A la conexión le falta el permiso para leer actividades. Reconecta y aprueba el acceso a las actividades. | src/utils/stravaStatus.js |
@@ -330,15 +421,27 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `dOG-38` | The limit has reset — you can sync again now. | El límite se restableció: ya puedes volver a sincronizar. | src/utils/stravaStatus.js |
 | `yf6xVI` | THE PLAN. | EL PLAN. | Banner lead-in, all capitals · src/views/PlanView.jsx |
 | `-LCNXs` | The scheduled import has not run recently. Sync now to catch up. | La importación programada no se ha ejecutado últimamente. Sincroniza ahora para ponerte al día. | src/utils/stravaStatus.js |
+| `GauHsj` | The session could not be loaded. | No se pudo cargar la sesión. | Session page: the row failed to load · src/components/session/SessionState.jsx |
 | `UrS17K` | The Strava token could not be refreshed. Reconnect to resume importing. | No se pudo renovar el token de Strava. Reconecta para seguir importando. | src/utils/stravaStatus.js |
+| `OTLmjW` | The trace could not be loaded. | No se pudo cargar el trazado. | Session page: network or server error · src/components/session/SessionState.jsx |
+| `U2ohn5` | The trace for this session is not available. | El trazado de esta sesión no está disponible. | Session page: trace unavailable, unknown source · src/components/session/sourceCopy.js |
 | `FEr96N` | Theme | Tema | src/components/ThemeControl.jsx · src/views/SettingsView.jsx |
+| `k7TAMw` | There is no session with this id in your log. | No hay ninguna sesión con este id en tu registro. | Session page: not found · src/components/session/SessionState.jsx |
+| `TDJakS` | This activity is no longer on Strava, so there is no trace. | Esta actividad ya no está en Strava, así que no hay trazado. | Session page: trace unavailable · src/components/session/sourceCopy.js |
+| `Abevso` | This activity was recorded on a Garmin device. Its trace appears once Garmin attribution is in place. | Esta actividad se registró en un dispositivo Garmin. El trazado aparece cuando la atribución de Garmin esté lista. | Session page: trace unavailable. Garmin is a brand name · src/components/session/sourceCopy.js |
+| `ffbH3r` | This session has a summary only; no trace is linked to it. | Esta sesión solo tiene resumen; no tiene un trazado vinculado. | Session page: no series source · src/components/session/SessionState.jsx |
+| `2MpFog` | This session has no power reading, so no time in zone. | Esta sesión no tiene lectura de potencia, así que no hay tiempo en zona. | Session page zones · src/components/session/ZoneBar.jsx |
 | `KhVJOP` | THIS WEEK | ESTA SEMANA | Section heading, all capitals · src/views/mobile/MobileToday.jsx |
+| `qU8EmP` | Threshold | Umbral | Cycling power level (Coggan Z4) · src/components/session/zoneLabels.js |
+| `va00KW` | Time in zone | Tiempo en zona | src/views/SessionView.jsx |
+| `0yO9ub` | Time in zone: {summary}. | Tiempo en zona: {summary}. | src/components/session/ZoneBar.jsx |
 | `ecUA8p` | Today | Hoy | src/views/mobile/MobileSettings.jsx · src/views/mobile/MobileToday.jsx · src/views/OverviewView.jsx |
 | `SOb7_c` | TODAY | HOY | Section heading, all capitals · src/views/mobile/MobileToday.jsx |
 | `gNLJjH` | Top weight | Peso máximo | src/components/LogSessionForm.jsx |
 | `vMc93p` | Top Wt | Peso máx. | Column: heaviest weight lifted, abbreviated · src/components/LogEntry.jsx |
 | `QJw1Lb` | Top wt (70kg) | Peso máx. (70kg) | Heaviest weight lifted, with an example · src/components/LogSessionForm.jsx |
 | `tI3ozh` | Total Cholesterol | Colesterol total | Blood lipid marker · src/utils/healthRecords.js |
+| `EuJKqB` | TR | TR | Rowing zone; keep as is · src/components/session/zoneLabels.js |
 | `V2Ca9q` | Train as planned | Entrena según lo planeado | src/views/mobile/MobileRecovery.jsx · src/views/RecoveryView.jsx |
 | `83DQKX` | Train but monitor — consider easing intensity | Entrena, pero vigílate: considera bajar la intensidad | src/views/RecoveryView.jsx |
 | `elbm-V` | Train but monitor closely | Entrena, pero vigílate de cerca | src/views/mobile/MobileRecovery.jsx |
@@ -348,20 +451,34 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `rHdlg1` | Triglycerides | Triglicéridos | Blood lipid marker · src/utils/healthRecords.js |
 | `u62wQ4` | Try again in a moment. | Inténtalo de nuevo en un momento. | Error state detail · src/components/StravaConnectPanel.jsx |
 | `sLqPhy` | TSS LOGGED | TSS REGISTRADO | Stat label, all capitals; TSS stays as is · src/views/mobile/MobileToday.jsx |
+| `1ikfyP` | unvalidated | sin validar | Anchor status · src/components/session/ZoneBar.jsx |
 | `zSzBX4` | UPCOMING | PRÓXIMAS | Section heading, all capitals · src/views/mobile/MobileAnalytics.jsx |
 | `qDKS2V` | Upcoming planned sessions (today forward). A dashed border marks a planned session; tap any card for the targets. Cards mark ✓ done once you log the matching session. | Sesiones planificadas de hoy en adelante. Un borde discontinuo indica una sesión planificada; toca cualquier tarjeta para ver los objetivos. Las tarjetas muestran ✓ cuando registras la sesión correspondiente. | src/views/PlanView.jsx |
+| `Nmm6Hl` | UT1 | UT1 | Rowing zone; keep as is · src/components/session/zoneLabels.js |
+| `95Fy2-` | UT2 | UT2 | Rowing zone; keep as is · src/components/session/zoneLabels.js |
 | `_lbR8k` | Very easy | Muy fácil | sRPE scale, effort 1-2 · src/constants/srpeGuideMessages.js |
 | `e9KqaD` | very easy · full conversation | muy fácil · conversación completa | src/components/LogSessionForm.jsx |
 | `L48ofA` | VITALS UNAVAILABLE | SIGNOS VITALES NO DISPONIBLES | All capitals · src/views/RecoveryView.jsx |
+| `1CfR4c` | VO2 max | VO2 máx | Cycling power level (Coggan Z5) · src/components/session/zoneLabels.js |
 | `Qu8S2o` | Vol | Vol. | Column: total volume lifted, abbreviated · src/components/LogEntry.jsx |
 | `WLqk2A` | Vol (2260kg) | Vol. (2260kg) | Total volume lifted, with an example · src/components/LogSessionForm.jsx |
 | `_cF7Rs` | Volume | Volumen | src/components/LogSessionForm.jsx |
 | `pJVzhg` | vs {baselineLabel} | vs. {baselineLabel} | Compared with, e.g. vs your avg · Compared with, e.g. vs your avg · src/views/mobile/MobileRecovery.jsx |
+| `HioAOv` | Where this data comes from | De dónde vienen estos datos | src/components/session/ProvenanceNote.jsx |
 | `LRklOm` | Words impossible. All-out. Race/test efforts only. | Imposible hablar. A tope. Solo en competencias o pruebas. | sRPE scale, effort 9-10: the talk test · src/constants/srpeGuideMessages.js |
+| `qRILxq` | Work | Trabajo | src/components/session/SessionSummary.jsx |
 | `0qdR_Q` | working avg power | potencia promedio de trabajo | src/views/OverviewView.jsx |
 | `3_fJQg` | Working backwards from {from}. | Importando hacia atrás desde {from}. | src/utils/stravaStatus.js |
 | `nU3Bjh` | your avg | tu promedio | Followed by a number: your own average · Followed by a number: your own average · src/views/mobile/MobileRecovery.jsx · src/views/RecoveryView.jsx |
 | `-UYlA5` | Your training load will be recalculated. This cannot be undone. | Tu carga de entrenamiento se volverá a calcular. Esto no se puede deshacer. | src/utils/stravaDisconnect.js |
+| `ylVnB_` | zones from your bike FTP anchor | zonas a partir de tu referencia de FTP de bici | Session caption list item · src/components/session/ProvenanceNote.jsx |
+| `5KYZKC` | Zones from your bike FTP, {value} W ({status}). | Zonas a partir de tu FTP de bici, {value} W ({status}). | src/components/session/ZoneBar.jsx |
+| `Nv7Qhb` | Zones from your bike FTP, {value} W. | Zonas a partir de tu FTP de bici, {value} W. | src/components/session/ZoneBar.jsx |
+| `LNLi_Y` | zones from your rowing CP anchor | zonas a partir de tu referencia de CP de remo | Session caption list item · src/components/session/ProvenanceNote.jsx |
+| `9MN8Gi` | Zones from your rowing CP, {value} W ({status}). | Zonas a partir de tu CP de remo, {value} W ({status}). | src/components/session/ZoneBar.jsx |
+| `RGdSv3` | Zones from your rowing CP, {value} W. | Zonas a partir de tu CP de remo, {value} W. | src/components/session/ZoneBar.jsx |
+| `PEv1c1` | Zones need a bike FTP anchor, and none is set, so no zones are drawn. | Las zonas necesitan una referencia de FTP de bici, y no hay ninguna, así que no se dibujan zonas. | Session page zones · src/components/session/ZoneBar.jsx |
+| `AYaKhM` | Zones need a rowing CP anchor, and none is set, so no zones are drawn. | Las zonas necesitan una referencia de CP de remo, y no hay ninguna, así que no se dibujan zonas. | Session page zones · src/components/session/ZoneBar.jsx |
 
 ## /squat (src/squat/locales)
 

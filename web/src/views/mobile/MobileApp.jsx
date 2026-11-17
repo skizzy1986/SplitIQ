@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import '../../i18n/views.js';
@@ -13,6 +13,7 @@ import BottomTabBar, {
 } from '../../components/mobile/BottomTabBar.jsx';
 import { useLingui } from '@lingui/react';
 import { useHashRoute } from '../../hooks/useHashRoute.js';
+import { useHashSessionId } from '../../hooks/useHashSessionId.js';
 import {
   DEFAULT_DESTINATION,
   DESTINATIONS,
@@ -28,7 +29,17 @@ import {
 
 // Screens the shell shows that are not destinations: no tab of their own, so
 // the tab bar shows none active while one is open.
-const SCREENS = ['settings'];
+const SCREENS = ['settings', 'session'];
+
+// Lazy, so the session page and its charts never join the shell's chunk.
+const SessionView = lazy(() => import('../SessionView.jsx'));
+
+function focusSessionLink(id, frames = 10) {
+  const el = document.querySelector(`[data-session-link="${id}"]`);
+  if (el) el.focus();
+  else if (frames > 0)
+    window.requestAnimationFrame(() => focusSessionLink(id, frames - 1));
+}
 
 export default function MobileApp() {
   const { _ } = useLingui();
@@ -78,6 +89,37 @@ export default function MobileApp() {
   // because it decides whether the tab bar exists.
   const [trainMode, setTrainMode] = useState(null);
 
+  // The session page: its id lives in the hash after `#/session/`. Progress's
+  // pane is held here so leaving a session can land on History.
+  const sessionId = useHashSessionId();
+  const [progressPane, setProgressPane] = useState(null);
+  const sessionFromApp = useRef(false);
+  const firstRoute = useRef(true);
+  const lastSession = useRef(null);
+  useEffect(() => {
+    if (route === 'session' && sessionId == null) {
+      // A malformed session link canonicalises to Today, as on desktop.
+      const { pathname, search } = window.location;
+      window.history.replaceState(null, '', `${pathname}${search}#/today`);
+      navigate(DEFAULT_DESTINATION);
+    } else if (route === 'session') {
+      sessionFromApp.current = !firstRoute.current;
+      lastSession.current = sessionId;
+    } else if (lastSession.current != null) {
+      focusSessionLink(lastSession.current);
+      lastSession.current = null;
+    }
+    firstRoute.current = false;
+  }, [route, sessionId, navigate]);
+  const leaveSession = () => {
+    if (sessionFromApp.current) {
+      window.history.back();
+      return;
+    }
+    setProgressPane('history');
+    navigate('progress');
+  };
+
   // A live session owns the screen (HANDOFF.md §4), so the bar goes away and
   // the shell stops reserving room for it. The mode is deliberately not
   // cleared when you leave Train: stepping over to Body mid-piece and coming
@@ -96,6 +138,7 @@ export default function MobileApp() {
     onBack.current = () => {
       if (live) setTrainMode(null);
       else if (route === 'settings') leaveSettings();
+      else if (route === 'session') leaveSession();
       else if (route !== DEFAULT_DESTINATION) navigate(DEFAULT_DESTINATION);
       else App.minimizeApp();
     };
@@ -142,7 +185,25 @@ export default function MobileApp() {
   else if (route === 'train')
     content = <MobileTrain mode={trainMode} onMode={setTrainMode} />;
   else if (route === 'progress')
-    content = <MobileProgress onOpenTrain={() => navigate('train')} />;
+    content = (
+      <MobileProgress
+        onOpenTrain={() => navigate('train')}
+        pane={progressPane ?? undefined}
+        onPane={setProgressPane}
+      />
+    );
+  else if (route === 'session')
+    content =
+      sessionId == null ? null : (
+        <Suspense fallback={null}>
+          <SessionView
+            key={sessionId}
+            sessionId={sessionId}
+            onBack={leaveSession}
+            layout="phone"
+          />
+        </Suspense>
+      );
   else content = <MobileRecovery onOpenSettings={openSettings} />;
 
   return (
@@ -156,7 +217,7 @@ export default function MobileApp() {
           : `calc(${TAB_BAR_HEIGHT}px + env(safe-area-inset-bottom))`,
       }}
     >
-      {!live && route !== 'settings' && (
+      {!live && route !== 'settings' && route !== 'session' && (
         <MobileTopBar
           onOpenSettings={openSettings}
           settingsRef={settingsRef}

@@ -1,5 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { installAppFixtures, clickAndSettle } from './fixtures.js';
+import {
+  installAppFixtures,
+  clickAndSettle,
+  stubSessionPage,
+  SESSION_FIXTURE_ID,
+} from './fixtures.js';
 import { DEFAULT_THEME } from '../src/constants/themeValues.js';
 
 // Derived from the palette, not typed. This assertion used to carry a literal
@@ -121,5 +126,71 @@ test.describe('dashboard smoke', () => {
     await expect(
       page.getByRole('button', { name: 'Settings', exact: true })
     ).toBeFocused();
+  });
+
+  test('a session URL opens the page, survives reload, and Back leaves it', async ({
+    page,
+  }) => {
+    await page.getByRole('button', { name: 'Calendar', exact: true }).click();
+    await page.evaluate(() => {
+      window.location.hash = '#/session/1';
+    });
+    // The stub has no row 1, so the page shows its not-found state.
+    await expect(
+      page.getByRole('heading', { level: 1, name: 'Session not found' })
+    ).toBeVisible();
+    await expect(page).toHaveURL(/#\/session\/1$/);
+    await page.reload();
+    await expect(
+      page.getByRole('heading', { level: 1, name: 'Session not found' })
+    ).toBeVisible();
+    await expect(page).toHaveURL(/#\/session\/1$/);
+    // Reached by a reload, so Back goes to History rather than out of the app.
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await expect(page).toHaveURL(/#\/progress\/history$/);
+    await expect(page.getByText(ERROR_BOUNDARY_TEXT)).toHaveCount(0);
+    expect(consoleErrors, consoleErrors.join('\n')).toEqual([]);
+  });
+
+  test('a malformed session URL canonicalises to Today', async ({ page }) => {
+    await page.evaluate(() => {
+      window.location.hash = '#/session/abc';
+    });
+    await expect(page).toHaveURL(/#\/today$/);
+    await expect(
+      page.getByRole('button', { name: 'Today', exact: true })
+    ).toHaveAttribute('aria-current', 'page');
+  });
+});
+
+test.describe('session page with a synthetic trace', () => {
+  test('draws the trace and returns with Back', async ({ page, context }) => {
+    const consoleErrors = [];
+    page.on('pageerror', (err) => consoleErrors.push(String(err)));
+    await installAppFixtures(context);
+    await stubSessionPage(context);
+    await page.goto('/');
+    await expect(page.locator('.siq-splash')).toHaveCount(1);
+    await expect(page.locator('.siq-splash')).toHaveCount(0, {
+      timeout: 10_000,
+    });
+    await page.getByRole('button', { name: 'Progress', exact: true }).click();
+    await page.evaluate((id) => {
+      window.location.hash = `#/session/${id}`;
+    }, SESSION_FIXTURE_ID);
+    await expect(
+      page.getByRole('heading', { level: 1, name: 'Synthetic steady row' })
+    ).toBeVisible();
+    await expect(page.getByRole('img', { name: /^Pace across/ })).toBeVisible();
+    await expect(
+      page.locator('.recharts-responsive-container').first()
+    ).toBeVisible();
+    await expect(
+      page.getByRole('link', { name: 'View on Strava' })
+    ).toBeVisible();
+    // Opened from inside the app: Back pops history to where it came from.
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await expect(page).toHaveURL(/#\/progress$/);
+    expect(consoleErrors, consoleErrors.join('\n')).toEqual([]);
   });
 });

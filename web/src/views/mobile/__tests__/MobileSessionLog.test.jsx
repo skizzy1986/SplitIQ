@@ -82,6 +82,28 @@ it('preserves raw types, metrics and labels while keeping the rowing-name filter
   expect(screen.queryByText('Bike ride')).toBeNull();
 });
 
+it('makes completed erg and cycling rows real links to their session page', () => {
+  sessions.mockReturnValue({
+    data: [
+      row(11, 'Morning erg', 'erg', 'completed'),
+      row(12, 'Club ride', 'ride', 'actual'),
+      row(13, 'Upper strength', 'strength', 'completed'),
+      row(14, 'Skipped erg', 'erg', 'cancelled'),
+    ],
+    isLoading: false,
+  });
+  render(<MobileSessionLog />);
+  const erg = screen.getByRole('link', { name: /Morning erg/ });
+  expect(erg).toHaveAttribute('href', '#/session/11');
+  expect(erg).toHaveAttribute('data-session-link', '11');
+  expect(erg.style.minHeight).toBe('44px');
+  expect(screen.getByRole('link', { name: /Club ride/ })).toHaveAttribute(
+    'href',
+    '#/session/12'
+  );
+  expect(screen.getAllByRole('link')).toHaveLength(2);
+});
+
 it('shows an empty history when only planned sessions exist', () => {
   sessions.mockReturnValue({
     data: [row(1, 'Next week', 'erg', 'planned')],

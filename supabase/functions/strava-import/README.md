@@ -598,6 +598,98 @@ on each hourly retry.
 raise `P0003` once it is gone or disconnected. The importer stops the run there
 — status `error`, code `unknown`, no further writes and no sync-state write.
 
+## `strava-activity`: one session's detail and streams (#647)
+
+`supabase/functions/strava-activity/` serves the session page: for one linked
+session it returns Strava's activity detail and streams, normalised, and keeps
+them in `strava_activity_cache` (migration 020) for six days. It shares this
+directory's client, token store and mapper; the only change here was
+`getActivityStreams` in `client.ts`, through the same `getJson`, so its errors
+map exactly as `getActivity`'s do. It asks for seven streams only (`time`,
+`distance`, `watts`, `heartrate`, `cadence`, `velocity_smooth`, `moving`), never
+`latlng`, altitude, gradient or temperature.
+
+**Deploy with JWT verification ON** (the default; never `--no-verify-jwt`). The
+user is the verified bearer's `sub`; the activity id comes from the
+`strava_session_links` row, never the request. Apply migration 020 first.
+
+> **`strava-activity` is deployed with JWT verification ON, never with
+> `--no-verify-jwt`.** `_shared/jwtSubject.ts` reads `sub` without checking the
+> signature; only the gateway's verification makes that safe. Deployed without
+> it, any caller could name any user and read that user's cached Strava data.
+> Nothing automated enforces this: check the function's "Verify JWT" setting
+> after every deploy.
+
+```bash
+supabase functions deploy strava-activity
+```
+
+**Contract.** `POST {"session_id": <positive integer>}` (any `activity_id` or
+`user_id` in the body is ignored). Every typed outcome is HTTP 200 with a
+`status`, because `functions.invoke` turns a non-2xx into an error whose body is
+awkward to read:
+
+- `ok`: `cached`, `origin` (`inserted` | `adopted`), `strava_activity_id`,
+  `url`, `fetched_at`, `expires_at`, `activity` (`sport_type`, `device_name`,
+  `elapsed_time_s`, `moving_time_s`, `distance_m`, `total_elevation_gain_m`,
+  `calories`, `device_watts`, `laps[]`) and `streams` (each of the seven an array
+  or null). `url` is the activity's page on Strava
+  (`https://www.strava.com/activities/<strava_activity_id>`, from
+  `stravaActivityUrl` in `normalise.ts`), built by the server from the link row so
+  the browser never holds the Strava host (a frontend guard test forbids it in
+  `web/src`); it is derivable, so it is never cached, and no other status carries
+  it;
+- `rate_limited` with `retry_at`;
+- `not_linked`, `not_connected`, `auth_failed`, `gone`,
+  `garmin_attribution_pending`, `upstream_error`.
+
+Non-2xx only for 400 `bad_request`, 401 `unauthorized`, 405, 500 `missing env`
+and 502 `strava_activity_failed`. Every response carries the CORS headers
+(including `sentry-trace` and `baggage`), `Content-Type: application/json` and
+`Cache-Control: no-store`.
+
+**What it writes, and what it never writes.** The cache row, and on a 429 a
+`rate_limit_resets_at` hold that can only be extended (quarter hour, or the next
+UTC midnight when the daily cap is spent; `retry_at` is the hold actually in
+force, read back after the write). A stale access token is refreshed and the
+rotation persisted, as every caller must. It never deletes the token row (its
+token store's `remove` is a no-op, as in disconnect) and never records a
+revocation: a refused grant (a 401, or a refresh Strava rejects twice) answers
+`auth_failed`, drops that user's cache rows, and leaves the revocation to the
+importer. A cached row is used only when its payload carries the current
+`CACHE_PAYLOAD_VERSION` (`v`, which never reaches the response). Watts
+from a ride with no power meter (`device_watts` false) are dropped, never cached.
+Name, description, map, coordinates, segments, photos, athlete and gear are never
+copied.
+
+**The cache and its TTL.** Strava API Policy §6.2 allows Strava Data in a cache
+for at most seven days. A row expires six days after it was fetched; a check
+constraint refuses more than seven; the table is excluded from the nightly
+backup, is policy-less (RLS on, no grants to `anon` or `authenticated`) and is
+the only place Strava stream data may sit.
+
+**The sweep.** `public.strava_activity_cache_sweep()` deletes expired rows; the
+pg_cron job `strava-activity-cache-sweep` runs it at minute 23 of every hour as
+postgres, so expiry needs nobody to open a session. Worst-case retention is six
+days and one hour. A 404 on the detail deletes the row at once (`gone`).
+
+**Why purge coverage needed no edit to 019.** The cache row references
+`strava_session_links(session_id) ON DELETE CASCADE`. Every purge path in 019
+either deletes the session (the link cascades from `sessions`) or deletes only
+the link and keeps the session (`keep_unlink`, `restore_unlink`), so
+disconnect, the revocation purge and the deletion sync all remove the cache row.
+Migration 020's self-test runs both the delete branch and the link-only
+`keep_unlink` branch through both entry points (`purge_strava_activities` and
+`purge_strava_user`), plus a direct `sessions` delete. The revocation purge is
+`purge_strava_user` with a different reason and the same removal, so it is
+covered by the disconnect case.
+
+**After a revocation.** This function never records a revocation (the importer
+does, on its next run). Until then, each page open with a stale access token
+spends one token-refresh call that Strava refuses (two, since a first
+`invalid_grant` is retried once), answers `auth_failed`, and drops that user's
+cached rows.
+
 ## Status and error codes
 
 `last_run_status` ∈ `ok | partial | noop | rate_limited | auth_failed | error`.
@@ -717,7 +809,11 @@ The #630 deletion paths have two more suites, run the same way:
 `strava-import/deletion_test.ts` (92 — the deletion sync and the revocation
 purge) and `strava-connect/test.ts` (31 — disconnect preview and confirm, and
 the reconnect patch and its wiring into the callback; that one also needs
-`--allow-read=strava-oauth-callback/index.ts`, run from `supabase/functions`). No network, no database, no dependence on the
+`--allow-read=strava-oauth-callback/index.ts`, run from `supabase/functions`).
+The session page's function (#647) has its own suite,
+`deno run --allow-env strava-activity/test.ts` from `supabase/functions`
+(265 — the HTTP shell, the request flow and its cache, rate-limit holds, refused
+grants, the normaliser, and what may reach Sentry). No network, no database, no dependence on the
 machine's clock or timezone. Wired into `.github/workflows/ci-functions.yml`;
 that job's steps are **hardcoded**, so a new function's tests are not
 auto-discovered and need a step adding by hand.

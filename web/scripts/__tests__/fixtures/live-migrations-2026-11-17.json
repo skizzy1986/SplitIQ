@@ -159,6 +159,10 @@
     {
       "version": "20261117060752",
       "name": "019_strava_purge"
+    },
+    {
+      "version": "20261117155248",
+      "name": "020_strava_activity_cache"
     }
   ]
 }

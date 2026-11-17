@@ -50,7 +50,8 @@ headers and is unaffected, but **every edge function the client calls directly v
 browser fails the preflight and never sends the request — a bare `TypeError: Failed to
 fetch` on the client with only the OPTIONS in the edge logs. This silently killed the Coach
 tab (#301; that function has since been removed). Today that means `strava-connect`,
-`strava-sync` and `vitals-sync` (re-derive with `grep -rn "functions.invoke" web/src`).
+`strava-sync`, `strava-activity` (#647; its browser caller lands in #646's page slice)
+and `vitals-sync` (re-derive with `grep -rn "functions.invoke" web/src`).
 Functions nothing in the browser fetches correctly have **no** CORS block: the cron/server
 jobs (`vitals-import`, `vitals-import-api`, `strava-import`) and `strava-oauth-callback`,
 which is reached by a top-level browser redirect, not a fetch.

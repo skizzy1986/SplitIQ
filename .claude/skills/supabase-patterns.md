@@ -184,7 +184,8 @@ query the database, so an agent must never read Strava data (#628, #631).
 
 - the `sessions` base table, because the importer writes Strava activities into it;
 - every `strava_*` table (`strava_tokens`, `strava_oauth_state`,
-  `strava_sync_state`, `strava_session_links`) and the `strava_activity_id` column;
+  `strava_sync_state`, `strava_session_links`, `strava_activity_cache`) and the
+  `strava_activity_id` column;
 - the whole `backup_snapshots` table, not only its payloads (the hook blocks every
   mention, `select id, created_at` included), and `backup_snapshot()`'s output,
   which holds `sessions` rows. Where a workflow needs proof of a fresh backup row
@@ -193,6 +194,12 @@ query the database, so an agent must never read Strava data (#628, #631).
   `pg_stats_ext_exprs`), which return sampled column values; and row counts for the
   off-limits tables from `pg_class.reltuples` or `pg_stat_user_tables`. The hook
   blocks the first group; it cannot see the second, so this rule covers it.
+
+**Strava stream data has one home.** `strava_activity_cache` (migration 020) is the
+only place Strava stream data may sit, and only for at most seven days.
+Strava-derived series never enter a permanent store. Data the app captures itself
+(the PM5 over Bluetooth, later a trainer or a device file) is held separately, in
+its own store, and may be kept and modelled.
 
 **The sanctioned read is `public.sessions_no_strava`** (migration 018). It is
 `sessions` without the rows the importer inserted, without linked rows that have no

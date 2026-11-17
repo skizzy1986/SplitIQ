@@ -18,7 +18,8 @@ ideas should go.
 > [`LICENSE`](../../LICENSE)) — except where Scott has given written permission in
 > [`PERMISSIONS.md`](../../PERMISSIONS.md). **If you're named there, that file is your
 > licence** (for example, Paul may reuse and publish this work in his own personal,
-> non-commercial projects). Everyone else: read, run and prototype on a fork to explore
+> non-commercial projects that don't compete with SplitIQ, and keeps ownership of what he
+> contributes). Everyone else: read, run and prototype on a fork to explore
 > ideas with Scott, but please don't publish, redistribute or deploy it without asking.
 > Either way, the anatomy geometry is separately licensed **CC BY-SA 2.1 JP**
 > (BodyParts3D). Credit it and share alike — see [`NOTICE.md`](../../NOTICE.md).

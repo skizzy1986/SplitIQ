@@ -461,3 +461,153 @@ describe('SessionView — a source that is not Strava', () => {
     expect(container.textContent).not.toMatch(/strava/i);
   });
 });
+
+describe('SessionView — selecting a stretch, splits and more detail', () => {
+  const range = () => screen.queryByRole('region', { name: 'Selected range' });
+  const rangeValue = (key) =>
+    document.querySelector(`[data-range="${key}"] dd`)?.textContent;
+  const areas = () =>
+    screen
+      .queryAllByTestId('selection')
+      .map((a) => [Number(a.dataset.x1), Number(a.dataset.x2)]);
+  // The stub reads the hovered row's index from clientX.
+  const drag = (from, to) => {
+    const chart = charts()[0];
+    fireEvent.mouseDown(chart, { clientX: from });
+    fireEvent.mouseMove(chart, { clientX: to });
+    fireEvent.mouseUp(chart, { clientX: to });
+  };
+
+  it('a drag across the trace selects that stretch on all three charts and summarises it', () => {
+    view();
+    expect(range()).toBeNull();
+    // Rows are grouped four samples to a row here: row 10 is 40 s, row 100
+    // is 400 s.
+    drag(10, 100);
+    expect(range()).toBeInTheDocument();
+    expect(areas()).toEqual([
+      [40, 400],
+      [40, 400],
+      [40, 400],
+    ]);
+    expect(rangeValue('moving')).toBe('6:00');
+    expect(rangeValue('distance')).toMatch(/^1\.44\u00a0km$/);
+    expect(rangeValue('watts')).toMatch(/^176\u00a0W$/);
+  });
+
+  it('a drag that ends on another chart still selects', () => {
+    view();
+    fireEvent.mouseDown(charts()[0], { clientX: 10 });
+    fireEvent.mouseMove(charts()[1], { clientX: 50 });
+    fireEvent.mouseUp(window);
+    expect(areas()).toHaveLength(3);
+    expect(range()).toBeInTheDocument();
+  });
+
+  it('a click without a drag selects nothing', () => {
+    view();
+    const chart = charts()[0];
+    fireEvent.mouseDown(chart, { clientX: 10 });
+    fireEvent.mouseUp(chart, { clientX: 10 });
+    expect(range()).toBeNull();
+    expect(areas()).toEqual([]);
+  });
+
+  it('Clear and Escape return to the whole session', () => {
+    view();
+    drag(10, 100);
+    fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
+    expect(range()).toBeNull();
+    expect(areas()).toEqual([]);
+    drag(10, 100);
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(range()).toBeNull();
+    expect(areas()).toEqual([]);
+  });
+
+  it('a split button selects the split, shades it, and pressing it again clears', () => {
+    view();
+    expect(screen.getByText('Splits')).toBeInTheDocument();
+    const table = screen.getByRole('table');
+    // 7200 m at 4 m/s, a 1 s pause: 14 full 500 m splits and a partial.
+    expect(table.querySelectorAll('tbody tr')).toHaveLength(15);
+    const one = screen.getByRole('button', { name: '1' });
+    fireEvent.click(one);
+    expect(one).toHaveAttribute('aria-pressed', 'true');
+    expect(rangeValue('moving')).toBe('2:05');
+    expect(rangeValue('distance')).toMatch(/^500\u00a0m$/);
+    expect(areas()).toEqual([
+      [0, 125],
+      [0, 125],
+      [0, 125],
+    ]);
+    fireEvent.click(one);
+    expect(range()).toBeNull();
+    expect(one).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('changing the split distance re-splits and drops a split selection', () => {
+    view();
+    fireEvent.click(screen.getByRole('button', { name: '1' }));
+    fireEvent.click(screen.getByRole('button', { name: /^1\.00\u00a0km$/ }));
+    expect(screen.getByRole('table').querySelectorAll('tbody tr')).toHaveLength(
+      8
+    );
+    expect(range()).toBeNull();
+  });
+
+  it('More detail opens on peak power, weighted power, variability and drift', () => {
+    view();
+    const more = screen.getByRole('button', { name: 'More detail' });
+    expect(more).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(more);
+    for (const name of [
+      'Peak power, 1 min',
+      'Peak power, 20 min',
+      'Weighted power',
+      'Variability',
+      'Drift',
+    ]) {
+      expect(screen.getByText(name)).toBeVisible();
+    }
+  });
+
+  it('draws no splits and no detail outside a ready trace', () => {
+    for (const state of STATES.filter((s) => s.state !== 'ready')) {
+      mocks.series = state;
+      const { unmount } = view();
+      expect(screen.queryByRole('table'), state.state).toBeNull();
+      expect(screen.queryByRole('button', { name: 'More detail' })).toBeNull();
+      expect(screen.queryByText('Splits')).toBeNull();
+      unmount();
+    }
+  });
+});
+
+describe('SessionView — heart rate against the athlete’s own history', () => {
+  const prior = (n) =>
+    [170, 175, 165, 172].slice(0, n).map((w, i) =>
+      ergRow({
+        id: i + 1,
+        date_iso: `2026-11-0${i + 1}`,
+        avg_watts: w,
+        avg_hr: 144 + i,
+      })
+    );
+
+  it('grounds the heart-rate chart with three or more prior sessions', () => {
+    mocks.sessions = prior(3);
+    view();
+    expect(
+      screen.getByText(
+        'Average heart rate 140 bpm. Your rowing sessions in the 30 days before averaged 145 bpm across 3 sessions.'
+      )
+    ).toBeInTheDocument();
+  });
+
+  it('says nothing about history with fewer than three', () => {
+    mocks.sessions = prior(2);
+    const { container } = view();
+    expect(container.textContent).not.toMatch(/averaged \d+ bpm/);
+  });
+});

@@ -42,7 +42,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `hdxhKx` | We could not sign you in. Try again. | No pudimos iniciar sesión. Inténtalo de nuevo. | Login error for any unrecognised cause. Only shown in Spanish. · src/utils/authError.js |
 | `y1oEoC` | Wrong email or password. | Correo o contraseña incorrectos. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
 
-## Dashboard views (src/locales/views, 438 strings)
+## Dashboard views (src/locales/views, 467 strings)
 
 | Row | English | Español | Where / note |
 |---|---|---|---|
@@ -71,6 +71,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `Z6xZqk` | {minutes, plural, one {# minute of rowing at an average {pace} /500 m, most of it in {zoneName}.} other {# minutes of rowing at an average {pace} /500 m, most of it in {zoneName}.}} | {minutes, plural, one {# minuto de remo a un ritmo promedio de {pace} /500 m, la mayor parte en {zoneName}.} other {# minutos de remo a un ritmo promedio de {pace} /500 m, la mayor parte en {zoneName}.}} | Session headline; # is the number of minutes · src/views/SessionView.jsx |
 | `x_sOPA` | {minutes, plural, one {# minute of rowing at an average {pace} /500 m.} other {# minutes of rowing at an average {pace} /500 m.}} | {minutes, plural, one {# minuto de remo a un ritmo promedio de {pace} /500 m.} other {# minutos de remo a un ritmo promedio de {pace} /500 m.}} | Session headline; # is the number of minutes · src/views/SessionView.jsx |
 | `l0vEpY` | {minutes, plural, one {# minute of rowing.} other {# minutes of rowing.}} | {minutes, plural, one {# minuto de remo.} other {# minutos de remo.}} | Session headline; # is the number of minutes · src/views/SessionView.jsx |
+| `SNTLH5` | {n} (partial) | {n} (parcial) | Splits table: the last split, shorter than the others · src/components/session/SplitsTable.jsx |
 | `PhnrbH` | {restore, plural, one {Strava power and heart rate removed from {restore} session you logged yourself.} other {Strava power and heart rate removed from {restore} sessions you logged yourself.}} | {restore, plural, one {Se quitaron la potencia y la frecuencia cardíaca de Strava de {restore} sesión que registraste tú.} other {Se quitaron la potencia y la frecuencia cardíaca de Strava de {restore} sesiones que registraste tú.}} | src/utils/stravaDisconnect.js |
 | `nOVWI9` | {restore, plural, one {Strava power and heart rate will be removed from {restore} session you logged yourself.} other {Strava power and heart rate will be removed from {restore} sessions you logged yourself.}} | {restore, plural, one {Se quitarán la potencia y la frecuencia cardíaca de Strava de {restore} sesión que registraste tú.} other {Se quitarán la potencia y la frecuencia cardíaca de Strava de {restore} sesiones que registraste tú.}} | src/utils/stravaDisconnect.js |
 | `CJAViv` | {unlink, plural, one {{unlink} session kept as it was, with the Strava link removed.} other {{unlink} sessions kept as they were, with the Strava link removed.}} | {unlink, plural, one {Se conservó {unlink} sesión tal como estaba, sin el vínculo con Strava.} other {Se conservaron {unlink} sesiones tal como estaban, sin el vínculo con Strava.}} | src/utils/stravaDisconnect.js |
@@ -104,14 +105,18 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `Ufz7rP` | Anaerobic capacity | Capacidad anaeróbica | Cycling power level (Coggan Z6) · src/components/session/zoneLabels.js |
 | `H9MruT` | AT | AT | Rowing zone; keep as is · src/components/session/zoneLabels.js |
 | `R9Khdg` | Auto | Automático | src/components/ThemeControl.jsx |
-| `D-EJ69` | Average cadence | Cadencia promedio | src/components/session/SessionSummary.jsx |
-| `mv6_9E` | Average heart rate | Frecuencia cardíaca promedio | src/components/session/SessionSummary.jsx |
-| `Ek0SSf` | Average pace | Ritmo promedio | src/components/session/SessionSummary.jsx |
-| `d67Fbb` | Average power | Potencia promedio | src/components/session/SessionSummary.jsx |
+| `D-EJ69` | Average cadence | Cadencia promedio | src/components/session/RangeSummary.jsx · src/components/session/SessionSummary.jsx |
+| `mv6_9E` | Average heart rate | Frecuencia cardíaca promedio | src/components/session/RangeSummary.jsx · src/components/session/SessionSummary.jsx |
+| `yFFZGm` | Average heart rate {avg} bpm. Your rides in the 30 days before averaged {mean} bpm across {count} sessions. | Frecuencia cardíaca promedio {avg} bpm. Tus salidas en bici de los 30 días anteriores promediaron {mean} bpm en {count} sesiones. | src/components/session/SessionTrace.jsx |
+| `IPVXuc` | Average heart rate {avg} bpm. Your rowing sessions in the 30 days before averaged {mean} bpm across {count} sessions. | Frecuencia cardíaca promedio {avg} bpm. Tus sesiones de remo de los 30 días anteriores promediaron {mean} bpm en {count} sesiones. | src/components/session/SessionTrace.jsx |
+| `Ek0SSf` | Average pace | Ritmo promedio | src/components/session/RangeSummary.jsx · src/components/session/SessionSummary.jsx |
+| `d67Fbb` | Average power | Potencia promedio | src/components/session/RangeSummary.jsx · src/components/session/SessionSummary.jsx |
 | `aFuiOb` | Average power {watts} W. Your rides in the 30 days before averaged {mean} W across {count} sessions. | Potencia promedio {watts} W. Tus salidas en bici de los 30 días anteriores promediaron {mean} W en {count} sesiones. | src/components/session/SessionSummary.jsx |
 | `JYNFqA` | Average power {watts} W. Your rowing sessions in the 30 days before averaged {mean} W across {count} sessions. | Potencia promedio {watts} W. Tus sesiones de remo de los 30 días anteriores promediaron {mean} W en {count} sesiones. | src/components/session/SessionSummary.jsx |
-| `4zUd3z` | Average speed | Velocidad promedio | src/components/session/SessionSummary.jsx |
-| `m8m8H-` | Average stroke rate | Frecuencia de palada promedio | src/components/session/SessionSummary.jsx |
+| `IRd1Cm` | Average power over average heart rate in each half of the moving time, and the change between them as a share of the first. | La potencia promedio sobre la frecuencia cardíaca promedio en cada mitad del tiempo en movimiento, y el cambio entre ellas como proporción de la primera. | src/components/session/MoreDetail.jsx |
+| `hWwRCL` | Average power over average heart rate: {r1} W/bpm in the first half of the moving time, {r2} W/bpm in the second. Drift is the change between them as a share of the first; above zero, the second half had less power per beat. | La potencia promedio sobre la frecuencia cardíaca promedio: {r1} W/bpm en la primera mitad del tiempo en movimiento y {r2} W/bpm en la segunda. La deriva es el cambio entre ellas como proporción de la primera; por encima de cero, la segunda mitad tuvo menos potencia por latido. | src/components/session/MoreDetail.jsx |
+| `4zUd3z` | Average speed | Velocidad promedio | src/components/session/RangeSummary.jsx · src/components/session/SessionSummary.jsx |
+| `m8m8H-` | Average stroke rate | Frecuencia de palada promedio | src/components/session/RangeSummary.jsx · src/components/session/SessionSummary.jsx |
 | `zhxQBS` | AVG HR | FC PROM. | Average heart rate, all capitals · src/components/LogEntry.jsx |
 | `pZomf-` | AVG WATTS | VATIOS PROM. | Average power, all capitals · src/components/LogEntry.jsx |
 | `iH8pgl` | Back | Volver | src/App.jsx · src/views/SessionView.jsx |
@@ -124,7 +129,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `bGQplw` | Body | Cuerpo | Desktop body screen heading · src/views/RecoveryView.jsx |
 | `e0F-Wf` | BODYWEIGHT — 14 DAYS (kg) | PESO CORPORAL — 14 DÍAS (kg) | Chart title, all capitals; kg stays as is · src/views/mobile/MobileRecovery.jsx |
 | `khJ5Qr` | cadence | cadencia | Session caption list item · src/components/session/ProvenanceNote.jsx |
-| `4VcKfR` | Cadence | Cadencia | src/components/session/TraceTooltip.jsx |
+| `4VcKfR` | Cadence | Cadencia | src/components/session/SplitsTable.jsx · src/components/session/TraceTooltip.jsx |
 | `m-qgkw` | Cadence across {over}, between {lo} and {hi} rpm; average {avg} rpm. | Cadencia durante {over}, entre {lo} y {hi} rpm; promedio {avg} rpm. | src/components/session/SessionTrace.jsx |
 | `i6NHwE` | Cadence across {over}, between {lo} and {hi} rpm. | Cadencia durante {over}, entre {lo} y {hi} rpm. | src/components/session/SessionTrace.jsx |
 | `AjVXBS` | Calendar | Calendario | Desktop Today pane · src/App.jsx · src/views/CalendarView.jsx |
@@ -136,6 +141,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `G5Xhju` | CAUTION | PRECAUCIÓN | Readiness status, all capitals · src/utils/recoveryAnalytics.js |
 | `LgcGHa` | Checking Strava connection… | Verificando la conexión con Strava… | Loading state · src/components/StravaConnectPanel.jsx |
 | `tcceNK` | clean | en condiciones | Blood pressure reading taken under proper resting conditions · src/views/RecoveryView.jsx |
+| `xCJdfg` | Clear | Quitar | Button: clear the selected range · src/components/session/RangeSummary.jsx |
 | `yz7wBu` | Close | Cerrar | src/components/LogSessionForm.jsx |
 | `9ka0UE` | Collected {collected} | Tomada el {collected} | When the blood sample was taken · src/views/RecoveryView.jsx |
 | `ee5U1M` | Composite of RHR vs baseline, HRV vs baseline, sleep, and training load (TSB {tsbSigned}). Heuristic, not validated — cross-check against sRPE and how you actually feel. | Combina la RHR frente a la línea base, la HRV frente a la línea base, el sueño y la carga de entrenamiento (TSB {tsbSigned}). Es una heurística, no está validada: contrástala con el sRPE y con cómo te sientes de verdad. | {tsbSigned} is the signed form value, e.g. +4.2 · src/views/RecoveryView.jsx |
@@ -169,14 +175,15 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `D2Ms9q` | Disconnect Strava and delete its data? | ¿Desconectar Strava y eliminar sus datos? | src/utils/stravaDisconnect.js |
 | `MpIMfg` | Disconnecting… | Desconectando… | Button, busy · src/components/StravaConnectPanel.jsx |
 | `bDkZ8F` | distance | distancia | Session caption list item · src/components/session/ProvenanceNote.jsx |
-| `GPeIuw` | Distance | Distancia | src/components/session/SessionSummary.jsx |
+| `GPeIuw` | Distance | Distancia | src/components/session/RangeSummary.jsx · src/components/session/SessionSummary.jsx · src/components/session/SplitsTable.jsx |
 | `0-AhBt` | DISTANCE | DISTANCIA | Metric, all capitals · src/components/LogEntry.jsx |
+| `HtAyVo` | Drift | Deriva | src/components/session/MoreDetail.jsx |
 | `lkz6PL` | Duration | Duración | src/components/session/SessionSummary.jsx |
 | `n6udpp` | DURATION | DURACIÓN | Field label, all capitals · Metric, all capitals · src/components/LogEntry.jsx · src/components/LogSessionForm.jsx |
 | `qN2bsY` | e1RM | e1RM | src/components/LogSessionForm.jsx |
 | `sNHOAx` | easy · talk in sentences (UT2) | fácil · hablas en oraciones (UT2) | src/components/LogSessionForm.jsx |
 | `HBUUJ7` | Easy (UT2) | Fácil (UT2) | sRPE scale, effort 3-4 · src/constants/srpeGuideMessages.js |
-| `JFnJqF` | Elapsed | Tiempo total | src/components/session/SessionSummary.jsx |
+| `JFnJqF` | Elapsed | Tiempo total | src/components/session/RangeSummary.jsx · src/components/session/SessionSummary.jsx |
 | `c3aKIi` | Elevation gain | Desnivel positivo | src/components/session/SessionSummary.jsx |
 | `nhCuze` | Endurance | Resistencia | Cycling power level (Coggan Z2) · src/components/session/zoneLabels.js |
 | `cFg0mZ` | Erg | Ergómetro | Desktop Progress pane · Progress sub-tab: rowing · Session filter chip · src/App.jsx · src/views/mobile/MobileProgress.jsx · src/views/mobile/MobileSessionLog.jsx |
@@ -204,7 +211,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `Ls-Ift` | HDL Cholesterol (female) | Colesterol HDL (mujeres) | Blood lipid marker; decision limit for women · src/utils/healthRecords.js |
 | `3QkZCj` | HDL Cholesterol (male) | Colesterol HDL (hombres) | Blood lipid marker; decision limit for men · src/utils/healthRecords.js |
 | `MP7nnS` | heart rate | frecuencia cardíaca | Session caption list item · src/components/session/ProvenanceNote.jsx |
-| `bcsF7s` | Heart rate | Frecuencia cardíaca | src/components/session/TraceTooltip.jsx |
+| `bcsF7s` | Heart rate | Frecuencia cardíaca | src/components/session/SplitsTable.jsx · src/components/session/TraceTooltip.jsx |
 | `8HLv9p` | Heart rate across {over}, between {lo} and {hi} bpm; average {avg} bpm. | Frecuencia cardíaca durante {over}, entre {lo} y {hi} bpm; promedio {avg} bpm. | src/components/session/SessionTrace.jsx |
 | `K7-s0i` | Heart rate across {over}, between {lo} and {hi} bpm. | Frecuencia cardíaca durante {over}, entre {lo} y {hi} bpm. | src/components/session/SessionTrace.jsx |
 | `qGrPbG` | High fatigue — recent load well above fitness | Fatiga alta: la carga reciente supera de lejos tu estado físico | Training form (TSB) band · src/utils/trainingLoad.js |
@@ -217,6 +224,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `nbfdhU` | Integrations | Integraciones | Settings section heading above the Strava panel · src/views/SettingsView.jsx |
 | `xOTzt5` | just now | justo ahora | src/utils/stravaStatus.js |
 | `vXIe7J` | Language | Idioma | Settings section heading above the language control · src/views/SettingsView.jsx |
+| `HEIQ5F` | Lap | Vuelta | src/components/session/SplitsTable.jsx |
 | `SfZTx1` | LAST 3 DAYS · TODAY · NEXT 13 · | ÚLTIMOS 3 DÍAS · HOY · PRÓXIMOS 13 · | Calendar legend: the window shown, all capitals · src/views/CalendarView.jsx |
 | `h0yf70` | Last sync {when} | Última sincronización {when} | src/utils/stravaStatus.js |
 | `O5l7Qq` | Last sync did not finish cleanly | La última sincronización no terminó correctamente | src/utils/stravaStatus.js |
@@ -248,6 +256,13 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `tYDvzx` | Measured by the device: {measuredText}. | Medido por el dispositivo: {measuredText}. | Session caption; the list is translated item by item · src/components/session/ProvenanceNote.jsx |
 | `Rs3GvY` | Mobility | Movilidad | Desktop Train pane · src/App.jsx |
 | `G9QKXj` | moderate · short sentences (UT1) | moderado · oraciones cortas (UT1) | src/components/LogSessionForm.jsx |
+| `Gdsd8Y` | More detail | Más detalle | src/components/session/MoreDetail.jsx |
+| `e2IoOE` | Moving time | Tiempo en movimiento | src/components/session/RangeSummary.jsx |
+| `RwyQVO` | Needs a heart rate reading for at least {percent}% of each half of the moving time. | Requiere una lectura de frecuencia cardíaca durante al menos el {percent} % de cada mitad del tiempo en movimiento. | src/components/session/MoreDetail.jsx |
+| `YaJ5Ua` | Needs a power reading for at least {percent}% of the moving time. | Requiere una lectura de potencia durante al menos el {percent} % del tiempo en movimiento. | src/components/session/MoreDetail.jsx |
+| `06n9vg` | Needs a power reading. | Requiere una lectura de potencia. | src/components/session/MoreDetail.jsx |
+| `JPaGmA` | Needs a session at least {window} min long. | Requiere una sesión de al menos {window} min. | src/components/session/MoreDetail.jsx |
+| `MiyCEA` | Needs at least {minutes} min of moving time. | Requiere al menos {minutes} min de tiempo en movimiento. | src/components/session/MoreDetail.jsx |
 | `CWwrj6` | needs overnight wear | requiere usarlo de noche | src/views/RecoveryView.jsx |
 | `ivLomN` | Neuromuscular power | Potencia neuromuscular | Cycling power level (Coggan Z7) · src/components/session/zoneLabels.js |
 | `IJ4SwP` | Neutral — balanced | Neutral: en equilibrio | Training form (TSB) band · src/utils/trainingLoad.js |
@@ -285,6 +300,8 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `m7A34A` | Nothing was overwritten. Resolve the duplicates in the log, then sync again. | No se sobrescribió nada. Resuelve los duplicados en el registro y vuelve a sincronizar. | src/utils/stravaStatus.js |
 | `n0LeU6` | Offline: no saved data yet. | Sin conexión: todavía no hay datos guardados. | src/components/HealthRecordCard.jsx |
 | `ZGyogo` | Older activities are fetched a page at a time to stay inside Strava rate limits. | Las actividades más antiguas se traen una página a la vez para no superar los límites de uso de Strava. | src/utils/stravaStatus.js |
+| `qoaAWe` | One row every {every}. | Una fila cada {every}. | src/components/session/SplitsTable.jsx |
+| `fy1FcM` | One row per recorded lap. | Una fila por vuelta registrada. | src/components/session/SplitsTable.jsx |
 | `AQLYR5` | Only completed rowing and cycling sessions open here. | Aquí solo se abren sesiones completadas de remo y ciclismo. | Session page: a strength or other session · src/components/session/SessionState.jsx |
 | `1TNIig` | Open | Abrir | Link from a log row to its session page · src/components/LogEntry.jsx |
 | `Xjpq7w` | Open Body | Abrir Cuerpo | src/views/mobile/MobileToday.jsx · src/views/OverviewView.jsx |
@@ -295,18 +312,20 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `mdAnsd` | Opening Strava… | Abriendo Strava… | Button, busy · src/components/StravaConnectPanel.jsx |
 | `eRUsoR` | Over-rating easy work is the common error — anchor to the talk test. TRIANGULATION: sRPE (felt) + Strava RE (HR-dist) + watts/HR (output) cross-checked every session. All agree = confidence; diverge = early fatigue/stress signal. | El error común es sobrevalorar el trabajo fácil: guíate por la prueba del habla. TRIANGULACIÓN: sRPE (percibido) + RE de Strava (FC-dist.) + vatios/FC (producción), contrastados en cada sesión. Todos coinciden = confianza; si difieren = señal temprana de fatiga o estrés. | Strava is a brand; RE is relative effort; HR is heart rate · src/views/LogView.jsx |
 | `6_dCYd` | Overview | Resumen | Desktop Today pane · src/App.jsx |
-| `CfN7gN` | Pace | Ritmo | src/components/session/TraceTooltip.jsx |
+| `CfN7gN` | Pace | Ritmo | src/components/session/SplitsTable.jsx · src/components/session/TraceTooltip.jsx |
 | `2qq8q8` | Pace across {over}, between {fast} and {slow} per 500 m; average {avg}. | Ritmo durante {over}, entre {fast} y {slow} por 500 m; promedio {avg}. | src/components/session/SessionTrace.jsx |
 | `0XMm_A` | Pace across {over}, between {fast} and {slow} per 500 m. | Ritmo durante {over}, entre {fast} y {slow} por 500 m. | src/components/session/SessionTrace.jsx |
 | `8olOJA` | pace from distance and time | ritmo a partir de la distancia y el tiempo | Session caption list item · src/components/session/ProvenanceNote.jsx |
 | `NXnuca` | pace from power | ritmo a partir de la potencia | Session caption list item · src/components/session/ProvenanceNote.jsx |
+| `5SchA7` | Peak power, {window} min | Potencia máxima, {window} min | src/components/session/MoreDetail.jsx |
 | `GdgCoi` | Plan | Plan | Desktop Train pane · src/App.jsx · src/views/PlanView.jsx |
 | `iQ1n2D` | PLANNED | PLANIFICADA | Badge, all capitals · Day badge, all capitals · src/components/LogEntry.jsx · src/views/CalendarView.jsx |
 | `7F65H5` | Post: | Después: | Meal after the session · src/components/WorkoutItem.jsx |
 | `KwjyNG` | power | potencia | Session caption list item · src/components/session/ProvenanceNote.jsx |
-| `NHfDC5` | Power | Potencia | src/components/session/TraceTooltip.jsx |
+| `NHfDC5` | Power | Potencia | src/components/session/SplitsTable.jsx · src/components/session/TraceTooltip.jsx |
 | `TPYpxM` | Power across {over}, between {lo} and {hi} W; average {avg} W. | Potencia durante {over}, entre {lo} y {hi} W; promedio {avg} W. | src/components/session/SessionTrace.jsx |
 | `eh_w5-` | Power across {over}, between {lo} and {hi} W. | Potencia durante {over}, entre {lo} y {hi} W. | src/components/session/SessionTrace.jsx |
+| `3STn-x` | Power over the moving time, averaged over each 30 s, each value raised to the fourth power, those averaged, then the fourth root taken. Hard stretches count for more than their share of the time. | La potencia durante el tiempo en movimiento, promediada cada 30 s; cada valor se eleva a la cuarta potencia, se promedian y se saca la raíz cuarta. Los tramos intensos pesan más que su parte del tiempo. | src/components/session/MoreDetail.jsx |
 | `K9Pm4P` | Power-derived load is measured against rowing CP {cp}W and bike FTP {ftp}W; revalidate with a test to sharpen it. | La carga derivada de la potencia se mide frente a la CP de remo de {cp}W y el FTP de bici de {ftp}W; vuelve a validarla con una prueba para afinarla. | src/views/OverviewView.jsx |
 | `S4k530` | Power-derived load is measured against rowing CP {cp}W; revalidate with a test to sharpen it. | La carga derivada de la potencia se mide frente a la CP de remo de {cp}W; vuelve a validarla con una prueba para afinarla. | src/views/OverviewView.jsx |
 | `dCOvJh` | Power-derived load is unavailable while the CP anchor cannot be read. | La carga derivada de la potencia no está disponible mientras no se pueda leer el ancla de CP. | src/views/OverviewView.jsx |
@@ -345,6 +364,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `eIdIwi` | Scored from sRPE {srpe} and the duration. | Puntuado con el sRPE {srpe} y la duración. | src/components/session/SessionSummary.jsx |
 | `MC_dgX` | Scored on the readings that arrived — some were missing. | Se puntuó con las lecturas que llegaron; faltaron algunas. | src/views/mobile/MobileToday.jsx |
 | `R4OWFD` | Sections | Secciones | src/App.jsx |
+| `dWPDm3` | Selected range | Tramo seleccionado | src/components/session/RangeSummary.jsx |
 | `CqO9qC` | Session | Sesión | src/views/SessionView.jsx |
 | `Mo7fYT` | Session · {duration} | Sesión · {duration} | src/components/LogEntry.jsx |
 | `Fe81wO` | SESSION LABEL | NOMBRE DE LA SESIÓN | Field label, all capitals · src/components/LogSessionForm.jsx |
@@ -365,9 +385,12 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `jI9fA1` | SLEEP SCORE | PUNTAJE DE SUEÑO | All capitals · All capitals · src/views/mobile/MobileRecovery.jsx · src/views/RecoveryView.jsx |
 | `OqpWY6` | Some activities could not be saved to the database. Run the sync again. | Algunas actividades no se pudieron guardar en la base de datos. Vuelve a sincronizar. | src/utils/stravaStatus.js |
 | `7-kTea` | Something went wrong finishing the connection. Try again. | Algo salió mal al terminar la conexión. Inténtalo de nuevo. | src/utils/stravaCallback.js |
-| `l9wI00` | Speed | Velocidad | src/components/session/TraceTooltip.jsx |
+| `l9wI00` | Speed | Velocidad | src/components/session/SplitsTable.jsx · src/components/session/TraceTooltip.jsx |
 | `pXBndC` | speed from distance and time | velocidad a partir de la distancia y el tiempo | Session caption list item · src/components/session/ProvenanceNote.jsx |
+| `I6SWEy` | Split | Parcial | src/components/session/SplitsTable.jsx |
+| `PfQ5ex` | Split distance | Distancia del parcial | src/components/session/SplitsTable.jsx |
 | `a8VA-2` | SplitIQ's access at Strava had already ended. | El acceso de SplitIQ en Strava ya había terminado. | src/utils/stravaDisconnect.js |
+| `1CJQmA` | Splits | Parciales | src/views/SessionView.jsx |
 | `VNbzs6` | Sprint | Sprint | Training zone name · src/constants/srpeGuideMessages.js |
 | `AlJs8G` | sRPE — talk-test anchored | sRPE — según la prueba del habla | sRPE stays as is · src/components/LogSessionForm.jsx |
 | `ZbsEjC` | sRPE SCALE · TALK-TEST ANCHORED (asked every session) | ESCALA sRPE · SEGÚN LA PRUEBA DEL HABLA (se pregunta en cada sesión) | sRPE stays as is; the rest is in capitals except the parenthesis · src/views/LogView.jsx |
@@ -400,7 +423,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `bSUnKi` | STRENGTH | FUERZA | Badge, all capitals · src/views/mobile/MobileSessionLog.jsx |
 | `_Wuql6` | Strength session | Sesión de fuerza | Start a strength session · src/views/mobile/MobileTrain.jsx |
 | `QDjyW8` | stroke rate | frecuencia de palada | Session caption list item · src/components/session/ProvenanceNote.jsx |
-| `-BAPZk` | Stroke rate | Frecuencia de palada | src/components/session/TraceTooltip.jsx |
+| `-BAPZk` | Stroke rate | Frecuencia de palada | src/components/session/SplitsTable.jsx · src/components/session/TraceTooltip.jsx |
 | `RPrXl-` | Stroke rate across {over}, between {lo} and {hi} spm; average {avg} spm. | Frecuencia de palada durante {over}, entre {lo} y {hi} spm; promedio {avg} spm. | src/components/session/SessionTrace.jsx |
 | `N-bc9S` | Stroke rate across {over}, between {lo} and {hi} spm. | Frecuencia de palada durante {over}, entre {lo} y {hi} spm. | src/components/session/SessionTrace.jsx |
 | `iOPXuJ` | SUBMIT SESSION | ENVIAR SESIÓN | Button, all capitals · src/components/LogSessionForm.jsx |
@@ -422,6 +445,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `70UKmT` | The connection link was opened incorrectly. Start the connection again. | El enlace de conexión se abrió de forma incorrecta. Vuelve a iniciar la conexión. | src/utils/stravaCallback.js |
 | `b7aZ-4` | The connection was missing permission to read your activities. Connect again and approve activity access. | A la conexión le faltaba el permiso para leer tus actividades. Vuelve a conectar y aprueba el acceso a las actividades. | src/utils/stravaCallback.js |
 | `eZuAhY` | The dashboard stays dark. Light and Auto apply to the squat tool. | El panel permanece oscuro. Claro y Automático se aplican a la herramienta de sentadilla. | src/components/ThemeControl.jsx |
+| `zZem7K` | The highest average power over any stretch of that length in the elapsed time, a pause counting as 0 W. | La potencia promedio más alta en cualquier tramo de esa duración dentro del tiempo total; una pausa cuenta como 0 W. | src/components/session/MoreDetail.jsx |
 | `GNVWcN` | The last sync failed for an unrecognised reason. Try again. | La última sincronización falló por un motivo desconocido. Inténtalo de nuevo. | src/utils/stravaStatus.js |
 | `dOG-38` | The limit has reset — you can sync again now. | El límite se restableció: ya puedes volver a sincronizar. | src/utils/stravaStatus.js |
 | `yf6xVI` | THE PLAN. | EL PLAN. | Banner lead-in, all capitals · src/views/PlanView.jsx |
@@ -438,6 +462,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `2MpFog` | This session has no power reading, so no time in zone. | Esta sesión no tiene lectura de potencia, así que no hay tiempo en zona. | Session page zones · src/components/session/ZoneBar.jsx |
 | `KhVJOP` | THIS WEEK | ESTA SEMANA | Section heading, all capitals · src/views/mobile/MobileToday.jsx |
 | `qU8EmP` | Threshold | Umbral | Cycling power level (Coggan Z4) · src/components/session/zoneLabels.js |
+| `LhMjLm` | Time | Tiempo | src/components/session/SplitsTable.jsx |
 | `va00KW` | Time in zone | Tiempo en zona | src/views/SessionView.jsx |
 | `0yO9ub` | Time in zone: {summary}. | Tiempo en zona: {summary}. | src/components/session/ZoneBar.jsx |
 | `ecUA8p` | Today | Hoy | src/views/mobile/MobileSettings.jsx · src/views/mobile/MobileToday.jsx · src/views/OverviewView.jsx |
@@ -461,6 +486,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `qDKS2V` | Upcoming planned sessions (today forward). A dashed border marks a planned session; tap any card for the targets. Cards mark ✓ done once you log the matching session. | Sesiones planificadas de hoy en adelante. Un borde discontinuo indica una sesión planificada; toca cualquier tarjeta para ver los objetivos. Las tarjetas muestran ✓ cuando registras la sesión correspondiente. | src/views/PlanView.jsx |
 | `Nmm6Hl` | UT1 | UT1 | Rowing zone; keep as is · src/components/session/zoneLabels.js |
 | `95Fy2-` | UT2 | UT2 | Rowing zone; keep as is · src/components/session/zoneLabels.js |
+| `FeCf8C` | Variability | Variabilidad | src/components/session/MoreDetail.jsx |
 | `_lbR8k` | Very easy | Muy fácil | sRPE scale, effort 1-2 · src/constants/srpeGuideMessages.js |
 | `e9KqaD` | very easy · full conversation | muy fácil · conversación completa | src/components/LogSessionForm.jsx |
 | `L48ofA` | VITALS UNAVAILABLE | SIGNOS VITALES NO DISPONIBLES | All capitals · src/views/RecoveryView.jsx |
@@ -469,6 +495,9 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `WLqk2A` | Vol (2260kg) | Vol. (2260kg) | Total volume lifted, with an example · src/components/LogSessionForm.jsx |
 | `_cF7Rs` | Volume | Volumen | src/components/LogSessionForm.jsx |
 | `pJVzhg` | vs {baselineLabel} | vs. {baselineLabel} | Compared with, e.g. vs your avg · Compared with, e.g. vs your avg · src/views/mobile/MobileRecovery.jsx |
+| `rjcD_9` | Weighted power | Potencia ponderada | src/components/session/MoreDetail.jsx |
+| `eWX1fY` | Weighted power divided by the average power, {avg} W. 1.00 is an even output throughout. | La potencia ponderada dividida entre la potencia promedio, {avg} W. 1.00 es un esfuerzo parejo de principio a fin. | src/components/session/MoreDetail.jsx |
+| `Who23M` | Weighted power divided by the average power. 1.00 is an even output throughout. | La potencia ponderada dividida entre la potencia promedio. 1.00 es un esfuerzo parejo de principio a fin. | src/components/session/MoreDetail.jsx |
 | `HioAOv` | Where this data comes from | De dónde vienen estos datos | src/components/session/ProvenanceNote.jsx |
 | `LRklOm` | Words impossible. All-out. Race/test efforts only. | Imposible hablar. A tope. Solo en competencias o pruebas. | sRPE scale, effort 9-10: the talk test · src/constants/srpeGuideMessages.js |
 | `qRILxq` | Work | Trabajo | src/components/session/SessionSummary.jsx |

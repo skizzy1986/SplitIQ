@@ -116,6 +116,11 @@ msgstr "{minutes, plural, one {# minuto de remo a un ritmo promedio de {pace} /5
 msgid "{minutes, plural, one {# minute of rowing.} other {# minutes of rowing.}}"
 msgstr "{minutes, plural, one {# minuto de remo.} other {# minutos de remo.}}"
 
+#. Splits table: the last split, shorter than the others
+#: src/components/session/SplitsTable.jsx
+msgid "{n} (partial)"
+msgstr "{n} (parcial)"
+
 #: src/utils/stravaDisconnect.js
 msgid "{restore, plural, one {Strava power and heart rate removed from {restore} session you logged yourself.} other {Strava power and heart rate removed from {restore} sessions you logged yourself.}}"
 msgstr "{restore, plural, one {Se quitaron la potencia y la frecuencia cardíaca de Strava de {restore} sesión que registraste tú.} other {Se quitaron la potencia y la frecuencia cardíaca de Strava de {restore} sesiones que registraste tú.}}"
@@ -265,18 +270,30 @@ msgstr "AT"
 msgid "Auto"
 msgstr "Automático"
 
+#: src/components/session/RangeSummary.jsx
 #: src/components/session/SessionSummary.jsx
 msgid "Average cadence"
 msgstr "Cadencia promedio"
 
+#: src/components/session/RangeSummary.jsx
 #: src/components/session/SessionSummary.jsx
 msgid "Average heart rate"
 msgstr "Frecuencia cardíaca promedio"
 
+#: src/components/session/SessionTrace.jsx
+msgid "Average heart rate {avg} bpm. Your rides in the 30 days before averaged {mean} bpm across {count} sessions."
+msgstr "Frecuencia cardíaca promedio {avg} bpm. Tus salidas en bici de los 30 días anteriores promediaron {mean} bpm en {count} sesiones."
+
+#: src/components/session/SessionTrace.jsx
+msgid "Average heart rate {avg} bpm. Your rowing sessions in the 30 days before averaged {mean} bpm across {count} sessions."
+msgstr "Frecuencia cardíaca promedio {avg} bpm. Tus sesiones de remo de los 30 días anteriores promediaron {mean} bpm en {count} sesiones."
+
+#: src/components/session/RangeSummary.jsx
 #: src/components/session/SessionSummary.jsx
 msgid "Average pace"
 msgstr "Ritmo promedio"
 
+#: src/components/session/RangeSummary.jsx
 #: src/components/session/SessionSummary.jsx
 msgid "Average power"
 msgstr "Potencia promedio"
@@ -289,10 +306,20 @@ msgstr "Potencia promedio {watts} W. Tus salidas en bici de los 30 días anterio
 msgid "Average power {watts} W. Your rowing sessions in the 30 days before averaged {mean} W across {count} sessions."
 msgstr "Potencia promedio {watts} W. Tus sesiones de remo de los 30 días anteriores promediaron {mean} W en {count} sesiones."
 
+#: src/components/session/MoreDetail.jsx
+msgid "Average power over average heart rate in each half of the moving time, and the change between them as a share of the first."
+msgstr "La potencia promedio sobre la frecuencia cardíaca promedio en cada mitad del tiempo en movimiento, y el cambio entre ellas como proporción de la primera."
+
+#: src/components/session/MoreDetail.jsx
+msgid "Average power over average heart rate: {r1} W/bpm in the first half of the moving time, {r2} W/bpm in the second. Drift is the change between them as a share of the first; above zero, the second half had less power per beat."
+msgstr "La potencia promedio sobre la frecuencia cardíaca promedio: {r1} W/bpm en la primera mitad del tiempo en movimiento y {r2} W/bpm en la segunda. La deriva es el cambio entre ellas como proporción de la primera; por encima de cero, la segunda mitad tuvo menos potencia por latido."
+
+#: src/components/session/RangeSummary.jsx
 #: src/components/session/SessionSummary.jsx
 msgid "Average speed"
 msgstr "Velocidad promedio"
 
+#: src/components/session/RangeSummary.jsx
 #: src/components/session/SessionSummary.jsx
 msgid "Average stroke rate"
 msgstr "Frecuencia de palada promedio"
@@ -357,6 +384,7 @@ msgstr "PESO CORPORAL — 14 DÍAS (kg)"
 msgid "cadence"
 msgstr "cadencia"
 
+#: src/components/session/SplitsTable.jsx
 #: src/components/session/TraceTooltip.jsx
 msgid "Cadence"
 msgstr "Cadencia"
@@ -411,6 +439,11 @@ msgstr "Verificando la conexión con Strava…"
 #: src/views/RecoveryView.jsx
 msgid "clean"
 msgstr "en condiciones"
+
+#. Button: clear the selected range
+#: src/components/session/RangeSummary.jsx
+msgid "Clear"
+msgstr "Quitar"
 
 #: src/components/LogSessionForm.jsx
 msgid "Close"
@@ -565,7 +598,9 @@ msgstr "Desconectando…"
 msgid "distance"
 msgstr "distancia"
 
+#: src/components/session/RangeSummary.jsx
 #: src/components/session/SessionSummary.jsx
+#: src/components/session/SplitsTable.jsx
 msgid "Distance"
 msgstr "Distancia"
 
@@ -573,6 +608,10 @@ msgstr "Distancia"
 #: src/components/LogEntry.jsx
 msgid "DISTANCE"
 msgstr "DISTANCIA"
+
+#: src/components/session/MoreDetail.jsx
+msgid "Drift"
+msgstr "Deriva"
 
 #: src/components/session/SessionSummary.jsx
 msgid "Duration"
@@ -598,6 +637,7 @@ msgstr "fácil · hablas en oraciones (UT2)"
 msgid "Easy (UT2)"
 msgstr "Fácil (UT2)"
 
+#: src/components/session/RangeSummary.jsx
 #: src/components/session/SessionSummary.jsx
 msgid "Elapsed"
 msgstr "Tiempo total"
@@ -736,6 +776,7 @@ msgstr "Colesterol HDL (hombres)"
 msgid "heart rate"
 msgstr "frecuencia cardíaca"
 
+#: src/components/session/SplitsTable.jsx
 #: src/components/session/TraceTooltip.jsx
 msgid "Heart rate"
 msgstr "Frecuencia cardíaca"
@@ -798,6 +839,10 @@ msgstr "justo ahora"
 #: src/views/SettingsView.jsx
 msgid "Language"
 msgstr "Idioma"
+
+#: src/components/session/SplitsTable.jsx
+msgid "Lap"
+msgstr "Vuelta"
 
 #. Calendar legend: the window shown, all capitals
 #: src/views/CalendarView.jsx
@@ -944,6 +989,34 @@ msgstr "Movilidad"
 #: src/components/LogSessionForm.jsx
 msgid "moderate · short sentences (UT1)"
 msgstr "moderado · oraciones cortas (UT1)"
+
+#: src/components/session/MoreDetail.jsx
+msgid "More detail"
+msgstr "Más detalle"
+
+#: src/components/session/RangeSummary.jsx
+msgid "Moving time"
+msgstr "Tiempo en movimiento"
+
+#: src/components/session/MoreDetail.jsx
+msgid "Needs a heart rate reading for at least {percent}% of each half of the moving time."
+msgstr "Requiere una lectura de frecuencia cardíaca durante al menos el {percent} % de cada mitad del tiempo en movimiento."
+
+#: src/components/session/MoreDetail.jsx
+msgid "Needs a power reading for at least {percent}% of the moving time."
+msgstr "Requiere una lectura de potencia durante al menos el {percent} % del tiempo en movimiento."
+
+#: src/components/session/MoreDetail.jsx
+msgid "Needs a power reading."
+msgstr "Requiere una lectura de potencia."
+
+#: src/components/session/MoreDetail.jsx
+msgid "Needs a session at least {window} min long."
+msgstr "Requiere una sesión de al menos {window} min."
+
+#: src/components/session/MoreDetail.jsx
+msgid "Needs at least {minutes} min of moving time."
+msgstr "Requiere al menos {minutes} min de tiempo en movimiento."
 
 #: src/views/RecoveryView.jsx
 msgid "needs overnight wear"
@@ -1102,6 +1175,14 @@ msgstr "Sin conexión: todavía no hay datos guardados."
 msgid "Older activities are fetched a page at a time to stay inside Strava rate limits."
 msgstr "Las actividades más antiguas se traen una página a la vez para no superar los límites de uso de Strava."
 
+#: src/components/session/SplitsTable.jsx
+msgid "One row every {every}."
+msgstr "Una fila cada {every}."
+
+#: src/components/session/SplitsTable.jsx
+msgid "One row per recorded lap."
+msgstr "Una fila por vuelta registrada."
+
 #. Session page: a strength or other session
 #: src/components/session/SessionState.jsx
 msgid "Only completed rowing and cycling sessions open here."
@@ -1151,6 +1232,7 @@ msgstr "El error común es sobrevalorar el trabajo fácil: guíate por la prueba
 msgid "Overview"
 msgstr "Resumen"
 
+#: src/components/session/SplitsTable.jsx
 #: src/components/session/TraceTooltip.jsx
 msgid "Pace"
 msgstr "Ritmo"
@@ -1172,6 +1254,10 @@ msgstr "ritmo a partir de la distancia y el tiempo"
 #: src/components/session/ProvenanceNote.jsx
 msgid "pace from power"
 msgstr "ritmo a partir de la potencia"
+
+#: src/components/session/MoreDetail.jsx
+msgid "Peak power, {window} min"
+msgstr "Potencia máxima, {window} min"
 
 #. Desktop Train pane
 #: src/App.jsx
@@ -1196,6 +1282,7 @@ msgstr "Después:"
 msgid "power"
 msgstr "potencia"
 
+#: src/components/session/SplitsTable.jsx
 #: src/components/session/TraceTooltip.jsx
 msgid "Power"
 msgstr "Potencia"
@@ -1207,6 +1294,10 @@ msgstr "Potencia durante {over}, entre {lo} y {hi} W; promedio {avg} W."
 #: src/components/session/SessionTrace.jsx
 msgid "Power across {over}, between {lo} and {hi} W."
 msgstr "Potencia durante {over}, entre {lo} y {hi} W."
+
+#: src/components/session/MoreDetail.jsx
+msgid "Power over the moving time, averaged over each 30 s, each value raised to the fourth power, those averaged, then the fourth root taken. Hard stretches count for more than their share of the time."
+msgstr "La potencia durante el tiempo en movimiento, promediada cada 30 s; cada valor se eleva a la cuarta potencia, se promedian y se saca la raíz cuarta. Los tramos intensos pesan más que su parte del tiempo."
 
 #: src/views/OverviewView.jsx
 msgid "Power-derived load is measured against rowing CP {cp}W and bike FTP {ftp}W; revalidate with a test to sharpen it."
@@ -1395,6 +1486,10 @@ msgstr "Se puntuó con las lecturas que llegaron; faltaron algunas."
 msgid "Sections"
 msgstr "Secciones"
 
+#: src/components/session/RangeSummary.jsx
+msgid "Selected range"
+msgstr "Tramo seleccionado"
+
 #: src/views/SessionView.jsx
 msgid "Session"
 msgstr "Sesión"
@@ -1498,6 +1593,7 @@ msgstr "Algunas actividades no se pudieron guardar en la base de datos. Vuelve a
 msgid "Something went wrong finishing the connection. Try again."
 msgstr "Algo salió mal al terminar la conexión. Inténtalo de nuevo."
 
+#: src/components/session/SplitsTable.jsx
 #: src/components/session/TraceTooltip.jsx
 msgid "Speed"
 msgstr "Velocidad"
@@ -1507,9 +1603,21 @@ msgstr "Velocidad"
 msgid "speed from distance and time"
 msgstr "velocidad a partir de la distancia y el tiempo"
 
+#: src/components/session/SplitsTable.jsx
+msgid "Split"
+msgstr "Parcial"
+
+#: src/components/session/SplitsTable.jsx
+msgid "Split distance"
+msgstr "Distancia del parcial"
+
 #: src/utils/stravaDisconnect.js
 msgid "SplitIQ's access at Strava had already ended."
 msgstr "El acceso de SplitIQ en Strava ya había terminado."
+
+#: src/views/SessionView.jsx
+msgid "Splits"
+msgstr "Parciales"
 
 #. Training zone name
 #: src/constants/srpeGuideMessages.js
@@ -1659,6 +1767,7 @@ msgstr "Sesión de fuerza"
 msgid "stroke rate"
 msgstr "frecuencia de palada"
 
+#: src/components/session/SplitsTable.jsx
 #: src/components/session/TraceTooltip.jsx
 msgid "Stroke rate"
 msgstr "Frecuencia de palada"
@@ -1757,6 +1866,10 @@ msgstr "A la conexión le faltaba el permiso para leer tus actividades. Vuelve a
 msgid "The dashboard stays dark. Light and Auto apply to the squat tool."
 msgstr "El panel permanece oscuro. Claro y Automático se aplican a la herramienta de sentadilla."
 
+#: src/components/session/MoreDetail.jsx
+msgid "The highest average power over any stretch of that length in the elapsed time, a pause counting as 0 W."
+msgstr "La potencia promedio más alta en cualquier tramo de esa duración dentro del tiempo total; una pausa cuenta como 0 W."
+
 #: src/utils/stravaStatus.js
 msgid "The last sync failed for an unrecognised reason. Try again."
 msgstr "La última sincronización falló por un motivo desconocido. Inténtalo de nuevo."
@@ -1832,6 +1945,10 @@ msgstr "ESTA SEMANA"
 #: src/components/session/zoneLabels.js
 msgid "Threshold"
 msgstr "Umbral"
+
+#: src/components/session/SplitsTable.jsx
+msgid "Time"
+msgstr "Tiempo"
 
 #: src/views/SessionView.jsx
 msgid "Time in zone"
@@ -1944,6 +2061,10 @@ msgstr "UT1"
 msgid "UT2"
 msgstr "UT2"
 
+#: src/components/session/MoreDetail.jsx
+msgid "Variability"
+msgstr "Variabilidad"
+
 #. sRPE scale, effort 1-2
 #: src/constants/srpeGuideMessages.js
 msgid "Very easy"
@@ -1982,6 +2103,18 @@ msgstr "Volumen"
 #: src/views/mobile/MobileRecovery.jsx
 msgid "vs {baselineLabel}"
 msgstr "vs. {baselineLabel}"
+
+#: src/components/session/MoreDetail.jsx
+msgid "Weighted power"
+msgstr "Potencia ponderada"
+
+#: src/components/session/MoreDetail.jsx
+msgid "Weighted power divided by the average power, {avg} W. 1.00 is an even output throughout."
+msgstr "La potencia ponderada dividida entre la potencia promedio, {avg} W. 1.00 es un esfuerzo parejo de principio a fin."
+
+#: src/components/session/MoreDetail.jsx
+msgid "Weighted power divided by the average power. 1.00 is an even output throughout."
+msgstr "La potencia ponderada dividida entre la potencia promedio. 1.00 es un esfuerzo parejo de principio a fin."
 
 #: src/components/session/ProvenanceNote.jsx
 msgid "Where this data comes from"

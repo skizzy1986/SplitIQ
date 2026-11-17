@@ -69,8 +69,9 @@ const STRAVA_UNAVAILABLE = {
       comment: 'Session page: trace unavailable',
     }),
   },
+  // No retry: the activity is deleted, so asking again can only spend a
+  // request on the same answer.
   gone: {
-    retry: 'now',
     message: msg({
       message: 'This activity is no longer on Strava, so there is no trace.',
       comment: 'Session page: trace unavailable',
@@ -114,7 +115,7 @@ export function noTraceCopy(source) {
 // { message, messageNoTime?, settings?, retry? } with retry 'now',
 // 'after_settings' (only once the athlete has been to Settings),
 // 'after_time' (once retry_at has passed, or at once without one), or absent
-// (asking again cannot help: attribution pending).
+// (asking again cannot help: attribution pending, or the activity is gone).
 export function unavailableCopy(source, reason) {
   if (source === 'strava' && STRAVA_UNAVAILABLE[reason]) {
     return STRAVA_UNAVAILABLE[reason];

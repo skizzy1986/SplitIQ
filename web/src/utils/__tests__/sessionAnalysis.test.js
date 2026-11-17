@@ -1,4 +1,15 @@
-import { dominantZone, timeInZones } from '../sessionAnalysis.js';
+import {
+  MIN_ANALYSIS_S,
+  MIN_COVERAGE,
+  PEAK_WINDOWS,
+  aerobicDrift,
+  analysisNeeds,
+  dominantZone,
+  normalizedPower,
+  peakPowers,
+  timeInZones,
+  variabilityIndex,
+} from '../sessionAnalysis.js';
 import { createSeries } from '../sessionSeries.js';
 import {
   deriveCyclingZones,
@@ -81,5 +92,179 @@ describe('dominantZone', () => {
       dominantZone(timeInZones(series([120, 120, 150, 150]), zones))
     ).toBeNull();
     expect(dominantZone(null)).toBeNull();
+  });
+});
+
+// Synthetic, `step` s apart: watts(i) and hr(i) per sample.
+const trace = (n, watts, hr = () => 140, step = 1) =>
+  createSeries({
+    source: 'test',
+    t: Array.from({ length: n }, (_, i) => i * step),
+    channels: {
+      watts: Array.from({ length: n }, (_, i) => watts(i)),
+      hr: Array.from({ length: n }, (_, i) => hr(i)),
+    },
+  });
+
+describe('analysis constants', () => {
+  it('are named, and what the spec says', () => {
+    expect(MIN_ANALYSIS_S).toBe(1200);
+    expect(MIN_COVERAGE).toBe(0.8);
+    expect(PEAK_WINDOWS).toEqual([60, 300, 1200]);
+  });
+});
+
+describe('peakPowers', () => {
+  it('a steady session peaks at its own power over every window', () => {
+    const peaks = peakPowers(trace(1801, () => 200));
+    expect(peaks.map((p) => p.windowS)).toEqual([60, 300, 1200]);
+    for (const p of peaks) {
+      expect(p.watts).toBeCloseTo(200);
+      expect(p.needs).toBeNull();
+    }
+  });
+
+  it('finds the hardest stretch of each length', () => {
+    // 100 W, with 400 W from 600 to 660 s.
+    const peaks = peakPowers(
+      trace(1801, (i) => (i >= 600 && i < 660 ? 400 : 100))
+    );
+    expect(peaks[0].watts).toBeCloseTo(400);
+    expect(peaks[1].watts).toBeCloseTo((60 * 400 + 240 * 100) / 300);
+  });
+
+  it('counts a pause as 0 W', () => {
+    // 300 W for 600 s, a 600 s stop with no samples, 300 W for 600 s.
+    const t = [];
+    for (let i = 0; i <= 600; i += 1) t.push(i);
+    for (let i = 1200; i <= 1800; i += 1) t.push(i);
+    const s = createSeries({
+      source: 'test',
+      t,
+      channels: { watts: t.map(() => 300) },
+    });
+    const [one, five, twenty] = peakPowers(s);
+    expect(one.watts).toBeCloseTo(300);
+    expect(five.watts).toBeCloseTo(300);
+    // Any 20 min holds at most 10 min of riding.
+    expect(twenty.watts).toBeCloseTo(150);
+  });
+
+  it('is null when the session is shorter than the window, or has no power', () => {
+    const [one, five, twenty] = peakPowers(trace(601, () => 200));
+    expect(one.watts).toBeCloseTo(200);
+    expect(five.watts).toBeCloseTo(200);
+    expect(twenty).toEqual({ windowS: 1200, watts: null, needs: 'duration' });
+    const unpowered = createSeries({
+      source: 'test',
+      t: Array.from({ length: 1801 }, (_, i) => i),
+      channels: { hr: Array(1801).fill(140) },
+    });
+    expect(peakPowers(unpowered).every((p) => p.needs === 'power')).toBe(true);
+  });
+});
+
+describe('normalizedPower and variabilityIndex', () => {
+  it('a constant series: weighted power is the constant, variability 1', () => {
+    const s = trace(1801, () => 250);
+    expect(normalizedPower(s)).toBeCloseTo(250);
+    const v = variabilityIndex(s);
+    expect(v.avg).toBeCloseTo(250);
+    expect(v.vi).toBeCloseTo(1);
+  });
+
+  it('an uneven series weighs above its average', () => {
+    // Alternating minutes at 300 W and 100 W: average 200 W.
+    const s = trace(1801, (i) => (Math.floor(i / 60) % 2 ? 100 : 300));
+    const v = variabilityIndex(s);
+    expect(v.avg).toBeCloseTo(200, 0);
+    expect(v.np).toBeGreaterThan(v.avg);
+    expect(v.vi).toBeCloseTo(v.np / v.avg);
+    expect(normalizedPower(s)).toBe(v.np);
+  });
+
+  it('is null under 20 min of moving time', () => {
+    const s = trace(1000, () => 250);
+    expect(normalizedPower(s)).toBeNull();
+    expect(variabilityIndex(s)).toBeNull();
+    expect(analysisNeeds(s).variability).toBe('duration');
+  });
+
+  it('is null with power for under 80% of the moving time', () => {
+    const s = trace(1801, (i) => (i % 10 < 3 ? null : 250));
+    expect(normalizedPower(s)).toBeNull();
+    expect(variabilityIndex(s)).toBeNull();
+    expect(analysisNeeds(s)).toEqual({ variability: 'power', drift: 'power' });
+  });
+});
+
+describe('aerobicDrift', () => {
+  it('compares power per beat in the two halves of moving time', () => {
+    const s = trace(
+      1801,
+      () => 200,
+      (i) => (i < 900 ? 140 : 150)
+    );
+    const d = aerobicDrift(s);
+    expect(d.firstRatio).toBeCloseTo(200 / 140);
+    expect(d.secondRatio).toBeCloseTo(200 / 150);
+    expect(d.driftPct).toBeCloseTo((1 - 140 / 150) * 100);
+    expect(analysisNeeds(s)).toEqual({ variability: null, drift: null });
+  });
+
+  it('is null without heart rate for 80% of either half', () => {
+    const s = trace(
+      1801,
+      () => 200,
+      (i) => (i < 900 ? 140 : i % 2 ? 0 : 150)
+    );
+    expect(aerobicDrift(s)).toBeNull();
+    expect(analysisNeeds(s).drift).toBe('hr');
+    // Variability needs no heart rate.
+    expect(variabilityIndex(s)).not.toBeNull();
+  });
+
+  it('is null under 20 min of moving time or without power', () => {
+    expect(aerobicDrift(trace(1000, () => 200))).toBeNull();
+    expect(aerobicDrift(trace(1801, () => null))).toBeNull();
+  });
+});
+
+describe('analysis on an irregular, per-stroke series', () => {
+  // A stroke every 2.2 to 2.8 s for about 25 min at 200 W, heart rate rising
+  // from 140 to 150 halfway.
+  const strokes = () => {
+    const t = [0];
+    while (t.at(-1) < 1500) t.push(t.at(-1) + 2.2 + (t.length % 4) * 0.2);
+    return createSeries({
+      source: 'capture',
+      sampling: 'stroke',
+      t,
+      channels: {
+        watts: t.map(() => 200),
+        hr: t.map((x) => (x < 750 ? 140 : 150)),
+      },
+    });
+  };
+
+  it('time-weights every figure', () => {
+    const s = strokes();
+    expect(normalizedPower(s)).toBeCloseTo(200);
+    expect(variabilityIndex(s).vi).toBeCloseTo(1);
+    expect(peakPowers(s).map((p) => Math.round(p.watts))).toEqual([
+      200, 200, 200,
+    ]);
+    expect(aerobicDrift(s).driftPct).toBeCloseTo((1 - 140 / 150) * 100, 0);
+  });
+
+  it('the short capture fixture supports none of them, and says why', () => {
+    const s = captureSeries();
+    expect(peakPowers(s).every((p) => p.needs === 'duration')).toBe(true);
+    expect(variabilityIndex(s)).toBeNull();
+    expect(aerobicDrift(s)).toBeNull();
+    expect(analysisNeeds(s)).toEqual({
+      variability: 'duration',
+      drift: 'duration',
+    });
   });
 });

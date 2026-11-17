@@ -3,8 +3,38 @@
 // renders each part as a marker carrying the props the tests assert on.
 // Use: vi.mock('recharts', () => import('<path>/test/rechartsStub.jsx'))
 export const ResponsiveContainer = ({ children }) => <div>{children}</div>;
-export const ComposedChart = ({ children, data, syncId }) => (
-  <div data-testid="chart" data-sync={syncId} data-points={data.length}>
+// Chart-level mouse handlers get Recharts' (state, event) pair; here the
+// state's active index is the event's clientX, so a test picks the row under
+// the pointer: fireEvent.mouseDown(chart, { clientX: 10 }).
+const pointer = (data, handler) =>
+  handler
+    ? (e) =>
+        handler(
+          {
+            activeTooltipIndex: String(e.clientX),
+            activeIndex: String(e.clientX),
+            activeLabel: data[e.clientX]?.x,
+            isTooltipActive: true,
+          },
+          e
+        )
+    : undefined;
+export const ComposedChart = ({
+  children,
+  data,
+  syncId,
+  onMouseDown,
+  onMouseMove,
+  onMouseUp,
+}) => (
+  <div
+    data-testid="chart"
+    data-sync={syncId}
+    data-points={data.length}
+    onMouseDown={pointer(data, onMouseDown)}
+    onMouseMove={pointer(data, onMouseMove)}
+    onMouseUp={pointer(data, onMouseUp)}
+  >
     {children}
   </div>
 );
@@ -37,9 +67,13 @@ export const Tooltip = ({ content }) => (
     data-chart={content?.props?.chart ?? ''}
   />
 );
-export const ReferenceArea = ({ y1, y2, fill }) => (
-  <span data-testid="band" data-y1={y1} data-y2={y2} data-fill={fill} />
-);
+// A zone band spans y; a selection spans x.
+export const ReferenceArea = ({ x1, x2, y1, y2, fill }) =>
+  x1 != null ? (
+    <span data-testid="selection" data-x1={x1} data-x2={x2} />
+  ) : (
+    <span data-testid="band" data-y1={y1} data-y2={y2} data-fill={fill} />
+  );
 export const ReferenceLine = ({ y, strokeDasharray }) => (
   <span data-testid="avg-line" data-y={y} data-dash={strokeDasharray} />
 );

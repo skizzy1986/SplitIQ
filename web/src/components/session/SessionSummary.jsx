@@ -3,11 +3,18 @@ import StatTile from '../StatTile.jsx';
 import { THEME } from '../../constants/theme.js';
 import { SPACE, TYPE } from '../../constants/tokens.js';
 import { FONT } from '../../constants/type.js';
-import { formatPace } from '../../utils/pace.js';
 import { formatClock } from '../../utils/sessionPage.js';
 import { displayLogDate } from '../../utils/displayLocale.js';
+import {
+  bpmText,
+  kmText,
+  paceText,
+  rateText,
+  speedText,
+  wattsText,
+  withUnit,
+} from './units.js';
 
-const km = (m) => `${(m / 1000).toFixed(m >= 10_000 ? 1 : 2)} km`;
 const positive = (v) => typeof v === 'number' && v > 0;
 
 // The stored summary, the load and how it was scored, and the numbers the
@@ -39,18 +46,19 @@ export default function SessionSummary({
     add('duration', t`Duration`, String(session.duration));
   }
   if (positive(elapsedS)) add('elapsed', t`Elapsed`, formatClock(elapsedS));
-  if (summary.distanceM) add('distance', t`Distance`, km(summary.distanceM));
+  if (summary.distanceM)
+    add('distance', t`Distance`, kmText(summary.distanceM));
   if (summary.avgWatts) {
-    add('watts', t`Average power`, `${Math.round(summary.avgWatts)} W`);
+    add('watts', t`Average power`, wattsText(summary.avgWatts));
   }
   if (summary.pace500) {
-    add('pace', t`Average pace`, `${formatPace(summary.pace500)} /500 m`);
+    add('pace', t`Average pace`, paceText(summary.pace500));
   }
   if (summary.speedKmh) {
-    add('speed', t`Average speed`, `${summary.speedKmh.toFixed(1)} km/h`);
+    add('speed', t`Average speed`, speedText(summary.speedKmh));
   }
   if (summary.avgHr) {
-    add('hr', t`Average heart rate`, `${Math.round(summary.avgHr)} bpm`);
+    add('hr', t`Average heart rate`, bpmText(summary.avgHr));
   }
   if (summary.srpe) add('srpe', 'sRPE', String(summary.srpe));
 
@@ -82,19 +90,19 @@ export default function SessionSummary({
 
   if (extras) {
     if (positive(extras.workKj)) {
-      add('work', t`Work`, `${Math.round(extras.workKj)} kJ`);
+      add('work', t`Work`, withUnit(Math.round(extras.workKj), 'kJ'));
     }
     if (positive(extras.maxWatts)) {
-      add('maxWatts', t`Max power`, `${Math.round(extras.maxWatts)} W`);
+      add('maxWatts', t`Max power`, wattsText(extras.maxWatts));
     }
     if (positive(extras.maxHr)) {
-      add('maxHr', t`Max heart rate`, `${Math.round(extras.maxHr)} bpm`);
+      add('maxHr', t`Max heart rate`, bpmText(extras.maxHr));
     }
     if (positive(extras.avgRate)) {
       add(
         'rate',
         sport === 'erg' ? t`Average stroke rate` : t`Average cadence`,
-        `${Math.round(extras.avgRate)} ${sport === 'erg' ? 'spm' : 'rpm'}`
+        rateText(extras.avgRate, sport)
       );
     }
   }
@@ -103,11 +111,11 @@ export default function SessionSummary({
       add(
         'elevation',
         t`Elevation gain`,
-        `${Math.round(info.elevationGainM)} m`
+        withUnit(Math.round(info.elevationGainM), 'm')
       );
     }
     if (positive(info.calories)) {
-      add('calories', t`Calories`, `${Math.round(info.calories)} kcal`);
+      add('calories', t`Calories`, withUnit(Math.round(info.calories), 'kcal'));
     }
     if (typeof info.device === 'string' && info.device.trim()) {
       add('device', t`Device`, info.device.trim());

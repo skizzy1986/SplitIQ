@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ComposedChart,
   Line,
@@ -92,14 +93,27 @@ function Chart({
   tooltip,
   bands = [],
   average = null,
+  area = null,
+  drag = null,
 }) {
   return (
-    <div role="img" aria-label={label} style={{ marginBottom: SPACE.sm }}>
+    <div
+      role="img"
+      aria-label={label}
+      style={{
+        marginBottom: SPACE.sm,
+        cursor: drag ? 'crosshair' : undefined,
+        userSelect: drag ? 'none' : undefined,
+      }}
+    >
       <ResponsiveContainer width="100%" height={height}>
         <ComposedChart
           data={rows}
           syncId={SYNC_ID}
           margin={{ top: 8, right: 20, left: 4, bottom: 0 }}
+          onMouseDown={drag?.onMouseDown}
+          onMouseMove={drag?.onMouseMove}
+          onMouseUp={drag?.onMouseUp}
         >
           <XAxis
             dataKey="x"
@@ -136,6 +150,15 @@ function Chart({
               ifOverflow="hidden"
             />
           ))}
+          {area && (
+            <ReferenceArea
+              x1={area.x0}
+              x2={area.x1}
+              fill={THEME.accent}
+              fillOpacity={0.15}
+              ifOverflow="hidden"
+            />
+          )}
           {average != null && (
             <ReferenceLine
               y={average}
@@ -160,15 +183,83 @@ function Chart({
   );
 }
 
+// The time under the pointer, from Recharts' chart-level mouse state. Its
+// handlers receive (MouseHandlerDataParam, event), whose activeTooltipIndex
+// indexes the shared rows array (Context7 /recharts/recharts,
+// externalEventsMiddleware; recharts 3 types/synchronisation/types.d.ts). A
+// gap row's x lies inside its pause, a real time like any other. Null off
+// the plot.
+function timeUnder(state, rows) {
+  const index = state?.activeTooltipIndex ?? state?.activeIndex;
+  if (index == null) return null;
+  const x = rows[Number(index)]?.x;
+  return Number.isFinite(x) ? x : null;
+}
+
+// Mouse drag selection shared by the three charts. Each chart only hears the
+// pointer over itself (only tooltips sync), so the drag lives here; a
+// mouseup anywhere ends it, so leaving the charts mid-drag does too.
+function useDragSelect(rows, onSelectRange) {
+  const [drag, setDrag] = useState(null);
+  const dragRef = useRef(null);
+  const update = (next) => {
+    dragRef.current = next;
+    setDrag(next);
+  };
+  const finish = useCallback(() => {
+    const d = dragRef.current;
+    if (!d) return;
+    dragRef.current = null;
+    setDrag(null);
+    if (d.to !== d.from) {
+      onSelectRange?.(Math.min(d.from, d.to), Math.max(d.from, d.to));
+    }
+  }, [onSelectRange]);
+  const dragging = drag != null;
+  useEffect(() => {
+    if (!dragging) return undefined;
+    window.addEventListener('mouseup', finish);
+    return () => window.removeEventListener('mouseup', finish);
+  }, [dragging, finish]);
+  if (!onSelectRange) return { area: null, handlers: null };
+  return {
+    area:
+      drag && drag.to !== drag.from
+        ? { x0: Math.min(drag.from, drag.to), x1: Math.max(drag.from, drag.to) }
+        : null,
+    handlers: {
+      onMouseDown: (state) => {
+        const x = timeUnder(state, rows);
+        if (x != null) update({ from: x, to: x });
+      },
+      onMouseMove: (state) => {
+        const x = timeUnder(state, rows);
+        if (dragRef.current && x != null) {
+          update({ ...dragRef.current, to: x });
+        }
+      },
+      onMouseUp: finish,
+    },
+  };
+}
+
 // The session's trace: up to three stacked charts over the same time axis —
 // pace (rowing) or power (cycling), heart rate, stroke rate or cadence. A
 // channel the series lacks draws no chart and one line says so. Each chart
 // carries a dashed session-average line, and each chart's tooltip shows that
 // chart's own series, so the three synced tooltips together show every value
 // at the hovered instant once.
+//
+// Dragging across any chart with a mouse selects that stretch of time (it
+// does not zoom) and shades it on all three; a click without a drag selects
+// nothing. There is no touch drag: on a phone the splits table selects.
 //   rows: downsample(series, sport) · has: series.has · zones: the derived
 //   bands or null · averages: { first, hr, rate } in each chart's units, the
 //   same figures the summary shows, each null when unknown
+//   hrBaseline: recentHrBaseline(...) or null, grounding the heart-rate
+//   chart against the athlete's own prior 30 days
+//   selection: { x0, x1 } in seconds from the start, or null
+//   onSelectRange(x0, x1): a finished drag, x0 < x1
 export default function SessionTrace({
   rows,
   sport,
@@ -177,8 +268,13 @@ export default function SessionTrace({
   averages = null,
   durationS = null,
   layout = 'desktop',
+  hrBaseline = null,
+  selection = null,
+  onSelectRange = null,
 }) {
   const { t } = useLingui();
+  const drag = useDragSelect(rows, onSelectRange);
+  const area = drag.area ?? selection;
   const height = layout === 'phone' ? 120 : 150;
   const tooltipFor = (chart) => (
     <TraceTooltip rows={rows} sport={sport} has={has} chart={chart} />
@@ -216,6 +312,8 @@ export default function SessionTrace({
         tooltip={tooltip}
         bands={bandsFor(zones, sport, firstDomain)}
         average={average}
+        area={area}
+        drag={drag.handlers}
       />
     );
   } else if (firstDomain) {
@@ -239,6 +337,8 @@ export default function SessionTrace({
         tooltip={tooltip}
         bands={bandsFor(zones, sport, firstDomain)}
         average={average}
+        area={area}
+        drag={drag.handlers}
       />
     );
   } else {
@@ -272,8 +372,21 @@ export default function SessionTrace({
         height={height}
         tooltip={tooltipFor('hr')}
         average={hrAverage}
+        area={area}
+        drag={drag.handlers}
       />
     );
+    if (hrBaseline && avg != null) {
+      const mean = Math.round(hrBaseline.meanHr);
+      const count = hrBaseline.count;
+      out.push(
+        <p key="hr-history" style={missingStyle}>
+          {sport === 'cycling'
+            ? t`Average heart rate ${avg} bpm. Your rides in the 30 days before averaged ${mean} bpm across ${count} sessions.`
+            : t`Average heart rate ${avg} bpm. Your rowing sessions in the 30 days before averaged ${mean} bpm across ${count} sessions.`}
+        </p>
+      );
+    }
   } else {
     out.push(
       <p key="no-hr" style={missingStyle}>
@@ -282,6 +395,8 @@ export default function SessionTrace({
     );
   }
 
+  // Rate has its dashed session average only: no stroke rate or cadence is
+  // stored on the session rows, so there is no own history to ground it.
   const rateDomain = has.rate ? domainOf(rows, 'rate', rateAverage) : null;
   const rateUnit = sport === 'erg' ? 'spm' : 'rpm';
   if (rateDomain) {
@@ -312,6 +427,8 @@ export default function SessionTrace({
         height={height}
         tooltip={tooltipFor('rate')}
         average={rateAverage}
+        area={area}
+        drag={drag.handlers}
       />
     );
   } else {

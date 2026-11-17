@@ -180,4 +180,25 @@ describe('SessionSummary', () => {
       )
     ).toBeInTheDocument();
   });
+
+  it('never lets a unit wrap away from its value in a narrow tile', () => {
+    renderSummary(ergRow(), 'erg', {
+      extras: { workKj: 300, maxWatts: 250, maxHr: 170, avgRate: 22 },
+    });
+    // The value line of each tile, label and detail aside.
+    const value = (key) => tile(key).firstChild.children[1].textContent;
+    expect(value('pace')).toBe('2:05.0\u00a0/500\u00a0m');
+    expect(value('pace')).not.toContain(' ');
+    for (const key of [
+      'distance',
+      'watts',
+      'hr',
+      'work',
+      'maxWatts',
+      'maxHr',
+      'rate',
+    ]) {
+      expect(value(key), key).toMatch(/^\S+\u00a0\S+$/);
+    }
+  });
 });

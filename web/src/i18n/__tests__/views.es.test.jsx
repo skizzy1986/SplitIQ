@@ -891,4 +891,45 @@ describe('Session page in Spanish', () => {
       unmount();
     }
   });
+
+  it('renders the splits, a selection and More detail in Spanish', () => {
+    inSpanish();
+    render(ui);
+    expect(screen.getByText('Parciales')).toBeInTheDocument();
+    expect(
+      screen.getByRole('navigation', { name: 'Distancia del parcial' })
+    ).toBeInTheDocument();
+    expect(screen.getAllByRole('columnheader')[0]).toHaveTextContent('Parcial');
+    expect(
+      screen.getByRole('button', { name: '15 (parcial)' })
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '1' }));
+    expect(
+      screen.getByRole('region', { name: 'Tramo seleccionado' })
+    ).toBeInTheDocument();
+    expect(screen.getByText('Tiempo en movimiento')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Quitar' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Más detalle' }));
+    for (const text of [
+      'Potencia máxima, 1 min',
+      'Potencia ponderada',
+      'Variabilidad',
+      'Deriva',
+    ]) {
+      expect(screen.getByText(text)).toBeVisible();
+    }
+  });
+
+  it('grounds heart rate against the athlete’s own history in Spanish', () => {
+    mocks.sessions = [1, 2, 3].map((i) =>
+      ergRow({ id: i, date_iso: `2026-11-0${i}`, avg_hr: 144 + i })
+    );
+    inSpanish();
+    render(ui);
+    expect(
+      screen.getByText(
+        'Frecuencia cardíaca promedio 140 bpm. Tus sesiones de remo de los 30 días anteriores promediaron 146 bpm en 3 sesiones.'
+      )
+    ).toBeInTheDocument();
+  });
 });

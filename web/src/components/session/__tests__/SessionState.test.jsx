@@ -52,16 +52,23 @@ describe('SessionState — when Retry is offered', () => {
     expect(retry()).toBeEnabled();
   });
 
-  it('gone: Retry at once', () => {
+  it('gone: no Retry, since asking again can only spend a request', () => {
+    const onRetry = vi.fn();
     render(
       <SessionState
         kind="unavailable"
         source="strava"
         reason="gone"
-        onRetry={() => {}}
+        onRetry={onRetry}
       />
     );
-    expect(retry()).toBeEnabled();
+    expect(
+      screen.getByText(
+        'This activity is no longer on Strava, so there is no trace.'
+      )
+    ).toBeInTheDocument();
+    expect(retry()).toBeNull();
+    expect(onRetry).not.toHaveBeenCalled();
   });
 
   it.each(['not_connected', 'auth_failed'])(
@@ -72,6 +79,7 @@ describe('SessionState — when Retry is offered', () => {
           kind="unavailable"
           source="strava"
           reason={reason}
+          sessionId={7}
           onRetry={() => {}}
         />
       );
@@ -86,12 +94,40 @@ describe('SessionState — when Retry is offered', () => {
           kind="unavailable"
           source="strava"
           reason={reason}
+          sessionId={7}
           onRetry={() => {}}
         />
       );
       expect(retry()).toBeEnabled();
     }
   );
+
+  it('the Settings trip counts for the session it was taken from, and Retry spends it', () => {
+    const state = (sessionId, onRetry = () => {}) => (
+      <SessionState
+        kind="unavailable"
+        source="strava"
+        reason="not_connected"
+        sessionId={sessionId}
+        onRetry={onRetry}
+      />
+    );
+    const a = render(state('A'));
+    fireEvent.click(screen.getByRole('link', { name: 'Settings' }));
+    a.unmount();
+    // Another session's page: no Retry there.
+    const b = render(state('B'));
+    expect(retry()).toBeNull();
+    b.unmount();
+    // Session A: Retry, and pressing it uses the trip up.
+    const onRetry = vi.fn();
+    const again = render(state('A', onRetry));
+    fireEvent.click(retry());
+    expect(onRetry).toHaveBeenCalledTimes(1);
+    again.unmount();
+    render(state('A'));
+    expect(retry()).toBeNull();
+  });
 
   it('attribution pending: no Retry, nothing to wait for', () => {
     render(

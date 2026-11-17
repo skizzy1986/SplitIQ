@@ -16,6 +16,7 @@ const rows = [
 const has = { power: true, hr: true, rate: true, distance: true };
 
 describe('TraceTooltip', () => {
+  // Values and units are joined by a non-breaking space (units.js).
   it('shows every series at the hovered instant, whichever chart is hovered', () => {
     // Hovering the heart-rate chart: its payload names only hr, but the
     // tooltip reads the shared row and shows everything.
@@ -55,11 +56,11 @@ describe('TraceTooltip', () => {
       expect(container.textContent).toContain('1:05');
       unmount();
     }
-    expect(shown.first).toMatch(/Pace.*\/500 m.*Power200 W/);
+    expect(shown.first).toMatch(/Pace.*\/500\u00a0m.*Power200\u00a0W/);
     expect(shown.first).not.toMatch(/bpm|spm/);
-    expect(shown.hr).toMatch(/Heart rate150 bpm/);
+    expect(shown.hr).toMatch(/Heart rate150\u00a0bpm/);
     expect(shown.hr).not.toMatch(/W|spm/);
-    expect(shown.rate).toMatch(/Stroke rate26 spm/);
+    expect(shown.rate).toMatch(/Stroke rate26\u00a0spm/);
     expect(shown.rate).not.toMatch(/bpm|\/500/);
   });
 
@@ -75,8 +76,8 @@ describe('TraceTooltip', () => {
         chart="first"
       />
     );
-    expect(container.textContent).toContain('14.4 km/h');
-    expect(container.textContent).toContain('150 W');
+    expect(container.textContent).toContain('14.4\u00a0km/h');
+    expect(container.textContent).toContain('150\u00a0W');
   });
 
   it('a ride with no power carries its speed on the heart-rate chart', () => {
@@ -91,8 +92,8 @@ describe('TraceTooltip', () => {
         chart="hr"
       />
     );
-    expect(container.textContent).toContain('14.4 km/h');
-    expect(container.textContent).toContain('120 bpm');
+    expect(container.textContent).toContain('14.4\u00a0km/h');
+    expect(container.textContent).toContain('120\u00a0bpm');
   });
 
   it('names cadence and speed on a ride', () => {

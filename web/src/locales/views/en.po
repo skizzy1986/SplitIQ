@@ -116,6 +116,11 @@ msgstr "{minutes, plural, one {# minute of rowing at an average {pace} /500 m.} 
 msgid "{minutes, plural, one {# minute of rowing.} other {# minutes of rowing.}}"
 msgstr "{minutes, plural, one {# minute of rowing.} other {# minutes of rowing.}}"
 
+#. Splits table: the last split, shorter than the others
+#: src/components/session/SplitsTable.jsx
+msgid "{n} (partial)"
+msgstr "{n} (partial)"
+
 #: src/utils/stravaDisconnect.js
 msgid "{restore, plural, one {Strava power and heart rate removed from {restore} session you logged yourself.} other {Strava power and heart rate removed from {restore} sessions you logged yourself.}}"
 msgstr "{restore, plural, one {Strava power and heart rate removed from {restore} session you logged yourself.} other {Strava power and heart rate removed from {restore} sessions you logged yourself.}}"
@@ -265,18 +270,30 @@ msgstr "AT"
 msgid "Auto"
 msgstr "Auto"
 
+#: src/components/session/RangeSummary.jsx
 #: src/components/session/SessionSummary.jsx
 msgid "Average cadence"
 msgstr "Average cadence"
 
+#: src/components/session/RangeSummary.jsx
 #: src/components/session/SessionSummary.jsx
 msgid "Average heart rate"
 msgstr "Average heart rate"
 
+#: src/components/session/SessionTrace.jsx
+msgid "Average heart rate {avg} bpm. Your rides in the 30 days before averaged {mean} bpm across {count} sessions."
+msgstr "Average heart rate {avg} bpm. Your rides in the 30 days before averaged {mean} bpm across {count} sessions."
+
+#: src/components/session/SessionTrace.jsx
+msgid "Average heart rate {avg} bpm. Your rowing sessions in the 30 days before averaged {mean} bpm across {count} sessions."
+msgstr "Average heart rate {avg} bpm. Your rowing sessions in the 30 days before averaged {mean} bpm across {count} sessions."
+
+#: src/components/session/RangeSummary.jsx
 #: src/components/session/SessionSummary.jsx
 msgid "Average pace"
 msgstr "Average pace"
 
+#: src/components/session/RangeSummary.jsx
 #: src/components/session/SessionSummary.jsx
 msgid "Average power"
 msgstr "Average power"
@@ -289,10 +306,20 @@ msgstr "Average power {watts} W. Your rides in the 30 days before averaged {mean
 msgid "Average power {watts} W. Your rowing sessions in the 30 days before averaged {mean} W across {count} sessions."
 msgstr "Average power {watts} W. Your rowing sessions in the 30 days before averaged {mean} W across {count} sessions."
 
+#: src/components/session/MoreDetail.jsx
+msgid "Average power over average heart rate in each half of the moving time, and the change between them as a share of the first."
+msgstr "Average power over average heart rate in each half of the moving time, and the change between them as a share of the first."
+
+#: src/components/session/MoreDetail.jsx
+msgid "Average power over average heart rate: {r1} W/bpm in the first half of the moving time, {r2} W/bpm in the second. Drift is the change between them as a share of the first; above zero, the second half had less power per beat."
+msgstr "Average power over average heart rate: {r1} W/bpm in the first half of the moving time, {r2} W/bpm in the second. Drift is the change between them as a share of the first; above zero, the second half had less power per beat."
+
+#: src/components/session/RangeSummary.jsx
 #: src/components/session/SessionSummary.jsx
 msgid "Average speed"
 msgstr "Average speed"
 
+#: src/components/session/RangeSummary.jsx
 #: src/components/session/SessionSummary.jsx
 msgid "Average stroke rate"
 msgstr "Average stroke rate"
@@ -357,6 +384,7 @@ msgstr "BODYWEIGHT — 14 DAYS (kg)"
 msgid "cadence"
 msgstr "cadence"
 
+#: src/components/session/SplitsTable.jsx
 #: src/components/session/TraceTooltip.jsx
 msgid "Cadence"
 msgstr "Cadence"
@@ -411,6 +439,11 @@ msgstr "Checking Strava connection…"
 #: src/views/RecoveryView.jsx
 msgid "clean"
 msgstr "clean"
+
+#. Button: clear the selected range
+#: src/components/session/RangeSummary.jsx
+msgid "Clear"
+msgstr "Clear"
 
 #: src/components/LogSessionForm.jsx
 msgid "Close"
@@ -565,7 +598,9 @@ msgstr "Disconnecting…"
 msgid "distance"
 msgstr "distance"
 
+#: src/components/session/RangeSummary.jsx
 #: src/components/session/SessionSummary.jsx
+#: src/components/session/SplitsTable.jsx
 msgid "Distance"
 msgstr "Distance"
 
@@ -573,6 +608,10 @@ msgstr "Distance"
 #: src/components/LogEntry.jsx
 msgid "DISTANCE"
 msgstr "DISTANCE"
+
+#: src/components/session/MoreDetail.jsx
+msgid "Drift"
+msgstr "Drift"
 
 #: src/components/session/SessionSummary.jsx
 msgid "Duration"
@@ -598,6 +637,7 @@ msgstr "easy · talk in sentences (UT2)"
 msgid "Easy (UT2)"
 msgstr "Easy (UT2)"
 
+#: src/components/session/RangeSummary.jsx
 #: src/components/session/SessionSummary.jsx
 msgid "Elapsed"
 msgstr "Elapsed"
@@ -736,6 +776,7 @@ msgstr "HDL Cholesterol (male)"
 msgid "heart rate"
 msgstr "heart rate"
 
+#: src/components/session/SplitsTable.jsx
 #: src/components/session/TraceTooltip.jsx
 msgid "Heart rate"
 msgstr "Heart rate"
@@ -798,6 +839,10 @@ msgstr "just now"
 #: src/views/SettingsView.jsx
 msgid "Language"
 msgstr "Language"
+
+#: src/components/session/SplitsTable.jsx
+msgid "Lap"
+msgstr "Lap"
 
 #. Calendar legend: the window shown, all capitals
 #: src/views/CalendarView.jsx
@@ -944,6 +989,34 @@ msgstr "Mobility"
 #: src/components/LogSessionForm.jsx
 msgid "moderate · short sentences (UT1)"
 msgstr "moderate · short sentences (UT1)"
+
+#: src/components/session/MoreDetail.jsx
+msgid "More detail"
+msgstr "More detail"
+
+#: src/components/session/RangeSummary.jsx
+msgid "Moving time"
+msgstr "Moving time"
+
+#: src/components/session/MoreDetail.jsx
+msgid "Needs a heart rate reading for at least {percent}% of each half of the moving time."
+msgstr "Needs a heart rate reading for at least {percent}% of each half of the moving time."
+
+#: src/components/session/MoreDetail.jsx
+msgid "Needs a power reading for at least {percent}% of the moving time."
+msgstr "Needs a power reading for at least {percent}% of the moving time."
+
+#: src/components/session/MoreDetail.jsx
+msgid "Needs a power reading."
+msgstr "Needs a power reading."
+
+#: src/components/session/MoreDetail.jsx
+msgid "Needs a session at least {window} min long."
+msgstr "Needs a session at least {window} min long."
+
+#: src/components/session/MoreDetail.jsx
+msgid "Needs at least {minutes} min of moving time."
+msgstr "Needs at least {minutes} min of moving time."
 
 #: src/views/RecoveryView.jsx
 msgid "needs overnight wear"
@@ -1102,6 +1175,14 @@ msgstr "Offline: no saved data yet."
 msgid "Older activities are fetched a page at a time to stay inside Strava rate limits."
 msgstr "Older activities are fetched a page at a time to stay inside Strava rate limits."
 
+#: src/components/session/SplitsTable.jsx
+msgid "One row every {every}."
+msgstr "One row every {every}."
+
+#: src/components/session/SplitsTable.jsx
+msgid "One row per recorded lap."
+msgstr "One row per recorded lap."
+
 #. Session page: a strength or other session
 #: src/components/session/SessionState.jsx
 msgid "Only completed rowing and cycling sessions open here."
@@ -1151,6 +1232,7 @@ msgstr "Over-rating easy work is the common error — anchor to the talk test. T
 msgid "Overview"
 msgstr "Overview"
 
+#: src/components/session/SplitsTable.jsx
 #: src/components/session/TraceTooltip.jsx
 msgid "Pace"
 msgstr "Pace"
@@ -1172,6 +1254,10 @@ msgstr "pace from distance and time"
 #: src/components/session/ProvenanceNote.jsx
 msgid "pace from power"
 msgstr "pace from power"
+
+#: src/components/session/MoreDetail.jsx
+msgid "Peak power, {window} min"
+msgstr "Peak power, {window} min"
 
 #. Desktop Train pane
 #: src/App.jsx
@@ -1196,6 +1282,7 @@ msgstr "Post:"
 msgid "power"
 msgstr "power"
 
+#: src/components/session/SplitsTable.jsx
 #: src/components/session/TraceTooltip.jsx
 msgid "Power"
 msgstr "Power"
@@ -1207,6 +1294,10 @@ msgstr "Power across {over}, between {lo} and {hi} W; average {avg} W."
 #: src/components/session/SessionTrace.jsx
 msgid "Power across {over}, between {lo} and {hi} W."
 msgstr "Power across {over}, between {lo} and {hi} W."
+
+#: src/components/session/MoreDetail.jsx
+msgid "Power over the moving time, averaged over each 30 s, each value raised to the fourth power, those averaged, then the fourth root taken. Hard stretches count for more than their share of the time."
+msgstr "Power over the moving time, averaged over each 30 s, each value raised to the fourth power, those averaged, then the fourth root taken. Hard stretches count for more than their share of the time."
 
 #: src/views/OverviewView.jsx
 msgid "Power-derived load is measured against rowing CP {cp}W and bike FTP {ftp}W; revalidate with a test to sharpen it."
@@ -1395,6 +1486,10 @@ msgstr "Scored on the readings that arrived — some were missing."
 msgid "Sections"
 msgstr "Sections"
 
+#: src/components/session/RangeSummary.jsx
+msgid "Selected range"
+msgstr "Selected range"
+
 #: src/views/SessionView.jsx
 msgid "Session"
 msgstr "Session"
@@ -1498,6 +1593,7 @@ msgstr "Some activities could not be saved to the database. Run the sync again."
 msgid "Something went wrong finishing the connection. Try again."
 msgstr "Something went wrong finishing the connection. Try again."
 
+#: src/components/session/SplitsTable.jsx
 #: src/components/session/TraceTooltip.jsx
 msgid "Speed"
 msgstr "Speed"
@@ -1507,9 +1603,21 @@ msgstr "Speed"
 msgid "speed from distance and time"
 msgstr "speed from distance and time"
 
+#: src/components/session/SplitsTable.jsx
+msgid "Split"
+msgstr "Split"
+
+#: src/components/session/SplitsTable.jsx
+msgid "Split distance"
+msgstr "Split distance"
+
 #: src/utils/stravaDisconnect.js
 msgid "SplitIQ's access at Strava had already ended."
 msgstr "SplitIQ's access at Strava had already ended."
+
+#: src/views/SessionView.jsx
+msgid "Splits"
+msgstr "Splits"
 
 #. Training zone name
 #: src/constants/srpeGuideMessages.js
@@ -1659,6 +1767,7 @@ msgstr "Strength session"
 msgid "stroke rate"
 msgstr "stroke rate"
 
+#: src/components/session/SplitsTable.jsx
 #: src/components/session/TraceTooltip.jsx
 msgid "Stroke rate"
 msgstr "Stroke rate"
@@ -1757,6 +1866,10 @@ msgstr "The connection was missing permission to read your activities. Connect a
 msgid "The dashboard stays dark. Light and Auto apply to the squat tool."
 msgstr "The dashboard stays dark. Light and Auto apply to the squat tool."
 
+#: src/components/session/MoreDetail.jsx
+msgid "The highest average power over any stretch of that length in the elapsed time, a pause counting as 0 W."
+msgstr "The highest average power over any stretch of that length in the elapsed time, a pause counting as 0 W."
+
 #: src/utils/stravaStatus.js
 msgid "The last sync failed for an unrecognised reason. Try again."
 msgstr "The last sync failed for an unrecognised reason. Try again."
@@ -1832,6 +1945,10 @@ msgstr "THIS WEEK"
 #: src/components/session/zoneLabels.js
 msgid "Threshold"
 msgstr "Threshold"
+
+#: src/components/session/SplitsTable.jsx
+msgid "Time"
+msgstr "Time"
 
 #: src/views/SessionView.jsx
 msgid "Time in zone"
@@ -1944,6 +2061,10 @@ msgstr "UT1"
 msgid "UT2"
 msgstr "UT2"
 
+#: src/components/session/MoreDetail.jsx
+msgid "Variability"
+msgstr "Variability"
+
 #. sRPE scale, effort 1-2
 #: src/constants/srpeGuideMessages.js
 msgid "Very easy"
@@ -1982,6 +2103,18 @@ msgstr "Volume"
 #: src/views/mobile/MobileRecovery.jsx
 msgid "vs {baselineLabel}"
 msgstr "vs {baselineLabel}"
+
+#: src/components/session/MoreDetail.jsx
+msgid "Weighted power"
+msgstr "Weighted power"
+
+#: src/components/session/MoreDetail.jsx
+msgid "Weighted power divided by the average power, {avg} W. 1.00 is an even output throughout."
+msgstr "Weighted power divided by the average power, {avg} W. 1.00 is an even output throughout."
+
+#: src/components/session/MoreDetail.jsx
+msgid "Weighted power divided by the average power. 1.00 is an even output throughout."
+msgstr "Weighted power divided by the average power. 1.00 is an even output throughout."
 
 #: src/components/session/ProvenanceNote.jsx
 msgid "Where this data comes from"

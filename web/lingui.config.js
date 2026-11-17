@@ -45,6 +45,9 @@ export const VIEWS_SOURCES = [
   'src/components/session/SessionState.jsx',
   'src/components/session/zoneLabels.js',
   'src/components/session/sourceCopy.js',
+  'src/components/session/RangeSummary.jsx',
+  'src/components/session/SplitsTable.jsx',
+  'src/components/session/MoreDetail.jsx',
 ];
 
 const rooted = (f) => `<rootDir>/${f}`;

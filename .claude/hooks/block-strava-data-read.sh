@@ -16,8 +16,8 @@
 # Contract (https://code.claude.com/docs/en/hooks): the payload is JSON on
 # stdin with tool_name and tool_input; Supabase's execute_sql carries the SQL in
 # tool_input.query. Exit 2 blocks the call and stderr is shown to the agent;
-# exit 0 with no output lets it through. Any other exit is a non-blocking error,
-# so every block below is an explicit exit 2.
+# exit 0 with no output lets it through. Every block below is an explicit exit 2.
+# Any other exit is a hook failure; what that does is under "Failure behaviour".
 #
 # What it blocks, per statement, after stripping comments and string literals:
 #   - the base table `sessions` as a token (bare, `public.` or

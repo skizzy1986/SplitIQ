@@ -2,18 +2,18 @@
 
 // Time in each zone. `zones` is derivePaceZones(cp) or deriveCyclingZones(ftp):
 // bands are [wattsLow, wattsHigh) and the top band is open-ended, so rowing
-// power above the AN ceiling still counts as AN. Only moving samples with a
-// power reading count; moving time without one is reported as unpoweredS.
+// power above the AN ceiling still counts as AN. Only moving intervals (the
+// same ones every average uses) with a power reading at their start count;
+// moving time without one is reported as unpoweredS.
 export function timeInZones(series, zones) {
   if (!series || !Array.isArray(zones) || !zones.length) return null;
   const watts = series.channels.watts;
-  const moving = series.channels.moving;
   const seconds = zones.map(() => 0);
   let zonedS = 0;
   let unpoweredS = 0;
   const last = zones.length - 1;
-  for (let i = 0; i < series.n; i += 1) {
-    if (moving && !moving[i]) continue;
+  for (let i = 0; i < series.n - 1; i += 1) {
+    if (!series.live[i]) continue;
     const dt = series.dt[i];
     const w = watts ? watts[i] : null;
     if (w == null || w < 0) {

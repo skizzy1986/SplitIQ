@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useLingui } from '@lingui/react/macro';
+import { plural } from '@lingui/core/macro';
 import { useSessionDetail } from '../hooks/useSessionDetail.js';
 import { useSessionSeries } from '../hooks/useSessionSeries.js';
 import { useAnchors } from '../hooks/useAnchors.js';
@@ -81,6 +82,10 @@ export default function SessionView({
 
   const detail = useSessionDetail(sessionId);
   const anchors = useAnchors();
+  // 'all', not 'recent': 'recent' is the newest 50 rows, which cannot hold
+  // the 30 days before an older session. 'all' is the same cached query both
+  // shells' History lists already load, so opening a page from History costs
+  // no extra read.
   const history = useSessions({ mode: 'all' });
   const session = detail.data ?? null;
   const sport = sessionSport(session?.type);
@@ -212,26 +217,68 @@ export default function SessionView({
   let headline;
   if (sport === 'erg') {
     const pace = summary.pace500 ? formatPace(summary.pace500) : null;
-    if (minutes && pace) {
-      headline = zoneName
-        ? t`${minutes} minutes of rowing at an average ${pace} /500 m, most of it in ${zoneName}.`
-        : t`${minutes} minutes of rowing at an average ${pace} /500 m.`;
+    if (minutes && pace && zoneName) {
+      headline = t({
+        comment: 'Session headline; # is the number of minutes',
+        message: plural(minutes, {
+          one: `# minute of rowing at an average ${pace} /500 m, most of it in ${zoneName}.`,
+          other: `# minutes of rowing at an average ${pace} /500 m, most of it in ${zoneName}.`,
+        }),
+      });
+    } else if (minutes && pace) {
+      headline = t({
+        comment: 'Session headline; # is the number of minutes',
+        message: plural(minutes, {
+          one: `# minute of rowing at an average ${pace} /500 m.`,
+          other: `# minutes of rowing at an average ${pace} /500 m.`,
+        }),
+      });
     } else if (minutes) {
-      headline = t`${minutes} minutes of rowing.`;
+      headline = t({
+        comment: 'Session headline; # is the number of minutes',
+        message: plural(minutes, {
+          one: '# minute of rowing.',
+          other: '# minutes of rowing.',
+        }),
+      });
     } else {
       headline = t`A rowing session.`;
     }
   } else {
     const watts = summary.avgWatts ? Math.round(summary.avgWatts) : null;
     const speed = summary.speedKmh ? summary.speedKmh.toFixed(1) : null;
-    if (minutes && watts) {
-      headline = zoneName
-        ? t`${minutes} minutes of cycling at an average ${watts} W, most of it in ${zoneName}.`
-        : t`${minutes} minutes of cycling at an average ${watts} W.`;
+    if (minutes && watts && zoneName) {
+      headline = t({
+        comment: 'Session headline; # is the number of minutes',
+        message: plural(minutes, {
+          one: `# minute of cycling at an average ${watts} W, most of it in ${zoneName}.`,
+          other: `# minutes of cycling at an average ${watts} W, most of it in ${zoneName}.`,
+        }),
+      });
+    } else if (minutes && watts) {
+      headline = t({
+        comment: 'Session headline; # is the number of minutes',
+        message: plural(minutes, {
+          one: `# minute of cycling at an average ${watts} W.`,
+          other: `# minutes of cycling at an average ${watts} W.`,
+        }),
+      });
     } else if (minutes && speed) {
-      headline = t`${minutes} minutes of cycling at an average ${speed} km/h.`;
+      headline = t({
+        comment: 'Session headline; # is the number of minutes',
+        message: plural(minutes, {
+          one: `# minute of cycling at an average ${speed} km/h.`,
+          other: `# minutes of cycling at an average ${speed} km/h.`,
+        }),
+      });
     } else if (minutes) {
-      headline = t`${minutes} minutes of cycling.`;
+      headline = t({
+        comment: 'Session headline; # is the number of minutes',
+        message: plural(minutes, {
+          one: '# minute of cycling.',
+          other: '# minutes of cycling.',
+        }),
+      });
     } else {
       headline = t`A cycling session.`;
     }
@@ -254,10 +301,19 @@ export default function SessionView({
   if (load.basis === 'srpe') derived.push('loadSrpe');
   if (load.basis === 'power') derived.push('loadPower');
 
-  const average =
-    computed && sport === 'erg'
-      ? computed.stats.pace500
-      : (computed?.stats.avgWatts ?? null);
+  // One average per quantity on the page: the dashed line on each chart is
+  // the figure the summary tile shows (the stored row), and only when the row
+  // has none does it fall back to the trace's own average.
+  const averages = computed
+    ? {
+        first:
+          sport === 'erg'
+            ? (summary.pace500 ?? computed.stats.pace500)
+            : (summary.avgWatts ?? computed.stats.avgWatts),
+        hr: summary.avgHr ?? computed.stats.avgHr,
+        rate: computed.stats.avgRate,
+      }
+    : null;
 
   let trace;
   if (seriesState.state === 'loading') {
@@ -270,7 +326,7 @@ export default function SessionView({
           sport={sport}
           has={has}
           zones={has.power ? zones : null}
-          average={average}
+          averages={averages}
           durationS={computed.stats.elapsedS}
           layout={layout}
         />
@@ -318,8 +374,9 @@ export default function SessionView({
       {trace}
       <ProvenanceNote
         source={series?.source ?? null}
+        rowSource={session.source ?? null}
         href={series?.info.href ?? null}
-        origin={series?.info.origin ?? null}
+        ownSummary={series?.info.ownSummary ?? null}
         measured={measured}
         derived={derived}
       />

@@ -12,7 +12,10 @@ describe('seriesFromStrava', () => {
     expect(s.channels.rate[0]).toBe(22);
     expect(s.channels.dist[9]).toBe(36);
     expect(s.channels.speed[0]).toBe(4);
-    expect(s.channels.moving[0]).toBe(true);
+    // The function sends moving as 0/1 numbers; the fixture pauses sample 4.
+    expect(s.channels.moving[0]).toBe(1);
+    expect(s.channels.moving[4]).toBe(0);
+    expect(s.live[4]).toBe(false);
     expect(s.has).toEqual({
       power: true,
       hr: true,
@@ -29,12 +32,24 @@ describe('seriesFromStrava', () => {
       elevationGainM: 0,
       calories: 300,
       device: 'Test Monitor',
-      origin: 'inserted',
+      ownSummary: false,
       ref: '987654',
       href: ACTIVITY_URL,
       fetchedAt: '2026-11-10T08:00:00Z',
     });
     expect(rangeStats(s, 'erg').avgWatts).toBe(170);
+  });
+
+  it("translates the importer's origin into the neutral ownSummary flag", () => {
+    const own = (origin) =>
+      seriesFromStrava({ ...stravaOkBody({ n: 3 }), origin }).info.ownSummary;
+    expect(own('adopted')).toBe(true);
+    expect(own('inserted')).toBe(false);
+    expect(own(undefined)).toBeNull();
+    expect(own('something else')).toBeNull();
+    expect('origin' in seriesFromStrava(stravaOkBody({ n: 3 })).info).toBe(
+      false
+    );
   });
 
   it('keeps the server-built url as info.href only when it is https', () => {

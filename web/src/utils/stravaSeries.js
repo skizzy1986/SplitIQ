@@ -42,7 +42,16 @@ export function seriesFromStrava(body) {
       elevationGainM: activity.total_elevation_gain_m ?? null,
       calories: activity.calories ?? null,
       device: activity.device_name ?? null,
-      origin: body.origin ?? null,
+      // The importer's words, translated here so neutral code never reads
+      // them: 'adopted' means the athlete's own logged row kept its summary
+      // and the trace was attached to it; 'inserted' means the import wrote
+      // the row.
+      ownSummary:
+        body.origin === 'adopted'
+          ? true
+          : body.origin === 'inserted'
+            ? false
+            : null,
       ref:
         body.strava_activity_id != null
           ? String(body.strava_activity_id)

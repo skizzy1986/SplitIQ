@@ -112,9 +112,16 @@ export async function clickAndSettle(
 // The session page against synthetic data: one completed erg row for
 // `sessionId` and a `strava-activity` answer with a 20-minute trace. Every
 // number is invented. Registered after stubSupabase, so it wins for these
-// two URLs (Playwright runs matching routes newest first).
+// URLs (Playwright runs matching routes newest first). With `inList`, every
+// other sessions read (the History lists) also returns the row, so a real
+// session link renders.
 export const SESSION_FIXTURE_ID = 2;
-export async function stubSessionPage(context, sessionId = SESSION_FIXTURE_ID) {
+export const SESSION_FIXTURE_LABEL = 'Synthetic steady row';
+export async function stubSessionPage(
+  context,
+  sessionId = SESSION_FIXTURE_ID,
+  { inList = false } = {}
+) {
   const cors = {
     'access-control-allow-origin': '*',
     'access-control-allow-headers': '*',
@@ -125,7 +132,7 @@ export async function stubSessionPage(context, sessionId = SESSION_FIXTURE_ID) {
     date: '6/14/26',
     date_iso: '2026-06-14',
     type: 'erg',
-    label: 'Synthetic steady row',
+    label: SESSION_FIXTURE_LABEL,
     duration: '20:00',
     srpe: 5,
     prs: null,
@@ -138,17 +145,20 @@ export async function stubSessionPage(context, sessionId = SESSION_FIXTURE_ID) {
     source: 'strava',
     strava_activity_id: 1000001,
   };
+  // `[?&]id=` so `user_id=eq.…` never matches as the row id.
+  const byId = new RegExp(`[?&]id=eq\\.${sessionId}(&|$)`);
   await context.route(
-    new RegExp(
-      `test-project\\.supabase\\.co/rest/v1/sessions\\?.*id=eq\\.${sessionId}`
-    ),
-    (route) =>
-      route.fulfill({
+    /test-project\.supabase\.co\/rest\/v1\/sessions\?/,
+    (route) => {
+      const url = route.request().url();
+      const hit = byId.test(url) || (inList && !/[?&]id=eq\./.test(url));
+      return route.fulfill({
         status: 200,
         contentType: 'application/json',
         headers: cors,
-        body: JSON.stringify([row]),
-      })
+        body: JSON.stringify(hit ? [row] : []),
+      });
+    }
   );
   const n = 1200;
   const time = Array.from({ length: n }, (_, i) => i);
@@ -179,7 +189,8 @@ export async function stubSessionPage(context, sessionId = SESSION_FIXTURE_ID) {
       heartrate: time.map((i) => 125 + Math.floor(i / 60)),
       cadence: time.map(() => 22),
       velocity_smooth: time.map(() => 4),
-      moving: time.map(() => true),
+      // Numbers, as the function sends them, with a 10 s pause at 10:00.
+      moving: time.map((i) => (i >= 600 && i < 610 ? 0 : 1)),
     },
   };
   await context.route(

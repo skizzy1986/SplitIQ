@@ -23,8 +23,9 @@ const SYNC_ID = 'session-trace';
 
 const tick = { fontSize: 9, fill: THEME.muted, fontFamily: FONT.mono };
 
-// Bounds from the data, padded so no line touches an edge.
-function domainOf(rows, key) {
+// Bounds from the data, padded so no line touches an edge. The average line
+// is included so it is never clipped. Null when the channel has no data.
+export function domainOf(rows, key, average = null) {
   let min = Infinity;
   let max = -Infinity;
   for (const r of rows) {
@@ -34,6 +35,10 @@ function domainOf(rows, key) {
     if (v > max) max = v;
   }
   if (!Number.isFinite(min)) return null;
+  if (average != null && Number.isFinite(average)) {
+    min = Math.min(min, average);
+    max = Math.max(max, average);
+  }
   const pad = Math.max((max - min) * 0.05, 2);
   return [Math.max(0, Math.floor(min - pad)), Math.ceil(max + pad)];
 }
@@ -41,7 +46,7 @@ function domainOf(rows, key) {
 // Zone bands in the first chart's units, clipped to its domain. Rowing bands
 // are drawn in pace (a higher watt bound is a faster pace), cycling in watts.
 // The top band is open-ended.
-function bandsFor(zones, sport, domain) {
+export function bandsFor(zones, sport, domain) {
   if (!zones || !domain) return [];
   const [lo, hi] = domain;
   const last = zones.length - 1;
@@ -157,27 +162,37 @@ function Chart({
 
 // The session's trace: up to three stacked charts over the same time axis —
 // pace (rowing) or power (cycling), heart rate, stroke rate or cadence. A
-// channel the series lacks draws no chart and one line says so.
+// channel the series lacks draws no chart and one line says so. Each chart
+// carries a dashed session-average line, and each chart's tooltip shows that
+// chart's own series, so the three synced tooltips together show every value
+// at the hovered instant once.
 //   rows: downsample(series, sport) · has: series.has · zones: the derived
-//   bands or null · average: the session average in chart 1's units, or null
+//   bands or null · averages: { first, hr, rate } in each chart's units, the
+//   same figures the summary shows, each null when unknown
 export default function SessionTrace({
   rows,
   sport,
   has,
   zones = null,
-  average = null,
+  averages = null,
   durationS = null,
   layout = 'desktop',
 }) {
   const { t } = useLingui();
   const height = layout === 'phone' ? 120 : 150;
-  const tooltip = <TraceTooltip rows={rows} sport={sport} has={has} />;
+  const tooltipFor = (chart) => (
+    <TraceTooltip rows={rows} sport={sport} has={has} chart={chart} />
+  );
   const over = formatClock(durationS ?? rows.at(-1)?.x ?? 0);
   const out = [];
+  const average = averages?.first ?? null;
+  const hrAverage = averages?.hr ?? null;
+  const rateAverage = averages?.rate ?? null;
 
   const firstKey = sport === 'erg' ? 'pace' : 'watts';
   const firstDomain =
-    sport === 'erg' || has.power ? domainOf(rows, firstKey) : null;
+    sport === 'erg' || has.power ? domainOf(rows, firstKey, average) : null;
+  const tooltip = tooltipFor('first');
   if (firstDomain && sport === 'erg') {
     const fast = formatPace(firstDomain[0]);
     const slow = formatPace(firstDomain[1]);
@@ -236,9 +251,10 @@ export default function SessionTrace({
     );
   }
 
-  const hrDomain = has.hr ? domainOf(rows, 'hr') : null;
+  const hrDomain = has.hr ? domainOf(rows, 'hr', hrAverage) : null;
   if (hrDomain) {
     const [lo, hi] = hrDomain;
+    const avg = hrAverage != null ? Math.round(hrAverage) : null;
     out.push(
       <Chart
         key="hr"
@@ -248,9 +264,14 @@ export default function SessionTrace({
         domain={hrDomain}
         format={(v) => `${Math.round(v)}`}
         unit="bpm"
-        label={t`Heart rate across ${over}, between ${lo} and ${hi} bpm.`}
+        label={
+          avg != null
+            ? t`Heart rate across ${over}, between ${lo} and ${hi} bpm; average ${avg} bpm.`
+            : t`Heart rate across ${over}, between ${lo} and ${hi} bpm.`
+        }
         height={height}
-        tooltip={tooltip}
+        tooltip={tooltipFor('hr')}
+        average={hrAverage}
       />
     );
   } else {
@@ -261,10 +282,23 @@ export default function SessionTrace({
     );
   }
 
-  const rateDomain = has.rate ? domainOf(rows, 'rate') : null;
+  const rateDomain = has.rate ? domainOf(rows, 'rate', rateAverage) : null;
   const rateUnit = sport === 'erg' ? 'spm' : 'rpm';
   if (rateDomain) {
     const [lo, hi] = rateDomain;
+    const avg = rateAverage != null ? Math.round(rateAverage) : null;
+    let label;
+    if (sport === 'erg') {
+      label =
+        avg != null
+          ? t`Stroke rate across ${over}, between ${lo} and ${hi} spm; average ${avg} spm.`
+          : t`Stroke rate across ${over}, between ${lo} and ${hi} spm.`;
+    } else {
+      label =
+        avg != null
+          ? t`Cadence across ${over}, between ${lo} and ${hi} rpm; average ${avg} rpm.`
+          : t`Cadence across ${over}, between ${lo} and ${hi} rpm.`;
+    }
     out.push(
       <Chart
         key="rate"
@@ -274,13 +308,10 @@ export default function SessionTrace({
         domain={rateDomain}
         format={(v) => `${Math.round(v)}`}
         unit={rateUnit}
-        label={
-          sport === 'erg'
-            ? t`Stroke rate across ${over}, between ${lo} and ${hi} spm.`
-            : t`Cadence across ${over}, between ${lo} and ${hi} rpm.`
-        }
+        label={label}
         height={height}
-        tooltip={tooltip}
+        tooltip={tooltipFor('rate')}
+        average={rateAverage}
       />
     );
   } else {

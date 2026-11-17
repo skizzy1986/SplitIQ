@@ -81,33 +81,40 @@ msgstr "{keep, plural, one {Se conservará {keep} sesión importada con tu propi
 msgid "{minutes, plural, one {{minutes} minute ago} other {{minutes} minutes ago}}"
 msgstr "{minutes, plural, one {hace {minutes} minuto} other {hace {minutes} minutos}}"
 
+#. Session headline; # is the number of minutes
 #: src/views/SessionView.jsx
-msgid "{minutes} minutes of cycling at an average {speed} km/h."
-msgstr "{minutes} minutos de ciclismo a un promedio de {speed} km/h."
+msgid "{minutes, plural, one {# minute of cycling at an average {speed} km/h.} other {# minutes of cycling at an average {speed} km/h.}}"
+msgstr "{minutes, plural, one {# minuto de ciclismo a un promedio de {speed} km/h.} other {# minutos de ciclismo a un promedio de {speed} km/h.}}"
 
+#. Session headline; # is the number of minutes
 #: src/views/SessionView.jsx
-msgid "{minutes} minutes of cycling at an average {watts} W, most of it in {zoneName}."
-msgstr "{minutes} minutos de ciclismo a un promedio de {watts} W, la mayor parte en {zoneName}."
+msgid "{minutes, plural, one {# minute of cycling at an average {watts} W, most of it in {zoneName}.} other {# minutes of cycling at an average {watts} W, most of it in {zoneName}.}}"
+msgstr "{minutes, plural, one {# minuto de ciclismo a un promedio de {watts} W, la mayor parte en {zoneName}.} other {# minutos de ciclismo a un promedio de {watts} W, la mayor parte en {zoneName}.}}"
 
+#. Session headline; # is the number of minutes
 #: src/views/SessionView.jsx
-msgid "{minutes} minutes of cycling at an average {watts} W."
-msgstr "{minutes} minutos de ciclismo a un promedio de {watts} W."
+msgid "{minutes, plural, one {# minute of cycling at an average {watts} W.} other {# minutes of cycling at an average {watts} W.}}"
+msgstr "{minutes, plural, one {# minuto de ciclismo a un promedio de {watts} W.} other {# minutos de ciclismo a un promedio de {watts} W.}}"
 
+#. Session headline; # is the number of minutes
 #: src/views/SessionView.jsx
-msgid "{minutes} minutes of cycling."
-msgstr "{minutes} minutos de ciclismo."
+msgid "{minutes, plural, one {# minute of cycling.} other {# minutes of cycling.}}"
+msgstr "{minutes, plural, one {# minuto de ciclismo.} other {# minutos de ciclismo.}}"
 
+#. Session headline; # is the number of minutes
 #: src/views/SessionView.jsx
-msgid "{minutes} minutes of rowing at an average {pace} /500 m, most of it in {zoneName}."
-msgstr "{minutes} minutos de remo a un ritmo promedio de {pace} /500 m, la mayor parte en {zoneName}."
+msgid "{minutes, plural, one {# minute of rowing at an average {pace} /500 m, most of it in {zoneName}.} other {# minutes of rowing at an average {pace} /500 m, most of it in {zoneName}.}}"
+msgstr "{minutes, plural, one {# minuto de remo a un ritmo promedio de {pace} /500 m, la mayor parte en {zoneName}.} other {# minutos de remo a un ritmo promedio de {pace} /500 m, la mayor parte en {zoneName}.}}"
 
+#. Session headline; # is the number of minutes
 #: src/views/SessionView.jsx
-msgid "{minutes} minutes of rowing at an average {pace} /500 m."
-msgstr "{minutes} minutos de remo a un ritmo promedio de {pace} /500 m."
+msgid "{minutes, plural, one {# minute of rowing at an average {pace} /500 m.} other {# minutes of rowing at an average {pace} /500 m.}}"
+msgstr "{minutes, plural, one {# minuto de remo a un ritmo promedio de {pace} /500 m.} other {# minutos de remo a un ritmo promedio de {pace} /500 m.}}"
 
+#. Session headline; # is the number of minutes
 #: src/views/SessionView.jsx
-msgid "{minutes} minutes of rowing."
-msgstr "{minutes} minutos de remo."
+msgid "{minutes, plural, one {# minute of rowing.} other {# minutes of rowing.}}"
+msgstr "{minutes, plural, one {# minuto de remo.} other {# minutos de remo.}}"
 
 #: src/utils/stravaDisconnect.js
 msgid "{restore, plural, one {Strava power and heart rate removed from {restore} session you logged yourself.} other {Strava power and heart rate removed from {restore} sessions you logged yourself.}}"
@@ -353,6 +360,10 @@ msgstr "cadencia"
 #: src/components/session/TraceTooltip.jsx
 msgid "Cadence"
 msgstr "Cadencia"
+
+#: src/components/session/SessionTrace.jsx
+msgid "Cadence across {over}, between {lo} and {hi} rpm; average {avg} rpm."
+msgstr "Cadencia durante {over}, entre {lo} y {hi} rpm; promedio {avg} rpm."
 
 #: src/components/session/SessionTrace.jsx
 msgid "Cadence across {over}, between {lo} and {hi} rpm."
@@ -730,6 +741,10 @@ msgid "Heart rate"
 msgstr "Frecuencia cardíaca"
 
 #: src/components/session/SessionTrace.jsx
+msgid "Heart rate across {over}, between {lo} and {hi} bpm; average {avg} bpm."
+msgstr "Frecuencia cardíaca durante {over}, entre {lo} y {hi} bpm; promedio {avg} bpm."
+
+#: src/components/session/SessionTrace.jsx
 msgid "Heart rate across {over}, between {lo} and {hi} bpm."
 msgstr "Frecuencia cardíaca durante {over}, entre {lo} y {hi} bpm."
 
@@ -1025,6 +1040,11 @@ msgstr "No se registró frecuencia de palada en esta sesión."
 #: src/utils/stravaStatus.js
 msgid "No successful sync in {span}"
 msgstr "Ninguna sincronización exitosa en {span}"
+
+#. Session page: the source has no trace for this session
+#: src/components/session/sourceCopy.js
+msgid "No trace was recorded for this session."
+msgstr "No se registró ningún trazado para esta sesión."
 
 #: src/views/PlanView.jsx
 msgid "No upcoming planned sessions."
@@ -1558,6 +1578,11 @@ msgstr "Strava no devolvió un código de autorización. Vuelve a iniciar la con
 msgid "Strava disconnected."
 msgstr "Strava desconectado."
 
+#. Session page: the activity exists but has no streams
+#: src/components/session/sourceCopy.js
+msgid "Strava holds no recorded trace for this activity."
+msgstr "Strava no tiene un trazado registrado para esta actividad."
+
 #: src/utils/stravaStatus.js
 msgid "Strava is having problems. The next sync will retry."
 msgstr "Strava tiene problemas. La próxima sincronización lo volverá a intentar."
@@ -1637,6 +1662,10 @@ msgstr "frecuencia de palada"
 #: src/components/session/TraceTooltip.jsx
 msgid "Stroke rate"
 msgstr "Frecuencia de palada"
+
+#: src/components/session/SessionTrace.jsx
+msgid "Stroke rate across {over}, between {lo} and {hi} spm; average {avg} spm."
+msgstr "Frecuencia de palada durante {over}, entre {lo} y {hi} spm; promedio {avg} spm."
 
 #: src/components/session/SessionTrace.jsx
 msgid "Stroke rate across {over}, between {lo} and {hi} spm."

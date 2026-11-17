@@ -16,7 +16,7 @@ describe('ProvenanceNote', () => {
       <ProvenanceNote
         source={series.source}
         href={series.info.href}
-        origin={series.info.origin}
+        ownSummary={series.info.ownSummary}
         measured={['power', 'hr', 'strokeRate']}
         derived={['pacePower', 'zonesCp', 'loadSrpe']}
       />
@@ -33,14 +33,25 @@ describe('ProvenanceNote', () => {
     expect(screen.getByText(/^Imported from Strava\./)).toBeInTheDocument();
     expect(
       screen.getByText(
-        'Measured by the device: power, heart rate, stroke rate.'
+        'Measured by the device: power, heart rate, and stroke rate.'
       )
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        'Derived here: pace from power, zones from your rowing CP anchor, load from your sRPE and duration.'
+        'Derived here: pace from power, zones from your rowing CP anchor, and load from your sRPE and duration.'
       )
     ).toBeInTheDocument();
+  });
+
+  it('says an imported session came from the import even with no trace', () => {
+    render(<ProvenanceNote source={null} rowSource="strava" measured={[]} />);
+    expect(screen.getByText('Imported from Strava.')).toBeInTheDocument();
+    expect(screen.queryByRole('link')).toBeNull();
+  });
+
+  it('says a session logged in the app is from the log when there is no trace', () => {
+    render(<ProvenanceNote source={null} rowSource="portal" />);
+    expect(screen.getByText('Summary from your log.')).toBeInTheDocument();
   });
 
   it('renders no link without an href, and keeps the provenance line and caption', () => {
@@ -48,7 +59,7 @@ describe('ProvenanceNote', () => {
       <ProvenanceNote
         source="strava"
         href={null}
-        origin="adopted"
+        ownSummary
         measured={['power']}
         derived={['loadSrpe']}
       />
@@ -65,7 +76,7 @@ describe('ProvenanceNote', () => {
   it('renders no link for an href that is not https', () => {
     for (const href of ['http://example.test/1', 'javascript:alert(1)', 42]) {
       const { unmount } = render(
-        <ProvenanceNote source="strava" href={href} origin="inserted" />
+        <ProvenanceNote source="strava" href={href} ownSummary={false} />
       );
       expect(screen.queryByRole('link'), String(href)).toBeNull();
       unmount();
@@ -84,7 +95,7 @@ describe('ProvenanceNote', () => {
     expect(screen.queryByRole('link')).toBeNull();
     expect(screen.getByText('Summary from your log.')).toBeInTheDocument();
     expect(
-      screen.getByText('Measured by the device: power, heart rate.')
+      screen.getByText('Measured by the device: power and heart rate.')
     ).toBeInTheDocument();
     expect(document.body.textContent).not.toMatch(/strava/i);
   });

@@ -5,7 +5,9 @@ import {
   ACTIVITY_URL,
   captureSeries,
   ergRow,
+  spoken,
   stravaOkBody,
+  traceStates,
 } from '../../test/sessionFixtures.js';
 
 vi.mock('recharts', () => import('../../test/rechartsStub.jsx'));
@@ -70,6 +72,8 @@ const view = (props = {}) =>
 const VERDICT =
   /\b(should|must|too|good|bad|great|poor|better|worse|need to|try|keep it|well done|excellent)\b/i;
 
+const STATES = traceStates();
+
 describe('SessionView — ready, at the simple depth', () => {
   it('shows a headline, the summary, the trace and time in zone', () => {
     view();
@@ -117,9 +121,49 @@ describe('SessionView — ready, at the simple depth', () => {
     ).toBeInTheDocument();
   });
 
-  it('describes, and never judges or instructs', () => {
-    const { container } = view();
-    expect(container.textContent).not.toMatch(VERDICT);
+  it('uses a singular for one minute', () => {
+    mocks.detail = detail(ergRow({ duration: '1:00', distance_m: 240 }));
+    view();
+    expect(
+      screen.getByText('1 minute of rowing at an average 2:05.0 /500 m.')
+    ).toBeInTheDocument();
+  });
+
+  it('draws each chart’s dashed average at the figure the summary shows', () => {
+    // The stored row says 7000 m in 30:00 (2:08.6) and 140 bpm; the trace on
+    // its own would say 2:05.0. The page shows one average per quantity.
+    mocks.detail = detail(ergRow({ distance_m: 7000, avg_hr: 140 }));
+    view();
+    expect(document.querySelector('[data-tile="pace"]')).toHaveTextContent(
+      '2:08.6 /500 m'
+    );
+    const [paceLine, hrLine, rateLine] = screen.getAllByTestId('avg-line');
+    expect(Number(paceLine.dataset.y)).toBeCloseTo((500 * 1800) / 7000);
+    expect(Number(hrLine.dataset.y)).toBe(140);
+    // No stored rate: the trace's own average.
+    expect(Number(rateLine.dataset.y)).toBe(22);
+    expect(screen.getAllByRole('img')[0].getAttribute('aria-label')).toMatch(
+      /average 2:08\.6\.$/
+    );
+  });
+
+  it('falls back to the trace average when the stored row has none', () => {
+    mocks.detail = detail(
+      ergRow({ distance_m: null, avg_watts: null, avg_hr: null })
+    );
+    view();
+    const [paceLine, hrLine] = screen.getAllByTestId('avg-line');
+    expect(Number(paceLine.dataset.y)).toBeCloseTo(125, 0);
+    expect(Number(hrLine.dataset.y)).toBeGreaterThan(130);
+  });
+
+  it('describes, and never judges or instructs, in any state, aria-labels included', () => {
+    for (const state of STATES) {
+      mocks.series = state;
+      const { container, unmount } = view();
+      expect(spoken(container), state.state).not.toMatch(VERDICT);
+      unmount();
+    }
   });
 
   it('grounds power against the athlete’s own prior 30 days', () => {
@@ -189,7 +233,10 @@ describe('SessionView — states, none drawing a chart', () => {
     expect(charts()).toHaveLength(0);
   });
 
-  it('summary only', () => {
+  it('summary only, for a session logged in the app', () => {
+    mocks.detail = detail(
+      ergRow({ source: 'portal', strava_activity_id: null })
+    );
     mocks.series = seriesState('none');
     view();
     expect(
@@ -199,6 +246,41 @@ describe('SessionView — states, none drawing a chart', () => {
     ).toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'Summary' })).toBeInTheDocument();
     expect(screen.getByText('Summary from your log.')).toBeInTheDocument();
+    expect(charts()).toHaveLength(0);
+  });
+
+  it('an imported session says so with no trace, loading, unavailable or errored', () => {
+    for (const state of [
+      seriesState('none'),
+      seriesState('loading', { source: 'strava' }),
+      seriesState('unavailable', { source: 'strava', reason: 'gone' }),
+      seriesState('error', { source: 'strava' }),
+    ]) {
+      mocks.series = state;
+      const { unmount } = view();
+      expect(
+        screen.getByText('Imported from Strava.'),
+        state.state
+      ).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'View on Strava' })).toBeNull();
+      unmount();
+    }
+  });
+
+  it('an activity with no recorded trace is worded apart from no linked activity', () => {
+    mocks.series = seriesState('none', {
+      source: 'strava',
+      reason: 'no_trace',
+    });
+    view();
+    expect(
+      screen.getByText('Strava holds no recorded trace for this activity.')
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(
+        'This session has a summary only; no trace is linked to it.'
+      )
+    ).toBeNull();
     expect(charts()).toHaveLength(0);
   });
 
@@ -276,6 +358,62 @@ describe('SessionView — states, none drawing a chart', () => {
       )
     ).toBeInTheDocument();
     expect(screen.queryByTestId('band')).toBeNull();
+  });
+});
+
+describe('SessionView — a ride', () => {
+  // A synthetic ride: 40 minutes at a steady 200 W, FTP 250 (Z3 tempo).
+  const ride = () =>
+    createSeries({
+      source: 'strava',
+      t: Array.from({ length: 2401 }, (_, i) => i),
+      channels: {
+        watts: Array(2401).fill(200),
+        hr: Array(2401).fill(140),
+        rate: Array(2401).fill(88),
+        dist: Array.from({ length: 2401 }, (_, i) => i * 8),
+        speed: Array(2401).fill(8),
+      },
+    });
+
+  it('draws power with FTP zones and says so in the headline', () => {
+    mocks.detail = detail(
+      ergRow({
+        type: 'cycling',
+        label: 'Tempo ride',
+        duration: '40:00',
+        distance_m: 19200,
+        avg_watts: 200,
+        srpe: null,
+      })
+    );
+    mocks.series = ready(ride());
+    view();
+    expect(
+      screen.getByText(
+        '40 minutes of cycling at an average 200 W, most of it in Z3 Tempo.'
+      )
+    ).toBeInTheDocument();
+    expect(screen.getAllByTestId('y-axis').map((a) => a.dataset.unit)).toEqual([
+      'W',
+      'bpm',
+      'rpm',
+    ]);
+    expect(screen.getAllByTestId('band')).toHaveLength(
+      screen.getAllByTestId('band').length
+    );
+    expect(screen.getAllByTestId('band').length).toBeGreaterThan(0);
+    expect(
+      screen.getByText('Zones from your bike FTP, 250 W (provisional).')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Scored from average power 200 W against your bike FTP 250 W (intensity 0.80).'
+      )
+    ).toBeInTheDocument();
+    expect(document.querySelector('[data-tile="speed"]')).toHaveTextContent(
+      '28.8 km/h'
+    );
   });
 });
 

@@ -53,6 +53,51 @@ describe('SessionSummary', () => {
     ).toBeInTheDocument();
   });
 
+  it.each([
+    [
+      'no_duration',
+      ergRow({ duration: null, srpe: null }),
+      'erg',
+      'Not scored: no duration is recorded.',
+    ],
+    [
+      'no_anchor (rowing)',
+      ergRow({ srpe: null, avg_watts: 180 }),
+      'erg',
+      'Not scored: no sRPE, and no rowing CP anchor to measure power against.',
+      { cp: null, ftp: 250 },
+    ],
+    [
+      'no_anchor (cycling)',
+      ergRow({ type: 'cycling', srpe: null, avg_watts: 180 }),
+      'cycling',
+      'Not scored: no sRPE, and no bike FTP anchor to measure power against.',
+      { cp: 200, ftp: null },
+    ],
+    [
+      'no_power_model',
+      ergRow({ type: 'strength', srpe: null }),
+      'erg',
+      'Not scored: no sRPE, and this session type has no power model.',
+    ],
+    [
+      'power against bike FTP',
+      ergRow({ type: 'cycling', srpe: null, avg_watts: 200 }),
+      'cycling',
+      'Scored from average power 200 W against your bike FTP 250 W (intensity 0.80).',
+    ],
+  ])('words the load basis: %s', (_name, session, sport, text, anchors) => {
+    render(
+      <SessionSummary
+        session={session}
+        sport={sport}
+        summary={storedSummary(session, sport)}
+        load={sessionLoadBasis(session, anchors ?? ANCHORS)}
+      />
+    );
+    expect(within(tile('load')).getByText(text)).toBeInTheDocument();
+  });
+
   it('shows cycling speed, not pace', () => {
     renderSummary(
       ergRow({ type: 'cycling', duration: '60:00', distance_m: 30000 }),

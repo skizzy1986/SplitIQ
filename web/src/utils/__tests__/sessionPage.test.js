@@ -1,7 +1,9 @@
 import {
   SESSION_ID_RE,
   canOpenSessionPage,
+  focusSessionLink,
   formatClock,
+  httpsUrlOrNull,
   parseSessionId,
   recentPowerBaseline,
   sessionHref,
@@ -154,6 +156,55 @@ describe('storedSummary', () => {
       distanceM: null,
       srpe: null,
     });
+  });
+});
+
+describe('focusSessionLink', () => {
+  it('focuses the link now, or within a few frames once it mounts', () => {
+    const frames = [];
+    const win = {
+      document,
+      requestAnimationFrame: (fn) => frames.push(fn),
+    };
+    focusSessionLink(31, { win });
+    expect(frames).toHaveLength(1);
+    const a = document.createElement('a');
+    a.setAttribute('href', '#/session/31');
+    a.setAttribute('data-session-link', '31');
+    document.body.appendChild(a);
+    try {
+      frames.shift()();
+      expect(a).toHaveFocus();
+    } finally {
+      a.remove();
+    }
+  });
+
+  it('gives up after its frames run out', () => {
+    const frames = [];
+    const win = { document, requestAnimationFrame: (fn) => frames.push(fn) };
+    focusSessionLink(99, { win, frames: 2 });
+    while (frames.length) frames.shift()();
+    // Two retries after the first look, then nothing more is scheduled.
+    expect(frames).toHaveLength(0);
+  });
+});
+
+describe('httpsUrlOrNull', () => {
+  it('keeps an https URL and nothing else', () => {
+    expect(httpsUrlOrNull('https://example.test/a')).toBe(
+      'https://example.test/a'
+    );
+    for (const v of [
+      'http://example.test/a',
+      'javascript:alert(1)',
+      'nope',
+      '',
+      null,
+      7,
+    ]) {
+      expect(httpsUrlOrNull(v), String(v)).toBeNull();
+    }
   });
 });
 

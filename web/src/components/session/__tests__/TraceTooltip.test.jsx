@@ -37,6 +37,64 @@ describe('TraceTooltip', () => {
     expect(screen.getByText('Stroke rate')).toBeInTheDocument();
   });
 
+  it('each chart shows its own series, so the three synced tooltips show each value once', () => {
+    const shown = {};
+    for (const chart of ['first', 'hr', 'rate']) {
+      const { container, unmount } = render(
+        <TraceTooltip
+          active
+          activeIndex="1"
+          rows={rows}
+          sport="erg"
+          has={has}
+          chart={chart}
+        />
+      );
+      shown[chart] = container.textContent;
+      // Every tooltip carries the time.
+      expect(container.textContent).toContain('1:05');
+      unmount();
+    }
+    expect(shown.first).toMatch(/Pace.*\/500 m.*Power200 W/);
+    expect(shown.first).not.toMatch(/bpm|spm/);
+    expect(shown.hr).toMatch(/Heart rate150 bpm/);
+    expect(shown.hr).not.toMatch(/W|spm/);
+    expect(shown.rate).toMatch(/Stroke rate26 spm/);
+    expect(shown.rate).not.toMatch(/bpm|\/500/);
+  });
+
+  it('shows cycling speed whenever a speed channel exists, distance or not', () => {
+    const noDistance = { ...has, distance: false };
+    const { container } = render(
+      <TraceTooltip
+        active
+        activeIndex={0}
+        rows={rows}
+        sport="cycling"
+        has={noDistance}
+        chart="first"
+      />
+    );
+    expect(container.textContent).toContain('14.4 km/h');
+    expect(container.textContent).toContain('150 W');
+  });
+
+  it('a ride with no power carries its speed on the heart-rate chart', () => {
+    const noPower = { ...has, power: false };
+    const { container } = render(
+      <TraceTooltip
+        active
+        activeIndex={0}
+        rows={rows}
+        sport="cycling"
+        has={noPower}
+        chart="hr"
+      />
+    );
+    expect(container.textContent).toContain('14.4 km/h');
+    expect(container.textContent).toContain('120 bpm');
+  });
+
   it('names cadence and speed on a ride', () => {
     render(
       <TraceTooltip

@@ -4,6 +4,7 @@ import { THEME } from '../../constants/theme.js';
 import { SPACE, TYPE } from '../../constants/tokens.js';
 import { FONT } from '../../constants/type.js';
 import { provenanceCopy } from './sourceCopy.js';
+import { dateLocale } from '../../utils/displayLocale.js';
 
 const MEASURED = {
   power: msg({ message: 'power', comment: 'Session caption list item' }),
@@ -58,20 +59,30 @@ const captionStyle = {
 // Where the session's data came from, and which numbers were measured by a
 // device against which were derived here. Source-neutral: the words that name
 // a source come from sourceCopy.js.
+//   source: the trace's source, or null with no trace
+//   rowSource: where the session row itself came from, worded when there is
+//   no trace so an imported session still says so
 export default function ProvenanceNote({
   source = null,
+  rowSource = null,
   href = null,
-  origin = null,
+  ownSummary = null,
   measured = [],
   derived = [],
 }) {
   const { t, i18n } = useLingui();
-  const copy = provenanceCopy(source, { href, origin });
-  const list = (keys, table) =>
-    keys
-      .filter((k) => table[k])
-      .map((k) => i18n._(table[k]))
-      .join(', ');
+  const copy = source
+    ? provenanceCopy(source, { href, ownSummary })
+    : provenanceCopy(rowSource, {});
+  // The list joins in the reader's language ("a, b and c" / "a, b y c").
+  const list = (keys, table) => {
+    const items = keys.filter((k) => table[k]).map((k) => i18n._(table[k]));
+    if (typeof Intl.ListFormat !== 'function') return items.join(', ');
+    return new Intl.ListFormat(dateLocale(i18n.locale, 'en'), {
+      style: 'long',
+      type: 'conjunction',
+    }).format(items);
+  };
   const measuredText = list(measured, MEASURED);
   const derivedText = list(derived, DERIVED);
   return (

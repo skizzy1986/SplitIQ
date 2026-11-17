@@ -62,11 +62,20 @@ describe('useSessionSeries', () => {
 
   it('maps not_linked and an ok without streams to none', () => {
     strava.mockReturnValue(query({ data: { status: 'not_linked' } }));
-    expect(run(ergRow()).current.state).toBe('none');
+    expect(run(ergRow()).current).toMatchObject({
+      state: 'none',
+      reason: null,
+      source: null,
+    });
+    // An answer with no streams: the activity exists and holds no trace.
     strava.mockReturnValue(
       query({ data: { ...stravaOkBody(), streams: null } })
     );
-    expect(run(ergRow()).current.state).toBe('none');
+    expect(run(ergRow()).current).toMatchObject({
+      state: 'none',
+      reason: 'no_trace',
+      source: 'strava',
+    });
   });
 
   it.each([

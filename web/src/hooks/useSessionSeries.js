@@ -20,7 +20,8 @@ const STRAVA_UNAVAILABLE = {
 // calls a source's hook itself. Returns
 //   { state, reason, source, series, retryAt, refetch }
 // state: 'none' (no series source for this session) | 'loading' | 'ready' |
-//        'unavailable' (with reason) | 'error'.
+//        'unavailable' (with reason) | 'error'. A 'none' with reason
+//        'no_trace' means the source answered and holds no trace.
 //
 // One branch today, Strava. Data the app captures itself (the PM5 now, other
 // devices later) becomes a branch IN FRONT of it, preferred when both exist:
@@ -70,9 +71,11 @@ export function useSessionSeries(session) {
       if (built.error) {
         return result('error', { source: 'strava', refetch: retry });
       }
+      // An answer with no streams is not "no source": the activity exists
+      // and holds no trace, which the page words differently.
       return built.series
         ? result('ready', { source: 'strava', series: built.series })
-        : result('none', { source: 'strava' });
+        : result('none', { source: 'strava', reason: 'no_trace' });
     }
     const reason = STRAVA_UNAVAILABLE[body.status];
     if (reason) {

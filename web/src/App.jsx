@@ -12,6 +12,7 @@ import { useSessions } from './hooks/useSessions.js';
 import { selectSessionLog } from './utils/sessionLog.js';
 import { useDesktopRoute } from './hooks/useDesktopRoute.js';
 import { DESKTOP_PANES } from './utils/desktopRoute.js';
+import { focusSessionLink } from './utils/sessionPage.js';
 import { DESTINATIONS } from './constants/destinations.js';
 import { RADIUS, SPACE, TYPE } from './constants/tokens.js';
 import Icon from './components/Icon.jsx';
@@ -53,15 +54,6 @@ const PlanView = lazy(() => import('./views/PlanView.jsx'));
 const LogView = lazy(() => import('./views/LogView.jsx'));
 const SettingsView = lazy(() => import('./views/SettingsView.jsx'));
 const SessionView = lazy(() => import('./views/SessionView.jsx'));
-
-// After leaving a session page, put focus back on the link that opened it.
-// The list it lives in may still be mounting, so look for a few frames.
-function focusSessionLink(id, frames = 10) {
-  const el = document.querySelector(`[data-session-link="${id}"]`);
-  if (el) el.focus();
-  else if (frames > 0)
-    window.requestAnimationFrame(() => focusSessionLink(id, frames - 1));
-}
 
 // ── ERROR BOUNDARY (beta hardening) ───────────────────────────
 // Isolates render failures so one bad tab doesn't white-screen the app.
@@ -162,22 +154,26 @@ export default function App({ sidebarFoot = null }) {
   const returnRoute = useRef('today');
   const previousRoute = useRef(route.path);
   const previousSession = useRef(null);
-  // Whether the open session page was reached from inside the app (so Back
-  // can pop history) rather than by a deep link or reload.
+  // Whether the open session page was reached by navigating inside the app
+  // (so Back can pop history) rather than by a deep link or reload. Set only
+  // when the path actually changes, so StrictMode's double effect run on mount
+  // cannot set it. A trip to Settings and back keeps it as it was.
   const sessionFromApp = useRef(false);
-  const firstRoute = useRef(true);
   useEffect(() => {
+    const from = previousRoute.current;
+    const changed = from !== route.path;
     if (route.pane === 'session') {
-      sessionFromApp.current = !firstRoute.current;
+      if (changed && from !== 'settings') sessionFromApp.current = true;
     } else if (route.path !== 'settings') {
-      if (previousRoute.current === 'settings') settingsRef.current?.focus();
+      if (from === 'settings') settingsRef.current?.focus();
       if (previousSession.current != null)
         focusSessionLink(previousSession.current);
-      returnRoute.current = route.path;
+      sessionFromApp.current = false;
     }
+    // Settings returns to wherever it was opened from, a session page included.
+    if (route.path !== 'settings') returnRoute.current = route.path;
     previousRoute.current = route.path;
     previousSession.current = route.sessionId ?? null;
-    firstRoute.current = false;
   }, [route.path, route.pane, route.sessionId]);
   const leaveSession = () => {
     if (sessionFromApp.current) window.history.back();

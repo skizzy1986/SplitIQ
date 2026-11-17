@@ -42,7 +42,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `hdxhKx` | We could not sign you in. Try again. | No pudimos iniciar sesión. Inténtalo de nuevo. | Login error for any unrecognised cause. Only shown in Spanish. · src/utils/authError.js |
 | `y1oEoC` | Wrong email or password. | Correo o contraseña incorrectos. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
 
-## Dashboard views (src/locales/views, 433 strings)
+## Dashboard views (src/locales/views, 438 strings)
 
 | Row | English | Español | Where / note |
 |---|---|---|---|
@@ -64,13 +64,13 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `dgqjPM` | {keep, plural, one {{keep} imported session kept, without Strava power and heart rate.} other {{keep} imported sessions kept, without Strava power and heart rate.}} | {keep, plural, one {Se conservó {keep} sesión importada, sin la potencia ni la frecuencia cardíaca de Strava.} other {Se conservaron {keep} sesiones importadas, sin la potencia ni la frecuencia cardíaca de Strava.}} | src/utils/stravaDisconnect.js |
 | `kJOby-` | {keep, plural, one {{keep} imported session with your own sRPE or notes will be kept, without Strava power and heart rate.} other {{keep} imported sessions with your own sRPE or notes will be kept, without Strava power and heart rate.}} | {keep, plural, one {Se conservará {keep} sesión importada con tu propio sRPE o tus notas, sin la potencia ni la frecuencia cardíaca de Strava.} other {Se conservarán {keep} sesiones importadas con tu propio sRPE o tus notas, sin la potencia ni la frecuencia cardíaca de Strava.}} | src/utils/stravaDisconnect.js |
 | `mJpJDC` | {minutes, plural, one {{minutes} minute ago} other {{minutes} minutes ago}} | {minutes, plural, one {hace {minutes} minuto} other {hace {minutes} minutos}} | src/utils/stravaStatus.js |
-| `PunNSS` | {minutes} minutes of cycling at an average {speed} km/h. | {minutes} minutos de ciclismo a un promedio de {speed} km/h. | src/views/SessionView.jsx |
-| `lL7ztB` | {minutes} minutes of cycling at an average {watts} W, most of it in {zoneName}. | {minutes} minutos de ciclismo a un promedio de {watts} W, la mayor parte en {zoneName}. | src/views/SessionView.jsx |
-| `IsFkL8` | {minutes} minutes of cycling at an average {watts} W. | {minutes} minutos de ciclismo a un promedio de {watts} W. | src/views/SessionView.jsx |
-| `1wdm4T` | {minutes} minutes of cycling. | {minutes} minutos de ciclismo. | src/views/SessionView.jsx |
-| `Z_8Z-x` | {minutes} minutes of rowing at an average {pace} /500 m, most of it in {zoneName}. | {minutes} minutos de remo a un ritmo promedio de {pace} /500 m, la mayor parte en {zoneName}. | src/views/SessionView.jsx |
-| `OlzhtN` | {minutes} minutes of rowing at an average {pace} /500 m. | {minutes} minutos de remo a un ritmo promedio de {pace} /500 m. | src/views/SessionView.jsx |
-| `WPdKkl` | {minutes} minutes of rowing. | {minutes} minutos de remo. | src/views/SessionView.jsx |
+| `lLqGYe` | {minutes, plural, one {# minute of cycling at an average {speed} km/h.} other {# minutes of cycling at an average {speed} km/h.}} | {minutes, plural, one {# minuto de ciclismo a un promedio de {speed} km/h.} other {# minutos de ciclismo a un promedio de {speed} km/h.}} | Session headline; # is the number of minutes · src/views/SessionView.jsx |
+| `AsyQBW` | {minutes, plural, one {# minute of cycling at an average {watts} W, most of it in {zoneName}.} other {# minutes of cycling at an average {watts} W, most of it in {zoneName}.}} | {minutes, plural, one {# minuto de ciclismo a un promedio de {watts} W, la mayor parte en {zoneName}.} other {# minutos de ciclismo a un promedio de {watts} W, la mayor parte en {zoneName}.}} | Session headline; # is the number of minutes · src/views/SessionView.jsx |
+| `1IOepC` | {minutes, plural, one {# minute of cycling at an average {watts} W.} other {# minutes of cycling at an average {watts} W.}} | {minutes, plural, one {# minuto de ciclismo a un promedio de {watts} W.} other {# minutos de ciclismo a un promedio de {watts} W.}} | Session headline; # is the number of minutes · src/views/SessionView.jsx |
+| `O4ccqh` | {minutes, plural, one {# minute of cycling.} other {# minutes of cycling.}} | {minutes, plural, one {# minuto de ciclismo.} other {# minutos de ciclismo.}} | Session headline; # is the number of minutes · src/views/SessionView.jsx |
+| `Z6xZqk` | {minutes, plural, one {# minute of rowing at an average {pace} /500 m, most of it in {zoneName}.} other {# minutes of rowing at an average {pace} /500 m, most of it in {zoneName}.}} | {minutes, plural, one {# minuto de remo a un ritmo promedio de {pace} /500 m, la mayor parte en {zoneName}.} other {# minutos de remo a un ritmo promedio de {pace} /500 m, la mayor parte en {zoneName}.}} | Session headline; # is the number of minutes · src/views/SessionView.jsx |
+| `x_sOPA` | {minutes, plural, one {# minute of rowing at an average {pace} /500 m.} other {# minutes of rowing at an average {pace} /500 m.}} | {minutes, plural, one {# minuto de remo a un ritmo promedio de {pace} /500 m.} other {# minutos de remo a un ritmo promedio de {pace} /500 m.}} | Session headline; # is the number of minutes · src/views/SessionView.jsx |
+| `l0vEpY` | {minutes, plural, one {# minute of rowing.} other {# minutes of rowing.}} | {minutes, plural, one {# minuto de remo.} other {# minutos de remo.}} | Session headline; # is the number of minutes · src/views/SessionView.jsx |
 | `PhnrbH` | {restore, plural, one {Strava power and heart rate removed from {restore} session you logged yourself.} other {Strava power and heart rate removed from {restore} sessions you logged yourself.}} | {restore, plural, one {Se quitaron la potencia y la frecuencia cardíaca de Strava de {restore} sesión que registraste tú.} other {Se quitaron la potencia y la frecuencia cardíaca de Strava de {restore} sesiones que registraste tú.}} | src/utils/stravaDisconnect.js |
 | `nOVWI9` | {restore, plural, one {Strava power and heart rate will be removed from {restore} session you logged yourself.} other {Strava power and heart rate will be removed from {restore} sessions you logged yourself.}} | {restore, plural, one {Se quitarán la potencia y la frecuencia cardíaca de Strava de {restore} sesión que registraste tú.} other {Se quitarán la potencia y la frecuencia cardíaca de Strava de {restore} sesiones que registraste tú.}} | src/utils/stravaDisconnect.js |
 | `CJAViv` | {unlink, plural, one {{unlink} session kept as it was, with the Strava link removed.} other {{unlink} sessions kept as they were, with the Strava link removed.}} | {unlink, plural, one {Se conservó {unlink} sesión tal como estaba, sin el vínculo con Strava.} other {Se conservaron {unlink} sesiones tal como estaban, sin el vínculo con Strava.}} | src/utils/stravaDisconnect.js |
@@ -125,6 +125,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `e0F-Wf` | BODYWEIGHT — 14 DAYS (kg) | PESO CORPORAL — 14 DÍAS (kg) | Chart title, all capitals; kg stays as is · src/views/mobile/MobileRecovery.jsx |
 | `khJ5Qr` | cadence | cadencia | Session caption list item · src/components/session/ProvenanceNote.jsx |
 | `4VcKfR` | Cadence | Cadencia | src/components/session/TraceTooltip.jsx |
+| `m-qgkw` | Cadence across {over}, between {lo} and {hi} rpm; average {avg} rpm. | Cadencia durante {over}, entre {lo} y {hi} rpm; promedio {avg} rpm. | src/components/session/SessionTrace.jsx |
 | `i6NHwE` | Cadence across {over}, between {lo} and {hi} rpm. | Cadencia durante {over}, entre {lo} y {hi} rpm. | src/components/session/SessionTrace.jsx |
 | `AjVXBS` | Calendar | Calendario | Desktop Today pane · src/App.jsx · src/views/CalendarView.jsx |
 | `9P5ptB` | Calories | Calorías | src/components/session/SessionSummary.jsx |
@@ -204,6 +205,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `3QkZCj` | HDL Cholesterol (male) | Colesterol HDL (hombres) | Blood lipid marker; decision limit for men · src/utils/healthRecords.js |
 | `MP7nnS` | heart rate | frecuencia cardíaca | Session caption list item · src/components/session/ProvenanceNote.jsx |
 | `bcsF7s` | Heart rate | Frecuencia cardíaca | src/components/session/TraceTooltip.jsx |
+| `8HLv9p` | Heart rate across {over}, between {lo} and {hi} bpm; average {avg} bpm. | Frecuencia cardíaca durante {over}, entre {lo} y {hi} bpm; promedio {avg} bpm. | src/components/session/SessionTrace.jsx |
 | `K7-s0i` | Heart rate across {over}, between {lo} and {hi} bpm. | Frecuencia cardíaca durante {over}, entre {lo} y {hi} bpm. | src/components/session/SessionTrace.jsx |
 | `qGrPbG` | High fatigue — recent load well above fitness | Fatiga alta: la carga reciente supera de lejos tu estado físico | Training form (TSB) band · src/utils/trainingLoad.js |
 | `0caMy7` | History | Historial | Desktop Progress pane · Progress sub-tab: past sessions · src/App.jsx · src/views/LogView.jsx · src/views/mobile/MobileProgress.jsx |
@@ -268,6 +270,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `MtucEn` | No sessions logged yet. | Todavía no hay sesiones registradas. | src/views/mobile/MobileToday.jsx |
 | `CW-aXj` | No stroke rate was recorded for this session. | No se registró frecuencia de palada en esta sesión. | src/components/session/SessionTrace.jsx |
 | `x9cgKh` | No successful sync in {span} | Ninguna sincronización exitosa en {span} | src/utils/stravaStatus.js |
+| `O_dOpr` | No trace was recorded for this session. | No se registró ningún trazado para esta sesión. | Session page: the source has no trace for this session · src/components/session/sourceCopy.js |
 | `WUxHQb` | No upcoming planned sessions. | No hay sesiones planificadas próximas. | src/views/PlanView.jsx |
 | `3jc046` | No upcoming sessions | No hay sesiones próximas | src/views/mobile/MobileAnalytics.jsx |
 | `GDcDFt` | No vitals recorded yet | Todavía no hay signos vitales registrados | src/views/mobile/MobileRecovery.jsx |
@@ -380,6 +383,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `AvqYwe` | Strava did not confirm the revocation. Remove SplitIQ in Strava → Settings → My Apps. | Strava no confirmó la revocación. Quita SplitIQ en Strava → Ajustes → Mis aplicaciones. | src/utils/stravaDisconnect.js |
 | `JNZ_Bm` | Strava did not send back an authorisation code. Start the connection again. | Strava no devolvió un código de autorización. Vuelve a iniciar la conexión. | src/utils/stravaCallback.js |
 | `mfKYxJ` | Strava disconnected. | Strava desconectado. | src/utils/stravaDisconnect.js |
+| `E5sx9y` | Strava holds no recorded trace for this activity. | Strava no tiene un trazado registrado para esta actividad. | Session page: the activity exists but has no streams · src/components/session/sourceCopy.js |
 | `mlUx6O` | Strava is having problems. The next sync will retry. | Strava tiene problemas. La próxima sincronización lo volverá a intentar. | src/utils/stravaStatus.js |
 | `4wChfP` | Strava is not connected, so there is no trace for this session. | Strava no está conectado, así que no hay trazado para esta sesión. | Session page: trace unavailable · src/components/session/sourceCopy.js |
 | `gU7drG` | Strava limits how many activities can be read in a given period. Nothing was lost; importing continues from where it stopped. | Strava limita cuántas actividades se pueden leer en un periodo determinado. No se perdió nada; la importación sigue desde donde se detuvo. | src/utils/stravaStatus.js |
@@ -397,6 +401,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `_Wuql6` | Strength session | Sesión de fuerza | Start a strength session · src/views/mobile/MobileTrain.jsx |
 | `QDjyW8` | stroke rate | frecuencia de palada | Session caption list item · src/components/session/ProvenanceNote.jsx |
 | `-BAPZk` | Stroke rate | Frecuencia de palada | src/components/session/TraceTooltip.jsx |
+| `RPrXl-` | Stroke rate across {over}, between {lo} and {hi} spm; average {avg} spm. | Frecuencia de palada durante {over}, entre {lo} y {hi} spm; promedio {avg} spm. | src/components/session/SessionTrace.jsx |
 | `N-bc9S` | Stroke rate across {over}, between {lo} and {hi} spm. | Frecuencia de palada durante {over}, entre {lo} y {hi} spm. | src/components/session/SessionTrace.jsx |
 | `iOPXuJ` | SUBMIT SESSION | ENVIAR SESIÓN | Button, all capitals · src/components/LogSessionForm.jsx |
 | `dXoieq` | Summary | Resumen | src/components/session/SessionSummary.jsx |

@@ -31,9 +31,15 @@ export const YAxis = ({ reversed, label, domain }) => (
   />
 );
 export const Tooltip = ({ content }) => (
-  <span data-testid="tooltip" data-custom={String(!!content)} />
+  <span
+    data-testid="tooltip"
+    data-custom={String(!!content)}
+    data-chart={content?.props?.chart ?? ''}
+  />
 );
-export const ReferenceArea = () => <span data-testid="band" />;
-export const ReferenceLine = ({ strokeDasharray }) => (
-  <span data-testid="avg-line" data-dash={strokeDasharray} />
+export const ReferenceArea = ({ y1, y2, fill }) => (
+  <span data-testid="band" data-y1={y1} data-y2={y2} data-fill={fill} />
+);
+export const ReferenceLine = ({ y, strokeDasharray }) => (
+  <span data-testid="avg-line" data-y={y} data-dash={strokeDasharray} />
 );

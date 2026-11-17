@@ -1,6 +1,46 @@
 // Synthetic fixtures for the session page tests. Every id and number is
 // invented; none comes from a real session or a real Strava activity.
 import { createSeries } from '../utils/sessionSeries.js';
+import { seriesFromStrava } from '../utils/stravaSeries.js';
+
+// Everything a reader or a screen reader gets from a rendered page: the text
+// and every aria-label.
+export const spoken = (container) =>
+  [
+    container.textContent,
+    ...[...container.querySelectorAll('[aria-label]')].map((el) =>
+      el.getAttribute('aria-label')
+    ),
+  ].join(' ');
+
+// Every trace state useSessionSeries can hand the page.
+export function traceStates() {
+  return [
+    {
+      state: 'ready',
+      series: seriesFromStrava(stravaOkBody()),
+      source: 'strava',
+    },
+    { state: 'loading', source: 'strava' },
+    { state: 'none' },
+    { state: 'none', source: 'strava', reason: 'no_trace' },
+    ...[
+      'not_connected',
+      'auth_failed',
+      'rate_limited',
+      'gone',
+      'attribution_pending',
+    ].map((reason) => ({ state: 'unavailable', source: 'strava', reason })),
+    { state: 'error', source: 'strava' },
+  ].map((s) => ({
+    reason: null,
+    source: null,
+    series: null,
+    retryAt: null,
+    refetch: () => {},
+    ...s,
+  }));
+}
 
 // A source that is not Strava, sampled per stroke at irregular times, with a
 // channel the model does not know about (driveLength).
@@ -85,7 +125,10 @@ export function stravaOkBody({
       heartrate: hr ? time.map((i) => 130 + Math.floor(i / 120)) : null,
       cadence: cadence ? time.map(() => 22) : null,
       velocity_smooth: time.map(() => 4),
-      moving: time.map(() => true),
+      // Numbers, as the function sends them, with one paused sample just
+      // before the middle (when there is one). At the default length that
+      // leaves 899 s at 170 W and 899 s at 190 W, so no zone holds most.
+      moving: time.map((i) => (n > 2 && i === Math.floor(n / 2) - 1 ? 0 : 1)),
     },
   };
 }

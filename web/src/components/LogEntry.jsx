@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { C, ICON } from '../constants/ui.js';
 import { THEME } from '../constants/theme.js';
+import { RADIUS, TYPE } from '../constants/tokens.js';
 import { alpha } from '../utils/themeCss.js';
 import { displayLogDate } from '../utils/displayLocale.js';
 import { canOpenSessionPage, sessionHref } from '../utils/sessionPage.js';
@@ -186,10 +187,10 @@ export default function LogEntry({ entry, done = false }) {
               minWidth: 44,
               minHeight: 44,
               flexShrink: 0,
-              borderRadius: 6,
+              borderRadius: RADIUS.sm,
               border: `1px solid ${THEME.border}`,
               color: THEME.accent,
-              fontSize: 12,
+              fontSize: TYPE.bodySm.size,
               fontWeight: 700,
               textDecoration: 'none',
             }}

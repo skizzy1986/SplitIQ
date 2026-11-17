@@ -6,11 +6,16 @@ import {
 } from '../../constants/trainingConfig.js';
 import { captureSeries } from '../../test/sessionFixtures.js';
 
+// One 1 s interval per listed value: a closing sample is appended, because
+// the last sample of a series opens no interval.
 const series = (watts, moving) =>
   createSeries({
     source: 'test',
-    t: watts.map((_, i) => i),
-    channels: { watts, moving },
+    t: [...watts.map((_, i) => i), watts.length],
+    channels: {
+      watts: [...watts, null],
+      moving: moving ? [...moving, 1] : undefined,
+    },
   });
 
 describe('timeInZones', () => {
@@ -57,7 +62,11 @@ describe('timeInZones', () => {
   it('works on the irregular non-Strava series', () => {
     const s = captureSeries();
     const r = timeInZones(s, derivePaceZones(200));
-    expect(r.zonedS).toBeCloseTo(s.dt.reduce((a, b) => a + b));
+    // Every moving interval, and the 18 s pause in none.
+    const moving = s.dt.reduce((a, d, i) => (s.live[i] ? a + d : a), 0);
+    expect(r.zonedS).toBeCloseTo(moving);
+    expect(r.zonedS).toBeCloseTo(14.5);
+    expect(r.unpoweredS).toBe(0);
     expect(r.bands.find((b) => b.key === 'TR').seconds).toBeGreaterThan(0);
   });
 });

@@ -15,6 +15,10 @@ import { useLingui } from '@lingui/react';
 import { useHashRoute } from '../../hooks/useHashRoute.js';
 import { useHashSessionId } from '../../hooks/useHashSessionId.js';
 import {
+  focusSessionLink,
+  sessionIdFromHash,
+} from '../../utils/sessionPage.js';
+import {
   DEFAULT_DESTINATION,
   DESTINATIONS,
   isDestination,
@@ -33,13 +37,6 @@ const SCREENS = ['settings', 'session'];
 
 // Lazy, so the session page and its charts never join the shell's chunk.
 const SessionView = lazy(() => import('../SessionView.jsx'));
-
-function focusSessionLink(id, frames = 10) {
-  const el = document.querySelector(`[data-session-link="${id}"]`);
-  if (el) el.focus();
-  else if (frames > 0)
-    window.requestAnimationFrame(() => focusSessionLink(id, frames - 1));
-}
 
 export default function MobileApp() {
   const { _ } = useLingui();
@@ -89,34 +86,52 @@ export default function MobileApp() {
   // because it decides whether the tab bar exists.
   const [trainMode, setTrainMode] = useState(null);
 
-  // The session page: its id lives in the hash after `#/session/`. Progress's
-  // pane is held here so leaving a session can land on History.
+  // The session page: its id lives in the hash after `#/session/`.
   const sessionId = useHashSessionId();
-  const [progressPane, setProgressPane] = useState(null);
+  // Progress's pane is Progress's own. The shell only remembers the pane a
+  // session was opened from, and hands it to Progress once, for the landing
+  // after Back; then it lets go, so opening Progress later starts as on main.
+  const lastProgressPane = useRef(null);
+  const [landingPane, setLandingPane] = useState(null);
+  // Progress reads it once, on mount; leaving Progress (or never reaching
+  // it) releases it. Adjusted during render, like the Strava notice above.
+  if (landingPane && route !== 'session' && route !== 'progress')
+    setLandingPane(null);
   const sessionFromApp = useRef(false);
-  const firstRoute = useRef(true);
+  const previousRoute = useRef(route);
   const lastSession = useRef(null);
   useEffect(() => {
-    if (route === 'session' && sessionId == null) {
+    const from = previousRoute.current;
+    // Read the hash itself, not `sessionId`: the route and the id follow two
+    // separate hashchange listeners, and React can render between them, so
+    // for one render the route is 'session' while the id state still lags.
+    const liveId = sessionIdFromHash(window.location.hash);
+    if (route === 'session' && liveId == null) {
       // A malformed session link canonicalises to Today, as on desktop.
       const { pathname, search } = window.location;
       window.history.replaceState(null, '', `${pathname}${search}#/today`);
       navigate(DEFAULT_DESTINATION);
     } else if (route === 'session') {
-      sessionFromApp.current = !firstRoute.current;
-      lastSession.current = sessionId;
-    } else if (lastSession.current != null) {
-      focusSessionLink(lastSession.current);
+      // Only a real in-app navigation counts (StrictMode's double mount run
+      // sees no change); a trip to Settings and back keeps the flag.
+      if (from !== route && from !== 'settings') sessionFromApp.current = true;
+      lastSession.current = liveId;
+    } else if (route !== 'settings') {
+      if (lastSession.current != null) focusSessionLink(lastSession.current);
       lastSession.current = null;
+      sessionFromApp.current = false;
     }
-    firstRoute.current = false;
+    if (route !== 'progress' && route !== 'session' && route !== 'settings') {
+      lastProgressPane.current = null;
+    }
+    previousRoute.current = route;
   }, [route, sessionId, navigate]);
   const leaveSession = () => {
+    setLandingPane(lastProgressPane.current ?? 'history');
     if (sessionFromApp.current) {
       window.history.back();
       return;
     }
-    setProgressPane('history');
     navigate('progress');
   };
 
@@ -188,8 +203,10 @@ export default function MobileApp() {
     content = (
       <MobileProgress
         onOpenTrain={() => navigate('train')}
-        pane={progressPane ?? undefined}
-        onPane={setProgressPane}
+        initialPane={landingPane ?? undefined}
+        onPane={(pane) => {
+          lastProgressPane.current = pane;
+        }}
       />
     );
   else if (route === 'session')

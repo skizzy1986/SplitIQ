@@ -7,7 +7,9 @@
 //
 // WHAT THIS DOES NOT COVER, and nobody should read it as covering:
 //   - Data. The fixtures stub Supabase to `[]`, so every interior renders as an
-//     empty state. Content fixtures are a later issue.
+//     empty state. Content fixtures are a later issue. The one exception is
+//     the session page, which renders one synthetic row and trace from
+//     stubSessionPage (fixtures.js).
 //   - Chart internals. Every `.recharts-responsive-container` is masked (see
 //     below), so S6 cannot lean on these baselines for chart layout. The mask
 //     tracks the container's bounding box, so container geometry IS still
@@ -53,6 +55,9 @@ import {
   stubSupabase,
   seedSession,
   clickAndSettle,
+  stubSessionPage,
+  SESSION_FIXTURE_ID,
+  SESSION_FIXTURE_LABEL,
 } from './fixtures.js';
 
 // Monday 15 June 2026, midday UTC — mid-week, mid-month, and far enough from
@@ -188,6 +193,42 @@ test.describe('mobile shell', () => {
     await openAuthed(page, context);
     await switchTo(page, tab(page, 'Body'));
     await shot(page, 'mobile-body');
+  });
+});
+
+// The session page (#648) against the synthetic stub in fixtures.js: one
+// completed erg row and a synthetic trace, nothing real. The charts are
+// masked like every other chart here; the summary tiles, headline, zone and
+// provenance text and the page chrome are what these baselines hold.
+async function openSession(page, context) {
+  await installAppFixtures(context, { now: FIXED_TIME });
+  await stubSessionPage(context, SESSION_FIXTURE_ID);
+  await page.clock.setFixedTime(FIXED_TIME);
+  await page.goto(`/#/session/${SESSION_FIXTURE_ID}`);
+  await page.waitForLoadState('networkidle');
+  await expect(page.locator('.siq-splash')).toHaveCount(0, { timeout: 10_000 });
+  await expect(
+    page.getByRole('heading', { level: 1, name: SESSION_FIXTURE_LABEL })
+  ).toBeVisible();
+  // The trace is the last thing to arrive: wait for its first chart.
+  await expect(page.getByRole('img', { name: /^Pace across/ })).toBeVisible();
+}
+
+test.describe('session page', () => {
+  test.describe('desktop', () => {
+    test.use({ viewport: { width: 1280, height: 800 } });
+    test('session', async ({ page, context }) => {
+      await openSession(page, context);
+      await shot(page, 'desktop-session');
+    });
+  });
+
+  test.describe('phone', () => {
+    test.use({ viewport: { width: 390, height: 844 } });
+    test('session', async ({ page, context }) => {
+      await openSession(page, context);
+      await shot(page, 'mobile-session');
+    });
   });
 });
 

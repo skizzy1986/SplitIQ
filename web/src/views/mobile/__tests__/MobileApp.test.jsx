@@ -21,14 +21,31 @@ const mockMinimize = vi.fn();
 // The destinations render real views with real hooks; this suite is about the
 // shell, so each is stubbed down to a marker.
 vi.mock('../MobileToday.jsx', () => ({ default: () => <p>TODAY</p> }));
-vi.mock('../MobileProgress.jsx', () => ({
-  default: ({ pane }) => (
-    <>
-      <p>PROGRESS</p>
-      <span data-testid="progress-pane">{pane ?? 'local'}</span>
-    </>
-  ),
-}));
+// Progress reads `initialPane` once, on mount, as the real one does, and
+// reports pane changes through `onPane`.
+vi.mock('../MobileProgress.jsx', async () => {
+  const { useState } = await import('react');
+  return {
+    default: function ProgressStub({ initialPane, onPane }) {
+      const [pane, setPane] = useState(initialPane ?? 'load');
+      return (
+        <>
+          <p>PROGRESS</p>
+          <span data-testid="progress-pane">{pane}</span>
+          <button
+            type="button"
+            onClick={() => {
+              setPane('history');
+              onPane?.('history');
+            }}
+          >
+            History pane
+          </button>
+        </>
+      );
+    },
+  };
+});
 vi.mock('../../SessionView.jsx', () => ({
   default: ({ sessionId, onBack, layout }) => (
     <div>
@@ -238,6 +255,44 @@ describe('the session page', () => {
     } finally {
       historyBack.mockRestore();
     }
+  });
+
+  it('Back from a session lands on the History pane once; Progress later opens as usual', async () => {
+    const historyBack = vi
+      .spyOn(window.history, 'back')
+      .mockImplementation(() => goTo('#/progress'));
+    try {
+      const user = userEvent.setup();
+      render(<MobileApp />);
+      await user.click(tab('Progress'));
+      expect(screen.getByTestId('progress-pane')).toHaveTextContent('load');
+      await user.click(screen.getByRole('button', { name: 'History pane' }));
+      goTo('#/session/5');
+      expect(await screen.findByText('SESSION 5 phone')).toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: 'Leave session' }));
+      expect(historyBack).toHaveBeenCalledTimes(1);
+      expect(await screen.findByText('PROGRESS')).toBeInTheDocument();
+      expect(screen.getByTestId('progress-pane')).toHaveTextContent('history');
+      // Not sticky: away and back to Progress starts on its first pane again.
+      await user.click(tab('Body'));
+      await user.click(tab('Progress'));
+      expect(screen.getByTestId('progress-pane')).toHaveTextContent('load');
+    } finally {
+      historyBack.mockRestore();
+    }
+  });
+
+  it('session, then Settings, then Back returns to the session', async () => {
+    window.location.hash = '#/session/9';
+    render(<MobileApp />);
+    expect(await screen.findByText('SESSION 9 phone')).toBeInTheDocument();
+    goTo('#/settings');
+    expect(await screen.findByText('SETTINGS')).toBeInTheDocument();
+    goTo('#/session/9');
+    expect(await screen.findByText('SESSION 9 phone')).toBeInTheDocument();
+    // Still a deep link: leaving goes to Progress, not out through history.
+    back();
+    expect(await screen.findByText('PROGRESS')).toBeInTheDocument();
   });
 
   it('a different session id remounts the page', async () => {

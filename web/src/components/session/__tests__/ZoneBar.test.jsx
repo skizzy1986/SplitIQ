@@ -19,9 +19,10 @@ describe('ZoneBar', () => {
     const result = timeInZones(
       createSeries({
         source: 'test',
-        t: Array.from({ length: 600 }, (_, i) => i),
+        // 601 samples: 600 one-second intervals.
+        t: Array.from({ length: 601 }, (_, i) => i),
         channels: {
-          watts: Array.from({ length: 600 }, (_, i) => (i < 450 ? 120 : 150)),
+          watts: Array.from({ length: 601 }, (_, i) => (i < 450 ? 120 : 150)),
         },
       }),
       derivePaceZones(200)
@@ -61,6 +62,20 @@ describe('ZoneBar', () => {
     expect(screen.getByText('Z7 Neuromuscular power')).toBeInTheDocument();
     expect(
       screen.getByText('Zones from your bike FTP, 200 W (provisional).')
+    ).toBeInTheDocument();
+  });
+
+  it('names an unvalidated anchor as such', () => {
+    const result = timeInZones(series([150, 150, 150]), derivePaceZones(200));
+    render(
+      <ZoneBar
+        result={result}
+        anchor={{ kind: 'cp', value: 200, status: 'unvalidated' }}
+        hasPower
+      />
+    );
+    expect(
+      screen.getByText('Zones from your rowing CP, 200 W (unvalidated).')
     ).toBeInTheDocument();
   });
 

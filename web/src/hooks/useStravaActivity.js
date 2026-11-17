@@ -17,6 +17,9 @@ export const STRAVA_ACTIVITY_STATUSES = [
 
 const HALF_HOUR = 30 * 60_000;
 
+export const staleTimeFor = (query) =>
+  query.state.data?.status === 'ok' ? HALF_HOUR : 0;
+
 // One activity's trace through the edge function. Called only by
 // useSessionSeries. Held in memory only (react-query's cache, never
 // persisted): Strava data may sit in the server's cache, not the browser's.
@@ -41,7 +44,11 @@ export function useStravaActivity(sessionId, { enabled = true } = {}) {
     },
     // The app default retries; a retry here would spend Strava quota.
     retry: false,
-    staleTime: HALF_HOUR,
+    // Only a trace is worth holding. Any other answer (not connected, rate
+    // limited, gone) is stale at once, so reopening the page asks again.
+    // staleTime may be a function of the query (Context7 /tanstack/query,
+    // StaleTimeFunction).
+    staleTime: staleTimeFor,
     gcTime: HALF_HOUR,
     refetchOnWindowFocus: false,
   });

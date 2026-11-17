@@ -115,7 +115,13 @@ import MobileSessionLog from '../../views/mobile/MobileSessionLog.jsx';
 import MobileRecovery from '../../views/mobile/MobileRecovery.jsx';
 import SessionView from '../../views/SessionView.jsx';
 import { seriesFromStrava } from '../../utils/stravaSeries.js';
-import { ergRow, stravaOkBody } from '../../test/sessionFixtures.js';
+import {
+  ergRow,
+  spoken,
+  stravaOkBody,
+  traceStates,
+} from '../../test/sessionFixtures.js';
+import { createSeries } from '../../utils/sessionSeries.js';
 
 const ALL_ES = { ...en, ...viewsEn, ...es, ...viewsEs };
 
@@ -789,7 +795,8 @@ describe('Session page in Spanish', () => {
       'A lo largo de la sesión',
       'Tiempo en zona',
       'Zonas a partir de tu CP de remo, 205 W.',
-      'Calculado aquí: ritmo a partir de la distancia y el tiempo, zonas a partir de tu referencia de CP de remo, carga a partir de tu sRPE y la duración.',
+      // Intl.ListFormat joins in Spanish: "a, b y c".
+      'Calculado aquí: ritmo a partir de la distancia y el tiempo, zonas a partir de tu referencia de CP de remo y carga a partir de tu sRPE y la duración.',
     ]) {
       expect(screen.getByText(text)).toBeInTheDocument();
     }
@@ -809,5 +816,79 @@ describe('Session page in Spanish', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('11/10/26')).toBeInTheDocument();
     expect(screen.getByText('Time in zone')).toBeInTheDocument();
+  });
+
+  it('uses the singular for one minute in Spanish', () => {
+    mocks.sessionDetail.data = ergRow({ duration: '1:00', distance_m: 240 });
+    inSpanish();
+    render(ui);
+    expect(
+      screen.getByText('1 minuto de remo a un ritmo promedio de 2:05.0 /500 m.')
+    ).toBeInTheDocument();
+  });
+
+  it('renders an unavailable state in Spanish', () => {
+    mocks.sessionSeries = {
+      ...mocks.sessionSeries,
+      state: 'unavailable',
+      reason: 'not_connected',
+      series: null,
+    };
+    inSpanish();
+    render(ui);
+    expect(
+      screen.getByText(
+        'Strava no está conectado, así que no hay trazado para esta sesión.'
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByText('Importado de Strava.')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Configuración' })).toHaveAttribute(
+      'href',
+      '#/settings'
+    );
+  });
+
+  it('renders a ride in Spanish', () => {
+    mocks.sessionDetail.data = ergRow({
+      type: 'cycling',
+      label: 'Salida',
+      duration: '40:00',
+      distance_m: 19200,
+      avg_watts: 200,
+      srpe: null,
+    });
+    mocks.sessionSeries = {
+      ...mocks.sessionSeries,
+      series: createSeries({
+        source: 'strava',
+        t: Array.from({ length: 2401 }, (_, i) => i),
+        channels: {
+          watts: Array(2401).fill(200),
+          hr: Array(2401).fill(140),
+          rate: Array(2401).fill(88),
+        },
+      }),
+    };
+    inSpanish();
+    render(ui);
+    for (const text of [
+      '40 minutos de ciclismo a un promedio de 200 W, la mayor parte en Z3 Tempo.',
+      'Puntuado con la potencia promedio de 200 W frente a tu FTP de bici de 250 W (intensidad 0.80).',
+      'Zonas a partir de tu FTP de bici, 250 W.',
+    ]) {
+      expect(screen.getByText(text)).toBeInTheDocument();
+    }
+  });
+
+  it('never judges or instructs in Spanish, in any state, aria-labels included', () => {
+    const VERDICT_ES =
+      /(?<!\p{L})(deberías|debes|debería|demasiad[oa]s?|buen[oa]?s?|mal[oa]s?|mejor|peor|excelente|intenta|procura|asegúrate)(?!\p{L})/iu;
+    for (const state of traceStates()) {
+      mocks.sessionSeries = state;
+      inSpanish();
+      const { container, unmount } = render(ui);
+      expect(spoken(container), state.state).not.toMatch(VERDICT_ES);
+      unmount();
+    }
   });
 });

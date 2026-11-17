@@ -44,7 +44,8 @@ describe('useStravaActivity', () => {
     const query = client.getQueryCache().find({
       queryKey: ['strava', 'activity', 'u-test', 42],
     });
-    expect(query.options.staleTime).toBe(30 * 60_000);
+    // An ok answer is held fresh for half an hour.
+    expect(query.options.staleTime(query)).toBe(30 * 60_000);
     expect(query.options.gcTime).toBe(30 * 60_000);
     expect(query.options.refetchOnWindowFocus).toBe(false);
   });
@@ -67,6 +68,44 @@ describe('useStravaActivity', () => {
       wrapper: wrapperFor(new QueryClient()),
     });
     await waitFor(() => expect(result.current.isError).toBe(true));
+  });
+
+  it('holds any answer but ok stale at once, so reopening asks again', async () => {
+    invoke.mockResolvedValue({
+      data: { status: 'not_connected' },
+      error: null,
+    });
+    const client = new QueryClient();
+    const first = renderHook(() => useStravaActivity(42), {
+      wrapper: wrapperFor(client),
+    });
+    await waitFor(() => expect(first.result.current.isSuccess).toBe(true));
+    const query = client.getQueryCache().find({
+      queryKey: ['strava', 'activity', 'u-test', 42],
+    });
+    expect(query.options.staleTime(query)).toBe(0);
+    first.unmount();
+    // Reopening the page (a fresh mount) fetches again.
+    const again = renderHook(() => useStravaActivity(42), {
+      wrapper: wrapperFor(client),
+    });
+    await waitFor(() => expect(invoke).toHaveBeenCalledTimes(2));
+    again.unmount();
+
+    // An ok answer is not fetched again on reopening.
+    invoke.mockReset();
+    invoke.mockResolvedValue({ data: stravaOkBody({ n: 3 }), error: null });
+    const okClient = new QueryClient();
+    const a = renderHook(() => useStravaActivity(7), {
+      wrapper: wrapperFor(okClient),
+    });
+    await waitFor(() => expect(a.result.current.isSuccess).toBe(true));
+    a.unmount();
+    const b = renderHook(() => useStravaActivity(7), {
+      wrapper: wrapperFor(okClient),
+    });
+    await waitFor(() => expect(b.result.current.isSuccess).toBe(true));
+    expect(invoke).toHaveBeenCalledTimes(1);
   });
 
   it('passes typed outcomes through', async () => {

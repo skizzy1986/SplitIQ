@@ -106,6 +106,20 @@ export function storedSummary(session, sport) {
   };
 }
 
+// After leaving a session page, put focus back on the link that opened it.
+// The list it lives in may still be mounting, so look for a few frames. The
+// one DOM helper in this file, shared by both shells; `win` is injectable so
+// it can be tested without a browser.
+export function focusSessionLink(id, { frames = 10, win = window } = {}) {
+  const el = win.document.querySelector(`[data-session-link="${id}"]`);
+  if (el) el.focus();
+  else if (frames > 0) {
+    win.requestAnimationFrame(() =>
+      focusSessionLink(id, { frames: frames - 1, win })
+    );
+  }
+}
+
 // A link a source supplied, kept only when it is a string that parses as an
 // https: URL. Anything else (http:, javascript:, a non-string) is null, so a
 // malformed or hostile value never reaches an href.

@@ -1,3 +1,5 @@
+import { sessionIdFromHash } from './sessionPage.js';
+
 // Desktop panes share mobile's destination ids; only the analytical subroutes
 // belong here. Hash URLs work on both web reloads and Capacitor.
 export const DESKTOP_PANES = {
@@ -27,6 +29,15 @@ export function desktopRoute(hash = '') {
     .replace(/\/+$/, '');
   const path = Object.hasOwn(LEGACY, requested) ? LEGACY[requested] : requested;
   if (path === 'settings') return { destination: null, pane: 'settings', path };
+  const sessionId = sessionIdFromHash(path);
+  if (sessionId != null) {
+    return {
+      destination: null,
+      pane: 'session',
+      path: `session/${sessionId}`,
+      sessionId,
+    };
+  }
   const [destination, requestedPane, extra] = path.split('/');
   const panes = Object.hasOwn(DESKTOP_PANES, destination)
     ? DESKTOP_PANES[destination]

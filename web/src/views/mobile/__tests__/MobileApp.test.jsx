@@ -21,7 +21,43 @@ const mockMinimize = vi.fn();
 // The destinations render real views with real hooks; this suite is about the
 // shell, so each is stubbed down to a marker.
 vi.mock('../MobileToday.jsx', () => ({ default: () => <p>TODAY</p> }));
-vi.mock('../MobileProgress.jsx', () => ({ default: () => <p>PROGRESS</p> }));
+// Progress reads `initialPane` once, on mount, as the real one does, and
+// reports pane changes through `onPane`.
+vi.mock('../MobileProgress.jsx', async () => {
+  const { useState } = await import('react');
+  return {
+    default: function ProgressStub({ initialPane, onPane }) {
+      const [pane, setPane] = useState(initialPane ?? 'load');
+      return (
+        <>
+          <p>PROGRESS</p>
+          <span data-testid="progress-pane">{pane}</span>
+          <button
+            type="button"
+            onClick={() => {
+              setPane('history');
+              onPane?.('history');
+            }}
+          >
+            History pane
+          </button>
+        </>
+      );
+    },
+  };
+});
+vi.mock('../../SessionView.jsx', () => ({
+  default: ({ sessionId, onBack, layout }) => (
+    <div>
+      <p>
+        SESSION {sessionId} {layout}
+      </p>
+      <button type="button" onClick={onBack}>
+        Leave session
+      </button>
+    </div>
+  ),
+}));
 vi.mock('../MobileRecovery.jsx', () => ({ default: () => <p>BODY</p> }));
 vi.mock('../../ErgLiveView.jsx', () => ({ default: () => <p>ERG LIVE</p> }));
 vi.mock('../MobileSettings.jsx', () => ({ default: () => <p>SETTINGS</p> }));
@@ -170,6 +206,108 @@ describe('a live session owns the screen', () => {
 
     await user.click(tab('Train'));
     expect(screen.getByText('STRENGTH LOGGER')).toBeInTheDocument();
+  });
+});
+
+describe('the session page', () => {
+  const goTo = (hash) =>
+    act(() => {
+      window.location.hash = hash;
+      window.dispatchEvent(new window.Event('hashchange'));
+    });
+
+  it('opens from a deep link, keeps its URL, and leaves to Progress › History', async () => {
+    window.location.hash = '#/session/12';
+    const link = document.createElement('a');
+    link.setAttribute('href', '#/session/12');
+    link.setAttribute('data-session-link', '12');
+    document.body.appendChild(link);
+    try {
+      render(<MobileApp />);
+      expect(await screen.findByText('SESSION 12 phone')).toBeInTheDocument();
+      expect(window.location.hash).toBe('#/session/12');
+      // The top bar steps aside, as it does for Settings.
+      expect(screen.queryByRole('button', { name: 'Settings' })).toBeNull();
+      // Reached from outside the app, so Back cannot pop history.
+      back();
+      expect(await screen.findByText('PROGRESS')).toBeInTheDocument();
+      expect(screen.getByTestId('progress-pane')).toHaveTextContent('history');
+      await vi.waitFor(() => expect(link).toHaveFocus());
+    } finally {
+      link.remove();
+    }
+  });
+
+  it('opened from inside the app, Back pops history', async () => {
+    const historyBack = vi
+      .spyOn(window.history, 'back')
+      .mockImplementation(() => {});
+    try {
+      const user = userEvent.setup();
+      render(<MobileApp />);
+      await user.click(tab('Progress'));
+      goTo('#/session/5');
+      expect(await screen.findByText('SESSION 5 phone')).toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: 'Leave session' }));
+      expect(historyBack).toHaveBeenCalledTimes(1);
+      back();
+      expect(historyBack).toHaveBeenCalledTimes(2);
+    } finally {
+      historyBack.mockRestore();
+    }
+  });
+
+  it('Back from a session lands on the History pane once; Progress later opens as usual', async () => {
+    const historyBack = vi
+      .spyOn(window.history, 'back')
+      .mockImplementation(() => goTo('#/progress'));
+    try {
+      const user = userEvent.setup();
+      render(<MobileApp />);
+      await user.click(tab('Progress'));
+      expect(screen.getByTestId('progress-pane')).toHaveTextContent('load');
+      await user.click(screen.getByRole('button', { name: 'History pane' }));
+      goTo('#/session/5');
+      expect(await screen.findByText('SESSION 5 phone')).toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: 'Leave session' }));
+      expect(historyBack).toHaveBeenCalledTimes(1);
+      expect(await screen.findByText('PROGRESS')).toBeInTheDocument();
+      expect(screen.getByTestId('progress-pane')).toHaveTextContent('history');
+      // Not sticky: away and back to Progress starts on its first pane again.
+      await user.click(tab('Body'));
+      await user.click(tab('Progress'));
+      expect(screen.getByTestId('progress-pane')).toHaveTextContent('load');
+    } finally {
+      historyBack.mockRestore();
+    }
+  });
+
+  it('session, then Settings, then Back returns to the session', async () => {
+    window.location.hash = '#/session/9';
+    render(<MobileApp />);
+    expect(await screen.findByText('SESSION 9 phone')).toBeInTheDocument();
+    goTo('#/settings');
+    expect(await screen.findByText('SETTINGS')).toBeInTheDocument();
+    goTo('#/session/9');
+    expect(await screen.findByText('SESSION 9 phone')).toBeInTheDocument();
+    // Still a deep link: leaving goes to Progress, not out through history.
+    back();
+    expect(await screen.findByText('PROGRESS')).toBeInTheDocument();
+  });
+
+  it('a different session id remounts the page', async () => {
+    window.location.hash = '#/session/5';
+    render(<MobileApp />);
+    expect(await screen.findByText('SESSION 5 phone')).toBeInTheDocument();
+    goTo('#/session/6');
+    expect(await screen.findByText('SESSION 6 phone')).toBeInTheDocument();
+  });
+
+  it('a malformed session link canonicalises to Today', async () => {
+    window.location.hash = '#/session/abc';
+    render(<MobileApp />);
+    expect(await screen.findByText('TODAY')).toBeInTheDocument();
+    expect(window.location.hash).toBe('#/today');
   });
 });
 

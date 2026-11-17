@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { C, ICON } from '../constants/ui.js';
 import { THEME } from '../constants/theme.js';
+import { RADIUS, TYPE } from '../constants/tokens.js';
 import { alpha } from '../utils/themeCss.js';
 import { displayLogDate } from '../utils/displayLocale.js';
+import { canOpenSessionPage, sessionHref } from '../utils/sessionPage.js';
 
 export default function LogEntry({ entry, done = false }) {
   const { t, i18n } = useLingui();
@@ -13,6 +15,9 @@ export default function LogEntry({ entry, done = false }) {
   const duration = entry.duration;
   const planned = entry.status === 'planned';
   const cancelled = entry.status === 'cancelled';
+  const canOpen = canOpenSessionPage(entry);
+  const sessionId = entry._id ?? entry.id;
+  const label = entry.label ?? '';
   // Flat erg metrics replaced the removed `splits` field. Planned erg rows
   // carry null metrics — we show the prescription (label + coach_note) instead.
   const hasErgMetrics =
@@ -168,6 +173,32 @@ export default function LogEntry({ entry, done = false }) {
           >
             🏆 {entry.prs}
           </div>
+        )}
+        {canOpen && (
+          <a
+            href={sessionHref(sessionId)}
+            data-session-link={sessionId}
+            aria-label={t`Open the session page for ${label}`}
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minWidth: 44,
+              minHeight: 44,
+              flexShrink: 0,
+              borderRadius: RADIUS.sm,
+              border: `1px solid ${THEME.border}`,
+              color: THEME.accent,
+              fontSize: TYPE.bodySm.size,
+              fontWeight: 700,
+              textDecoration: 'none',
+            }}
+          >
+            <Trans comment="Link from a log row to its session page">
+              Open
+            </Trans>
+          </a>
         )}
       </div>
       {open && (

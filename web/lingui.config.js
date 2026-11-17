@@ -36,6 +36,15 @@ export const VIEWS_SOURCES = [
   'src/utils/recoveryAnalytics.js',
   'src/utils/healthRecords.js',
   'src/constants/srpeGuideMessages.js',
+  'src/views/SessionView.jsx',
+  'src/components/session/SessionSummary.jsx',
+  'src/components/session/SessionTrace.jsx',
+  'src/components/session/TraceTooltip.jsx',
+  'src/components/session/ZoneBar.jsx',
+  'src/components/session/ProvenanceNote.jsx',
+  'src/components/session/SessionState.jsx',
+  'src/components/session/zoneLabels.js',
+  'src/components/session/sourceCopy.js',
 ];
 
 const rooted = (f) => `<rootDir>/${f}`;

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import '../../i18n/views.js';
@@ -13,6 +13,11 @@ import BottomTabBar, {
 } from '../../components/mobile/BottomTabBar.jsx';
 import { useLingui } from '@lingui/react';
 import { useHashRoute } from '../../hooks/useHashRoute.js';
+import { useHashSessionId } from '../../hooks/useHashSessionId.js';
+import {
+  focusSessionLink,
+  sessionIdFromHash,
+} from '../../utils/sessionPage.js';
 import {
   DEFAULT_DESTINATION,
   DESTINATIONS,
@@ -28,7 +33,10 @@ import {
 
 // Screens the shell shows that are not destinations: no tab of their own, so
 // the tab bar shows none active while one is open.
-const SCREENS = ['settings'];
+const SCREENS = ['settings', 'session'];
+
+// Lazy, so the session page and its charts never join the shell's chunk.
+const SessionView = lazy(() => import('../SessionView.jsx'));
 
 export default function MobileApp() {
   const { _ } = useLingui();
@@ -78,6 +86,55 @@ export default function MobileApp() {
   // because it decides whether the tab bar exists.
   const [trainMode, setTrainMode] = useState(null);
 
+  // The session page: its id lives in the hash after `#/session/`.
+  const sessionId = useHashSessionId();
+  // Progress's pane is Progress's own. The shell only remembers the pane a
+  // session was opened from, and hands it to Progress once, for the landing
+  // after Back; then it lets go, so opening Progress later starts as on main.
+  const lastProgressPane = useRef(null);
+  const [landingPane, setLandingPane] = useState(null);
+  // Progress reads it once, on mount; leaving Progress (or never reaching
+  // it) releases it. Adjusted during render, like the Strava notice above.
+  if (landingPane && route !== 'session' && route !== 'progress')
+    setLandingPane(null);
+  const sessionFromApp = useRef(false);
+  const previousRoute = useRef(route);
+  const lastSession = useRef(null);
+  useEffect(() => {
+    const from = previousRoute.current;
+    // Read the hash itself, not `sessionId`: the route and the id follow two
+    // separate hashchange listeners, and React can render between them, so
+    // for one render the route is 'session' while the id state still lags.
+    const liveId = sessionIdFromHash(window.location.hash);
+    if (route === 'session' && liveId == null) {
+      // A malformed session link canonicalises to Today, as on desktop.
+      const { pathname, search } = window.location;
+      window.history.replaceState(null, '', `${pathname}${search}#/today`);
+      navigate(DEFAULT_DESTINATION);
+    } else if (route === 'session') {
+      // Only a real in-app navigation counts (StrictMode's double mount run
+      // sees no change); a trip to Settings and back keeps the flag.
+      if (from !== route && from !== 'settings') sessionFromApp.current = true;
+      lastSession.current = liveId;
+    } else if (route !== 'settings') {
+      if (lastSession.current != null) focusSessionLink(lastSession.current);
+      lastSession.current = null;
+      sessionFromApp.current = false;
+    }
+    if (route !== 'progress' && route !== 'session' && route !== 'settings') {
+      lastProgressPane.current = null;
+    }
+    previousRoute.current = route;
+  }, [route, sessionId, navigate]);
+  const leaveSession = () => {
+    setLandingPane(lastProgressPane.current ?? 'history');
+    if (sessionFromApp.current) {
+      window.history.back();
+      return;
+    }
+    navigate('progress');
+  };
+
   // A live session owns the screen (HANDOFF.md §4), so the bar goes away and
   // the shell stops reserving room for it. The mode is deliberately not
   // cleared when you leave Train: stepping over to Body mid-piece and coming
@@ -96,6 +153,7 @@ export default function MobileApp() {
     onBack.current = () => {
       if (live) setTrainMode(null);
       else if (route === 'settings') leaveSettings();
+      else if (route === 'session') leaveSession();
       else if (route !== DEFAULT_DESTINATION) navigate(DEFAULT_DESTINATION);
       else App.minimizeApp();
     };
@@ -142,7 +200,27 @@ export default function MobileApp() {
   else if (route === 'train')
     content = <MobileTrain mode={trainMode} onMode={setTrainMode} />;
   else if (route === 'progress')
-    content = <MobileProgress onOpenTrain={() => navigate('train')} />;
+    content = (
+      <MobileProgress
+        onOpenTrain={() => navigate('train')}
+        initialPane={landingPane ?? undefined}
+        onPane={(pane) => {
+          lastProgressPane.current = pane;
+        }}
+      />
+    );
+  else if (route === 'session')
+    content =
+      sessionId == null ? null : (
+        <Suspense fallback={null}>
+          <SessionView
+            key={sessionId}
+            sessionId={sessionId}
+            onBack={leaveSession}
+            layout="phone"
+          />
+        </Suspense>
+      );
   else content = <MobileRecovery onOpenSettings={openSettings} />;
 
   return (
@@ -156,7 +234,7 @@ export default function MobileApp() {
           : `calc(${TAB_BAR_HEIGHT}px + env(safe-area-inset-bottom))`,
       }}
     >
-      {!live && route !== 'settings' && (
+      {!live && route !== 'settings' && route !== 'session' && (
         <MobileTopBar
           onOpenSettings={openSettings}
           settingsRef={settingsRef}

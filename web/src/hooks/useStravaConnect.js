@@ -83,6 +83,8 @@ export function useStravaConnect() {
       // Deleted and stripped sessions change every session reader and the
       // load model (tss-history) built from them.
       invalidateSessionQueries(queryClient);
+      // The grant is gone: no Strava-derived trace may stay in memory.
+      queryClient.removeQueries({ queryKey: ['strava', 'activity'] });
     },
   });
 

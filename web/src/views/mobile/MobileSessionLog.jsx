@@ -10,6 +10,7 @@ import {
   isCompletedStatus,
   isCancelledStatus,
 } from '../../utils/sessionStatus.js';
+import { canOpenSessionPage, sessionHref } from '../../utils/sessionPage.js';
 
 function typeColor(type) {
   const t = (type ?? '').toLowerCase();
@@ -191,14 +192,26 @@ export default function MobileSessionLog() {
       {filtered.map((s) => {
         const dot = typeColor(s.type);
         const isStrength = (s.type ?? '').toLowerCase().includes('strength');
+        // A completed rowing or cycling row is a real link to its page.
+        const opens = canOpenSessionPage(s);
+        const Row = opens ? 'a' : 'div';
         return (
-          <div
+          <Row
             key={s.id}
+            {...(opens
+              ? {
+                  href: sessionHref(s.id),
+                  'data-session-link': s.id,
+                }
+              : {})}
             style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'flex-start',
               padding: '12px 0',
+              minHeight: opens ? 44 : undefined,
+              color: 'inherit',
+              textDecoration: 'none',
               borderBottom:
                 '1px solid color-mix(in srgb, var(--color-border) 20%, transparent)',
             }}
@@ -293,7 +306,7 @@ export default function MobileSessionLog() {
                 </span>
               ) : null}
             </div>
-          </div>
+          </Row>
         );
       })}
     </div>

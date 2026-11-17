@@ -61,9 +61,18 @@ function ErgPane({ onLog }) {
   );
 }
 
-export default function MobileProgress({ onOpenTrain }) {
+// The pane is Progress's own state. `initialPane` (read once, on mount) lets
+// Back from a session page land where it was opened from; `onPane` reports
+// each change so the shell knows that place. Both are optional.
+export default function MobileProgress({ onOpenTrain, initialPane, onPane }) {
   const { t, i18n } = useLingui();
-  const [pane, setPane] = useState(PANES[0].id);
+  const [pane, setPaneState] = useState(() =>
+    PANES.some((p) => p.id === initialPane) ? initialPane : PANES[0].id
+  );
+  const setPane = (next) => {
+    setPaneState(next);
+    onPane?.(next);
+  };
 
   let body = (
     <MobileAnalytics

@@ -46,6 +46,15 @@ set keyed off a constant would silently diverge. Any band published in a tracked
 must recompute against this function (`npm run check:zones`), so prefer not to publish
 one.
 
+## Cycling zones — `deriveCyclingZones(ftp)` (`web/src/constants/trainingConfig.js:103`)
+
+Coggan's seven power levels (Allen and Coggan, *Training and Racing with a Power
+Meter*), as fractions of FTP: active recovery, endurance, tempo, threshold, VO2 max,
+anaerobic capacity and neuromuscular power, the last open-ended. Callers pass the live
+`anchors.bike_ftp`; like the rowing bands there is no static export. Bands are half-open
+so every watt falls in exactly one level. `timeInZones` (`web/src/utils/sessionAnalysis.js`)
+bins a session's power into either set. Read the function for the boundaries.
+
 ## Erg metrics (generic)
 
 | Metric | Description |

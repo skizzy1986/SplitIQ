@@ -173,3 +173,47 @@ export function tsbBand(tsb) {
     TSB_BANDS.find((b) => tsb > b.floor) ?? TSB_BANDS[TSB_BANDS.length - 1]
   );
 }
+
+// The same branches as sessionLoad, with the reason each one took, so a page
+// can say how a session was scored (sRPE, power against CP or FTP, or zero and
+// why). Appended here, not folded into sessionLoad, so that function stays
+// exactly as the doctrine cites it; a parity test pins the two together.
+export function sessionLoadBasis(session, { cp, ftp } = {}) {
+  const none = (reason, threshold = null) => ({
+    load: 0,
+    basis: 'none',
+    reason,
+    threshold,
+    intensity: null,
+  });
+  const minutes = parseDurationMinutes(session?.duration);
+  if (!(minutes > 0)) return none('no_duration');
+  const hours = minutes / 60;
+
+  if (session.srpe > 0) {
+    return {
+      load: Math.round(hours * session.srpe * 10),
+      basis: 'srpe',
+      reason: null,
+      threshold: null,
+      intensity: null,
+    };
+  }
+
+  // thresholdFor with stand-in anchors answers "does this type have a power
+  // model at all", separately from "is its anchor set".
+  if (thresholdFor(session.type, 1, 1) == null) return none('no_power_model');
+  const threshold = thresholdFor(session.type, cp, ftp);
+  const watts = session.avg_watts;
+  if (!(watts > 0)) return none('no_watts', threshold > 0 ? threshold : null);
+  if (!(threshold > 0)) return none('no_anchor');
+
+  const intensity = watts / threshold;
+  return {
+    load: Math.round(hours * intensity * intensity * 100),
+    basis: 'power',
+    reason: null,
+    threshold,
+    intensity,
+  };
+}

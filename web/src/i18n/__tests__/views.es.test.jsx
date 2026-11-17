@@ -25,6 +25,8 @@ const mocks = vi.hoisted(() => ({
   labs: null,
   injuries: null,
   insert: null,
+  sessionDetail: null,
+  sessionSeries: null,
 }));
 
 vi.mock('recharts', () => {
@@ -34,9 +36,11 @@ vi.mock('recharts', () => {
     ResponsiveContainer: Pass,
     LineChart: Pass,
     BarChart: Pass,
+    ComposedChart: Pass,
     Line: Nothing,
     Bar: Nothing,
     ReferenceLine: Nothing,
+    ReferenceArea: Nothing,
     YAxis: Nothing,
     Tooltip: Nothing,
     XAxis: ({ tickFormatter }) => (
@@ -77,6 +81,12 @@ vi.mock('../../hooks/useLabResults.js', () => ({
 vi.mock('../../hooks/useInjuries.js', () => ({
   useInjuries: () => mocks.injuries,
 }));
+vi.mock('../../hooks/useSessionDetail.js', () => ({
+  useSessionDetail: () => mocks.sessionDetail,
+}));
+vi.mock('../../hooks/useSessionSeries.js', () => ({
+  useSessionSeries: () => mocks.sessionSeries,
+}));
 // Out of scope here (their own PRs), and heavy: stubbed out.
 vi.mock('../../views/ErgLiveView.jsx', () => ({ default: () => null }));
 vi.mock('../../StrengthLogger.jsx', () => ({ default: () => null }));
@@ -103,6 +113,15 @@ import MobileProgress from '../../views/mobile/MobileProgress.jsx';
 import MobileAnalytics from '../../views/mobile/MobileAnalytics.jsx';
 import MobileSessionLog from '../../views/mobile/MobileSessionLog.jsx';
 import MobileRecovery from '../../views/mobile/MobileRecovery.jsx';
+import SessionView from '../../views/SessionView.jsx';
+import { seriesFromStrava } from '../../utils/stravaSeries.js';
+import {
+  ergRow,
+  spoken,
+  stravaOkBody,
+  traceStates,
+} from '../../test/sessionFixtures.js';
+import { createSeries } from '../../utils/sessionSeries.js';
 
 const ALL_ES = { ...en, ...viewsEn, ...es, ...viewsEs };
 
@@ -742,6 +761,134 @@ describe('Mobile in Spanish', () => {
     ).toBeInTheDocument();
     for (const name of ['Carga', 'Historial', 'Fuerza']) {
       expect(screen.getByRole('button', { name })).toBeInTheDocument();
+    }
+  });
+});
+
+describe('Session page in Spanish', () => {
+  beforeEach(() => {
+    mocks.sessionDetail = {
+      data: ergRow(),
+      isPending: false,
+      isError: false,
+      refetch: () => {},
+    };
+    mocks.sessionSeries = {
+      state: 'ready',
+      reason: null,
+      source: 'strava',
+      series: seriesFromStrava(stravaOkBody()),
+      retryAt: null,
+      refetch: () => {},
+    };
+  });
+  const ui = <SessionView sessionId={4242} onBack={() => {}} />;
+
+  it('renders its headline, summary, trace and zones in Spanish', () => {
+    inSpanish();
+    render(ui);
+    for (const text of [
+      '30 minutos de remo a un ritmo promedio de 2:05.0 /500 m.',
+      'Fecha',
+      'Potencia promedio',
+      'Puntuado con el sRPE 5 y la duración.',
+      'A lo largo de la sesión',
+      'Tiempo en zona',
+      'Zonas a partir de tu CP de remo, 205 W.',
+      // Intl.ListFormat joins in Spanish: "a, b y c".
+      'Calculado aquí: ritmo a partir de la distancia y el tiempo, zonas a partir de tu referencia de CP de remo y carga a partir de tu sRPE y la duración.',
+    ]) {
+      expect(screen.getByText(text)).toBeInTheDocument();
+    }
+    // Spanish shows the stored M/D/YY date day first.
+    expect(screen.getByText('10/11/26')).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Resumen' })).toBeInTheDocument();
+    // Strava's required link text stays exactly as it is.
+    expect(
+      screen.getByRole('link', { name: 'View on Strava' })
+    ).toBeInTheDocument();
+  });
+
+  it('keeps English exactly as it was', () => {
+    render(ui);
+    expect(
+      screen.getByText('30 minutes of rowing at an average 2:05.0 /500 m.')
+    ).toBeInTheDocument();
+    expect(screen.getByText('11/10/26')).toBeInTheDocument();
+    expect(screen.getByText('Time in zone')).toBeInTheDocument();
+  });
+
+  it('uses the singular for one minute in Spanish', () => {
+    mocks.sessionDetail.data = ergRow({ duration: '1:00', distance_m: 240 });
+    inSpanish();
+    render(ui);
+    expect(
+      screen.getByText('1 minuto de remo a un ritmo promedio de 2:05.0 /500 m.')
+    ).toBeInTheDocument();
+  });
+
+  it('renders an unavailable state in Spanish', () => {
+    mocks.sessionSeries = {
+      ...mocks.sessionSeries,
+      state: 'unavailable',
+      reason: 'not_connected',
+      series: null,
+    };
+    inSpanish();
+    render(ui);
+    expect(
+      screen.getByText(
+        'Strava no está conectado, así que no hay trazado para esta sesión.'
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByText('Importado de Strava.')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Configuración' })).toHaveAttribute(
+      'href',
+      '#/settings'
+    );
+  });
+
+  it('renders a ride in Spanish', () => {
+    mocks.sessionDetail.data = ergRow({
+      type: 'cycling',
+      label: 'Salida',
+      duration: '40:00',
+      distance_m: 19200,
+      avg_watts: 200,
+      srpe: null,
+    });
+    mocks.sessionSeries = {
+      ...mocks.sessionSeries,
+      series: createSeries({
+        source: 'strava',
+        t: Array.from({ length: 2401 }, (_, i) => i),
+        channels: {
+          watts: Array(2401).fill(200),
+          hr: Array(2401).fill(140),
+          rate: Array(2401).fill(88),
+        },
+      }),
+    };
+    inSpanish();
+    render(ui);
+    for (const text of [
+      '40 minutos de ciclismo a un promedio de 200 W, la mayor parte en Z3 Tempo.',
+      'Puntuado con la potencia promedio de 200 W frente a tu FTP de bici de 250 W (intensidad 0.80).',
+      'Zonas a partir de tu FTP de bici, 250 W.',
+    ]) {
+      expect(screen.getByText(text)).toBeInTheDocument();
+    }
+  });
+
+  it('never judges or instructs in Spanish, in any state, aria-labels included', () => {
+    const VERDICT_ES =
+      /(?<!\p{L})(deberías|debes|debería|demasiad[oa]s?|buen[oa]?s?|mal[oa]s?|mejor|peor|excelente|intenta|procura|asegúrate)(?!\p{L})/iu;
+    for (const state of traceStates()) {
+      mocks.sessionSeries = state;
+      inSpanish();
+      const { container, unmount } = render(ui);
+      expect(spoken(container), state.state).not.toMatch(VERDICT_ES);
+      unmount();
     }
   });
 });

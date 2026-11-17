@@ -114,3 +114,65 @@ describe('LogEntry', () => {
     expect(screen.getByText(/Session · 45min/)).toBeInTheDocument();
   });
 });
+
+describe('LogEntry — the link to a session page', () => {
+  const erg = {
+    type: 'Z2 Aerobic',
+    _isErg: true,
+    _id: 314,
+    label: 'UT2 60min',
+    date: '6/19/26',
+    duration: '60min',
+    status: 'completed',
+    avg_watts: 150,
+  };
+
+  it('is a real link, named with the session label, on a completed erg row', () => {
+    render(<LogEntry entry={erg} />);
+    const link = screen.getByRole('link', {
+      name: 'Open the session page for UT2 60min',
+    });
+    expect(link).toHaveAttribute('href', '#/session/314');
+    expect(link).toHaveAttribute('data-session-link', '314');
+    expect(link.style.minHeight).toBe('44px');
+    expect(link.style.minWidth).toBe('44px');
+  });
+
+  it('opens on a completed ride, and from a raw row id (ErgView rows)', () => {
+    render(
+      <LogEntry
+        entry={{ ...erg, _isErg: false, _isCycling: true, label: 'Spin' }}
+      />
+    );
+    expect(screen.getByRole('link', { name: /Spin/ })).toHaveAttribute(
+      'href',
+      '#/session/314'
+    );
+    render(
+      <LogEntry entry={{ ...erg, _id: undefined, id: 77, label: 'Raw' }} />
+    );
+    expect(screen.getByRole('link', { name: /Raw/ })).toHaveAttribute(
+      'href',
+      '#/session/77'
+    );
+  });
+
+  it('does not also toggle the row when clicked', () => {
+    render(<LogEntry entry={erg} />);
+    fireEvent.click(screen.getByRole('link'));
+    expect(screen.queryByText('AVG WATTS')).toBeNull();
+  });
+
+  it('is absent on planned, cancelled, strength and id-less rows', () => {
+    for (const entry of [
+      { ...erg, status: 'planned' },
+      { ...erg, status: 'cancelled' },
+      { ...erg, _isErg: false, type: 'Combined', exercises: [] },
+      { ...erg, _id: undefined },
+    ]) {
+      const { unmount } = render(<LogEntry entry={entry} />);
+      expect(screen.queryByRole('link')).toBeNull();
+      unmount();
+    }
+  });
+});

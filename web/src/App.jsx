@@ -12,6 +12,7 @@ import { useSessions } from './hooks/useSessions.js';
 import { selectSessionLog } from './utils/sessionLog.js';
 import { useDesktopRoute } from './hooks/useDesktopRoute.js';
 import { DESKTOP_PANES } from './utils/desktopRoute.js';
+import { focusSessionLink } from './utils/sessionPage.js';
 import { DESTINATIONS } from './constants/destinations.js';
 import { RADIUS, SPACE, TYPE } from './constants/tokens.js';
 import Icon from './components/Icon.jsx';
@@ -52,6 +53,7 @@ const CalendarView = lazy(() => import('./views/CalendarView.jsx'));
 const PlanView = lazy(() => import('./views/PlanView.jsx'));
 const LogView = lazy(() => import('./views/LogView.jsx'));
 const SettingsView = lazy(() => import('./views/SettingsView.jsx'));
+const SessionView = lazy(() => import('./views/SessionView.jsx'));
 
 // ── ERROR BOUNDARY (beta hardening) ───────────────────────────
 // Isolates render failures so one bad tab doesn't white-screen the app.
@@ -151,13 +153,32 @@ export default function App({ sidebarFoot = null }) {
   const settingsRef = useRef(null);
   const returnRoute = useRef('today');
   const previousRoute = useRef(route.path);
+  const previousSession = useRef(null);
+  // Whether the open session page was reached by navigating inside the app
+  // (so Back can pop history) rather than by a deep link or reload. Set only
+  // when the path actually changes, so StrictMode's double effect run on mount
+  // cannot set it. A trip to Settings and back keeps it as it was.
+  const sessionFromApp = useRef(false);
   useEffect(() => {
-    if (route.path !== 'settings') {
-      if (previousRoute.current === 'settings') settingsRef.current?.focus();
-      returnRoute.current = route.path;
+    const from = previousRoute.current;
+    const changed = from !== route.path;
+    if (route.pane === 'session') {
+      if (changed && from !== 'settings') sessionFromApp.current = true;
+    } else if (route.path !== 'settings') {
+      if (from === 'settings') settingsRef.current?.focus();
+      if (previousSession.current != null)
+        focusSessionLink(previousSession.current);
+      sessionFromApp.current = false;
     }
+    // Settings returns to wherever it was opened from, a session page included.
+    if (route.path !== 'settings') returnRoute.current = route.path;
     previousRoute.current = route.path;
-  }, [route.path]);
+    previousSession.current = route.sessionId ?? null;
+  }, [route.path, route.pane, route.sessionId]);
+  const leaveSession = () => {
+    if (sessionFromApp.current) window.history.back();
+    else navigate('progress/history');
+  };
   useEffect(() => {
     if (initialCallback) clearStravaCallbackFromUrl(window);
   }, [initialCallback]);
@@ -484,6 +505,15 @@ export default function App({ sidebarFoot = null }) {
             {/* ── SETTINGS VIEW (integrations: Strava today, more later) ── */}
             {view === 'settings' && (
               <SettingsView onSynced={fetchSessions} notice={stravaNotice} />
+            )}
+
+            {view === 'session' && (
+              <SessionView
+                key={route.sessionId}
+                sessionId={route.sessionId}
+                onBack={leaveSession}
+                layout="desktop"
+              />
             )}
           </Suspense>
         </ErrorBoundary>

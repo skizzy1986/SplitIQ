@@ -120,14 +120,26 @@
     },
     {
       "file": "011_sessions_strava_activity_id.sql",
-      "status": "unapplied",
-      "reason": "Strava go-live (#628) not yet applied: apply 011, 012, 018 and 019_strava_purge in one sitting with the owner's approval, after all three slices merge and before any OAuth grant.",
+      "status": "applied",
+      "live": [
+        {
+          "version": "20261117060638",
+          "name": "011_sessions_strava_activity_id"
+        }
+      ],
+      "note": "Applied 2026-11-17 in the Strava go-live sitting (#628), first of four. Sent byte for byte with `supabase db query --linked --file`, in one transaction with its schema_migrations row, not via apply_migration, which needs the SQL retyped inline; the row's created_by is therefore empty. Stored text md5 matches the file.",
       "issue": 629
     },
     {
       "file": "012_strava_integration.sql",
-      "status": "unapplied",
-      "reason": "Amended by #629 (provenance table, FORCE RLS dropped, RPCs record provenance) and #630 (P0003 race guard on both RPCs); depends on 011. Strava go-live (#628) not yet applied: apply with 011, 018 and 019_strava_purge, in one sitting, before any OAuth grant.",
+      "status": "applied",
+      "live": [
+        {
+          "version": "20261117060655",
+          "name": "012_strava_integration"
+        }
+      ],
+      "note": "Applied 2026-11-17 (#628), same method as 011, as amended by #629 (provenance table, FORCE RLS dropped, RPCs record provenance) and #630 (P0003 race guard on both RPCs). Its in-migration self-test of both RPCs passed at apply. From here it is immutable: change it with a new migration.",
       "issue": 629
     },
     {
@@ -190,14 +202,26 @@
     },
     {
       "file": "018_strava_backup_exclusion.sql",
-      "status": "unapplied",
-      "reason": "Excludes the strava_* tables from backup_snapshot() and adds sessions_no_strava; needs 012 applied first. Strava go-live (#628) not yet applied: apply with 011, 012 and 019_strava_purge, in one sitting, before any OAuth grant.",
+      "status": "applied",
+      "live": [
+        {
+          "version": "20261117060711",
+          "name": "018_strava_backup_exclusion"
+        }
+      ],
+      "note": "Applied 2026-11-17 (#628), same method as 011, immediately after 012: backup_snapshot() excludes the strava_* tables, and sessions_no_strava exists for agent sessions (#631).",
       "issue": 629
     },
     {
       "file": "019_strava_purge.sql",
-      "status": "unapplied",
-      "reason": "Strava go-live (#628) not yet applied: apply with 011, 012 and 018 in one sitting, before any OAuth grant; depends on 012 and 018.",
+      "status": "applied",
+      "live": [
+        {
+          "version": "20261117060752",
+          "name": "019_strava_purge"
+        }
+      ],
+      "note": "Applied 2026-11-17 (#628), same method as 011, before the OAuth grant: the disconnect, revocation-purge and deletion-sync functions. Its self-test passed at apply.",
       "issue": 630
     }
   ],
@@ -319,6 +343,12 @@
       "version": "20261106035601",
       "name": "vitals_nutrition_intake",
       "note": "Reorientation epic; no file"
+    },
+    {
+      "version": "20261115152808",
+      "name": "018_exercises_and_strength_views",
+      "note": "Applied 2026-11-15 for #435; its file is in draft PR #578 and not on main yet. Recorded here when the live snapshot was refreshed for the Strava go-live (#628). Move it to `files` when that PR lands; it will share the 018 prefix with 018_strava_backup_exclusion.",
+      "issue": 435
     }
   ]
 }

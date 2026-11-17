@@ -139,6 +139,26 @@
     {
       "version": "20261114163641",
       "name": "017_backup_snapshot_coverage"
+    },
+    {
+      "version": "20261115152808",
+      "name": "018_exercises_and_strength_views"
+    },
+    {
+      "version": "20261117060638",
+      "name": "011_sessions_strava_activity_id"
+    },
+    {
+      "version": "20261117060655",
+      "name": "012_strava_integration"
+    },
+    {
+      "version": "20261117060711",
+      "name": "018_strava_backup_exclusion"
+    },
+    {
+      "version": "20261117060752",
+      "name": "019_strava_purge"
     }
   ]
 }

@@ -13,6 +13,7 @@
 SplitIQ — a training app where the movements explain themselves: a 3D anatomical
 runtime around a training log with an honest load model. `VISION.md` wins where docs
 disagree. Never reintroduce an AI coach or a personal prescription engine (#412).
+Never read Strava data: query `public.sessions_no_strava`, never the `sessions` base table, a `strava_*` table or `backup_snapshots` (`.claude/skills/supabase-patterns.md`, "Strava data and agent sessions").
 
 ## Library documentation — Context7 first
 

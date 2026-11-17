@@ -22,6 +22,8 @@
 - Push to `main`, merge a PR, or force-push (`--force-with-lease`, own branch only).
 - Commit, push or open a PR when a session started you — the orchestrator delivers.
 - Write or delete Supabase rows, or apply a migration, without Scott's explicit approval.
+- Read Strava data: never query the `sessions` base table, any `strava_*` table or
+  `backup_snapshots`; read `public.sessions_no_strava` (`.claude/skills/supabase-patterns.md`).
 - Commit a credential, or pass `--no-verify` without an explicit reason.
 - Edit anything under `.claude/agents/` or `.claude/agent-library/`.
 - Add TypeScript, an AI coach, or a personal prescription engine (#412).

@@ -78,6 +78,13 @@ Then **read the named file**. An issue is a report, not a diagnosis.
 Drop anything you cannot locate in the code. A finding you cannot point at is a
 guess.
 
+**Except the `strava-*` functions.** Their events carry Strava activity ids, and
+Strava's terms bar Strava data from an agent's context. Rank and report them on
+the issue title, count and permalink from `search_issues` alone; do not open their
+events, stack traces or breadcrumbs. Verify against the code from the title, and
+leave event detail to Scott (`.claude/skills/supabase-patterns.md`, "Strava data
+and agent sessions").
+
 ## Step 4 — Report
 
 A ranked table: what, where (`file:line`), how many events, how many users, and

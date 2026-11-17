@@ -72,7 +72,7 @@ things you never do (push to `main`, merge, force-push, Supabase writes,
 
 ## Hooks do not run as they do in Claude Code
 
-`.claude/settings.json` wires four command hooks. Cursor does not run that
+`.claude/settings.json` wires five command hooks. Cursor does not run that
 file for a cloud agent. In the IDE, Claude hooks load only when **Settings →
 Agents → Third-Party Imports** ("Include Third-Party Plugins, Skills, and
 Other Configs") is on, which is the default. Do not assume they ran. Do the
@@ -93,6 +93,7 @@ What each hook enforces, and the manual check:
 |---|---|---|
 | `.claude/hooks/session-start.sh` (`SessionStart`) | In a remote Claude session only (`CLAUDE_CODE_REMOTE=true`): warn if `deno` is missing, then `npm ci --prefix web` so the lockfile is not rewritten. Elsewhere it exits 0 | Cloud agents do not run `sessionStart`. If `web/node_modules` is missing before lint, test, or build, run `npm ci --prefix web`. Do not `npm install`. If you are on an Edge Function and `deno` is missing, say so |
 | `.claude/hooks/block-secret-commit.sh` (`PreToolUse` / `Bash`) | Blocks `git commit` when a staged path matches the pattern in that script (exit 2) | Wired, below. Still read the staged list before you commit. The pattern lives only in the script |
+| `.claude/hooks/block-strava-data-read.sh` (`PreToolUse` / Supabase `execute_sql`) | Blocks a query that reads the `sessions` base table, a `strava_*` table or `backup_snapshots` (exit 2). A guardrail, not enforcement | No Cursor hook. Follow the written rule, below |
 | `.claude/hooks/lint-edited-file.sh` (`PostToolUse` / `Edit\|Write`) | Advisory ESLint on a `.js` / `.jsx` file under `web/src` or `web/scripts`. Findings are context, not a failed edit | After such an edit, run `web/node_modules/.bin/eslint --max-warnings=0 --no-warn-ignored` on that file. Fix findings, or show them, before you finish. `npm run lint` in `web/` is the full check |
 | `.claude/hooks/warn-uncommitted.sh` (`Stop`) | Tells the user when the turn ends dirty. Silent in a remote Claude session. Does not continue the turn | Before you finish, `git status --porcelain`. Uncommitted work goes in the commit or is named in the PR body |
 
@@ -105,6 +106,13 @@ and cloud agents run this hook (`beforeShellExecution` is in the cloud
 matrix). It does not run during a read-only cloud turn, and an IDE with
 third-party import may also run the Claude `PreToolUse` hook on the same
 commit. The Claude script remains the check.
+
+Strava data has no Cursor hook. Claude Code also runs
+`.claude/hooks/block-strava-data-read.sh` on the Supabase `execute_sql` tools;
+nothing in `.cursor/hooks.json` does the same. Under Cursor the written rule is
+all there is: never query the `sessions` base table, a `strava_*` table or
+`backup_snapshots`; read `public.sessions_no_strava`. Read "Strava data and
+agent sessions" in `.claude/skills/supabase-patterns.md`.
 
 Husky is separate, and it only runs when `core.hooksPath` is `.husky`. Cursor
 cloud agents point that elsewhere, so run the commands yourself when they

@@ -462,6 +462,91 @@ else
   echo "skip  lint: eslint cases (run 'npm install' in web/)"
 fi
 
+# ---- block-strava-data-read.sh (PreToolUse, Supabase SQL tools) ---------------
+# #631. A block is exit 2 with the advice on stderr; an allow is exit 0 and
+# silent. Both directions are asserted, because a guard that blocks nothing
+# and a guard that blocks everything both "pass" a one-sided test.
+guard() { bash "$here/block-strava-data-read.sh"; }
+SQL_TOOL=mcp__supabase-readonly__execute_sql
+sqlp() { # sqlp <tool_name> <query>: the payload, JSON-encoded by node
+  node -e 'process.stdout.write(JSON.stringify({hook_event_name:"PreToolUse",tool_name:process.argv[1],tool_input:{query:process.argv[2]}}))' "$1" "$2"
+}
+blocks() { # blocks <name> <query> [tool]
+  begin
+  run "$(sqlp "${3:-$SQL_TOOL}" "$2")" guard
+  expect_exit 2; expect_stderr_line1_has "BLOCKED:"; expect_stderr_has "sessions_no_strava"
+  expect_stderr_has "supabase-patterns.md"; expect_stdout_empty
+  done_case "$1"
+}
+allows() { # allows <name> <query> [tool]
+  begin
+  run "$(sqlp "${3:-$SQL_TOOL}" "$2")" guard
+  expect_exit 0; expect_stdout_empty; expect_stderr_empty
+  done_case "$1"
+}
+
+blocks "S1 strava guard: plain select from sessions" "select * from sessions limit 5"
+blocks "S2 strava guard: public.sessions" "select avg_watts from public.sessions"
+blocks "S3 strava guard: mixed case" "SeLeCt * FrOm Public.SESSIONS"
+blocks "S4 strava guard: quoted identifiers" 'select * from "public"."sessions"'
+blocks "S5 strava guard: join" "select v.date from vitals v join sessions s on s.user_id = v.user_id"
+blocks "S6 strava guard: CTE body" "with x as (select * from sessions) select count(*) from x"
+blocks "S7 strava guard: subquery" "select * from vitals where date in (select date_iso from sessions)"
+blocks "S8 strava guard: comma join" "select 1 from vitals v, sessions s"
+blocks "S9 strava guard: strava_tokens" "select * from strava_tokens"
+blocks "S10 strava guard: strava_session_links" "select * from public.strava_session_links"
+blocks "S11 strava guard: backup_snapshots" "select payload from backup_snapshots order by created_at desc limit 1"
+blocks "S12 strava guard: relation after a -- comment line" $'select *\nfrom -- just a comment\n  sessions'
+blocks "S13 strava guard: relation after a /* */ comment" "select * from /* x */ sessions"
+blocks "S14 strava guard: second statement reads" "select 1; select * from sessions"
+blocks "S15 strava guard: INSERT ... SELECT reads" "insert into sessions (date, label) select date, label from sessions where id = 1"
+blocks "S16 strava guard: RETURNING reads" "update sessions set label = 'x' where id = 1 returning *"
+blocks "S17 strava guard: DELETE ... RETURNING reads" "delete from sessions where id = 1 returning avg_watts"
+blocks "S18 strava guard: UPDATE ... FROM reads" "update vitals set steps_count = 1 from sessions s where s.id = 1"
+blocks "S19 strava guard: strava_activity_id column" "select strava_activity_id from sessions_no_strava"
+blocks "S20 strava guard: backup_snapshot() payload" "select public.backup_snapshot()->'tables'->'sessions'"
+blocks "S21 strava guard: DO block body is code" 'do $$ begin perform * from sessions; end $$'
+blocks "S22 strava guard: tool name mcp__Supabase__execute_sql" "select * from sessions" mcp__Supabase__execute_sql
+blocks "S23 strava guard: tool name mcp__claude_ai_Supabase__execute_sql" "select * from sessions" mcp__claude_ai_Supabase__execute_sql
+blocks "S24 strava guard: tool name mcp__supabase-readonly__execute_sql" "select * from sessions" mcp__supabase-readonly__execute_sql
+blocks "S25 strava guard: three-part name db.public.sessions" "select * from postgres.public.sessions"
+blocks "S26 strava guard: quoted three-part name" 'select * from "postgres"."public"."sessions"'
+blocks "S27 strava guard: pg_stats" "select most_common_vals from pg_stats where tablename = 'x'"
+blocks "S28 strava guard: pg_catalog.pg_statistic" "select * from pg_catalog.pg_statistic"
+blocks "S29 strava guard: pg_stats_ext and pg_stats_ext_exprs" "select * from pg_stats_ext; select * from pg_stats_ext_exprs"
+begin
+run "$(sqlp "$SQL_TOOL" "select count(*) as sessions from public.sessions_no_strava")" guard
+expect_exit 2; expect_stderr_has "column alias or CTE named sessions"; expect_stderr_has "rename it"
+done_case "S46 strava guard: an alias named sessions is blocked, and the message says why"
+
+allows "S30 strava guard: sessions_no_strava is the sanctioned read" "select date, avg_watts from public.sessions_no_strava order by date_iso desc nulls last limit 10"
+allows "S31 strava guard: strength_workouts.session_id" "select session_id from strength_workouts where status = 'completed'"
+allows "S32 strava guard: session_date_to_iso()" "select public.session_date_to_iso('3/4/26')"
+allows "S33 strava guard: a table that only contains the word" "select * from sessions_archive"
+allows "S34 strava guard: catalogue query, 'sessions' as a literal" "select column_name from information_schema.columns where table_name = 'sessions'"
+allows "S35 strava guard: pg_policies like 'strava%'" "select policyname from pg_policies where tablename like 'strava%'"
+allows "S36 strava guard: to_regclass literal" "select to_regclass('public.strava_tokens')"
+allows "S37 strava guard: snapshot key-presence check" "select (public.backup_snapshot()->'tables') ? 'strava_tokens'"
+allows "S38 strava guard: comment containing from sessions" $'-- was: select * from sessions\nselect * from vitals /* not from sessions */'
+allows "S39 strava guard: unrelated tables" "select * from anchors where superseded_at is null; select * from coach_log"
+allows "S40 strava guard: plain INSERT ... VALUES" "insert into sessions (date, label, user_id) values ('3/4/26', 'Row', '00000000-0000-0000-0000-000000000000')"
+allows "S41 strava guard: UPDATE ... SET without RETURNING" "update sessions set coach_note = 'ok' where id = 42"
+allows "S42 strava guard: E-string with an escaped quote" "select * from vitals where note = E'it\\'s from sessions'"
+allows "S43 strava guard: cron.job name and schedule" "select jobname, schedule, active from cron.job where jobname like 'strava%'"
+allows "S44 strava guard: unrelated tool is ignored" "select * from sessions" mcp__other__execute_sql
+allows "S45 strava guard: non-SQL Supabase tool is ignored" "select * from sessions" mcp__supabase-readonly__list_tables
+allows "S47 strava guard: another schema's sessions (auth.sessions)" "select count(*) from auth.sessions"
+allows "S48 strava guard: row-count catalogue (not blocked; the rule covers it)" "select relname, reltuples from pg_class where relname = 'vitals'"
+allows "S49 strava guard: pg_stat_user_tables is not pg_stats" "select relname, n_live_tup from pg_stat_user_tables where relname = 'vitals'"
+
+# Fails closed: an unreadable payload must not let the call through silently.
+for c in "S50|not json" "S51|{\"tool_name\":\"$SQL_TOOL\",\"tool_input\":{}}"; do
+  begin
+  run "${c#*|}" guard
+  expect_exit 2; expect_stderr_has "could not read this tool call"; expect_stdout_empty
+  done_case "${c%%|*} strava guard: unreadable payload fails closed"
+done
+
 echo
 echo "$pass passed, $fail failed"
 [ "$fail" -eq 0 ]

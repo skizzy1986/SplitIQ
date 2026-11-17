@@ -1,9 +1,10 @@
 # PR auto-labeler config (actions/labeler@v7). Maps changed paths to the area
 # labels defined in .github/labels.yml.
 #
-# `type:` labels on PRs come from .github/workflows/pr-type-label.yml, set from
-# the PR title. Never add a `type:` key here: the labeler runs with
-# `sync-labels: true`, so it would strip the title-derived label on every push.
+# `type:` labels on PRs come from the type step in .github/workflows/labeler.yml,
+# set from the PR title; it runs after the labeler, in the same job. Never add a
+# `type:` key here: the labeler runs with `sync-labels: true`, so it would strip
+# the title-derived label on every push.
 
 'area: anatomy':
   - changed-files:

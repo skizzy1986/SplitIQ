@@ -1,8 +1,24 @@
 name: PR labeler
 
-# Applies area labels to PRs based on which files changed (see .github/labeler.yml).
+# Applies area labels to PRs based on which files changed (see .github/labeler.yml),
+# then sets exactly one `type:` label from the PR title's Conventional Commit
+# type (WORKFLOW.md §1). The type mapping lives only in this file.
+#
+# The type step is kept out of the required title check (pr-title-lint.yml): a
+# labels-API failure must never block a merge, and folding it into the
+# required job would let it do so. It is advisory (continue-on-error): a
+# thrown API error would render as a red check, and
+# .claude/skills/steward/SKILL.md tells agents to treat a red check as blocking.
+#
+# Both run in one job, the type step after the labeler, serialised per PR.
+# The labeler with `sync-labels: true` snapshots the PR's labels, refetches
+# and PUTs the full set, so a `type:` label written concurrently by a separate
+# workflow could be resurrected or dropped (#605). Sequential in one job, under
+# one concurrency group, no other `type:` writer can land between the two.
 
-on: [pull_request_target]
+on:
+  pull_request_target:
+    types: [opened, edited, synchronize, reopened]
 
 permissions:
   contents: read
@@ -10,13 +26,89 @@ permissions:
 
 jobs:
   label:
-    name: Label by changed paths
+    name: Label by changed paths and title type
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Serialise per PR: labeler's setLabels PUT must never overlap the type
+    # step of another run (#605). A newer queued run replacing a pending one
+    # loses nothing — every run recomputes from fresh API state.
+    concurrency:
+      group: pr-labels-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
     steps:
       - uses: actions/labeler@bf12e9b00b37c5c0ca2b87b79b2daf7891dbda13 # v7.0.0
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           sync-labels: true
+
+      # No checkout: pull_request_target; the title is read from the payload
+      # as data and is never interpolated into a shell or evaluated.
+      #
+      # The script is unit-tested as it stands in this file by
+      # web/scripts/__tests__/title-lint.test.mjs — change the two together.
+      #
+      # !cancelled(): still runs when the labeler step failed, so a labeler
+      # error never costs the PR its type label.
+      - name: Set the type label from the title
+        if: ${{ !cancelled() }}
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        continue-on-error: true
+        with:
+          script: |
+            const TYPE_LABELS = {
+              feat: 'type: feature',
+              fix: 'type: bug',
+              revert: 'type: bug',
+              docs: 'type: docs',
+              refactor: 'type: refactor',
+              perf: 'type: refactor',
+              test: 'type: chore',
+              ci: 'type: chore',
+              build: 'type: chore',
+              chore: 'type: chore',
+              style: 'type: chore',
+              config: 'type: chore',
+              housekeeping: 'type: chore',
+            };
+            const pr = context.payload.pull_request;
+            const m = pr.title.match(/^([a-z]+)(?:\([^)]*\))?!?: /);
+            // hasOwn, not `in`: a title typed `constructor: x` must not
+            // resolve to an Object.prototype member.
+            if (!m || !Object.hasOwn(TYPE_LABELS, m[1])) return;
+            const want = TYPE_LABELS[m[1]];
+
+            // Fresh read: the payload's labels can be stale by the time a
+            // queued run starts.
+            const { data: current } = await github.rest.issues.listLabelsOnIssue({
+              ...context.repo,
+              issue_number: pr.number,
+              per_page: 100,
+            });
+            const names = current.map((label) => label.name);
+
+            // Add before removing, so a failure part-way never leaves the PR
+            // with no type label at all.
+            if (!names.includes(want)) {
+              await github.rest.issues.addLabels({
+                ...context.repo,
+                issue_number: pr.number,
+                labels: [want],
+              });
+            }
+            for (const name of names) {
+              if (!name.startsWith('type: ') || name === want) continue;
+              try {
+                await github.rest.issues.removeLabel({
+                  ...context.repo,
+                  issue_number: pr.number,
+                  name,
+                });
+              } catch (error) {
+                // 404: already gone (a concurrent edit removed it first),
+                // which is the state this step wants anyway.
+                if (error.status !== 404) throw error;
+              }
+            }
 
   # .claude/skills/steward/SKILL.md states CI facts as citations into the
   # workflows and check scripts. Those files move; the skill does not notice.
@@ -31,6 +123,8 @@ jobs:
   steward-staleness:
     name: Flag steward skill staleness
     runs-on: ubuntu-latest
+    # Unchanged behaviour: this job never ran on `edited` before #605.
+    if: github.event.action != 'edited'
     # Serialise per PR. Two rapid synchronize events (a push, then a
     # force-push) would otherwise both read "no marker comment yet" and both
     # create one. Not cancel-in-progress: the later run must still reconcile.

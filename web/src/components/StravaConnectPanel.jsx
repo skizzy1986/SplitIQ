@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { useStravaConnection } from '../hooks/useStravaConnection.js';
 import { useStravaConnect } from '../hooks/useStravaConnect.js';
 import { useStravaSync } from '../hooks/useStravaSync.js';
 import { THEME } from '../constants/theme.js';
+import {
+  describeDisconnectPreview,
+  describeDisconnectResult,
+} from '../utils/stravaDisconnect.js';
 import { FONT } from '../constants/type.js';
 import { RADIUS, SPACE, TYPE } from '../constants/tokens.js';
 import { Trans, useLingui } from '@lingui/react/macro';
@@ -40,14 +44,158 @@ function Button({ label, onClick, disabled, primary, tone }) {
   );
 }
 
+// Inline, not a modal (#630 D8): the counts sit beside the panel they describe,
+// and focus moves to the heading so a screen reader announces the question.
+function DisconnectConfirm({
+  preview,
+  isLoading,
+  loadError,
+  isConfirming,
+  confirmError,
+  onConfirm,
+  onCancel,
+  onRetryPreview,
+}) {
+  const { t } = useLingui();
+  const headingId = useId();
+  const headingRef = useRef(null);
+  useEffect(() => {
+    headingRef.current?.focus();
+  }, []);
+
+  // Heading and button words do not depend on the counts; the lines do.
+  const copy = describeDisconnectPreview(preview ?? {});
+  const ready = !!preview && !isLoading && !loadError;
+  const canConfirm = ready && !isConfirming;
+  const text = {
+    fontSize: TYPE.bodySm.size,
+    lineHeight: TYPE.bodySm.lineHeight,
+    color: THEME.textSubtle,
+    margin: 0,
+  };
+
+  return (
+    <div
+      role="group"
+      aria-labelledby={headingId}
+      style={{
+        border: `1px solid ${THEME.critical}`,
+        borderRadius: RADIUS.sm,
+        padding: `${SPACE.md}px`,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: SPACE.sm,
+        marginTop: SPACE.xs,
+      }}
+    >
+      <div
+        id={headingId}
+        ref={headingRef}
+        tabIndex={-1}
+        style={{
+          fontSize: TYPE.body.size,
+          fontWeight: TYPE.body.weight,
+          color: THEME.critical,
+          outline: 'none',
+        }}
+      >
+        {copy.heading}
+      </div>
+
+      {isLoading && (
+        <p style={text}>
+          <Trans comment="Loading state while counting Strava-sourced sessions before a disconnect">
+            Counting the Strava data in your log…
+          </Trans>
+        </p>
+      )}
+      {loadError && (
+        <p style={{ ...text, color: THEME.critical }}>
+          <Trans comment="Error when the disconnect preview could not be loaded">
+            Could not count the Strava data in your log. Try again.
+          </Trans>
+        </p>
+      )}
+      {ready &&
+        copy.lines.map((line) => (
+          <p key={line} style={text}>
+            {line}
+          </p>
+        ))}
+      {confirmError && (
+        <p role="alert" style={{ ...text, color: THEME.critical }}>
+          <Trans comment="Error after confirming a Strava disconnect">
+            Disconnect failed. Nothing was changed. Try again.
+          </Trans>
+        </p>
+      )}
+
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: SPACE.sm }}>
+        {loadError ? (
+          <Button
+            label={t({
+              message: 'Retry',
+              comment: 'Button in the error state',
+            })}
+            onClick={onRetryPreview}
+            tone="critical"
+          />
+        ) : (
+          <Button
+            label={
+              isConfirming
+                ? t({ message: 'Disconnecting…', comment: 'Button, busy' })
+                : copy.confirmLabel
+            }
+            onClick={onConfirm}
+            disabled={!canConfirm}
+            primary
+            tone="critical"
+          />
+        )}
+        <Button
+          label={t({ message: 'Cancel', comment: 'Button' })}
+          onClick={onCancel}
+          disabled={isConfirming}
+          tone="muted"
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function StravaConnectPanel({ compact = false, onSynced }) {
   // Also what re-renders the panel on a language switch, so describeConnection
   // (called by useStravaConnection on every render) re-reads its words.
   const { t } = useLingui();
   const { status, connection, isLoading, isError, refetch } =
     useStravaConnection();
-  const { start, requestDisconnect, disconnect } = useStravaConnect();
+  const { start, preview, disconnect } = useStravaConnect();
   const sync = useStravaSync({ onSynced });
+  const [confirming, setConfirming] = useState(false);
+
+  const openConfirm = () => {
+    setConfirming(true);
+    disconnect.reset();
+    preview.mutate();
+  };
+  const cancelConfirm = () => {
+    setConfirming(false);
+    preview.reset();
+  };
+  // isPending only flips on the next render, so a second click landing before
+  // it would start a second purge; the ref is set synchronously on the first.
+  const disconnectInFlight = useRef(false);
+  const confirmDisconnect = () => {
+    if (disconnect.isPending || disconnectInFlight.current) return;
+    disconnectInFlight.current = true;
+    disconnect.mutate(undefined, {
+      onSuccess: () => setConfirming(false),
+      onSettled: () => {
+        disconnectInFlight.current = false;
+      },
+    });
+  };
 
   const heading = (
     <div
@@ -171,6 +319,26 @@ export default function StravaConnectPanel({ compact = false, onSynced }) {
         </div>
       )}
 
+      {disconnect.isSuccess &&
+        disconnect.data &&
+        (() => {
+          // Persists after the connection query refetches to "not connected",
+          // so the counts stay readable once the panel has changed state.
+          const result = describeDisconnectResult(disconnect.data);
+          return (
+            <div
+              role="status"
+              style={{
+                fontSize: TYPE.caption.size,
+                lineHeight: TYPE.bodySm.lineHeight,
+                color: toneColor(result.tone),
+              }}
+            >
+              {result.text}
+            </div>
+          );
+        })()}
+
       {sync.isError && (
         <div style={{ fontSize: TYPE.caption.size, color: THEME.critical }}>
           <Trans comment="Error after pressing Sync now">
@@ -220,17 +388,26 @@ export default function StravaConnectPanel({ compact = false, onSynced }) {
         )}
         {kind !== 'not_connected' && (
           <Button
-            label={
-              disconnect.isPending
-                ? t({ message: 'Disconnecting…', comment: 'Button, busy' })
-                : t({ message: 'Disconnect', comment: 'Button' })
-            }
-            onClick={requestDisconnect}
-            disabled={disconnect.isPending}
+            label={t({ message: 'Disconnect', comment: 'Button' })}
+            onClick={openConfirm}
+            disabled={confirming}
             tone="muted"
           />
         )}
       </div>
+
+      {confirming && (
+        <DisconnectConfirm
+          preview={preview.data ?? null}
+          isLoading={preview.isPending}
+          loadError={preview.isError}
+          isConfirming={disconnect.isPending}
+          confirmError={disconnect.isError}
+          onConfirm={confirmDisconnect}
+          onCancel={cancelConfirm}
+          onRetryPreview={() => preview.mutate()}
+        />
+      )}
     </>
   );
 }

@@ -24,6 +24,7 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { captureFunctionError } from "../_shared/sentry.ts";
 import { deauthorize, exchangeAuthCode, type StravaTokens } from "../strava-import/client.ts";
+import { connectedSyncStatePatch } from "./syncState.ts";
 
 const FN = "strava-oauth-callback";
 
@@ -189,19 +190,10 @@ Deno.serve(async (req: Request) => {
       return fail("server");
     }
 
-    // Cursors are deliberately NOT reset here. Reconnecting the same athlete
-    // after an accidental disconnect should resume, not re-walk ten weeks.
+    // Cursors are deliberately NOT reset here; a scheduled purge IS cancelled.
+    // See syncState.ts.
     const { error: syncErr } = await supa.from("strava_sync_state").upsert(
-      {
-        user_id: userId,
-        connected: true,
-        athlete_id: athleteId,
-        scope: granted,
-        connected_at: nowISO,
-        disconnected_at: null,
-        backfill_from: backfillFrom!,
-        updated_at: nowISO,
-      },
+      connectedSyncStatePatch({ userId, athleteId, scope: granted, nowISO, backfillFrom: backfillFrom! }),
       { onConflict: "user_id" },
     );
     if (syncErr) {

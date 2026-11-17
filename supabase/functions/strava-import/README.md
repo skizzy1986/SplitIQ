@@ -105,6 +105,19 @@ NULL`, so the second finds it claimed and returns `adopt_lost_race`. Migration
 012 self-tests both RPCs against synthetic rows inside a subtransaction that is
 always rolled back.
 
+**How a deletion uses it (#630, migration 019).** Per link: an `inserted` row
+with no athlete data (no sRPE; blank note, coach flag and benchmark key; `prs`
+0 or null; `exercises` null, `[]` or `{}`) is **deleted**. An `inserted` row the
+athlete has since annotated is **kept**: `avg_watts` / `avg_hr` go back to
+`prior_*` where `wrote_*` (null on an inserted row, so Strava's figures are
+stripped), `strava_activity_id` is cleared and the link deleted. An `adopted`
+row gets the same restore + unlink. Date, label, type, duration, distance,
+status, source and every athlete field are never touched. A session carrying a
+Strava id with no link (an orphan) is unlinked with its figures left alone —
+there is no record of what was written to it. Both RPCs also take the
+athlete's sync row `FOR SHARE` before writing and raise `P0003` if it is gone or
+disconnected, so an import in flight cannot write a link after a purge commits.
+
 ## Eligibility
 
 All five must hold. `sport_type` is an **allow-list**, never a deny-list, and is
@@ -249,9 +262,9 @@ never carry token material.
 
 Apply the migrations first, in one sitting, with the owner's approval: `011`,
 then `012`, then `018` (which keeps the `strava_*` tables out of the nightly
-backup — until it runs, `backup_snapshot()` would export the OAuth tokens). The
-purge migration from #630 (the deletion paths) must also be applied **before any
-OAuth grant**. Then:
+backup — until it runs, `backup_snapshot()` would export the OAuth tokens), then
+`019` (`019_strava_purge`: the disconnect, revocation-purge and deletion-sync
+functions — see **Deletion**), all **before any OAuth grant**. Then:
 
 ```bash
 # JWT verification ON — do NOT pass --no-verify-jwt to these two
@@ -294,6 +307,12 @@ A run that hits HTTP 429 sets `strava_sync_state.rate_limit_resets_at` to the
 next quarter hour — or to the next midnight UTC when the daily cap is the cause
 (see **Backfill, incremental and throttling**) — and every run before that
 returns immediately, which is what stops one 429 becoming ninety-six a day.
+
+This one cron entry also carries both deletion paths (#630) — there is **no
+second cron**. Each athlete's run ends with the deletion sync when it is due
+(at most every 12 hours per athlete, an hour after an aborted pass), and every
+invocation then runs the revocation purge for athletes past their deadline.
+See **Deletion**.
 
 ## Dry run — and the legacy-6 verification
 
@@ -391,6 +410,46 @@ select strava_activity_id, count(*) from public.sessions
  where strava_activity_id is not null group by 1 having count(*) > 1;
 ```
 
+**Deletion dry runs and read-backs (#630)** — owner-run, like everything in
+this section: each returns Strava-derived data.
+
+The same `dry_run` call also shows both deletion paths, with zero writes. The
+deletion sync ignores its due time under `dry_run`, so it always runs (when the
+import itself finished cleanly with the backfill complete); the revocation
+purge lists what it would do for every athlete past the deadline:
+
+```bash
+curl -sS -X POST 'https://swdrueaserjzhuxnzmeu.supabase.co/functions/v1/strava-import?dry_run=1' \
+  -H 'x-cron-secret: <STRAVA_CRON_SECRET>' | jq '{reconcile: .results[0].reconcile, revocation}'
+```
+
+`reconcile.decisions` (dry run only) lists each candidate as `keep_present`
+(still on Strava), `delete`, `keep_unlink` or `restore_unlink`. Before the
+first real pass, check every `delete` against Strava by hand: it must be an
+activity really deleted there. `revocation` entries are `would_purge` with
+counts, or `not_due` / `no_state` / `reconnected`.
+
+What a disconnect would do, from the dashboard's own call (no write):
+
+```bash
+curl -sS -X POST 'https://swdrueaserjzhuxnzmeu.supabase.co/functions/v1/strava-connect' \
+  -H "Authorization: Bearer $JWT" -H 'Content-Type: application/json' \
+  -d '{"action":"disconnect_preview"}' | jq
+```
+
+After a real disconnect or revocation purge, all four must return zero:
+
+```sql
+select count(*) from public.strava_session_links where user_id = '<uuid>';
+select count(*) from public.sessions where user_id = '<uuid>' and strava_activity_id is not null;
+select count(*) from public.strava_sync_state where user_id = '<uuid>';
+select count(*) from public.strava_tokens where user_id = '<uuid>';
+```
+
+and the kept and restored rows read back with the athlete's own sRPE, notes
+and (for adopted rows) original `avg_watts` / `avg_hr`, spot-checked in the
+Log against the preview's counts.
+
 ## Backfill, incremental and throttling
 
 - **Incremental** lists `?after=<incremental_after>`, paging until exhausted.
@@ -445,11 +504,83 @@ select strava_activity_id, count(*) from public.sessions
 - Zero eligible activities → no writes beyond `last_run_at` and
   `last_run_status='noop'`, HTTP 200.
 
+## Deletion: disconnect, revocation purge, deletion sync
+
+Strava's API Policy requires that Strava data leaves when the athlete
+disconnects, when the grant is revoked, and when an activity is deleted on
+Strava (within 48 hours). Every path goes through a SECURITY DEFINER function
+in migration 019, applying the per-link rule in **Provenance** above, under the
+lock order sync row → token row → sessions → links.
+
+**Disconnect** (`strava-connect`, `disconnect.ts`). The dashboard first asks
+`disconnect_preview`, which calls `purge_strava_user(user, 'disconnect',
+dry_run => true)` and returns the counts it would delete, keep and restore — no
+Strava call, no write. The confirm (`disconnect` with `confirm: true`) then:
+gets a live access token while the refresh token still exists (the token
+store's `remove` is a no-op here — only the purge deletes the token row);
+calls `purge_strava_user(user, 'disconnect', false)`, one transaction that also
+deletes the token, OAuth-state and sync rows; and only if that succeeded,
+revokes at Strava with a 5-second timeout. A failed purge changes nothing and
+revokes nothing (502). A failed or timed-out revocation still returns 200 with
+`revocation: "failed"`, as does a token that could not be read or refreshed
+(Strava down at refresh): the purge still runs, but the grant may still stand.
+
+**Revocation purge** (phase B of the `strava-import` cron, `purge.ts`). When
+Strava refuses the grant — `invalid_grant` twice at refresh, or a 401 on a
+listing or detail call with a token that checked out fresh — the run marks the
+connection down (`connected = false`, `last_run_status = 'auth_failed'`) and
+sets `purge_due_at` 21 days out. The deadline is set once and never pushed
+later; a 401 does not delete the token row. Reconnecting clears `purge_due_at`.
+Every cron invocation, after the per-athlete imports (and even when nobody is
+connected), selects athletes with `connected = false` and `purge_due_at <=
+now()` and calls `purge_strava_user(user, 'revocation', dry_run)`. The function
+re-checks everything under its locks and answers `not_due`, `no_state` or
+`reconnected` (a token row newer than the disconnect) instead of purging when
+the selection was stale. No Strava call of any kind.
+
+**Deletion sync** (inside `runImport`, `reconcile.ts`). After an import that
+finished cleanly — backfill complete, no rate limit, daily cap, budget stop,
+deferral or error — and when `reconcile_due_at` has passed:
+
+1. read the links (`strava_link_inventory`);
+2. list every Strava activity from two days before the earliest link date (or
+   `backfill_from`, if earlier) — `after` fixed, paging until a well-formed
+   page comes back short;
+3. a link whose activity was not listed, and that existed before the listing
+   started, is a candidate; more candidates than `max(3, 20% of the links)`
+   aborts as implausible (`capped`);
+4. each candidate's detail is fetched, and only a **404** confirms it gone;
+5. `purge_strava_activities(user, gone, listing_started_at, dry_run)` removes
+   them — never a link made after the listing started.
+
+Its budget is 20 Strava calls and 20 seconds, cut to whatever the import left
+of its own 50 calls / 20 s, and it stops at 50% of either Strava window (the
+import stops at 80%). Every abort — `truncated`, `listing_failed`,
+`listing_malformed`, `listing_empty`, `capped`, `detail_failed`, `error` —
+happens before the delete RPC, and retries an hour later (`reconcile_due_at`);
+a completed pass (`ok`, or `noop` with no links) is due again in 12 hours. A 429
+also sets `rate_limit_resets_at`; a 401 is a revocation, as above. The result
+is attached to the run as `reconcile` (counts and status; per-activity
+`decisions` only on a dry run) and never changes the run's own status or
+cursors.
+
+**Race with an import in flight.** The purges lock the sync row `FOR UPDATE`;
+`upsert_strava_session` and `adopt_strava_session` take it `FOR SHARE` first and
+raise `P0003` once it is gone or disconnected. The importer stops the run there
+— status `error`, code `unknown`, no further writes and no sync-state write.
+
 ## Status and error codes
 
 `last_run_status` ∈ `ok | partial | noop | rate_limited | auth_failed | error`.
 `last_error_code` ∈ `token_exchange_failed | refresh_failed | auth_failed |
 rate_limited | upstream_5xx | insufficient_scope | db_write_failed | unknown`.
+
+`auth_failed` now also covers a 401 on a listing or detail call (it used to be
+`upstream_5xx` or a deferral), and schedules the purge. A run cut short by
+`P0003` (the connection deleted mid-run) reports `error` / `unknown` and writes
+no sync state. The deletion sync's own statuses live in the run's `reconcile`
+field, not in these columns. The `strava-import` response is HTTP 207 when any
+athlete's run ended `partial`/`error` or any revocation entry is `error`.
 
 Both are CHECK-constrained. **There is deliberately no free-text error column**:
 `String(e)` from a failed token exchange routinely carries the whole response
@@ -546,7 +677,13 @@ with no symptom except activities quietly ceasing to appear.
 deno run --allow-env supabase/functions/strava-import/test.ts
 ```
 
-364 assertions, TC-01 to TC-35. No network, no database, no dependence on the
+391 assertions, TC-01 to TC-39 (TC-36 to TC-39: the deletion sync wired into
+`runImport`, listing/detail 401 as a revocation, the purge deadline, `P0003`).
+The #630 deletion paths have two more suites, run the same way:
+`strava-import/deletion_test.ts` (92 — the deletion sync and the revocation
+purge) and `strava-connect/test.ts` (31 — disconnect preview and confirm, and
+the reconnect patch and its wiring into the callback; that one also needs
+`--allow-read=strava-oauth-callback/index.ts`, run from `supabase/functions`). No network, no database, no dependence on the
 machine's clock or timezone. Wired into `.github/workflows/ci-functions.yml`;
 that job's steps are **hardcoded**, so a new function's tests are not
 auto-discovered and need a step adding by hand.
@@ -591,21 +728,30 @@ test unrunnable offline.
 ## Client-facing behaviour
 
 - `strava-connect` `{action:"start"}` → `{ ok, authorize_url }`; send the browser there.
-- `strava-connect` `{action:"disconnect"}` → `{ ok, disconnected, revokedAtStrava }`.
-  `disconnected` is always `true` on a 200 — the local token row and
-  `connected` flag are gone either way. **`revokedAtStrava` is the only part of
-  the response the UI must actually read.** It is `true` only when Strava itself
-  accepted `POST /oauth/deauthorize`; it is `false` whenever the grant may still
-  stand on Scott's Strava account:
-  - the stored token was already unusable (refresh returned `invalid_grant`, or
-    a 5xx/network failure meant no live access token could be obtained), or
-  - `deauthorize` returned a non-2xx or threw.
+- `strava-connect` `{action:"disconnect_preview"}` → 200
+  `{ ok: true, preview: { toDelete, toKeep, toRestore } }` (integers: imported
+  sessions to delete; imported or orphaned sessions kept because they carry the
+  athlete's own data; adopted sessions whose own figures come back). No write,
+  no Strava call. Errors: 401 `{error:"unauthorized"}`, 500 missing env, 502
+  `{error:"disconnect_preview_failed"}`.
+- `strava-connect` `{action:"disconnect", confirm:true}` → 200
+  `{ ok: true, disconnected: true, removed, kept, restored, revocation }`, where
+  the counts are what was actually done and `revocation` is:
+  - `revoked` — Strava accepted `POST /oauth/deauthorize`;
+  - `failed` — it answered non-2xx, failed, or did not answer within 5 s; or
+    no access token could be obtained to try with (the refresh hit a Strava
+    outage, or the token read threw — both reported to Sentry). The data is
+    gone, but the grant may still stand on the athlete's Strava account, and
+    nothing here can revoke it any more: the UI must tell the user to remove
+    SplitIQ in Strava → Settings → My Apps;
+  - `not_attempted` — there was no grant to revoke: no token stored, or Strava
+    had already refused it (`invalid_grant` twice), so access at Strava had
+    already ended.
 
-  In every one of those cases the app has **destroyed the only credential that
-  could revoke the grant programmatically**, so nothing can undo it later from
-  here. A UI that reports plain success on `revokedAtStrava:false` leaves a live
-  authorisation on the account with no signposting; it must instead point the
-  user at <https://www.strava.com/settings/apps> to finish the job.
+  Errors: 400 `{error:"confirm_required"}` when `confirm` is not exactly `true`
+  (nothing is read or changed), 401, 500 missing env, and 502
+  `{error:"disconnect_failed"}` — the purge failed, **nothing was changed and
+  nothing was revoked**. `revokedAtStrava` no longer exists.
 - The callback returns to `STRAVA_APP_REDIRECT_URL` with `?strava=connected` or
   `?strava=error&reason=<denied|state|code|exchange|insufficient_scope|athlete_mismatch|method|server>`.
 - `strava-sync` returns the full `ImportResult` (200, or 207 when a run ended

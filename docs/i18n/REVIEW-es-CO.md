@@ -9,7 +9,7 @@ proper names stay as they are (SplitIQ, Strava). Numbers use a decimal point.
 Placeholders in braces — `{count}`, `{0}` — must stay exactly as written; their order
 may change. To correct a line, reply with its **row** id and the new Spanish.
 
-## Dashboard (src/locales, 29 strings)
+## Dashboard (src/locales, 28 strings)
 
 | Row | English | Español | Where / note |
 |---|---|---|---|
@@ -18,7 +18,6 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `bGQplw` | Body | Cuerpo | Mobile tab bar: readiness, sleep, heart rate · src/constants/destinations.js |
 | `vlj0xi` | Confirm your email address before signing in. | Confirma tu correo electrónico antes de iniciar sesión. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
 | `qGBulj` | Could not reach the server. Check your connection and try again. | No pudimos conectarnos con el servidor. Revisa tu conexión e inténtalo de nuevo. | Login error when the device is offline. Only shown in Spanish. · src/utils/authError.js |
-| `XfP7oA` | Disconnect Strava? Future activities will stop importing. Sessions already imported are never deleted — they stay in your log. | ¿Desconectar Strava? Las actividades futuras dejarán de importarse. Las sesiones que ya se importaron nunca se borran: se quedan en tu registro. | Browser confirmation dialog before disconnecting Strava · src/hooks/useStravaConnect.js |
 | `2e0dGW` | EMAIL | CORREO ELECTRÓNICO | Login form field label, all capitals · src/AuthGate.jsx |
 | `Md1Bvk` | Enter email and password. | Ingresa tu correo y tu contraseña. | Login form validation error. · src/AuthGate.jsx |
 | `cFg0mZ` | Erg | Ergómetro | src/views/ErgView.jsx |
@@ -43,7 +42,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `hdxhKx` | We could not sign you in. Try again. | No pudimos iniciar sesión. Inténtalo de nuevo. | Login error for any unrecognised cause. Only shown in Spanish. · src/utils/authError.js |
 | `y1oEoC` | Wrong email or password. | Correo o contraseña incorrectos. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
 
-## Dashboard views (src/locales/views, 294 strings)
+## Dashboard views (src/locales/views, 314 strings)
 
 | Row | English | Español | Where / note |
 |---|---|---|---|
@@ -56,11 +55,17 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `P6EN8W` | {count, plural, one {{count} logged} other {{count} logged}} | {count, plural, one {{count} registrada} other {{count} registradas}} | src/views/mobile/MobileSessionLog.jsx |
 | `ypAO3p` | {count, plural, one {{count} session imported since connecting} other {{count} sessions imported since connecting}} | {count, plural, one {{count} sesión importada desde que conectaste} other {{count} sesiones importadas desde que conectaste}} | src/utils/stravaStatus.js |
 | `kZEMHT` | {daysAgo, plural, one {{daysAgo} day ago} other {{daysAgo} days ago}} | {daysAgo, plural, one {hace {daysAgo} día} other {hace {daysAgo} días}} | src/utils/stravaStatus.js |
+| `pG7I-U` | {del, plural, one {{del} imported session deleted.} other {{del} imported sessions deleted.}} | {del, plural, one {Se eliminó {del} sesión importada.} other {Se eliminaron {del} sesiones importadas.}} | src/utils/stravaDisconnect.js |
+| `5L75vu` | {del, plural, one {{del} imported session will be deleted.} other {{del} imported sessions will be deleted.}} | {del, plural, one {Se eliminará {del} sesión importada.} other {Se eliminarán {del} sesiones importadas.}} | src/utils/stravaDisconnect.js |
 | `Dnks7s` | {doneCount, plural, one {✓ DONE} other {✓ DONE ×{doneCount}}} | {doneCount, plural, one {✓ HECHA} other {✓ HECHAS ×{doneCount}}} | Day badge, all capitals: sessions done that day · src/views/CalendarView.jsx |
 | `bPg3IX` | {hours, plural, one {{hours} hour ago} other {{hours} hours ago}} | {hours, plural, one {hace {hours} hora} other {hace {hours} horas}} | src/utils/stravaStatus.js |
 | `nq0EGc` | {importedText}; {matchedText} | {importedText}; {matchedText} | src/utils/stravaStatus.js |
 | `1G3v_e` | {importedText}. New Strava activities are imported automatically. | {importedText}. Las actividades nuevas de Strava se importan automáticamente. | src/utils/stravaStatus.js |
+| `dgqjPM` | {keep, plural, one {{keep} imported session kept, without Strava power and heart rate.} other {{keep} imported sessions kept, without Strava power and heart rate.}} | {keep, plural, one {Se conservó {keep} sesión importada, sin la potencia ni la frecuencia cardíaca de Strava.} other {Se conservaron {keep} sesiones importadas, sin la potencia ni la frecuencia cardíaca de Strava.}} | src/utils/stravaDisconnect.js |
+| `kJOby-` | {keep, plural, one {{keep} imported session with your own sRPE or notes will be kept, without Strava power and heart rate.} other {{keep} imported sessions with your own sRPE or notes will be kept, without Strava power and heart rate.}} | {keep, plural, one {Se conservará {keep} sesión importada con tu propio sRPE o tus notas, sin la potencia ni la frecuencia cardíaca de Strava.} other {Se conservarán {keep} sesiones importadas con tu propio sRPE o tus notas, sin la potencia ni la frecuencia cardíaca de Strava.}} | src/utils/stravaDisconnect.js |
 | `mJpJDC` | {minutes, plural, one {{minutes} minute ago} other {{minutes} minutes ago}} | {minutes, plural, one {hace {minutes} minuto} other {hace {minutes} minutos}} | src/utils/stravaStatus.js |
+| `PhnrbH` | {restore, plural, one {Strava power and heart rate removed from {restore} session you logged yourself.} other {Strava power and heart rate removed from {restore} sessions you logged yourself.}} | {restore, plural, one {Se quitaron la potencia y la frecuencia cardíaca de Strava de {restore} sesión que registraste tú.} other {Se quitaron la potencia y la frecuencia cardíaca de Strava de {restore} sesiones que registraste tú.}} | src/utils/stravaDisconnect.js |
+| `nOVWI9` | {restore, plural, one {Strava power and heart rate will be removed from {restore} session you logged yourself.} other {Strava power and heart rate will be removed from {restore} sessions you logged yourself.}} | {restore, plural, one {Se quitarán la potencia y la frecuencia cardíaca de Strava de {restore} sesión que registraste tú.} other {Se quitarán la potencia y la frecuencia cardíaca de Strava de {restore} sesiones que registraste tú.}} | src/utils/stravaDisconnect.js |
 | `v77_zP` | ＋ add exercise | ＋ agregar ejercicio | src/components/LogSessionForm.jsx |
 | `r5Xvbj` | ＋ LOG A STRENGTH SESSION | ＋ REGISTRAR UNA SESIÓN DE FUERZA | Button, all capitals · src/components/LogSessionForm.jsx |
 | `k6NFYN` | ● TODAY | ● HOY | Marks today in the calendar, all capitals · src/components/WorkoutItem.jsx |
@@ -76,6 +81,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `XMMmV2` | 30-DAY LOAD TREND | TENDENCIA DE CARGA · 30 DÍAS | Chart title, all capitals · src/views/mobile/MobileAnalytics.jsx |
 | `mdEzyZ` | 6/19/26 | mm/dd/aa | Date field placeholder. The app stores month/day/year, so in Spanish write the format (mm/dd/aa) rather than a sample date a reader would take as day/month · src/components/LogSessionForm.jsx |
 | `4VXqzE` | 8-WEEK TSS HISTORY | HISTORIAL DE TSS · 8 SEMANAS | Chart title, all capitals; TSS stays as is · src/views/mobile/MobileAnalytics.jsx |
+| `0Q8dUF` | Access at Strava revoked. | Se revocó el acceso en Strava. | src/utils/stravaDisconnect.js |
 | `OJnS4k` | Activity ids: {0} | ID de actividades: {0} | Followed by a list of Strava activity numbers · placeholder {0}: (connection?.ambiguous_activity_ids ?? []).join(', ') · src/components/StravaConnectPanel.jsx |
 | `PEeHLd` | Add a session label (e.g. Lower 2). | Agrega un nombre para la sesión (p. ej., Tren inferior 2). | src/components/LogSessionForm.jsx |
 | `ka1Xir` | Add at least one exercise. | Agrega al menos un ejercicio. | src/components/LogSessionForm.jsx |
@@ -93,6 +99,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `bGQplw` | Body | Cuerpo | Desktop body screen heading · src/views/RecoveryView.jsx |
 | `e0F-Wf` | BODYWEIGHT — 14 DAYS (kg) | PESO CORPORAL — 14 DÍAS (kg) | Chart title, all capitals; kg stays as is · src/views/mobile/MobileRecovery.jsx |
 | `AjVXBS` | Calendar | Calendario | Desktop Today pane · src/App.jsx · src/views/CalendarView.jsx |
+| `dEgA5A` | Cancel | Cancelar | Button · src/components/StravaConnectPanel.jsx |
 | `vv7kpg` | Cancelled | Cancelada | src/views/mobile/MobileSessionLog.jsx |
 | `-6w-0_` | CANCELLED | CANCELADA | Badge, all capitals · src/components/LogEntry.jsx |
 | `wq6793` | Cancelled — this session was not completed. | Cancelada: esta sesión no se completó. | src/components/LogEntry.jsx |
@@ -109,11 +116,13 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `xf6cmU` | Connect the PM5 and row against a watt band | Conecta el PM5 y rema dentro de una banda de vatios | src/views/mobile/MobileTrain.jsx |
 | `fb1ABp` | Connected · waiting for the first sync | Conectado · esperando la primera sincronización | src/utils/stravaStatus.js |
 | `-uLBTN` | Could do all day. Full conversation, nose-breathing. | Podrías seguir todo el día. Conversación completa, respirando por la nariz. | sRPE scale, effort 1-2: the talk test · src/constants/srpeGuideMessages.js |
+| `2xL2US` | Could not count the Strava data in your log. Try again. | No se pudieron contar los datos de Strava de tu registro. Inténtalo de nuevo. | Error when the disconnect preview could not be loaded · src/components/StravaConnectPanel.jsx |
 | `stSfoD` | Could not read the Strava connection status | No pudimos leer el estado de la conexión con Strava | Error state heading · src/components/StravaConnectPanel.jsx |
 | `pSobqw` | Could not start the Strava connection. Try again. | No pudimos iniciar la conexión con Strava. Inténtalo de nuevo. | Error after pressing Connect Strava · src/components/StravaConnectPanel.jsx |
 | `NVdgu4` | Couldn't load {what}. | No se pudo cargar: {what}. | {what} is the card's title in lower case, e.g. blood pressure · src/components/HealthRecordCard.jsx |
 | `F_DqBO` | Couldn't refresh sessions — showing what loaded earlier. | No se pudieron actualizar las sesiones: se muestra lo que se cargó antes. | src/views/CalendarView.jsx |
 | `bbVCmK` | Couldn't refresh, showing earlier data. | No se pudo actualizar; se muestran datos anteriores. | src/components/HealthRecordCard.jsx |
+| `trK-Ln` | Counting the Strava data in your log… | Contando los datos de Strava de tu registro… | Loading state while counting Strava-sourced sessions before a disconnect · src/components/StravaConnectPanel.jsx |
 | `rQjZxs` | CP unavailable | CP no disponible | src/views/OverviewView.jsx |
 | `DUMjBi` | CTL builds over 42 days — values will be underestimated until ~6 weeks of data. | La CTL se construye en 42 días: los valores quedarán subestimados hasta tener ~6 semanas de datos. | src/views/OverviewView.jsx |
 | `pvnfJD` | Dark | Oscuro | src/components/ThemeControl.jsx |
@@ -121,6 +130,9 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `r2_GnS` | Decision limits: | Límites de decisión: | Followed by the names of the guideline sources · src/views/RecoveryView.jsx |
 | `Bn9-El` | default | predeterminado | Followed by a number: the population default baseline · src/views/RecoveryView.jsx |
 | `-K0AvT` | Disconnect | Desconectar | Button · src/components/StravaConnectPanel.jsx |
+| `-Svq9F` | Disconnect and delete | Desconectar y eliminar | Button that confirms disconnecting Strava and deleting its data · src/utils/stravaDisconnect.js |
+| `EG459f` | Disconnect failed. Nothing was changed. Try again. | No se pudo desconectar. No se cambió nada. Inténtalo de nuevo. | Error after confirming a Strava disconnect · src/components/StravaConnectPanel.jsx |
+| `D2Ms9q` | Disconnect Strava and delete its data? | ¿Desconectar Strava y eliminar sus datos? | src/utils/stravaDisconnect.js |
 | `MpIMfg` | Disconnecting… | Desconectando… | Button, busy · src/components/StravaConnectPanel.jsx |
 | `0-AhBt` | DISTANCE | DISTANCIA | Metric, all capitals · src/components/LogEntry.jsx |
 | `n6udpp` | DURATION | DURACIÓN | Field label, all capitals · Metric, all capitals · src/components/LogEntry.jsx · src/components/LogSessionForm.jsx |
@@ -202,7 +214,8 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `WUxHQb` | No upcoming planned sessions. | No hay sesiones planificadas próximas. | src/views/PlanView.jsx |
 | `3jc046` | No upcoming sessions | No hay sesiones próximas | src/views/mobile/MobileAnalytics.jsx |
 | `GDcDFt` | No vitals recorded yet | Todavía no hay signos vitales registrados | src/views/mobile/MobileRecovery.jsx |
-| `dk8q7E` | Nothing already imported is affected — reconnecting resumes from where it stopped. | Lo que ya se importó no se ve afectado: al reconectar, la importación sigue desde donde se detuvo. | src/utils/stravaStatus.js |
+| `2YEfZW` | Nothing in your log came from Strava; nothing will be removed. | Nada de tu registro vino de Strava; no se quitará nada. | src/utils/stravaDisconnect.js |
+| `qhISLS` | Nothing in your log came from Strava. | Nada de tu registro vino de Strava. | src/utils/stravaDisconnect.js |
 | `CiVpeY` | Nothing prescribed today. | Nada programado para hoy. | src/views/mobile/MobileToday.jsx |
 | `m7A34A` | Nothing was overwritten. Resolve the duplicates in the log, then sync again. | No se sobrescribió nada. Resuelve los duplicados en el registro y vuelve a sincronizar. | src/utils/stravaStatus.js |
 | `n0LeU6` | Offline: no saved data yet. | Sin conexión: todavía no hay datos guardados. | src/components/HealthRecordCard.jsx |
@@ -235,6 +248,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `0uty2S` | RECENT | RECIENTES | Section heading, all capitals · src/views/mobile/MobileToday.jsx |
 | `sJzPor` | RECENT SESSIONS | SESIONES RECIENTES | Section heading, all capitals · Section heading, all capitals · src/views/mobile/MobileAnalytics.jsx · src/views/OverviewView.jsx |
 | `gcoiFh` | Reconnect | Reconectar | Button · src/components/StravaConnectPanel.jsx |
+| `M4rohH` | Reconnect to keep Strava data in your log; without access it will be removed. | Reconecta para conservar los datos de Strava en tu registro; sin acceso, se quitarán. | src/utils/stravaStatus.js |
 | `P9wzG_` | Recovery | Recuperación | Training zone name · src/constants/srpeGuideMessages.js |
 | `cwpus4` | RECOVERY | RECUPERACIÓN | Screen heading, all capitals · src/views/mobile/MobileRecovery.jsx |
 | `2t2fqH` | ref | ref. | Short for "reference range" before a lab range, e.g. "ref 0.5–1.0" · src/utils/healthRecords.js |
@@ -242,7 +256,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `BPmK5_` | RESTING HR | FC EN REPOSO | All capitals · All capitals · src/views/mobile/MobileRecovery.jsx · src/views/RecoveryView.jsx |
 | `KqWf7J` | RESTING HR TREND | TENDENCIA DE FC EN REPOSO | Chart title, all capitals · src/views/RecoveryView.jsx |
 | `RTFfQq` | RESTING HR TREND — 14 DAYS | TENDENCIA DE FC EN REPOSO — 14 DÍAS | Chart title, all capitals · src/views/mobile/MobileRecovery.jsx |
-| `6gRgw8` | Retry | Reintentar | Button in the error state · src/components/StravaConnectPanel.jsx |
+| `6gRgw8` | Retry | Reintentar | Button in the error state · Button in the error state · src/components/StravaConnectPanel.jsx |
 | `cJp6m0` | Rowing CP {cp}W | CP de remo {cp}W | src/views/OverviewView.jsx |
 | `kBKd0c` | Rowing CP {cp}W · bike FTP {ftp}W | CP de remo {cp}W · FTP de bici {ftp}W | src/views/OverviewView.jsx |
 | `zG0ocl` | Save failed: {detail} | No se pudo guardar: {detail} | {detail} is the server error message, shown as it came · src/components/LogSessionForm.jsx |
@@ -268,6 +282,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `jI9fA1` | SLEEP SCORE | PUNTAJE DE SUEÑO | All capitals · All capitals · src/views/mobile/MobileRecovery.jsx · src/views/RecoveryView.jsx |
 | `OqpWY6` | Some activities could not be saved to the database. Run the sync again. | Algunas actividades no se pudieron guardar en la base de datos. Vuelve a sincronizar. | src/utils/stravaStatus.js |
 | `7-kTea` | Something went wrong finishing the connection. Try again. | Algo salió mal al terminar la conexión. Inténtalo de nuevo. | src/utils/stravaCallback.js |
+| `a8VA-2` | SplitIQ's access at Strava had already ended. | El acceso de SplitIQ en Strava ya había terminado. | src/utils/stravaDisconnect.js |
 | `VNbzs6` | Sprint | Sprint | Training zone name · src/constants/srpeGuideMessages.js |
 | `AlJs8G` | sRPE — talk-test anchored | sRPE — según la prueba del habla | sRPE stays as is · src/components/LogSessionForm.jsx |
 | `ZbsEjC` | sRPE SCALE · TALK-TEST ANCHORED (asked every session) | ESCALA sRPE · SEGÚN LA PRUEBA DEL HABLA (se pregunta en cada sesión) | sRPE stays as is; the rest is in capitals except the parenthesis · src/views/LogView.jsx |
@@ -279,7 +294,10 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `k4MTJt` | Strava connection | Conexión con Strava | Screen reader only: name of the Strava settings panel · src/components/StravaConnectPanel.jsx |
 | `_0O7vR` | Strava connection cancelled. Nothing was changed — connect whenever you are ready. | Se canceló la conexión con Strava. No se cambió nada: conéctalo cuando quieras. | src/utils/stravaCallback.js |
 | `OYw425` | Strava could not be connected. {why} | No se pudo conectar Strava. {why} | src/utils/stravaCallback.js |
+| `5teP0p` | Strava data in your log will be removed on {date} unless you reconnect. Anything you typed stays. | Los datos de Strava de tu registro se quitarán el {date} si no reconectas. Lo que escribiste se queda. | src/utils/stravaStatus.js |
+| `AvqYwe` | Strava did not confirm the revocation. Remove SplitIQ in Strava → Settings → My Apps. | Strava no confirmó la revocación. Quita SplitIQ en Strava → Ajustes → Mis aplicaciones. | src/utils/stravaDisconnect.js |
 | `JNZ_Bm` | Strava did not send back an authorisation code. Start the connection again. | Strava no devolvió un código de autorización. Vuelve a iniciar la conexión. | src/utils/stravaCallback.js |
+| `mfKYxJ` | Strava disconnected. | Strava desconectado. | src/utils/stravaDisconnect.js |
 | `mlUx6O` | Strava is having problems. The next sync will retry. | Strava tiene problemas. La próxima sincronización lo volverá a intentar. | src/utils/stravaStatus.js |
 | `gU7drG` | Strava limits how many activities can be read in a given period. Nothing was lost; importing continues from where it stopped. | Strava limita cuántas actividades se pueden leer en un periodo determinado. No se perdió nada; la importación sigue desde donde se detuvo. | src/utils/stravaStatus.js |
 | `snAOUC` | Strava not connected | Strava no está conectado | src/utils/stravaStatus.js |
@@ -341,6 +359,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `0qdR_Q` | working avg power | potencia promedio de trabajo | src/views/OverviewView.jsx |
 | `3_fJQg` | Working backwards from {from}. | Importando hacia atrás desde {from}. | src/utils/stravaStatus.js |
 | `nU3Bjh` | your avg | tu promedio | Followed by a number: your own average · Followed by a number: your own average · src/views/mobile/MobileRecovery.jsx · src/views/RecoveryView.jsx |
+| `-UYlA5` | Your training load will be recalculated. This cannot be undone. | Tu carga de entrenamiento se volverá a calcular. Esto no se puede deshacer. | src/utils/stravaDisconnect.js |
 
 ## /squat (src/squat/locales)
 

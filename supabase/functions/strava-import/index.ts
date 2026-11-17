@@ -1,6 +1,8 @@
 // strava-import — the scheduled half of #54. Walks Strava for every connected
 // athlete, adopts the sessions already in the table under another source, and
-// imports the rest.
+// imports the rest; runImport then runs the deletion sync (reconcile.ts). A
+// second phase purges athletes whose revoked grant is past its 21-day deadline
+// (purge.ts). Both are #630.
 //
 // Deployed with --no-verify-jwt (pg_cron carries no session JWT), so the
 // x-cron-secret guard is the ONLY thing standing between this handler and the
@@ -18,6 +20,7 @@
 import { checkCronSecret } from "../_shared/cronGuard.ts";
 import { captureFunctionError } from "../_shared/sentry.ts";
 import { runImport, type ImportResult } from "./importer.ts";
+import { revocationLanded, runRevocationPurge, type RevocationResult } from "./purge.ts";
 import { serviceClient } from "./supaClient.ts";
 
 const FN = "strava-import";
@@ -85,8 +88,8 @@ Deno.serve(async (req: Request) => {
   }
 
   const users = (rows ?? []).map((r) => String((r as { user_id: string }).user_id));
-  if (users.length === 0) return json({ ok: true, status: "noop", users: 0 }, 200);
 
+  // Phase A: import (and, inside runImport, the deletion sync) per connected athlete.
   const results: ImportResult[] = [];
   for (const userId of users) {
     try {
@@ -121,8 +124,26 @@ Deno.serve(async (req: Request) => {
     }
   }
 
+  // Phase B: the revocation purge (#630, purge.ts) for athletes whose grant
+  // Strava refused at least 21 days ago. It runs even when nobody is connected —
+  // those are exactly the athletes it exists for. No Strava call.
+  let revocation: RevocationResult[] = [];
+  let revocationFailed = false;
+  try {
+    revocation = await runRevocationPurge({ supa }, { dryRun });
+  } catch (e) {
+    revocationFailed = true;
+    await captureFunctionError(FN, e, { stage: "revocation_select" });
+  }
+
   const ok = results.every((r) => r.ok);
-  // 207 when some athlete ended partial/error, so a monitor can tell the
-  // difference between "nothing to do" and "half of it did not land".
-  return json({ ok, dryRun, results }, ok ? 200 : 207);
+  const revocationOk = !revocationFailed && revocationLanded(revocation);
+  const status = ok && revocationOk ? 200 : 207;
+  if (users.length === 0) {
+    return json({ ok: revocationOk, status: "noop", users: 0, dryRun, revocation, revocationFailed }, status);
+  }
+  // 207 when some athlete ended partial/error, or a revocation purge failed or
+  // was blocked by a reconnect (revocationLanded), so a monitor can tell
+  // "nothing to do" from "half of it did not land".
+  return json({ ok, dryRun, results, revocation, revocationFailed }, status);
 });

@@ -144,6 +144,73 @@ describe('describeConnection — the eight kinds', () => {
     expect(s.kind).toBe('auth_failed');
   });
 
+  // #630: the importer writes connected=false on a revoked token, so these are
+  // the rows the panel actually sees. They must not read as "not connected".
+  const revoked = (over = {}) =>
+    healthy({
+      connected: false,
+      last_run_status: 'auth_failed',
+      last_error_code: 'auth_failed',
+      ...over,
+    });
+  // Noon UTC, so the calendar day is the same in every CI time zone but ±14 h.
+  const DEADLINE = '2026-12-08T12:00:00Z';
+
+  it('4d. auth_failed on a disconnected row with a deadline names the date', () => {
+    const s = describeConnection(revoked({ purge_due_at: DEADLINE }), NOW);
+    expect(s.kind).toBe('auth_failed');
+    expect(s.canConnect).toBe(true);
+    expect(s.canSync).toBe(false);
+    expect(s.tone).toBe('critical');
+    expect(s.detail).toMatch(
+      /^Strava data in your log will be removed on Dec 8, 2026 unless you reconnect\. Anything you typed stays\.$/
+    );
+  });
+
+  it('4e. a deadline alone marks the row auth_failed, whatever the last status', () => {
+    const s = describeConnection(
+      revoked({ last_run_status: 'ok', purge_due_at: DEADLINE }),
+      NOW
+    );
+    expect(s.kind).toBe('auth_failed');
+    expect(s.detail).toMatch(/Dec 8, 2026/);
+  });
+
+  it('4f. auth_failed with no deadline falls back to the reconnect copy', () => {
+    const s = describeConnection(revoked({ purge_due_at: null }), NOW);
+    expect(s.kind).toBe('auth_failed');
+    expect(s.detail).toBe(
+      'Reconnect to keep Strava data in your log; without access it will be removed.'
+    );
+    // An unparseable deadline is treated as none, never "Invalid Date".
+    expect(
+      describeConnection(revoked({ purge_due_at: 'not a date' }), NOW).detail
+    ).toBe(
+      'Reconnect to keep Strava data in your log; without access it will be removed.'
+    );
+  });
+
+  it('4g. a specific error code keeps its detail and gains the deadline', () => {
+    const s = describeConnection(
+      revoked({ last_error_code: 'refresh_failed', purge_due_at: DEADLINE }),
+      NOW
+    );
+    expect(s.detail.startsWith(ERROR_CODE_LABELS.refresh_failed)).toBe(true);
+    expect(s.detail).toMatch(/removed on Dec 8, 2026/);
+  });
+
+  it('4h. no auth_failed copy promises that imported data is unaffected', () => {
+    for (const row of [
+      healthy({ last_run_status: 'auth_failed' }),
+      revoked(),
+      revoked({ purge_due_at: DEADLINE }),
+    ]) {
+      expect(describeConnection(row, NOW).detail).not.toMatch(
+        /Nothing already imported/
+      );
+    }
+  });
+
   it('5. rate_limited: names the reset time and blocks sync until then', () => {
     const resets = new Date(NOW.getTime() + 20 * 60 * 1000);
     const s = describeConnection(

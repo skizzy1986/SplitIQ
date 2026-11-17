@@ -32,11 +32,6 @@ msgstr "Confirm your email address before signing in."
 msgid "Could not reach the server. Check your connection and try again."
 msgstr "Could not reach the server. Check your connection and try again."
 
-#. Browser confirmation dialog before disconnecting Strava
-#: src/hooks/useStravaConnect.js
-msgid "Disconnect Strava? Future activities will stop importing. Sessions already imported are never deleted — they stay in your log."
-msgstr "Disconnect Strava? Future activities will stop importing. Sessions already imported are never deleted — they stay in your log."
-
 #. Login form field label, all capitals
 #: src/AuthGate.jsx
 msgid "EMAIL"

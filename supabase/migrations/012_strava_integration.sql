@@ -172,13 +172,14 @@ COMMENT ON COLUMN public.strava_sync_state.backfill_cursor_before IS
 COMMENT ON COLUMN public.strava_sync_state.purge_due_at IS
   'When the athlete''s Strava-derived data must be purged: set when Strava '
   'reports the grant revoked (purge 21 days later, owner decision on #628). '
-  'NULL means no purge is scheduled. Added here, unused, because 012 is '
-  'amended once before it is first applied; the purge itself is #630.';
+  'NULL means no purge is scheduled. Set once and never pushed later; cleared '
+  'by a reconnect. The purge is purge_strava_user (migration 019, #630).';
 
 COMMENT ON COLUMN public.strava_sync_state.reconcile_due_at IS
   'When the next deletion-sync pass is due (Strava API Policy: deletions on '
-  'Strava reflected within 48 hours). NULL means not yet scheduled. Added '
-  'here, unused; the reconcile pass is #630.';
+  'Strava reflected within 48 hours). NULL means due now. Written by the '
+  'reconcile pass inside strava-import (reconcile.ts, #630): +12 h after a '
+  'completed pass, +1 h after an aborted one.';
 
 -- ---------------------------------------------------------------------------
 -- strava_session_links — provenance for every session the importer linked.
@@ -294,6 +295,26 @@ DECLARE
   v_link   public.strava_session_links%ROWTYPE;
   v_try    int := 0;
 BEGIN
+  -- RACE GUARD (#630). A disconnect or revocation purge (019's
+  -- purge_strava_user) locks this user's sync row FOR UPDATE, then deletes the
+  -- importer's rows and the sync row in one transaction. An import already in
+  -- flight could otherwise write a fresh link right after that commits and
+  -- leave Strava data behind with nothing left to remove it. FOR SHARE blocks
+  -- here until the purge commits, then re-checks the committed row (Read
+  -- Committed): deleted, or no longer connected, means no row and P0003, which
+  -- importer.ts treats as "connection gone" and stops the run. Lock order
+  -- matches 019: sync row first, then sessions, then links.
+  -- P0003 is also PL/pgSQL's built-in too_many_rows condition (SELECT INTO
+  -- STRICT); neither RPC uses STRICT, so here it can only mean this guard.
+  PERFORM 1 FROM public.strava_sync_state st
+   WHERE st.user_id = p_user_id
+     AND st.connected
+     FOR SHARE;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'upsert_strava_session: the Strava connection is gone (no connected strava_sync_state row)'
+      USING ERRCODE = 'P0003';
+  END IF;
+
   LOOP
     v_try := v_try + 1;
 
@@ -431,7 +452,8 @@ COMMENT ON FUNCTION public.upsert_strava_session(uuid,bigint,text,text,text,text
   '23505 on sessions_date_label_key; callers treat that as a per-activity '
   'failure and continue. The SET list is deliberately minimal — see the '
   'inline comment; widening it breaks re-import idempotence and puts '
-  'coach_note at risk.';
+  'coach_note at risk. Raises P0003 when the user has no connected '
+  'strava_sync_state row (disconnected or purged mid-run, #630).';
 
 -- ---------------------------------------------------------------------------
 -- adopt_strava_session — link an EXISTING session to a Strava activity.
@@ -477,6 +499,16 @@ DECLARE
   v_write_watts boolean := coalesce(p_has_device_watts, false) AND p_avg_watts IS NOT NULL;
   v_write_hr    boolean := p_avg_hr IS NOT NULL;
 BEGIN
+  -- RACE GUARD (#630): see upsert_strava_session. Same lock, same SQLSTATE.
+  PERFORM 1 FROM public.strava_sync_state st
+   WHERE st.user_id = p_user_id
+     AND st.connected
+     FOR SHARE;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'adopt_strava_session: the Strava connection is gone (no connected strava_sync_state row)'
+      USING ERRCODE = 'P0003';
+  END IF;
+
   SELECT s.id, s.avg_watts, s.avg_hr
     INTO v_sid, v_prior_watts, v_prior_hr
     FROM public.sessions s
@@ -538,7 +570,8 @@ COMMENT ON FUNCTION public.adopt_strava_session(uuid,bigint,bigint,int,boolean,i
   'row recording which of the two it wrote and the value each replaced. '
   'Returns action ''adopted'', or ''adopt_lost_race'' when the row or the '
   'activity was already claimed — zero rows updated is a reportable outcome, '
-  'never a silent success.';
+  'never a silent success. Raises P0003 when the user has no connected '
+  'strava_sync_state row (disconnected or purged mid-run, #630).';
 
 -- ---------------------------------------------------------------------------
 -- Grants. See the header: revoking from PUBLIC is the half that matters.
@@ -664,8 +697,16 @@ DECLARE
   v_s      record;
   v_l      record;
   v_n      bigint;
+  v_other  uuid := gen_random_uuid();  -- a user with no sync row at all
+  v_raised boolean;
 BEGIN
   BEGIN
+    -- 0. The race guard (#630) requires a connected sync row before either RPC
+    --    will write. strava_sync_state.user_id has no foreign key, so a random
+    --    user is fine; backfill_from is the only other NOT NULL column.
+    INSERT INTO public.strava_sync_state (user_id, connected, backfill_from)
+    VALUES (v_user, true, DATE '2000-01-01');
+
     -- 1. Insert: a new session and an 'inserted' link.
     SELECT r.session_id, r.action INTO v_sid, v_action
       FROM public.upsert_strava_session(v_user, v_a_ins, v_date, 'erg',
@@ -810,15 +851,69 @@ BEGIN
       RAISE EXCEPTION '012 self-test: % links, want 3', v_n;
     END IF;
 
+    -- 8. The race guard (#630): no connected sync row, no write. Each call sits
+    --    in its own block that catches ONLY P0003; the "did not raise" check
+    --    raises P0001 after the block, which nothing here catches, so it fails
+    --    the migration.
+    --    (a) a user with no sync row at all, both RPCs;
+    v_raised := false;
+    BEGIN
+      PERFORM public.upsert_strava_session(v_other, 900000000005, v_date, 'erg',
+                'strava-012-selftest-nostate-' || v_tag, '25:00', 6000, 150, 130, NULL);
+    EXCEPTION WHEN SQLSTATE 'P0003' THEN
+      v_raised := true;
+    END;
+    IF NOT v_raised THEN
+      RAISE EXCEPTION '012 self-test: upsert_strava_session wrote for a user with no sync row (want P0003)';
+    END IF;
+    v_raised := false;
+    BEGIN
+      PERFORM public.adopt_strava_session(v_other, v_hand3, 900000000006, 150, true, 130, NULL);
+    EXCEPTION WHEN SQLSTATE 'P0003' THEN
+      v_raised := true;
+    END;
+    IF NOT v_raised THEN
+      RAISE EXCEPTION '012 self-test: adopt_strava_session wrote for a user with no sync row (want P0003)';
+    END IF;
+
+    --    (b) this user, disconnected: both RPCs refuse, even on a linked row.
+    UPDATE public.strava_sync_state st SET connected = false WHERE st.user_id = v_user;
+    v_raised := false;
+    BEGIN
+      PERFORM public.upsert_strava_session(v_user, v_a_ins, v_date, 'erg',
+                'strava-012-selftest-ins-' || v_tag, '26:00', 6200, 170, 140, NULL);
+    EXCEPTION WHEN SQLSTATE 'P0003' THEN
+      v_raised := true;
+    END;
+    IF NOT v_raised THEN
+      RAISE EXCEPTION '012 self-test: upsert_strava_session wrote while disconnected (want P0003)';
+    END IF;
+    v_raised := false;
+    BEGIN
+      PERFORM public.adopt_strava_session(v_user, v_hand3, 900000000007, 150, true, 130, NULL);
+    EXCEPTION WHEN SQLSTATE 'P0003' THEN
+      v_raised := true;
+    END;
+    IF NOT v_raised THEN
+      RAISE EXCEPTION '012 self-test: adopt_strava_session wrote while disconnected (want P0003)';
+    END IF;
+    SELECT * INTO v_s FROM public.sessions s WHERE s.id = v_sid;
+    IF v_s.duration IS DISTINCT FROM '25:30' OR v_s.avg_watts IS DISTINCT FROM 155
+       OR EXISTS (SELECT 1 FROM public.sessions s WHERE s.user_id = v_other)
+       OR (SELECT count(*) FROM public.strava_session_links l WHERE l.user_id = v_user) <> 3 THEN
+      RAISE EXCEPTION '012 self-test: a refused (P0003) call changed a row';
+    END IF;
+
     RAISE EXCEPTION 'rollback' USING ERRCODE = 'SF012';
   EXCEPTION WHEN SQLSTATE 'SF012' THEN
     NULL;  -- the sentinel: everything above is rolled back
   END;
 
-  IF EXISTS (SELECT 1 FROM public.sessions s WHERE s.user_id = v_user)
-     OR EXISTS (SELECT 1 FROM public.strava_session_links l WHERE l.user_id = v_user) THEN
+  IF EXISTS (SELECT 1 FROM public.sessions s WHERE s.user_id IN (v_user, v_other))
+     OR EXISTS (SELECT 1 FROM public.strava_session_links l WHERE l.user_id IN (v_user, v_other))
+     OR EXISTS (SELECT 1 FROM public.strava_sync_state st WHERE st.user_id IN (v_user, v_other)) THEN
     RAISE EXCEPTION '012 self-test: synthetic rows survived the rollback';
   END IF;
 
-  RAISE NOTICE '012: RPC self-test passed (insert, refresh, adopt, adopted-row guard, first-write prior capture, two refusals); all synthetic rows rolled back';
+  RAISE NOTICE '012: RPC self-test passed (insert, refresh, adopt, adopted-row guard, first-write prior capture, two refusals, P0003 race guard); all synthetic rows rolled back';
 END $$;

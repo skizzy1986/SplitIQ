@@ -12,7 +12,7 @@ vi.mock('../../supabaseClient.js', () => ({
   supabase: { functions: { invoke: (...args) => invokeMock(...args) } },
 }));
 
-import { useStravaConnect, DISCONNECT_CONFIRM } from '../useStravaConnect.js';
+import { useStravaConnect } from '../useStravaConnect.js';
 
 let client;
 let locationStub;
@@ -105,34 +105,124 @@ describe('useStravaConnect — start', () => {
   });
 });
 
-describe('useStravaConnect — disconnect', () => {
-  it('confirms first, then disconnects and invalidates the connection query', async () => {
+describe('useStravaConnect — disconnect preview', () => {
+  it('asks for the preview and resolves the three counts, with no write', async () => {
+    invokeMock.mockResolvedValue({
+      data: { ok: true, preview: { toDelete: 4, toKeep: 1, toRestore: 2 } },
+      error: null,
+    });
+    const invalidateSpy = vi.spyOn(client, 'invalidateQueries');
+    const { result } = renderHook(() => useStravaConnect(), { wrapper });
+    result.current.preview.mutate();
+    await waitFor(() => expect(result.current.preview.isSuccess).toBe(true));
+
+    expect(invokeMock).toHaveBeenCalledTimes(1);
+    expect(invokeMock).toHaveBeenCalledWith('strava-connect', {
+      body: { action: 'disconnect_preview' },
+    });
+    expect(result.current.preview.data).toEqual({
+      toDelete: 4,
+      toKeep: 1,
+      toRestore: 2,
+    });
+    expect(invalidateSpy).not.toHaveBeenCalled();
+  });
+
+  it('treats a preview without integer counts as an error, never as zeros', async () => {
     invokeMock.mockResolvedValue({ data: { ok: true }, error: null });
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const { result } = renderHook(() => useStravaConnect(), { wrapper });
+    result.current.preview.mutate();
+    await waitFor(() => expect(result.current.preview.isError).toBe(true));
+  });
+
+  it('surfaces a 502 from the function as an error', async () => {
+    invokeMock.mockResolvedValue({
+      data: null,
+      error: { message: 'Edge Function returned a non-2xx status code' },
+    });
+    const { result } = renderHook(() => useStravaConnect(), { wrapper });
+    result.current.preview.mutate();
+    await waitFor(() => expect(result.current.preview.isError).toBe(true));
+  });
+});
+
+describe('useStravaConnect — disconnect', () => {
+  it('sends confirm:true, resolves the counts and invalidates connection and session queries', async () => {
+    invokeMock.mockResolvedValue({
+      data: {
+        ok: true,
+        disconnected: true,
+        removed: 4,
+        kept: 1,
+        restored: 2,
+        revocation: 'revoked',
+      },
+      error: null,
+    });
     const invalidateSpy = vi.spyOn(client, 'invalidateQueries');
 
     const { result } = renderHook(() => useStravaConnect(), { wrapper });
-    result.current.requestDisconnect();
+    result.current.disconnect.mutate();
     await waitFor(() => expect(result.current.disconnect.isSuccess).toBe(true));
 
-    expect(confirmSpy).toHaveBeenCalledWith(DISCONNECT_CONFIRM);
     expect(invokeMock).toHaveBeenCalledWith('strava-connect', {
-      body: { action: 'disconnect' },
+      body: { action: 'disconnect', confirm: true },
     });
-    expect(invalidateSpy).toHaveBeenCalledWith({
-      queryKey: ['strava', 'connection'],
+    expect(result.current.disconnect.data).toEqual({
+      removed: 4,
+      kept: 1,
+      restored: 2,
+      revocation: 'revoked',
     });
+    const keys = invalidateSpy.mock.calls.map(([arg]) => arg.queryKey);
+    expect(keys).toEqual(
+      expect.arrayContaining([
+        ['strava', 'connection'],
+        ['sessions'],
+        ['erg-sessions'],
+        ['tss-history'],
+      ])
+    );
   });
 
-  it('does nothing when the confirm is declined', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(false);
+  it('invalidates nothing when the disconnect fails', async () => {
+    invokeMock.mockResolvedValue({
+      data: null,
+      error: { message: 'Edge Function returned a non-2xx status code' },
+    });
+    const invalidateSpy = vi.spyOn(client, 'invalidateQueries');
     const { result } = renderHook(() => useStravaConnect(), { wrapper });
-    result.current.requestDisconnect();
-    expect(invokeMock).not.toHaveBeenCalled();
+    result.current.disconnect.mutate();
+    await waitFor(() => expect(result.current.disconnect.isError).toBe(true));
+    expect(invalidateSpy).not.toHaveBeenCalled();
   });
 
-  it('promises in the confirm text that imported sessions are kept', () => {
-    expect(DISCONNECT_CONFIRM).toMatch(/never deleted/i);
+  it('never opens a browser confirm dialog and exports no confirm constants', async () => {
+    invokeMock.mockResolvedValue({
+      data: { ok: true, disconnected: true, removed: 0, kept: 0, restored: 0 },
+      error: null,
+    });
+    const confirmSpy = vi.spyOn(window, 'confirm');
+    const { result } = renderHook(() => useStravaConnect(), { wrapper });
+    expect(result.current.requestDisconnect).toBeUndefined();
+    result.current.disconnect.mutate();
+    await waitFor(() => expect(result.current.disconnect.isSuccess).toBe(true));
+    expect(confirmSpy).not.toHaveBeenCalled();
+
+    const mod = await import('../useStravaConnect.js');
+    expect(mod.DISCONNECT_CONFIRM).toBeUndefined();
+    expect(mod.DISCONNECT_CONFIRM_MSG).toBeUndefined();
+  });
+
+  it('a 2xx without a revocation field is reported as unconfirmed, not revoked', async () => {
+    invokeMock.mockResolvedValue({
+      data: { ok: true, disconnected: true, removed: 1, kept: 0, restored: 0 },
+      error: null,
+    });
+    const { result } = renderHook(() => useStravaConnect(), { wrapper });
+    result.current.disconnect.mutate();
+    await waitFor(() => expect(result.current.disconnect.isSuccess).toBe(true));
+    expect(result.current.disconnect.data.revocation).toBe('failed');
   });
 });
 

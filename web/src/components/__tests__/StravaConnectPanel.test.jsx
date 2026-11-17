@@ -1,13 +1,27 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 const connectionMock = vi.fn();
 const startMutate = vi.fn();
-const requestDisconnect = vi.fn();
 const syncMutate = vi.fn();
 const syncFactory = vi.fn();
+const previewMutate = vi.fn();
+const previewReset = vi.fn();
+const disconnectMutate = vi.fn();
+const disconnectReset = vi.fn();
+
+// Mutable mutation state: a test sets these, then rerenders, the way react-query
+// would re-render the panel as a mutation moves through its states.
+let previewState;
+let disconnectState;
+const idle = () => ({
+  isPending: false,
+  isError: false,
+  isSuccess: false,
+  data: undefined,
+});
 
 vi.mock('../../hooks/useStravaConnection.js', () => ({
   useStravaConnection: () => connectionMock(),
@@ -15,8 +29,12 @@ vi.mock('../../hooks/useStravaConnection.js', () => ({
 vi.mock('../../hooks/useStravaConnect.js', () => ({
   useStravaConnect: () => ({
     start: { mutate: startMutate, isPending: false, isError: false },
-    disconnect: { isPending: false },
-    requestDisconnect,
+    preview: { ...previewState, mutate: previewMutate, reset: previewReset },
+    disconnect: {
+      ...disconnectState,
+      mutate: disconnectMutate,
+      reset: disconnectReset,
+    },
   }),
 }));
 vi.mock('../../hooks/useStravaSync.js', () => ({
@@ -60,9 +78,14 @@ function mockState(row, extra = {}) {
 beforeEach(() => {
   connectionMock.mockReset();
   startMutate.mockReset();
-  requestDisconnect.mockReset();
   syncMutate.mockReset();
   syncFactory.mockReset();
+  previewMutate.mockReset();
+  previewReset.mockReset();
+  disconnectMutate.mockReset();
+  disconnectReset.mockReset();
+  previewState = idle();
+  disconnectState = idle();
 });
 
 describe('StravaConnectPanel', () => {
@@ -90,7 +113,8 @@ describe('StravaConnectPanel', () => {
     expect(syncMutate).toHaveBeenCalledTimes(1);
 
     await userEvent.click(screen.getByRole('button', { name: 'Disconnect' }));
-    expect(requestDisconnect).toHaveBeenCalledTimes(1);
+    expect(previewMutate).toHaveBeenCalledTimes(1);
+    expect(disconnectMutate).not.toHaveBeenCalled();
   });
 
   it('offers Reconnect and withholds Sync on auth_failed', () => {
@@ -210,5 +234,216 @@ describe('StravaConnectPanel', () => {
     expect(
       screen.getByRole('button', { name: 'Disconnect' })
     ).toBeInTheDocument();
+  });
+
+  it('shows the purge deadline and offers Disconnect on a revoked, disconnected row', () => {
+    mockState({
+      connected: false,
+      last_run_status: 'auth_failed',
+      last_error_code: 'auth_failed',
+      purge_due_at: '2026-12-08T12:00:00Z',
+    });
+    render(<StravaConnectPanel />);
+    expect(
+      screen.getByText(/will be removed on Dec 8, 2026/)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Reconnect' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Disconnect' })
+    ).toBeInTheDocument();
+  });
+});
+
+describe('StravaConnectPanel — disconnect confirmation (#630)', () => {
+  const PREVIEW = { toDelete: 4, toKeep: 1, toRestore: 2 };
+
+  async function openWithPreview(preview = PREVIEW) {
+    mockState(connected());
+    const view = render(<StravaConnectPanel />);
+    await userEvent.click(screen.getByRole('button', { name: 'Disconnect' }));
+    previewState = { ...idle(), isSuccess: true, data: preview };
+    view.rerender(<StravaConnectPanel />);
+    return view;
+  }
+
+  it('Disconnect opens the region, resets the last result and asks for a preview', async () => {
+    mockState(connected());
+    render(<StravaConnectPanel />);
+    await userEvent.click(screen.getByRole('button', { name: 'Disconnect' }));
+    expect(disconnectReset).toHaveBeenCalledTimes(1);
+    expect(previewMutate).toHaveBeenCalledTimes(1);
+    const region = screen.getByRole('group', {
+      name: 'Disconnect Strava and delete its data?',
+    });
+    expect(region).toBeInTheDocument();
+    // Focus moves to the question so a screen reader announces it.
+    expect(document.activeElement).toHaveTextContent(
+      'Disconnect Strava and delete its data?'
+    );
+    expect(screen.getByRole('button', { name: 'Disconnect' })).toBeDisabled();
+  });
+
+  it('keeps Confirm disabled while the preview loads', async () => {
+    mockState(connected());
+    const view = render(<StravaConnectPanel />);
+    await userEvent.click(screen.getByRole('button', { name: 'Disconnect' }));
+    previewState = { ...idle(), isPending: true };
+    view.rerender(<StravaConnectPanel />);
+    expect(
+      screen.getByText('Counting the Strava data in your log…')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Disconnect and delete' })
+    ).toBeDisabled();
+  });
+
+  it('AC1: renders the counts before anything changes, and Cancel never disconnects', async () => {
+    await openWithPreview();
+    expect(
+      screen.getByText('4 imported sessions will be deleted.')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        '1 imported session with your own sRPE or notes will be kept, without Strava power and heart rate.'
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Strava power and heart rate will be removed from 2 sessions you logged yourself.'
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Your training load will be recalculated. This cannot be undone.'
+      )
+    ).toBeInTheDocument();
+    expect(disconnectMutate).not.toHaveBeenCalled();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(disconnectMutate).not.toHaveBeenCalled();
+    expect(previewReset).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('group')).toBeNull();
+  });
+
+  it('shows the all-zero preview and still lets the user disconnect', async () => {
+    await openWithPreview({ toDelete: 0, toKeep: 0, toRestore: 0 });
+    expect(
+      screen.getByText(
+        'Nothing in your log came from Strava; nothing will be removed.'
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Disconnect and delete' })
+    ).toBeEnabled();
+  });
+
+  it('Confirm calls disconnect once and closes the region on success', async () => {
+    const view = await openWithPreview();
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Disconnect and delete' })
+    );
+    expect(disconnectMutate).toHaveBeenCalledTimes(1);
+    const [, options] = disconnectMutate.mock.calls[0];
+    disconnectState = {
+      ...idle(),
+      isSuccess: true,
+      data: { removed: 4, kept: 1, restored: 2, revocation: 'revoked' },
+    };
+    act(() => options.onSuccess());
+    view.rerender(<StravaConnectPanel />);
+    expect(screen.queryByRole('group')).toBeNull();
+  });
+
+  it('double-click guard: Confirm and Cancel are disabled while the disconnect runs', async () => {
+    const view = await openWithPreview();
+    disconnectState = { ...idle(), isPending: true };
+    view.rerender(<StravaConnectPanel />);
+    const confirm = screen.getByRole('button', { name: 'Disconnecting…' });
+    expect(confirm).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled();
+    await userEvent.click(confirm);
+    expect(disconnectMutate).not.toHaveBeenCalled();
+  });
+
+  it('double-click guard: two rapid Confirm clicks before isPending re-renders call disconnect once', async () => {
+    await openWithPreview();
+    // disconnectState stays idle: the second click lands before isPending
+    // would have re-rendered the button disabled.
+    const confirm = screen.getByRole('button', {
+      name: 'Disconnect and delete',
+    });
+    await userEvent.dblClick(confirm);
+    expect(disconnectMutate).toHaveBeenCalledTimes(1);
+
+    // Once the call settles (e.g. it failed), Confirm works again for a retry.
+    const [, options] = disconnectMutate.mock.calls[0];
+    act(() => options.onSettled());
+    await userEvent.click(confirm);
+    expect(disconnectMutate).toHaveBeenCalledTimes(2);
+  });
+
+  it('AC3: a failed disconnect shows the failure text, keeps the region and no success notice', async () => {
+    const view = await openWithPreview();
+    disconnectState = { ...idle(), isError: true };
+    view.rerender(<StravaConnectPanel />);
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Disconnect failed. Nothing was changed. Try again.'
+    );
+    expect(screen.getByRole('group')).toBeInTheDocument();
+    expect(screen.queryByRole('status')).toBeNull();
+    expect(screen.queryByText(/Strava disconnected/)).toBeNull();
+    // The user can retry straight from the region.
+    expect(
+      screen.getByRole('button', { name: 'Disconnect and delete' })
+    ).toBeEnabled();
+  });
+
+  it('a failed preview offers a retry and withholds Confirm', async () => {
+    mockState(connected());
+    const view = render(<StravaConnectPanel />);
+    await userEvent.click(screen.getByRole('button', { name: 'Disconnect' }));
+    previewState = { ...idle(), isError: true };
+    view.rerender(<StravaConnectPanel />);
+    expect(
+      screen.getByText(
+        'Could not count the Strava data in your log. Try again.'
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Disconnect and delete' })
+    ).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Retry' }));
+    expect(previewMutate).toHaveBeenCalledTimes(2);
+    expect(disconnectMutate).not.toHaveBeenCalled();
+  });
+
+  it('AC6: the result notice shows the actual counts and persists once the row is gone', () => {
+    disconnectState = {
+      ...idle(),
+      isSuccess: true,
+      data: { removed: 4, kept: 1, restored: 2, revocation: 'revoked' },
+    };
+    // The connection query has refetched: the purge deleted the sync row.
+    mockState(null);
+    render(<StravaConnectPanel />);
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Strava disconnected. 4 imported sessions deleted. 1 imported session kept, without Strava power and heart rate. Strava power and heart rate removed from 2 sessions you logged yourself. Access at Strava revoked.'
+    );
+    expect(screen.getByText(/Strava not connected/i)).toBeInTheDocument();
+  });
+
+  it('AC6: an unconfirmed revocation tells the user where to remove access', () => {
+    disconnectState = {
+      ...idle(),
+      isSuccess: true,
+      data: { removed: 0, kept: 0, restored: 0, revocation: 'failed' },
+    };
+    mockState(null);
+    render(<StravaConnectPanel />);
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Remove SplitIQ in Strava → Settings → My Apps.'
+    );
   });
 });

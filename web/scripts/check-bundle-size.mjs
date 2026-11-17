@@ -109,8 +109,16 @@ import { parsePo } from './i18n-review-sheet.mjs';
 // without a DSN, 205.5 KB with one (browser tracing ~22.5 of the 48.7).
 // Rule: 205.5 + 2 = 207.5, to the nearest whole KB: 208. TOTAL measured
 // 339.3 -> 388.0 KB, still inside 400, so it is not touched.
+//
+// TOTAL raised 400 -> 413 on 2026-11-18 (Scott, #648, the session page).
+// Measured 396.6 -> 411.4 KB with ENTRY unchanged at 204.1: the page is its
+// own lazy chunk (SessionView, 10.1 KB: three synced traces, time in zone and
+// the source-neutral series maths), and its English words ride in the shells'
+// chunk with the rest of the views catalog. Worth it: it is the first screen
+// that shows one session, and none of it is on first paint. Rule:
+// 411.4 + 2 = 413.4, to the nearest whole KB: 413.
 const MAX_ENTRY_GZIP_KB = 208;
-const MAX_TOTAL_GZIP_KB = 400;
+const MAX_TOTAL_GZIP_KB = 413;
 
 // Squat tool, measured 2026-11-04 on PR1 (no three.js yet): SQUAT_ENTRY
 // 107.2 KB, SQUAT_TOTAL 18.8 KB. Entry gets the approved +10 KB (117), total
@@ -191,7 +199,12 @@ const MAX_SQUAT_3D_GZIP_KB = 145;
 // its own i18n-es-* chunk at 4.5 KB. Measured 7.3 KB (7,478 B). Worth it: it
 // is the Spanish for every settled view, fetched only by a visitor who chose
 // Spanish, never precached. Rule: 7.3 + 2 = 9.3, to the nearest whole KB: 9.
-const MAX_DASH_ES_GZIP_KB = 9;
+//
+// Raised 9 -> 12 on 2026-11-18 (Scott, #648, the session page): the views
+// catalog gained the page's Spanish, about 130 messages. Measured 8.0 -> 10.2
+// KB. Fetched only by a visitor who chose Spanish, never precached. Rule:
+// 10.2 + 2 = 12.2, to the nearest whole KB: 12.
+const MAX_DASH_ES_GZIP_KB = 12;
 // The stream measured 2,202,168 bytes; 2.3 MB keeps a re-run of the pipeline
 // from quietly doubling every first visit.
 const MAX_SQUAT_DATA_BYTES = 2_300_000;

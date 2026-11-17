@@ -86,11 +86,12 @@ console.log("\nCT-01 preview (AC1)");
     p);
   check("CT-01 preview makes zero Strava calls", net.calls.length === 0, net.calls);
   check("CT-01 preview makes zero table writes", db.writes().length === 0, db.writes());
-  check("CT-01 preview is exactly three integer keys",
-    r.ok && Object.keys(r.preview).sort().join() === "toDelete,toKeep,toRestore" &&
+  check("CT-01 preview is exactly four integer keys",
+    r.ok && Object.keys(r.preview).sort().join() === "toDelete,toKeep,toRestore,toUnlink" &&
       Object.values(r.preview).every((v) => Number.isInteger(v)), r);
-  check("CT-01 toKeep counts kept + orphans; toDelete deleted; toRestore restored",
-    r.ok && r.preview.toDelete === 2 && r.preview.toKeep === 2 && r.preview.toRestore === 2, r);
+  check("CT-01 toKeep counts kept only; toUnlink orphans; toDelete deleted; toRestore restored",
+    r.ok && r.preview.toDelete === 2 && r.preview.toKeep === 1 && r.preview.toUnlink === 1 && r.preview.toRestore === 2,
+    r);
 }
 {
   const { db, net, deps } = setup({ rpcFails: () => ({ code: "XX000" }) });
@@ -129,7 +130,7 @@ console.log("\nCT-02 confirm (AC2, AC6, AC7)");
   check("CT-02 200 body: the frozen shape with real counts (AC6)",
     r?.status === 200 &&
       JSON.stringify(r.body) ===
-        JSON.stringify({ ok: true, disconnected: true, removed: 2, kept: 2, restored: 2, revocation: "revoked" }),
+        JSON.stringify({ ok: true, disconnected: true, removed: 2, kept: 1, restored: 2, unlinked: 1, revocation: "revoked" }),
     r);
   check("CT-02 revokedAtStrava is gone from the contract", r !== null && !("revokedAtStrava" in r.body), r);
   check("CT-02 the edge function itself deletes no token row (only the RPC does)",

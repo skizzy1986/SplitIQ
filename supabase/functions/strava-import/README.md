@@ -501,8 +501,11 @@ Log against the preview's counts.
   stall the whole import for ever. It is loud — `failed_total`, a non-`ok`
   status and a Sentry issue — which a deferral is not, and deferrals are the
   case where holding the cursor is correct.
-- Zero eligible activities → no writes beyond `last_run_at` and
-  `last_run_status='noop'`, HTTP 200.
+- Zero eligible activities → no session writes; the sync row still gets its
+  cursors (`incremental_after`, `backfill_cursor_before`, `backfill_complete`),
+  `last_run_at` and `last_run_status='noop'` (`rate_limited` when a 429 cut the
+  listing short), and a due deletion sync also writes `reconcile_due_at`. HTTP
+  200 unless a deletion sync hit a 401 (see Status and error codes).
 
 ## Deletion: disconnect, revocation purge, deletion sync
 
@@ -514,7 +517,7 @@ lock order sync row → token row → sessions → links.
 
 **Disconnect** (`strava-connect`, `disconnect.ts`). The dashboard first asks
 `disconnect_preview`, which calls `purge_strava_user(user, 'disconnect',
-dry_run => true)` and returns the counts it would delete, keep and restore — no
+dry_run => true)` and returns the counts it would delete, keep, restore and unlink (orphans) — no
 Strava call, no write. The confirm (`disconnect` with `confirm: true`) then:
 gets a live access token while the refresh token still exists (the token
 store's `remove` is a no-op here — only the purge deletes the token row);
@@ -553,6 +556,24 @@ deferral or error — and when `reconcile_due_at` has passed:
 5. `purge_strava_activities(user, gone, listing_started_at, dry_run)` removes
    them — never a link made after the listing started.
 
+The inventory is read in pages of 1,000 (`.range`), Supabase's default
+`max_rows`: an unpaged RPC is cut at that cap without an error, and a link
+missing from the inventory is never checked. If the project's `max_rows` is
+ever set lower than 1,000, that truncation is silent again.
+
+**Private activities.** The grant must hold `activity:read_all`
+(`strava-oauth-callback/index.ts` asserts it and refuses a grant without it),
+so a private ("Only You") activity stays in its owner's listing and never
+becomes a candidate. The risk exists only if Strava nonetheless omits it from
+the listing *and* answers its detail with 404; the keep rule bounds the damage
+(an inserted row carrying athlete data is kept and unlinked, not deleted).
+**Owner check before #628 go-live (Scott):** set one recent imported activity to
+"Only You", run a dry-run Sync, and confirm `reconcile.status` is `ok` with
+`candidates` 0 (or that activity as `keep_present`); then restore its
+visibility. If it shows up as a 404 or goes missing from the listing, a 404
+cannot be taken to mean gone: the rule needs a second signal (raise a new
+issue).
+
 Its budget is 20 Strava calls and 20 seconds, cut to whatever the import left
 of its own 50 calls / 20 s, and it stops at 50% of either Strava window (the
 import stops at 80%). Every abort — `truncated`, `listing_failed`,
@@ -563,6 +584,14 @@ also sets `rate_limit_resets_at`; a 401 is a revocation, as above. The result
 is attached to the run as `reconcile` (counts and status; per-activity
 `decisions` only on a dry run) and never changes the run's own status or
 cursors.
+
+**The ceiling.** 20 calls × 100 activities a page lists about 2,000 activities
+in the window, less one call for each candidate's detail. An athlete with more
+than that in the window never completes a pass, so the 48-hour guarantee does
+not hold for them. Such a pass stops `truncated` with reason `ceiling` (a stop
+for any other budget reason — a budget the import squeezed, or the 50% rate
+stop — reads `budget`) and reports a Sentry event (stage `reconcile_ceiling`)
+on each hourly retry.
 
 **Race with an import in flight.** The purges lock the sync row `FOR UPDATE`;
 `upsert_strava_session` and `adopt_strava_session` take it `FOR SHARE` first and
@@ -579,8 +608,13 @@ rate_limited | upstream_5xx | insufficient_scope | db_write_failed | unknown`.
 `upstream_5xx` or a deferral), and schedules the purge. A run cut short by
 `P0003` (the connection deleted mid-run) reports `error` / `unknown` and writes
 no sync state. The deletion sync's own statuses live in the run's `reconcile`
-field, not in these columns. The `strava-import` response is HTTP 207 when any
-athlete's run ended `partial`/`error` or any revocation entry is `error`.
+field, not in these columns — with one crossover: a 401 during the deletion
+sync sets `auth_failed` (and the purge deadline) on the sync row, while the
+run's own status can still read `ok`. The `strava-import` response is HTTP 207
+when any athlete's run ended `partial`/`error`, any athlete's deletion sync hit
+a 401 (`reconcile.status = 'auth_failed'`), the revocation select failed, or any
+revocation entry is `error` or `reconnected`; the body's `ok` reflects the runs
+alone.
 
 Both are CHECK-constrained. **There is deliberately no free-text error column**:
 `String(e)` from a failed token exchange routinely carries the whole response

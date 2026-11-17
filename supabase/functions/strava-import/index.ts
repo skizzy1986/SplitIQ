@@ -21,6 +21,7 @@ import { checkCronSecret } from "../_shared/cronGuard.ts";
 import { captureFunctionError } from "../_shared/sentry.ts";
 import { runImport, type ImportResult } from "./importer.ts";
 import { revocationLanded, runRevocationPurge, type RevocationResult } from "./purge.ts";
+import { reconcileRevoked } from "./reconcile.ts";
 import { serviceClient } from "./supaClient.ts";
 
 const FN = "strava-import";
@@ -138,12 +139,14 @@ Deno.serve(async (req: Request) => {
 
   const ok = results.every((r) => r.ok);
   const revocationOk = !revocationFailed && revocationLanded(revocation);
-  const status = ok && revocationOk ? 200 : 207;
+  // A 401 in the deletion sync marks the athlete revoked, but the run's own
+  // status can still read ok, so it is checked separately.
+  const status = ok && revocationOk && !reconcileRevoked(results) ? 200 : 207;
   if (users.length === 0) {
     return json({ ok: revocationOk, status: "noop", users: 0, dryRun, revocation, revocationFailed }, status);
   }
-  // 207 when some athlete ended partial/error, or a revocation purge failed or
-  // was blocked by a reconnect (revocationLanded), so a monitor can tell
+  // 207 when some athlete ended partial/error, a deletion sync hit a 401, or a
+  // revocation purge failed or was blocked by a reconnect (revocationLanded), so a monitor can tell
   // "nothing to do" from "half of it did not land".
   return json({ ok, dryRun, results, revocation, revocationFailed }, status);
 });

@@ -56,14 +56,14 @@ export type PurgeDbOpts = {
   /** Data an RPC returns, by name: a value or a function of its args. */
   rpcResults?: Record<string, unknown | ((args: Row) => unknown)>;
   /** Return an error object to make this RPC fail. */
-  rpcFails?: (name: string, args: Row) => { code: string } | undefined;
+  rpcFails?: (name: string, args: Row, range?: [number, number]) => { code: string } | undefined;
   /** Make every write to this table fail. */
   writeFails?: string;
 };
 
 export function makePurgeDb(opts: PurgeDbOpts = {}) {
   const log: DbCall[] = [];
-  const rpcCalls: { name: string; args: Row }[] = [];
+  const rpcCalls: { name: string; args: Row; range?: [number, number] }[] = [];
   const state = {
     syncRows: (opts.syncRows ?? []).map((r) => ({ ...r })),
     tokens: opts.tokens === undefined ? null : opts.tokens ? { ...opts.tokens } : null,
@@ -131,14 +131,27 @@ export function makePurgeDb(opts: PurgeDbOpts = {}) {
     return self;
   };
 
+  // A bare `await` settles the whole result; `.range(from, to)` (inclusive, as
+  // supabase-js) records the range and slices array data; rpcFails sees the range.
   const rpc = (name: string, args: Row) => {
     log.push({ table: "rpc", op: name, payload: args, filters: [] });
-    rpcCalls.push({ name, args });
-    const failure = opts.rpcFails?.(name, args);
-    if (failure) return Promise.resolve({ data: null, error: failure });
-    const r = opts.rpcResults?.[name];
-    const data = typeof r === "function" ? (r as (a: Row) => unknown)(args) : r ?? null;
-    return Promise.resolve({ data, error: null });
+    const entry: { name: string; args: Row; range?: [number, number] } = { name, args };
+    rpcCalls.push(entry);
+    const settle = (range?: [number, number]) => {
+      const failure = opts.rpcFails?.(name, args, range);
+      if (failure) return { data: null, error: failure };
+      const r = opts.rpcResults?.[name];
+      const data = typeof r === "function" ? (r as (a: Row) => unknown)(args) : r ?? null;
+      return { data: range && Array.isArray(data) ? data.slice(range[0], range[1] + 1) : data, error: null };
+    };
+    return {
+      range: (from: number, to: number) => {
+        entry.range = [from, to];
+        return Promise.resolve(settle([from, to]));
+      },
+      // deno-lint-ignore no-explicit-any
+      then: (ok: any, bad: any) => Promise.resolve(settle()).then(ok, bad),
+    };
   };
 
   const supa = {

@@ -10,11 +10,14 @@
 // BEFORE any delete RPC.
 import {
   candidateCap,
+  INVENTORY_MAX_PAGES,
+  INVENTORY_PAGE,
   isReconcileDue,
   RECONCILE_DUE_SLACK_MS,
   RECONCILE_INTERVAL_MS,
   RECONCILE_RETRY_MS,
   reconcileWindowAfter,
+  reconcileRevoked,
   reconcileWindowStartISO,
   runReconcile,
   selectCandidates,
@@ -162,7 +165,7 @@ type RecOpts = {
   sync?: Row;
   dryRun?: boolean;
   deps?: Record<string, unknown>;
-  rpcFails?: (name: string, args: Row) => { code: string } | undefined;
+  rpcFails?: (name: string, args: Row, range?: [number, number]) => { code: string } | undefined;
 };
 
 async function rec(o: RecOpts) {
@@ -185,6 +188,16 @@ async function rec(o: RecOpts) {
     net.restore();
   }
 }
+
+/** A ReconcileDeps.report spy: records each report's stage. */
+const reportSpy = () => {
+  const stages: string[] = [];
+  const report = (_fn: string, _err: unknown, ctx: Record<string, unknown> = {}) => {
+    stages.push(String(ctx.stage));
+    return Promise.resolve();
+  };
+  return { stages, report };
+};
 
 const purgeRpc = (db: ReturnType<typeof makePurgeDb>) => db.rpcCalls.filter((c) => c.name === "purge_strava_activities");
 const lastSyncUpdate = (db: ReturnType<typeof makePurgeDb>) => db.syncUpdates().at(-1)?.payload as Row | undefined;
@@ -240,15 +253,45 @@ console.log("\nDT-03 reconcile — listing aborts delete nothing (AC17)");
   // Call budget spent after one full page.
   const many = Array.from({ length: 150 }, (_, i) => link(3001 + i));
   const all = many.map((l) => ({ id: l.strava_activity_id as number }));
+  const spy = reportSpy();
   const { r, db } = await rec({
     links: many,
     http: { listPages: [all.slice(0, 100), all.slice(100)] },
-    deps: { budget: { maxCalls: 1, maxElapsedMs: 60_000 } },
+    deps: { budget: { maxCalls: 1, maxElapsedMs: 60_000 }, report: spy.report },
   });
   check("DT-03 budget stop after a full page -> truncated, no delete RPC",
     r.status === "truncated" && purgeRpc(db).length === 0, r);
+  check("DT-03 squeezed budget stops -> truncated/budget, no report",
+    r.status === "truncated" && r.reason === "budget" && spy.stages.length === 0, { r, stages: spy.stages });
   check("DT-03 an abort writes reconcile_due_at = now + 1 h (Q-C)",
     lastSyncUpdate(db)?.reconcile_due_at === new Date(NOW + RECONCILE_RETRY_MS).toISOString(), lastSyncUpdate(db));
+}
+{
+  // The full 20-call ceiling spent on full pages: the window cannot fit in a pass.
+  const many = Array.from({ length: 2100 }, (_, i) => link(100_001 + i));
+  const all = many.map((l) => ({ id: l.strava_activity_id as number }));
+  const pages = Array.from({ length: 21 }, (_, i) => all.slice(i * 100, (i + 1) * 100));
+  const spy = reportSpy();
+  const { r, db, net } = await rec({ links: many, http: { listPages: pages }, deps: { report: spy.report } });
+  check("DT-03 ceiling: 20 full pages -> truncated/ceiling, one reconcile_ceiling report, no delete RPC",
+    r.status === "truncated" && r.reason === "ceiling" && net.of("list").length === 20 &&
+      spy.stages.join() === "reconcile_ceiling" && purgeRpc(db).length === 0, { r, stages: spy.stages });
+}
+{
+  // 150 links, 25 unlisted (cap 30): two list calls, then 18 detail calls reach 20.
+  const many = Array.from({ length: 150 }, (_, i) => link(110_001 + i));
+  const missing = Array.from({ length: 25 }, (_, i) => 110_001 + i);
+  const listed = listedExcept(missing, many);
+  const spy = reportSpy();
+  const { r, db, net } = await rec({
+    links: many,
+    http: { listPages: [listed.slice(0, 100), listed.slice(100)] },
+    deps: { report: spy.report },
+  });
+  check("DT-03 ceiling at a candidate fetch -> truncated/ceiling, one reconcile_ceiling report",
+    r.status === "truncated" && r.reason === "ceiling" && net.of("list").length === 2 &&
+      net.of("detail").length === 18 && spy.stages.join() === "reconcile_ceiling" && purgeRpc(db).length === 0,
+    { r, stages: spy.stages });
 }
 {
   // Usage at 50% of the short window after page 1.
@@ -411,8 +454,47 @@ console.log("\nDT-05 reconcile — the cap (AC20)");
   });
   check("DT-05 a dry run is capped the same way", r.status === "capped" && purgeRpc(db).length === 0, r);
 }
+{
+  // 1,001 links: an unpaged RPC would stop at max_rows and drop the last one.
+  const big = Array.from({ length: INVENTORY_PAGE + 1 }, (_, i) => link(200_001 + i));
+  const { r, db, net } = await rec({ links: big, http: { listStatus: () => 500 } });
+  const inv = db.rpcCalls.filter((c) => c.name === "strava_link_inventory");
+  check("DT-05 inventory pages past 1,000: range(0,999) then range(1000,1999), links = 1001",
+    inv.length === 2 && JSON.stringify(inv.map((c) => c.range)) === "[[0,999],[1000,1999]]" && r.links === 1001 &&
+      net.of("list").length === 1, { ranges: inv.map((c) => c.range), links: r.links });
+}
+{
+  const big = Array.from({ length: INVENTORY_PAGE + 1 }, (_, i) => link(300_001 + i));
+  const { r, db, net } = await rec({
+    links: big,
+    http: { listPages: [[]] },
+    rpcFails: (n, _a, range) =>
+      n === "strava_link_inventory" && range?.[0] === INVENTORY_PAGE ? { code: "XX000" } : undefined,
+  });
+  check("DT-05 inventory error on page 2 -> error/inventory_failed, no list call",
+    r.status === "error" && r.reason === "inventory_failed" && net.calls.length === 0 && purgeRpc(db).length === 0, r);
+}
+{
+  // Row 1,000 (page 2) repeats row 0's session_id.
+  const rows = Array.from({ length: INVENTORY_PAGE }, (_, i) => link(400_001 + i));
+  rows.push(link(500_001, { session_id: rows[0].session_id as number }));
+  const { r } = await rec({ links: rows, http: { listStatus: () => 500 } });
+  check("DT-05 overlapping inventory pages dedupe on session_id", r.links === INVENTORY_PAGE, r.links);
+}
+{
+  // A full page on every call up to the cap: 50 full pages and more behind them.
+  const endless = Array.from({ length: INVENTORY_MAX_PAGES * INVENTORY_PAGE + 1 }, (_, i) => link(1_000_001 + i));
+  const { r, net } = await rec({ links: endless, http: {} });
+  check("DT-05 inventory page cap -> error/inventory_failed",
+    r.status === "error" && r.reason === "inventory_failed" && net.calls.length === 0, r);
+}
 
 console.log("\nDT-06 reconcile — dry run, gates, failures (AC22, AC23)");
+// deno-lint-ignore no-explicit-any
+const withRec = (status: string): any => ({ reconcile: { status } });
+check("DT-06 reconcileRevoked: true for reconcile.status auth_failed; false for ok, for no reconcile, and for []",
+  reconcileRevoked([withRec("ok"), withRec("auth_failed")]) && !reconcileRevoked([withRec("ok")]) &&
+    !reconcileRevoked([{}]) && !reconcileRevoked([]));
 {
   const { r, db } = await rec({
     links: tenLinks,

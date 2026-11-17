@@ -65,6 +65,42 @@ describe('describeDisconnectPreview', () => {
     ]);
   });
 
+  it('orphan line renders only when toUnlink > 0', () => {
+    const ORPHANS =
+      '2 sessions linked to Strava outside the importer will be kept as they are, with the Strava link removed.';
+    expect(
+      describeDisconnectPreview({
+        toDelete: 1,
+        toKeep: 0,
+        toRestore: 0,
+        toUnlink: 2,
+      }).lines
+    ).toEqual([
+      '1 imported session will be deleted.',
+      ORPHANS,
+      'Your training load will be recalculated. This cannot be undone.',
+    ]);
+    expect(
+      describeDisconnectPreview({
+        toDelete: 0,
+        toKeep: 0,
+        toRestore: 0,
+        toUnlink: 1,
+      }).lines[0]
+    ).toBe(
+      '1 session linked to Strava outside the importer will be kept as it is, with the Strava link removed.'
+    );
+    for (const toUnlink of [0, undefined]) {
+      const lines = describeDisconnectPreview({
+        toDelete: 1,
+        toKeep: 0,
+        toRestore: 0,
+        toUnlink,
+      }).lines;
+      expect(lines.some((l) => l.includes('outside the importer'))).toBe(false);
+    }
+  });
+
   it('never groups a large count by locale', () => {
     const p = describeDisconnectPreview({
       toDelete: 1234,
@@ -87,6 +123,33 @@ describe('describeDisconnectResult', () => {
     expect(r.text).toBe(
       'Strava disconnected. 4 imported sessions deleted. 2 imported sessions kept, without Strava power and heart rate. Strava power and heart rate removed from 3 sessions you logged yourself. Access at Strava revoked.'
     );
+  });
+
+  it('result orphan line', () => {
+    expect(
+      describeDisconnectResult({
+        removed: 1,
+        kept: 0,
+        restored: 0,
+        unlinked: 2,
+        revocation: 'revoked',
+      }).text
+    ).toBe(
+      'Strava disconnected. 1 imported session deleted. 2 sessions kept as they were, with the Strava link removed. Access at Strava revoked.'
+    );
+    // An orphan-only disconnect did touch the log, so no "nothing came from Strava".
+    expect(
+      describeDisconnectResult({ unlinked: 1, revocation: 'revoked' }).text
+    ).toBe(
+      'Strava disconnected. 1 session kept as it was, with the Strava link removed. Access at Strava revoked.'
+    );
+    expect(
+      describeDisconnectResult({
+        removed: 1,
+        unlinked: 0,
+        revocation: 'revoked',
+      }).text
+    ).not.toMatch(/Strava link removed/);
   });
 
   it('says access had already ended when revocation was not attempted', () => {

@@ -42,7 +42,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `hdxhKx` | We could not sign you in. Try again. | No pudimos iniciar sesión. Inténtalo de nuevo. | Login error for any unrecognised cause. Only shown in Spanish. · src/utils/authError.js |
 | `y1oEoC` | Wrong email or password. | Correo o contraseña incorrectos. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
 
-## Dashboard views (src/locales/views, 314 strings)
+## Dashboard views (src/locales/views, 316 strings)
 
 | Row | English | Español | Where / note |
 |---|---|---|---|
@@ -66,6 +66,8 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `mJpJDC` | {minutes, plural, one {{minutes} minute ago} other {{minutes} minutes ago}} | {minutes, plural, one {hace {minutes} minuto} other {hace {minutes} minutos}} | src/utils/stravaStatus.js |
 | `PhnrbH` | {restore, plural, one {Strava power and heart rate removed from {restore} session you logged yourself.} other {Strava power and heart rate removed from {restore} sessions you logged yourself.}} | {restore, plural, one {Se quitaron la potencia y la frecuencia cardíaca de Strava de {restore} sesión que registraste tú.} other {Se quitaron la potencia y la frecuencia cardíaca de Strava de {restore} sesiones que registraste tú.}} | src/utils/stravaDisconnect.js |
 | `nOVWI9` | {restore, plural, one {Strava power and heart rate will be removed from {restore} session you logged yourself.} other {Strava power and heart rate will be removed from {restore} sessions you logged yourself.}} | {restore, plural, one {Se quitarán la potencia y la frecuencia cardíaca de Strava de {restore} sesión que registraste tú.} other {Se quitarán la potencia y la frecuencia cardíaca de Strava de {restore} sesiones que registraste tú.}} | src/utils/stravaDisconnect.js |
+| `CJAViv` | {unlink, plural, one {{unlink} session kept as it was, with the Strava link removed.} other {{unlink} sessions kept as they were, with the Strava link removed.}} | {unlink, plural, one {Se conservó {unlink} sesión tal como estaba, sin el vínculo con Strava.} other {Se conservaron {unlink} sesiones tal como estaban, sin el vínculo con Strava.}} | src/utils/stravaDisconnect.js |
+| `Q1BsRB` | {unlink, plural, one {{unlink} session linked to Strava outside the importer will be kept as it is, with the Strava link removed.} other {{unlink} sessions linked to Strava outside the importer will be kept as they are, with the Strava link removed.}} | {unlink, plural, one {Se conservará tal como está {unlink} sesión vinculada a Strava fuera del importador, sin el vínculo con Strava.} other {Se conservarán tal como están {unlink} sesiones vinculadas a Strava fuera del importador, sin el vínculo con Strava.}} | src/utils/stravaDisconnect.js |
 | `v77_zP` | ＋ add exercise | ＋ agregar ejercicio | src/components/LogSessionForm.jsx |
 | `r5Xvbj` | ＋ LOG A STRENGTH SESSION | ＋ REGISTRAR UNA SESIÓN DE FUERZA | Button, all capitals · src/components/LogSessionForm.jsx |
 | `k6NFYN` | ● TODAY | ● HOY | Marks today in the calendar, all capitals · src/components/WorkoutItem.jsx |

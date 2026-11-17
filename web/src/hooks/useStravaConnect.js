@@ -54,7 +54,13 @@ export function useStravaConnect() {
       ) {
         throw new Error('strava-connect returned no disconnect preview');
       }
-      return { toDelete: p.toDelete, toKeep: p.toKeep, toRestore: p.toRestore };
+      // toUnlink is optional so an older edge function still previews.
+      return {
+        toDelete: p.toDelete,
+        toKeep: p.toKeep,
+        toRestore: p.toRestore,
+        toUnlink: count(p.toUnlink),
+      };
     },
   });
 
@@ -68,6 +74,7 @@ export function useStravaConnect() {
         removed: count(data?.removed),
         kept: count(data?.kept),
         restored: count(data?.restored),
+        unlinked: count(data?.unlinked),
         revocation: data?.revocation ?? 'failed',
       };
     },

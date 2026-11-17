@@ -68,6 +68,14 @@ export const CAP_MIN = 3;
 export const CAP_FRACTION = 0.2;
 /** Each Strava request in the pass gives up after this long. */
 export const STRAVA_TIMEOUT_MS = 10_000;
+/**
+ * Rows per strava_link_inventory page. Equals Supabase's default max_rows
+ * (Context7 /supabase/supabase): PostgREST silently caps an RPC's rows at it.
+ * If the project's max_rows is ever set lower, truncation is silent again.
+ */
+export const INVENTORY_PAGE = 1000;
+/** Inventory pages read before the pass gives up as a fault (50,000 links). */
+export const INVENTORY_MAX_PAGES = 50;
 
 export type ReconcileStatus =
   | "ok"
@@ -146,6 +154,8 @@ export type ReconcileDeps = {
   rateLimit?: RateLimit;
   /** Test seam; production uses STRAVA_TIMEOUT_MS. */
   timeoutMs?: number;
+  /** Test seam; production reports to Sentry. */
+  report?: typeof captureFunctionError;
 };
 
 export type ReconcileOptions = {
@@ -221,6 +231,11 @@ const toLink = (raw: Record<string, unknown>): LinkRow => ({
 
 const num = (v: unknown): number => (typeof v === "number" && Number.isFinite(v) ? v : 0);
 
+/** True when a deletion sync hit a 401: index.ts answers 207 even though the run's own status may read ok. */
+export function reconcileRevoked(results: { reconcile?: { status: ReconcileStatus } | null }[]): boolean {
+  return results.some((r) => r.reconcile?.status === "auth_failed");
+}
+
 // ---------------------------------------------------------------------------
 // The pass
 // ---------------------------------------------------------------------------
@@ -255,7 +270,7 @@ export async function runReconcile(deps: ReconcileDeps, opts: ReconcileOptions):
     shouldStopChunk(calls, now() - startedAt, rateLimit, budget, RECONCILE_STOP_FRACTION).stop;
 
   const report = (e: unknown, stage: string) =>
-    captureFunctionError(FN, e, { userId, mode, stage, links: result.links, candidates: result.candidates });
+    (deps.report ?? captureFunctionError)(FN, e, { userId, mode, stage, links: result.links, candidates: result.candidates });
 
   // Every exit goes through here: it fixes the status, and on a real run writes
   // the next due time (Q-C) — or, when Strava refused the token, the revocation
@@ -290,6 +305,18 @@ export async function runReconcile(deps: ReconcileDeps, opts: ReconcileOptions):
     return result;
   };
 
+  // calls >= maxCalls means the full budget was spent: the window does not fit
+  // in one pass, or the candidate fetches overflowed it. Either way the pass
+  // never completes, so it is reported, once per hourly retry. (A time or rate
+  // stop landing exactly on call 20 is rare and is labelled ceiling too.)
+  const truncate = async () => {
+    if (calls >= RECONCILE_BUDGET.maxCalls) {
+      await report(new Error("reconcile hit its call ceiling"), "reconcile_ceiling");
+      return finish("truncated", "ceiling");
+    }
+    return finish("truncated", "budget");
+  };
+
   const holdUntil = (rl: RateLimit): string =>
     new Date(isDailyCapExhausted(rl) ? nextUtcMidnight(now()) : nextQuarterHour(now())).toISOString();
 
@@ -301,13 +328,33 @@ export async function runReconcile(deps: ReconcileDeps, opts: ReconcileOptions):
     return finish("skipped_rate_limited", null, { write: false });
   }
 
-  // 4. The links.
-  const { data: inv, error: invErr } = await supa.rpc("strava_link_inventory", { p_user_id: userId });
-  if (invErr) {
-    await report(new Error(`strava_link_inventory failed: ${invErr.code ?? "unknown"}`), "reconcile_inventory");
-    return finish("error", "inventory_failed");
+  // 4. The links, paged: an unpaged RPC stops silently at max_rows, and a link
+  // missing from the inventory is never checked. The function's own ORDER BY
+  // makes the ranges deterministic.
+  const links: LinkRow[] = [];
+  const seenSessions = new Set<number>();
+  for (let from = 0;; from += INVENTORY_PAGE) {
+    // A bound on a fault (a range the server ignores would page for ever).
+    if (from >= INVENTORY_MAX_PAGES * INVENTORY_PAGE) {
+      await report(new Error("inventory paging exceeded its page cap"), "reconcile_inventory");
+      return finish("error", "inventory_failed");
+    }
+    const { data: inv, error: invErr } = await supa
+      .rpc("strava_link_inventory", { p_user_id: userId })
+      .range(from, from + INVENTORY_PAGE - 1);
+    if (invErr) {
+      await report(new Error(`strava_link_inventory failed: ${invErr.code ?? "unknown"}`), "reconcile_inventory");
+      return finish("error", "inventory_failed");
+    }
+    const page = Array.isArray(inv) ? inv : [];
+    for (const r of page) {
+      const l = toLink(r as Record<string, unknown>);
+      if (seenSessions.has(l.session_id)) continue;
+      seenSessions.add(l.session_id);
+      links.push(l);
+    }
+    if (page.length < INVENTORY_PAGE) break;
   }
-  const links = (Array.isArray(inv) ? inv : []).map((r) => toLink(r as Record<string, unknown>));
   result.links = links.length;
   if (links.length === 0) return finish("noop", "no_links");
 
@@ -321,7 +368,7 @@ export async function runReconcile(deps: ReconcileDeps, opts: ReconcileOptions):
   let listedTotal = 0;
 
   for (let page = 1;; page++) {
-    if (outOfBudget()) return finish("truncated", "budget");
+    if (outOfBudget()) return truncate();
     calls++;
     let listing: Awaited<ReturnType<typeof listActivities>>;
     try {
@@ -370,7 +417,7 @@ export async function runReconcile(deps: ReconcileDeps, opts: ReconcileOptions):
   // 9. Confirm each candidate. Only a 404 is "gone".
   const gone: number[] = [];
   for (const c of candidates) {
-    if (outOfBudget()) return finish("truncated", "budget");
+    if (outOfBudget()) return truncate();
     calls++;
     try {
       const { activity, rateLimit: rl } = await getActivity(accessToken, c.strava_activity_id, { timeoutMs });

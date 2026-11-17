@@ -15,6 +15,13 @@ import { hasDeviceWatts, type StravaActivity } from "../strava-import/mapper.ts"
  */
 export const CACHE_TTL_MS = 6 * 24 * 3600 * 1000;
 
+/**
+ * Stored as `v` in every cached payload. A cache row with any other version is
+ * a miss and is refetched, so a change to this shape needs only a bump here.
+ * `v` never reaches the response.
+ */
+export const CACHE_PAYLOAD_VERSION = 1;
+
 export type Lap = {
   start_index: number | null;
   end_index: number | null;
@@ -47,7 +54,7 @@ export type CachedStreams = {
   moving: Series;
 };
 
-export type CachedPayload = { activity: CachedActivity; streams: CachedStreams };
+export type CachedPayload = { v: typeof CACHE_PAYLOAD_VERSION; activity: CachedActivity; streams: CachedStreams };
 
 type RawStream = { data?: unknown; original_size?: unknown };
 
@@ -128,6 +135,7 @@ export function normaliseActivity(detail: Record<string, unknown>, streams: unkn
   const keepLaps = timeData != null && !downsampled;
 
   return {
+    v: CACHE_PAYLOAD_VERSION,
     activity: {
       sport_type: str(detail.sport_type),
       device_name: str(detail.device_name),

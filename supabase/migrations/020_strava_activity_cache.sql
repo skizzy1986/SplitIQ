@@ -24,13 +24,16 @@
 -- longer than seven (7) days" (strava.com/legal/api_policy). Rows live six
 -- days (strava-activity sets expires_at = fetched_at + 6 days); the check
 -- constraint refuses anything past seven; the sweep runs hourly, so the
--- worst-case retention is six days and one hour.
+-- worst-case retention is six days and one hour. The arithmetic is in HOURS
+-- (144 and 168), not days: `timestamptz + interval 'N days'` adds calendar days
+-- in the session TimeZone, which across a DST change is not N x 24 hours.
 --
 -- WHY THE FOREIGN KEY POINTS AT THE LINK ROW, NOT AT sessions: every purge
 -- path in 019 either deletes the session (the link cascades from sessions,
--- 012) or deletes the link (strava_unlink_sessions_internal), so a cache row
--- goes with its link on disconnect, revocation and the deletion sync without
--- any edit to 019. The self-test proves each path.
+-- 012) or deletes only the link and keeps the session (019's keep_unlink and
+-- restore_unlink paths, strava_unlink_sessions_internal), so a cache row goes
+-- with its link on disconnect, revocation and the deletion sync without any
+-- edit to 019. The self-test runs both branches through both entry points.
 --
 -- PRIVACY: RLS enabled, NO policies, nothing granted to anon or authenticated,
 -- never FORCED — the same model as strava_tokens (012's header explains why
@@ -43,9 +46,16 @@
 -- job, and cron.unschedule('name') removes it (supabase.com/docs/guides/cron/
 -- quickstart). The sweep is executable by no API role.
 --
--- IF THIS FILE STOPS HALF WAY: the snapshot change is safe alone (it excludes
--- a table that may not exist yet); the table is unreachable by any browser
--- role from the statement that creates it; the rollback undoes every step.
+-- APPLY THIS FILE INSIDE ONE TRANSACTION. It does not open one itself; the
+-- #628 apply method wraps the file in begin/commit, and so must any other.
+-- The reason: Supabase's default privileges grant anon and authenticated on a
+-- new public table, so between CREATE TABLE and the REVOKE / ENABLE ROW LEVEL
+-- SECURITY below the table is reachable by both. Inside one transaction no
+-- other session ever sees that state. Under autocommit, a failure between
+-- those statements would leave an empty table briefly reachable by the
+-- browser roles. Inside one transaction, a failure anywhere rolls the whole
+-- file back; the snapshot change is safe alone in any case (it excludes a
+-- table that may not exist yet).
 --
 -- APPLY: Scott approves; a rolled-back trial first, then the apply by the
 -- #628 method (CLI `db query --linked --file`), as postgres; then the
@@ -130,9 +140,10 @@ CREATE TABLE IF NOT EXISTS public.strava_activity_cache (
   strava_activity_id bigint NOT NULL,
   payload            jsonb NOT NULL,
   fetched_at         timestamptz NOT NULL DEFAULT now(),
-  expires_at         timestamptz NOT NULL DEFAULT (now() + interval '6 days'),
+  -- Hours, not days: see the header (DST).
+  expires_at         timestamptz NOT NULL DEFAULT (now() + interval '144 hours'),
   CONSTRAINT strava_activity_cache_within_seven_days
-    CHECK (expires_at > fetched_at AND expires_at <= fetched_at + interval '7 days')
+    CHECK (expires_at > fetched_at AND expires_at <= fetched_at + interval '168 hours')
 );
 
 -- Enabled, no policies, no browser grants. Not FORCED: see the header.
@@ -197,15 +208,24 @@ SELECT cron.schedule(
 -- real activity uses. No real row is read or printed. The sweep in (f) runs
 -- over the whole table, so it is asserted against the count of rows already
 -- expired (none on first apply) rather than a fixed 1.
+--
+-- Both of 019's removal branches are exercised through both entry points
+-- (purge_strava_activities and purge_strava_user): an importer-inserted
+-- session with no athlete data is DELETED (the link cascades from sessions,
+-- the cache from the link), and one the athlete has annotated (srpe set, as
+-- 019's own self-test does it) is KEPT with only its link deleted (keep_unlink:
+-- the cache cascades from the link alone).
 -- ---------------------------------------------------------------------------
 DO $$
 DECLARE
   v_user   uuid := gen_random_uuid();  -- the athlete under test
   v_user2  uuid := gen_random_uuid();  -- another athlete
   v_tag    text := replace(gen_random_uuid()::text, '-', '');
-  v_a      bigint;  -- user: purged by purge_strava_activities
-  v_b      bigint;  -- user2: survives that purge
-  v_c      bigint;  -- user: purged by purge_strava_user
+  v_a      bigint;  -- user: no athlete data, deleted by purge_strava_activities
+  v_g      bigint;  -- user: srpe set, kept and unlinked by purge_strava_activities
+  v_c      bigint;  -- user: no athlete data, deleted by purge_strava_user
+  v_h      bigint;  -- user: srpe set, kept and unlinked by purge_strava_user
+  v_b      bigint;  -- user2: survives both purges
   v_d      bigint;  -- user2: deleted straight from sessions
   v_e      bigint;  -- user2: expired cache row, swept
   v_f      bigint;  -- user2: fresh cache row, kept by the sweep
@@ -233,11 +253,18 @@ BEGIN
       'strava-020-selftest-E-' || v_tag, '25:00', 6000, 150, 130, NULL) r;
     SELECT r.session_id INTO v_f FROM public.upsert_strava_session(v_user2, 902000000006, '1/3/00', 'erg',
       'strava-020-selftest-F-' || v_tag, '25:00', 6000, 150, 130, NULL) r;
-    -- A's link is created at now() (the transaction start); the deletion sync
-    -- in (c) cuts off at now() + 30 minutes so the link falls before it.
+    SELECT r.session_id INTO v_g FROM public.upsert_strava_session(v_user, 902000000007, '1/4/00', 'erg',
+      'strava-020-selftest-G-' || v_tag, '25:00', 6000, 150, 130, NULL) r;
+    UPDATE public.sessions s SET srpe = 6 WHERE s.id = v_g;
+    SELECT r.session_id INTO v_h FROM public.upsert_strava_session(v_user, 902000000008, '1/4/00', 'erg',
+      'strava-020-selftest-H-' || v_tag, '25:00', 6000, 150, 130, NULL) r;
+    UPDATE public.sessions s SET srpe = 6 WHERE s.id = v_h;
+    -- A's and G's links are created at now() (the transaction start); the
+    -- deletion sync in (c) cuts off at now() + 30 minutes so they fall before it.
 
     IF v_a IS NULL OR v_b IS NULL OR v_c IS NULL OR v_d IS NULL OR v_e IS NULL OR v_f IS NULL
-       OR (SELECT count(*) FROM public.strava_session_links l WHERE l.user_id IN (v_user, v_user2)) <> 6 THEN
+       OR v_g IS NULL OR v_h IS NULL
+       OR (SELECT count(*) FROM public.strava_session_links l WHERE l.user_id IN (v_user, v_user2)) <> 8 THEN
       RAISE EXCEPTION '020 self-test: setup did not produce the expected links';
     END IF;
 
@@ -247,13 +274,15 @@ BEGIN
            (v_b, v_user2, 902000000002, '{}'::jsonb),
            (v_c, v_user, 902000000003, '{}'::jsonb),
            (v_d, v_user2, 902000000004, '{}'::jsonb),
-           (v_f, v_user2, 902000000006, '{}'::jsonb);
+           (v_f, v_user2, 902000000006, '{}'::jsonb),
+           (v_g, v_user, 902000000007, '{}'::jsonb),
+           (v_h, v_user, 902000000008, '{}'::jsonb);
     INSERT INTO public.strava_activity_cache (session_id, user_id, strava_activity_id, payload, fetched_at, expires_at)
-    VALUES (v_e, v_user2, 902000000005, '{}'::jsonb, now() - interval '7 days', now() - interval '1 day');
-    IF (SELECT count(*) FROM public.strava_activity_cache c WHERE c.user_id IN (v_user, v_user2)) <> 6
+    VALUES (v_e, v_user2, 902000000005, '{}'::jsonb, now() - interval '168 hours', now() - interval '24 hours');
+    IF (SELECT count(*) FROM public.strava_activity_cache c WHERE c.user_id IN (v_user, v_user2)) <> 8
        OR (SELECT c.expires_at - c.fetched_at FROM public.strava_activity_cache c WHERE c.session_id = v_a)
-          IS DISTINCT FROM interval '6 days' THEN
-      RAISE EXCEPTION '020 self-test: cache rows did not insert with the six-day default';
+          IS DISTINCT FROM interval '144 hours' THEN
+      RAISE EXCEPTION '020 self-test: cache rows did not insert with the 144-hour default';
     END IF;
 
     v_raised := false;
@@ -271,13 +300,13 @@ BEGIN
     v_raised := false;
     BEGIN
       UPDATE public.strava_activity_cache c
-         SET expires_at = c.fetched_at + interval '8 days'
+         SET expires_at = c.fetched_at + interval '192 hours'
        WHERE c.session_id = v_a;
     EXCEPTION WHEN SQLSTATE '23514' THEN
       v_raised := true;
     END;
     IF NOT v_raised THEN
-      RAISE EXCEPTION '020 self-test: expires_at = fetched_at + 8 days did not raise 23514';
+      RAISE EXCEPTION '020 self-test: expires_at = fetched_at + 192 hours did not raise 23514';
     END IF;
     v_raised := false;
     BEGIN
@@ -291,26 +320,38 @@ BEGIN
       RAISE EXCEPTION '020 self-test: expires_at = fetched_at did not raise 23514';
     END IF;
 
-    -- ---- (c) the deletion sync removes the purged activity's row only -------
-    v_res := public.purge_strava_activities(v_user, ARRAY[902000000001, 902000000002]::bigint[],
+    -- ---- (c) the deletion sync: delete branch (A) and link-only branch (G) ---
+    -- 902000000002 is user2's (B): not this user's, so not_found and kept.
+    v_res := public.purge_strava_activities(v_user, ARRAY[902000000001, 902000000002, 902000000007]::bigint[],
       now() + interval '30 minutes', false);
-    IF v_res->>'status' IS DISTINCT FROM 'purged' OR (v_res->>'deleted')::int <> 1 THEN
+    IF v_res->>'status' IS DISTINCT FROM 'purged'
+       OR (v_res->>'deleted')::int <> 1 OR (v_res->>'kept')::int <> 1 THEN
       RAISE EXCEPTION '020 self-test: purge_strava_activities returned %', v_res;
     END IF;
-    IF EXISTS (SELECT 1 FROM public.strava_activity_cache c WHERE c.session_id = v_a)
+    IF NOT EXISTS (SELECT 1 FROM public.sessions s WHERE s.id = v_g)
+       OR EXISTS (SELECT 1 FROM public.strava_session_links l WHERE l.session_id = v_g) THEN
+      RAISE EXCEPTION '020 self-test: keep_unlink did not keep session G and delete only its link';
+    END IF;
+    IF EXISTS (SELECT 1 FROM public.strava_activity_cache c WHERE c.session_id IN (v_a, v_g))
        OR NOT EXISTS (SELECT 1 FROM public.strava_activity_cache c WHERE c.session_id = v_b)
-       OR NOT EXISTS (SELECT 1 FROM public.strava_activity_cache c WHERE c.session_id = v_c) THEN
+       OR NOT EXISTS (SELECT 1 FROM public.strava_activity_cache c WHERE c.session_id = v_c)
+       OR NOT EXISTS (SELECT 1 FROM public.strava_activity_cache c WHERE c.session_id = v_h) THEN
       RAISE EXCEPTION '020 self-test: purge_strava_activities left the wrong cache rows';
     END IF;
 
-    -- ---- (d) disconnect removes the user's cache rows ---------------------
+    -- ---- (d) disconnect: delete branch (C) and link-only branch (H) ----------
     v_res := public.purge_strava_user(v_user, 'disconnect', false);
-    IF v_res->>'status' IS DISTINCT FROM 'purged' THEN
+    IF v_res->>'status' IS DISTINCT FROM 'purged'
+       OR (v_res->>'deleted')::int <> 1 OR (v_res->>'kept')::int <> 1 THEN
       RAISE EXCEPTION '020 self-test: purge_strava_user returned %', v_res;
     END IF;
-    IF EXISTS (SELECT 1 FROM public.strava_activity_cache c WHERE c.user_id = v_user)
+    IF NOT EXISTS (SELECT 1 FROM public.sessions s WHERE s.id = v_h) THEN
+      RAISE EXCEPTION '020 self-test: keep_unlink did not keep session H';
+    END IF;
+    IF EXISTS (SELECT 1 FROM public.strava_session_links l WHERE l.user_id = v_user)
+       OR EXISTS (SELECT 1 FROM public.strava_activity_cache c WHERE c.user_id = v_user)
        OR (SELECT count(*) FROM public.strava_activity_cache c WHERE c.user_id = v_user2) <> 4 THEN
-      RAISE EXCEPTION '020 self-test: purge_strava_user left the wrong cache rows';
+      RAISE EXCEPTION '020 self-test: purge_strava_user left a link or the wrong cache rows';
     END IF;
 
     -- ---- (e) deleting the session cascades to the cache ---------------------
@@ -347,7 +388,7 @@ BEGIN
     RAISE EXCEPTION '020 self-test: synthetic rows survived the rollback';
   END IF;
 
-  RAISE NOTICE '020: cache self-test passed (link FK, seven-day check, deletion-sync purge, disconnect purge, sessions cascade, sweep); all synthetic rows rolled back';
+  RAISE NOTICE '020: cache self-test passed (link FK, 168-hour check, deletion-sync and disconnect purges each through the delete and the link-only keep_unlink branch, sessions cascade, sweep); all synthetic rows rolled back';
 END $$;
 
 -- ---------------------------------------------------------------------------

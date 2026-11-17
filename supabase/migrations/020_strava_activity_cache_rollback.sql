@@ -5,11 +5,13 @@
 -- Strava data is dropped with the table, which is the point: nothing in it may
 -- outlive seven days, and it is in no backup.
 --
--- ORDER, one transaction, as postgres: unschedule the sweep (it would fail
--- hourly on a missing function), drop the function, drop the table, then
--- restore 018's backup_snapshot() byte for byte (the five-name exclusion
--- list). The table goes before the function is restored, so there is never a
--- moment the table exists and is exported.
+-- RUN IT INSIDE ONE TRANSACTION, as postgres. The file does not open one
+-- itself: wrap it in begin/commit (the #628 apply method does). Order within
+-- it: unschedule the sweep (it would fail hourly on a missing function), drop
+-- the function, drop the table, then restore 018's backup_snapshot() byte for
+-- byte (the five-name exclusion list). The table goes before the function is
+-- restored, so even under autocommit there is never a moment the table exists
+-- and is exported; inside one transaction a failure leaves 020 fully in place.
 --
 -- Roll this back BEFORE 019's, 018's and 012's rollbacks: the table references
 -- strava_session_links (012).

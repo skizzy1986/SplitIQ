@@ -196,9 +196,10 @@ query the database, so an agent must never read Strava data (#628, #631).
   blocks the first group; it cannot see the second, so this rule covers it.
 
 **Strava stream data has one home.** `strava_activity_cache` (migration 020) is the
-only place Strava stream data may sit, for at most seven days, and Strava-derived
-series never enter a permanent store, so that data the app captures itself can be
-held and modelled separately.
+only place Strava stream data may sit, and only for at most seven days.
+Strava-derived series never enter a permanent store. Data the app captures itself
+(the PM5 over Bluetooth, later a trainer or a device file) is held separately, in
+its own store, and may be kept and modelled.
 
 **The sanctioned read is `public.sessions_no_strava`** (migration 018). It is
 `sessions` without the rows the importer inserted, without linked rows that have no

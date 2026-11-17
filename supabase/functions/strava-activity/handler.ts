@@ -10,11 +10,18 @@
 // non-2xx into an error whose body is awkward to read (Context7
 // /supabase/supabase-js). The flow returns at the first step that decides.
 //
-// What this function never writes: the token row (the store's remove is a
-// no-op, as strava-connect/disconnect.ts does it) and any revocation state on
-// strava_sync_state (the importer is the only writer of that). Its only writes
-// are the cache table and, on a 429, a rate-limit hold that can only be
-// extended.
+// Writes. The cache table; on a 429, a rate-limit hold on strava_sync_state that
+// can only be extended; and, through tokens.ts, a refresh-token rotation when
+// the access token is stale (the compare-and-swap every caller must persist —
+// Strava rotates the refresh token on every refresh). It never DELETES the
+// token row (the store's remove is a no-op, as strava-connect/disconnect.ts
+// does it) and never records revocation state on strava_sync_state: the
+// importer is the only writer of that. When it learns the grant is refused or
+// gone, it drops this user's cache rows and nothing else.
+//
+// Sentry. Only ids and a stage reach it, never an activity id, a token or a
+// response body: an upstream failure is reported as a fresh Error carrying the
+// stage, the original error's name and, for an HTTP error, its status.
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import {
   getActivity,
@@ -28,12 +35,21 @@ import { isGarminRecorded, type StravaActivity } from "../strava-import/mapper.t
 import { isDailyCapExhausted, nextQuarterHour, nextUtcMidnight } from "../strava-import/state.ts";
 import { getFreshAccessToken, type RefreshFn, type TokenStore } from "../strava-import/tokens.ts";
 import { captureFunctionError } from "../_shared/sentry.ts";
-import { CACHE_TTL_MS, type CachedActivity, type CachedPayload, type CachedStreams, normaliseActivity } from "./normalise.ts";
+import {
+  CACHE_PAYLOAD_VERSION,
+  CACHE_TTL_MS,
+  type CachedActivity,
+  type CachedPayload,
+  type CachedStreams,
+  normaliseActivity,
+} from "./normalise.ts";
 
 export const FN = "strava-activity";
 
 /** Per Strava call. The page waits on this request, so it is bounded. */
 export const STRAVA_TIMEOUT_MS = 8000;
+
+export type CaptureFn = (fn: string, error: unknown, context: Record<string, unknown>) => Promise<void>;
 
 export type ActivityDeps = {
   supa: SupabaseClient;
@@ -41,6 +57,8 @@ export type ActivityDeps = {
   /** Default: the Supabase token store, with remove() replaced by a no-op. */
   store?: TokenStore;
   now?: () => number;
+  /** Default: captureFunctionError. A test seam for what reaches Sentry. */
+  capture?: CaptureFn;
 };
 
 export type ActivityResponse =
@@ -66,12 +84,29 @@ export type ActivityResponse =
   };
 
 type Link = { session_id: number; strava_activity_id: number; origin: "inserted" | "adopted"; device_name: string | null };
-type CacheRow = { strava_activity_id: number; payload: CachedPayload; fetched_at: string; expires_at: string };
+type CacheRow = { strava_activity_id: number; payload: unknown; fetched_at: string; expires_at: string };
 
 const CACHE = "strava_activity_cache";
 
 const iso = (ms: number) => new Date(ms).toISOString();
 const ok200 = (body: ActivityResponse) => ({ httpStatus: 200, body });
+const isPlainObject = (v: unknown): v is Record<string, unknown> =>
+  v != null && typeof v === "object" && !Array.isArray(v);
+
+/** A cached payload this code wrote, in the shape it writes now; anything else is a miss. */
+function usablePayload(p: unknown): p is CachedPayload {
+  return isPlainObject(p) && p.v === CACHE_PAYLOAD_VERSION && isPlainObject(p.activity) && isPlainObject(p.streams);
+}
+
+/**
+ * A fresh Error for Sentry, never the upstream one: a malformed 200 makes
+ * res.json() throw a SyntaxError whose message quotes the body.
+ */
+function upstreamError(stage: string, e: unknown): Error {
+  const name = e instanceof Error ? e.name : typeof e;
+  const status = e instanceof StravaHttpError ? ` HTTP ${e.status}` : "";
+  return new Error(`strava ${stage} failed: ${name}${status}`);
+}
 
 export async function handleActivityRequest(
   deps: ActivityDeps,
@@ -80,7 +115,8 @@ export async function handleActivityRequest(
 ): Promise<{ httpStatus: number; body: ActivityResponse }> {
   const { supa, refresh } = deps;
   const now = deps.now ?? (() => Date.now());
-  const capture = (err: unknown, stage: string) => captureFunctionError(FN, err, { userId, sessionId, stage });
+  const captureFn = deps.capture ?? captureFunctionError;
+  const capture = (err: unknown, stage: string) => captureFn(FN, err, { userId, sessionId, stage });
 
   // A cache delete that fails is reported and does not change the answer: the
   // row expires and the hourly sweep removes it regardless.
@@ -91,8 +127,17 @@ export async function handleActivityRequest(
     if (error) await capture(new Error(`strava_activity_cache delete failed: ${error.code ?? "unknown"}`), "cache_delete");
   };
 
+  // The grant is refused or gone: nothing of this user's may stay cached.
+  // Nothing is written to strava_tokens or strava_sync_state.
+  const refused = async (status: "auth_failed" | "not_connected") => {
+    await deleteCache("user");
+    return ok200({ status });
+  };
+
   // Only ever extends a hold: two conditional updates, each atomic, together
-  // `where rate_limit_resets_at is null or rate_limit_resets_at < X`.
+  // `where rate_limit_resets_at is null or rate_limit_resets_at < X`. Then the
+  // hold actually in force is read back, so retry_at is never earlier than a
+  // later hold another worker set.
   const holdUntil = async (resetsAtMs: number) => {
     const x = iso(resetsAtMs);
     const patch = { rate_limit_resets_at: x, updated_at: iso(now()) };
@@ -100,7 +145,14 @@ export async function handleActivityRequest(
     const b = await supa.from("strava_sync_state").update(patch).eq("user_id", userId).lt("rate_limit_resets_at", x);
     const error = a.error ?? b.error;
     if (error) await capture(new Error(`strava_sync_state hold write failed: ${error.code ?? "unknown"}`), "rate_limit_hold");
-    return x;
+
+    const back = await supa.from("strava_sync_state").select("rate_limit_resets_at").eq("user_id", userId).maybeSingle();
+    if (back.error) {
+      await capture(new Error(`strava_sync_state hold read failed: ${back.error.code ?? "unknown"}`), "rate_limit_hold");
+      return x;
+    }
+    const stored = Date.parse(String((back.data as { rate_limit_resets_at?: unknown } | null)?.rate_limit_resets_at ?? ""));
+    return Number.isFinite(stored) && stored > resetsAtMs ? iso(stored) : x;
   };
 
   const rateLimited = async (e: StravaRateLimitError) => {
@@ -130,10 +182,7 @@ export async function handleActivityRequest(
     .maybeSingle();
   if (syncRes.error) throw new Error(`strava_sync_state read failed: ${syncRes.error.code ?? "unknown"}`);
   const sync = syncRes.data as { connected: boolean; rate_limit_resets_at: string | null } | null;
-  if (!sync || sync.connected !== true) {
-    await deleteCache("user");
-    return ok200({ status: "not_connected" });
-  }
+  if (!sync || sync.connected !== true) return await refused("not_connected");
 
   // 3. Garmin-recorded: nothing shown until attribution ships (#632).
   if (isGarminRecorded({ device_name: link.device_name } as StravaActivity)) {
@@ -141,7 +190,7 @@ export async function handleActivityRequest(
     return ok200({ status: "garmin_attribution_pending" });
   }
 
-  // 4. A fresh cache row for the same activity.
+  // 4. A fresh cache row for the same activity, in the current payload shape.
   const cacheRes = await supa
     .from(CACHE)
     .select("strava_activity_id, payload, fetched_at, expires_at")
@@ -154,7 +203,7 @@ export async function handleActivityRequest(
   const cached = (cacheRes.error ? null : cacheRes.data) as CacheRow | null;
   if (
     cached && Date.parse(cached.expires_at) > now() && Number(cached.strava_activity_id) === activityId &&
-    cached.payload && typeof cached.payload === "object"
+    usablePayload(cached.payload)
   ) {
     return ok200({
       status: "ok",
@@ -174,19 +223,19 @@ export async function handleActivityRequest(
     return ok200({ status: "rate_limited", retry_at: iso(holdMs) });
   }
 
-  // 6. A live token. This path never deletes the token row.
+  // 6. A live token. This path may rotate the token row; it never deletes it.
   const base = deps.store ?? createSupabaseTokenStore(supa);
   const keepRow: TokenStore = { read: base.read, rotate: base.rotate, remove: () => Promise.resolve() };
   const token = await getFreshAccessToken(keepRow, refresh, userId, now());
-  if (token.status === "not_connected") return ok200({ status: "not_connected" });
-  if (token.status === "auth_failed") return ok200({ status: "auth_failed" });
+  if (token.status === "not_connected") return await refused("not_connected");
+  if (token.status === "auth_failed") return await refused("auth_failed");
   if (token.status === "refresh_failed") {
     await capture(new Error("strava token refresh failed"), "token");
     return ok200({ status: "upstream_error" });
   }
 
   // 7. The detail. The activity id comes from the link row, never the request.
-  let detail: Record<string, unknown> | null;
+  let detail: unknown;
   try {
     detail = (await getActivity(token.accessToken, activityId, { timeoutMs: STRAVA_TIMEOUT_MS })).activity;
   } catch (e) {
@@ -195,13 +244,13 @@ export async function handleActivityRequest(
       return ok200({ status: "gone" });
     }
     if (e instanceof StravaRateLimitError) return await rateLimited(e);
-    // Nothing written: revocation state is the importer's to record.
-    if (e instanceof StravaAuthError) return ok200({ status: "auth_failed" });
-    await capture(e, "detail");
+    // Revocation state is the importer's to record; the cache is ours to drop.
+    if (e instanceof StravaAuthError) return await refused("auth_failed");
+    await capture(upstreamError("detail", e), "detail");
     return ok200({ status: "upstream_error" });
   }
-  if (!detail) {
-    await capture(new Error("strava activity detail was not an object"), "detail");
+  if (!isPlainObject(detail)) {
+    await capture(new Error("strava detail failed: body was not an object"), "detail");
     return ok200({ status: "upstream_error" });
   }
   if (isGarminRecorded(detail as unknown as StravaActivity)) {
@@ -219,9 +268,9 @@ export async function handleActivityRequest(
     } else if (e instanceof StravaRateLimitError) {
       return await rateLimited(e);
     } else if (e instanceof StravaAuthError) {
-      return ok200({ status: "auth_failed" });
+      return await refused("auth_failed");
     } else {
-      await capture(e, "streams");
+      await capture(upstreamError("streams", e), "streams");
       return ok200({ status: "upstream_error" });
     }
   }
@@ -246,6 +295,7 @@ export async function handleActivityRequest(
   }
 
   // 10. `cached` means "served from the cache", which a fresh fetch never is.
+  //     `v` stays in the cache: the response carries the frozen contract only.
   return ok200({
     status: "ok",
     cached: false,

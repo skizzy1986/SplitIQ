@@ -219,6 +219,6 @@ describe('020 keeps the Strava activity cache private and short-lived', () => {
   });
 
   it('caps a row at seven days', () => {
-    expect(sql).toContain("expires_at <= fetched_at + interval '7 days'");
+    expect(sql).toContain("expires_at <= fetched_at + interval '168 hours'");
   });
 });

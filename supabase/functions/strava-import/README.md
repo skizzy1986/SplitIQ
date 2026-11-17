@@ -613,6 +613,13 @@ map exactly as `getActivity`'s do. It asks for seven streams only (`time`,
 user is the verified bearer's `sub`; the activity id comes from the
 `strava_session_links` row, never the request. Apply migration 020 first.
 
+> **`strava-activity` is deployed with JWT verification ON, never with
+> `--no-verify-jwt`.** `_shared/jwtSubject.ts` reads `sub` without checking the
+> signature; only the gateway's verification makes that safe. Deployed without
+> it, any caller could name any user and read that user's cached Strava data.
+> Nothing automated enforces this: check the function's "Verify JWT" setting
+> after every deploy.
+
 ```bash
 supabase functions deploy strava-activity
 ```
@@ -638,9 +645,14 @@ and 502 `strava_activity_failed`. Every response carries the CORS headers
 
 **What it writes, and what it never writes.** The cache row, and on a 429 a
 `rate_limit_resets_at` hold that can only be extended (quarter hour, or the next
-UTC midnight when the daily cap is spent). It never deletes the token row (its
+UTC midnight when the daily cap is spent; `retry_at` is the hold actually in
+force, read back after the write). A stale access token is refreshed and the
+rotation persisted, as every caller must. It never deletes the token row (its
 token store's `remove` is a no-op, as in disconnect) and never records a
-revocation: a 401 answers `auth_failed` and leaves that to the importer. Watts
+revocation: a refused grant (a 401, or a refresh Strava rejects twice) answers
+`auth_failed`, drops that user's cache rows, and leaves the revocation to the
+importer. A cached row is used only when its payload carries the current
+`CACHE_PAYLOAD_VERSION` (`v`, which never reaches the response). Watts
 from a ride with no power meter (`device_watts` false) are dropped, never cached.
 Name, description, map, coordinates, segments, photos, athlete and gear are never
 copied.
@@ -658,9 +670,20 @@ days and one hour. A 404 on the detail deletes the row at once (`gone`).
 
 **Why purge coverage needed no edit to 019.** The cache row references
 `strava_session_links(session_id) ON DELETE CASCADE`. Every purge path in 019
-either deletes the session (the link cascades from `sessions`) or deletes the
-link, so disconnect, the revocation purge and the deletion sync all remove the
-cache row. Migration 020's self-test proves each path.
+either deletes the session (the link cascades from `sessions`) or deletes only
+the link and keeps the session (`keep_unlink`, `restore_unlink`), so
+disconnect, the revocation purge and the deletion sync all remove the cache row.
+Migration 020's self-test runs both the delete branch and the link-only
+`keep_unlink` branch through both entry points (`purge_strava_activities` and
+`purge_strava_user`), plus a direct `sessions` delete. The revocation purge is
+`purge_strava_user` with a different reason and the same removal, so it is
+covered by the disconnect case.
+
+**After a revocation.** This function never records a revocation (the importer
+does, on its next run). Until then, each page open with a stale access token
+spends one token-refresh call that Strava refuses (two, since a first
+`invalid_grant` is retried once), answers `auth_failed`, and drops that user's
+cached rows.
 
 ## Status and error codes
 
@@ -781,7 +804,11 @@ The #630 deletion paths have two more suites, run the same way:
 `strava-import/deletion_test.ts` (92 — the deletion sync and the revocation
 purge) and `strava-connect/test.ts` (31 — disconnect preview and confirm, and
 the reconnect patch and its wiring into the callback; that one also needs
-`--allow-read=strava-oauth-callback/index.ts`, run from `supabase/functions`). No network, no database, no dependence on the
+`--allow-read=strava-oauth-callback/index.ts`, run from `supabase/functions`).
+The session page's function (#647) has its own suite,
+`deno run --allow-env strava-activity/test.ts` from `supabase/functions`
+(222 — the HTTP shell, the request flow and its cache, rate-limit holds, refused
+grants, the normaliser, and what may reach Sentry). No network, no database, no dependence on the
 machine's clock or timezone. Wired into `.github/workflows/ci-functions.yml`;
 that job's steps are **hardcoded**, so a new function's tests are not
 auto-discovered and need a step adding by hand.

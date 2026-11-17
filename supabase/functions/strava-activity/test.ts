@@ -7,11 +7,11 @@
 // handler.ts run; the database is a structural fake local to this file and
 // Strava is a globalThis.fetch stub. No network, no database, no clock: every
 // timestamp derives from NOW. Every id and number below is invented.
-import { STREAM_KEYS } from "../strava-import/client.ts";
+import { refreshAccessToken, STREAM_KEYS } from "../strava-import/client.ts";
 import { harness, silenceSentry } from "../strava-import/testkit.ts";
 import { type ActivityDeps, handleActivityRequest } from "./handler.ts";
 import { CORS, serveRequest } from "./http.ts";
-import { CACHE_TTL_MS, normaliseActivity } from "./normalise.ts";
+import { CACHE_PAYLOAD_VERSION, CACHE_TTL_MS, normaliseActivity } from "./normalise.ts";
 
 const { check, finish } = harness();
 const restoreSentry = silenceSentry();
@@ -31,8 +31,9 @@ const iso = (ms: number) => new Date(ms).toISOString();
 const freshTokens = {
   user_id: USER,
   athlete_id: 7,
-  access_token: "live-access",
-  refresh_token: "live-refresh",
+  // Distinctive, so SA-09 can prove no token reaches Sentry.
+  access_token: "tok-SECRET-9f3a-access",
+  refresh_token: "tok-SECRET-9f3a-refresh",
   expires_at: iso(NOW + 6 * 3600_000),
   scope: "activity:read_all",
 };
@@ -49,6 +50,8 @@ function makeDb(init: {
   cache?: Row[];
   tokens?: Row | null;
   upsertError?: { code: string };
+  /** Every strava_sync_state update fails with this. */
+  syncUpdateError?: { code: string };
   /** Runs after the sync-state select resolves (simulates a concurrent writer). */
   afterSyncSelect?: (sync: Row[]) => void;
 }) {
@@ -96,6 +99,7 @@ function makeDb(init: {
       return { data: null, error: null };
     }
     if (c.op === "update") {
+      if (c.table === "strava_sync_state" && init.syncUpdateError) return { data: null, error: init.syncUpdateError };
       const hit = rows.filter((r) => match(r, c.filters));
       for (const r of hit) Object.assign(r, c.payload as Row);
       return { data: hit.map((r) => ({ user_id: r.user_id })), error: null };
@@ -150,12 +154,21 @@ function makeDb(init: {
 // ---------------------------------------------------------------------------
 // Strava stub.
 // ---------------------------------------------------------------------------
-type Answer = Row | unknown[] | number | "timeout";
-type HttpStub = { detail?: Answer; streams?: Answer; token?: "ok" | "invalid_grant"; usage?: string; limit?: string };
+/** A JSON value; a status; "timeout"; or `{ raw }`, a 200 whose body is that text verbatim. */
+type Answer = Row | unknown[] | number | "timeout" | { raw: string };
+type HttpStub = {
+  detail?: Answer;
+  streams?: Answer;
+  /** Token endpoint: rotate ('ok', the default), 'invalid_grant', or a status. */
+  token?: "ok" | "invalid_grant" | number;
+  usage?: string;
+  limit?: string;
+};
+type HttpCall = { kind: string; url: URL; init?: RequestInit; body?: string };
 
 function installHttp(stub: HttpStub) {
   const real = globalThis.fetch;
-  const calls: { kind: string; url: URL }[] = [];
+  const calls: HttpCall[] = [];
   const headers = () => ({
     "content-type": "application/json",
     "x-readratelimit-limit": stub.limit ?? "100,1000",
@@ -165,31 +178,37 @@ function installHttp(stub: HttpStub) {
     // What AbortSignal.timeout rejects with, delivered at once so no test waits.
     if (a === "timeout") return Promise.reject(new DOMException("timed out", "TimeoutError"));
     if (typeof a === "number") return Promise.resolve(new Response("{}", { status: a, headers: headers() }));
+    if (a && typeof a === "object" && !Array.isArray(a) && typeof (a as { raw?: unknown }).raw === "string") {
+      return Promise.resolve(new Response((a as { raw: string }).raw, { status: 200, headers: headers() }));
+    }
     return Promise.resolve(new Response(JSON.stringify(a ?? {}), { status: 200, headers: headers() }));
   };
-  globalThis.fetch = ((input: string | URL | Request) => {
+  globalThis.fetch = ((input: string | URL | Request, init?: RequestInit) => {
     const url = new URL(typeof input === "string" ? input : input instanceof URL ? input.href : input.url);
     if (url.href.startsWith("https://www.strava.com/oauth/token")) {
-      calls.push({ kind: "token", url });
+      calls.push({ kind: "token", url, init, body: typeof init?.body === "string" ? init.body : undefined });
       if (stub.token === "invalid_grant") {
         return Promise.resolve(new Response(JSON.stringify({ error: "invalid_grant" }), { status: 400, headers: headers() }));
       }
+      if (typeof stub.token === "number") {
+        return Promise.resolve(new Response("{}", { status: stub.token, headers: headers() }));
+      }
       return Promise.resolve(
         new Response(
-          JSON.stringify({ access_token: "fresh-access", refresh_token: "fresh-refresh", expires_at: Math.floor(NOW / 1000) + 21600 }),
+          JSON.stringify({ access_token: "tok-SECRET-fresh-access", refresh_token: "fresh-refresh", expires_at: Math.floor(NOW / 1000) + 21600 }),
           { status: 200, headers: headers() },
         ),
       );
     }
     if (/^\/api\/v3\/activities\/\d+\/streams$/.test(url.pathname)) {
-      calls.push({ kind: "streams", url });
+      calls.push({ kind: "streams", url, init });
       return answer(stub.streams);
     }
     if (/^\/api\/v3\/activities\/\d+$/.test(url.pathname)) {
-      calls.push({ kind: "detail", url });
+      calls.push({ kind: "detail", url, init });
       return answer(stub.detail);
     }
-    calls.push({ kind: "other", url });
+    calls.push({ kind: "other", url, init });
     return Promise.resolve(new Response("{}", { status: 404, headers: headers() }));
   }) as typeof fetch;
   return {
@@ -257,6 +276,7 @@ function setup(opts: {
   tokens?: Row | null;
   http?: HttpStub;
   upsertError?: { code: string };
+  syncUpdateError?: { code: string };
   afterSyncSelect?: (sync: Row[]) => void;
 }) {
   const db = makeDb({
@@ -265,18 +285,34 @@ function setup(opts: {
     cache: opts.cache,
     tokens: opts.tokens,
     upsertError: opts.upsertError,
+    syncUpdateError: opts.syncUpdateError,
     afterSyncSelect: opts.afterSyncSelect,
   });
   const net = installHttp(opts.http ?? { detail: DETAIL, streams: KEYED });
+  // What would reach Sentry: the function name, the error and the context.
+  const captures: { fn: string; message: string; name: string; context: Row }[] = [];
   const deps: ActivityDeps = {
     supa: db.supa,
-    refresh: async (rt) => (await import("../strava-import/client.ts")).refreshAccessToken("cid", "cs", rt),
+    refresh: (rt) => refreshAccessToken("cid", "cs", rt),
     now: () => NOW,
+    capture: (fn, err, context) => {
+      captures.push({ fn, message: String((err as Error)?.message ?? err), name: (err as Error)?.name ?? "", context });
+      return Promise.resolve();
+    },
   };
-  return { db, net, deps };
+  return { db, net, deps, captures };
 }
 
-const run = (deps: ActivityDeps, sessionId = SESSION, userId = USER) => handleActivityRequest(deps, userId, sessionId);
+// Every typed outcome is HTTP 200 (C4): asserted on every call through here.
+let runCount = 0;
+const run = async (deps: ActivityDeps, sessionId = SESSION, userId = USER) => {
+  const r = await handleActivityRequest(deps, userId, sessionId);
+  runCount++;
+  check(`run#${runCount} (${r.body.status}) is HTTP 200`, r.httpStatus === 200, r.httpStatus);
+  return r;
+};
+
+const userCache = (db: ReturnType<typeof makeDb>, u = USER) => db.state.cache.filter((r) => r.user_id === u);
 
 // A JWT whose payload carries `sub`. The gateway verifies the signature in
 // production; jwtSubject.ts only reads the claim.
@@ -351,6 +387,18 @@ console.log("\nSA-01 auth and request (http.ts)");
     throwing.status === 502 && (await throwing.json()).error === "strava_activity_failed", throwing.status);
   net.restore();
 }
+{
+  // C3: the refresh uses the client id and secret from the env, not a constant.
+  const { db, net } = setup({ tokens: staleTokens });
+  const env: Record<string, string> = { ...ENV, STRAVA_CLIENT_ID: "env-client-31337", STRAVA_CLIENT_SECRET: "env-secret-31337" };
+  const res = await serveRequest(post({ session_id: SESSION }), { env: (k: string) => env[k], makeSupa: () => db.supa, now: () => NOW });
+  const form = new URLSearchParams(net.of("token")[0]?.body ?? "");
+  check("SA-01 a stale token through serveRequest refreshes and serves ok", res.status === 200 && (await res.json()).status === "ok");
+  check("SA-01 ... the refresh carries the env's client id and secret",
+    form.get("client_id") === "env-client-31337" && form.get("client_secret") === "env-secret-31337" &&
+      form.get("grant_type") === "refresh_token", Object.fromEntries(form));
+  net.restore();
+}
 
 // ---------------------------------------------------------------------------
 console.log("\nSA-02 link and connection, no Strava call");
@@ -415,6 +463,9 @@ const cachedPayload = normaliseActivity(DETAIL, KEYED);
   const row = db.state.cache[0];
   const span = Date.parse(String(row.expires_at)) - Date.parse(String(row.fetched_at));
   check("SA-03 the upsert's expires_at is within 7 days of fetched_at", span > 0 && span <= 7 * 86400_000 && span === CACHE_TTL_MS, span);
+  check("SA-03 ... and is six days exactly, as a literal (518400000 ms)", span === 518400000 && CACHE_TTL_MS === 518400000, span);
+  check("SA-03 the cached payload carries the version, the response does not",
+    (row.payload as Row).v === CACHE_PAYLOAD_VERSION && !("v" in (r.body as Row)), [(row.payload as Row).v, Object.keys(r.body)]);
   check("SA-03 fetched_at is now", row.fetched_at === iso(NOW), row.fetched_at);
   const up = db.writes("strava_activity_cache").find((c) => c.op === "upsert");
   check("SA-03 the upsert conflicts on session_id", (up?.opts as Row)?.onConflict === "session_id", up?.opts);
@@ -494,6 +545,7 @@ console.log("\nSA-04 rate limits");
     db.writes("strava_sync_state").length === 2 &&
       db.writes("strava_sync_state").every((c) => c.filters.some(([m]) => m === "is" || m === "lt")), db.writes("strava_sync_state"));
   check("SA-04 ... the answer is still rate_limited", r.body.status === "rate_limited");
+  check("SA-04 ... and retry_at is the later hold actually in force", (r.body as Row).retry_at === MIDNIGHT, r.body);
   net.restore();
 }
 
@@ -557,6 +609,7 @@ console.log("\nSA-06 auth failures and upstream errors");
   check("SA-06 ... remove was never called on the real store (no strava_tokens delete)",
     !db.log.some((c) => c.table === "strava_tokens" && c.op === "delete") && db.state.tokens !== null);
   check("SA-06 ... no detail call", net.of("detail").length === 0);
+  check("SA-06 ... no strava_sync_state write", db.writes("strava_sync_state").length === 0, db.writes("strava_sync_state"));
   net.restore();
 }
 {
@@ -623,6 +676,9 @@ console.log("\nSA-07 streams and normalising");
     Object.keys(st).sort().join() === "cadence,distance,heartrate,moving,time,velocity_smooth,watts", Object.keys(st));
   check("SA-07 the top level has exactly the contract's keys",
     Object.keys(b).sort().join() === "activity,cached,expires_at,fetched_at,origin,status,strava_activity_id,streams", Object.keys(b));
+  check("SA-07 the cache version `v` is not in the response", !("v" in b) && !JSON.stringify(b).includes('"v":'), Object.keys(b));
+  check("SA-07 the detail and streams fetches each carry an AbortSignal (the timeout)",
+    net.of("detail")[0]?.init?.signal instanceof AbortSignal && net.of("streams")[0]?.init?.signal instanceof AbortSignal);
   net.restore();
 }
 {
@@ -684,7 +740,126 @@ console.log("\nSA-08 races");
   const r = await run(deps);
   check("SA-08 a detail timeout is upstream_error", r.body.status === "upstream_error", r.body);
   check("SA-08 ... and no streams call", net.of("streams").length === 0);
+  check("SA-08 ... the detail fetch was given an AbortSignal", net.of("detail")[0]?.init?.signal instanceof AbortSignal);
   net.restore();
+}
+
+// ---------------------------------------------------------------------------
+console.log("\nSA-09 a refused grant drops this user's cache, and writes nothing else (B2, C1)");
+// ---------------------------------------------------------------------------
+// A stale row: present but expired, so the flow reaches the token step.
+const staleCache = (u = USER, sid = SESSION): Row => ({
+  session_id: sid,
+  user_id: u,
+  strava_activity_id: ACT,
+  payload: cachedPayload,
+  fetched_at: iso(NOW - 7 * 86400_000),
+  expires_at: iso(NOW - 1),
+});
+for (
+  const [label, opts] of [
+    ["token auth_failed (two invalid_grant)", { tokens: staleTokens, http: { token: "invalid_grant" as const } }],
+    ["token not_connected (no token row)", { tokens: null }],
+    ["detail 401", { http: { detail: 401 } }],
+    ["streams 401", { http: { detail: DETAIL, streams: 401 } }],
+  ] as const
+) {
+  const { db, net, deps } = setup({ ...opts, cache: [staleCache(), staleCache(USER, 5), staleCache(OTHER, 6)] });
+  const r = await run(deps);
+  check(`SA-09 ${label}: answers ${r.body.status}`, r.body.status === "auth_failed" || r.body.status === "not_connected", r.body);
+  check(`SA-09 ${label}: no cache row left for the user`, userCache(db).length === 0, db.state.cache);
+  check(`SA-09 ${label}: another user's row kept`, userCache(db, OTHER).length === 1);
+  check(`SA-09 ${label}: no token-row delete`, !db.log.some((c) => c.table === "strava_tokens" && c.op === "delete"));
+  check(`SA-09 ${label}: no strava_sync_state write`, db.writes("strava_sync_state").length === 0, db.writes("strava_sync_state"));
+  net.restore();
+}
+{
+  const { db, net, deps, captures } = setup({ tokens: staleTokens, http: { token: 503 } });
+  const r = await run(deps);
+  check("SA-09 a token-endpoint 503 (not invalid_grant) is upstream_error", r.body.status === "upstream_error", r.body);
+  check("SA-09 ... the token row is untouched",
+    db.state.tokens?.refresh_token === staleTokens.refresh_token && !db.log.some((c) => c.table === "strava_tokens" && c.op !== "select"));
+  check("SA-09 ... no strava_sync_state write", db.writes("strava_sync_state").length === 0);
+  check("SA-09 ... no detail call", net.of("detail").length === 0);
+  check("SA-09 ... captured at stage token", captures.some((c) => c.context.stage === "token"), captures);
+  net.restore();
+}
+
+// ---------------------------------------------------------------------------
+console.log("\nSA-10 a cache row is trusted only in the current payload shape (B3)");
+// ---------------------------------------------------------------------------
+for (
+  const [label, payload] of [
+    ["{}", {}],
+    ["wrong version", { ...cachedPayload, v: CACHE_PAYLOAD_VERSION + 1 }],
+    ["no version", { activity: cachedPayload.activity, streams: cachedPayload.streams }],
+    ["an array", [cachedPayload]],
+    ["array streams", { ...cachedPayload, streams: [] }],
+    ["null activity", { ...cachedPayload, activity: null }],
+  ] as const
+) {
+  const { db, net, deps } = setup({
+    cache: [{ session_id: SESSION, user_id: USER, strava_activity_id: ACT, payload, fetched_at: iso(NOW), expires_at: iso(NOW + 3600_000) }],
+  });
+  const r = await run(deps);
+  check(`SA-10 a fresh row with payload ${label} is a miss and refetches`,
+    r.body.status === "ok" && (r.body as Row).cached === false && net.of("detail").length === 1, [r.body.status, net.calls.length]);
+  check(`SA-10 ... and is replaced by a versioned payload`, (db.state.cache[0]?.payload as Row)?.v === CACHE_PAYLOAD_VERSION);
+  net.restore();
+}
+
+// ---------------------------------------------------------------------------
+console.log("\nSA-11 a non-object detail body is never normalised or cached (B4)");
+// ---------------------------------------------------------------------------
+for (const [label, body] of [["an array", [DETAIL]], ["null", { raw: "null" }], ["a number", { raw: "42" }]] as const) {
+  const { db, net, deps, captures } = setup({ http: { detail: body as Answer, streams: KEYED } });
+  const r = await run(deps);
+  check(`SA-11 a detail body that is ${label} is upstream_error`, r.body.status === "upstream_error", r.body);
+  check(`SA-11 ... no streams call, nothing cached, and it is captured`,
+    net.of("streams").length === 0 && db.state.cache.length === 0 && captures.length === 1, [net.of("streams").length, db.state.cache.length, captures]);
+  net.restore();
+}
+
+// ---------------------------------------------------------------------------
+console.log("\nSA-12 nothing upstream reaches Sentry (B5)");
+// ---------------------------------------------------------------------------
+{
+  const FRAG = "BODYFRAG-zq81";
+  const SECRETS = [freshTokens.access_token, freshTokens.refresh_token, "tok-SECRET", String(ACT), FRAG];
+  const leaks = (captures: { fn: string; message: string; name: string; context: Row }[]) =>
+    captures.filter((c) => SECRETS.some((s) => (c.message + c.name + JSON.stringify(c.context)).includes(s)));
+
+  const cases: [string, Parameters<typeof setup>[0], string][] = [
+    ["detail: malformed 200", { http: { detail: { raw: `{"name":"${FRAG}" ${ACT} tok-SECRET-9f3a-access` }, streams: KEYED } }, "detail"],
+    ["detail: HTTP 502", { http: { detail: 502 } }, "detail"],
+    ["streams: malformed 200", { http: { detail: DETAIL, streams: { raw: `[${FRAG} ${ACT}` } } }, "streams"],
+    ["streams: HTTP 500", { http: { detail: DETAIL, streams: 500 } }, "streams"],
+    ["cache write failure", { upsertError: { code: "XX000" } }, "cache_write"],
+    ["hold write failure", { http: { detail: 429 }, syncUpdateError: { code: "XX000" } }, "rate_limit_hold"],
+  ];
+  for (const [label, opts, stage] of cases) {
+    const { net, deps, captures } = setup(opts);
+    await run(deps);
+    check(`SA-12 ${label}: something is captured at stage ${stage}`, captures.some((c) => c.context.stage === stage), captures);
+    check(`SA-12 ${label}: no token, activity id or body text in any capture`, leaks(captures).length === 0, leaks(captures));
+    check(`SA-12 ${label}: captures carry only userId, sessionId and stage`,
+      captures.every((c) => Object.keys(c.context).sort().join() === "sessionId,stage,userId" && c.fn === "strava-activity"), captures);
+    net.restore();
+  }
+  {
+    const { net, deps, captures } = setup({ http: { detail: 502 } });
+    await run(deps);
+    check("SA-12 an HTTP error is captured with its name and status only",
+      captures[0]?.message === "strava detail failed: StravaHttpError HTTP 502", captures[0]?.message);
+    net.restore();
+  }
+  {
+    const { net, deps, captures } = setup({ http: { detail: { raw: `{${FRAG}` } } });
+    await run(deps);
+    check("SA-12 a malformed body is captured as its error name only",
+      captures[0]?.message === "strava detail failed: SyntaxError", captures[0]?.message);
+    net.restore();
+  }
 }
 
 restoreSentry();

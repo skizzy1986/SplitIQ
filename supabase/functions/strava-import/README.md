@@ -598,6 +598,70 @@ on each hourly retry.
 raise `P0003` once it is gone or disconnected. The importer stops the run there
 — status `error`, code `unknown`, no further writes and no sync-state write.
 
+## `strava-activity`: one session's detail and streams (#647)
+
+`supabase/functions/strava-activity/` serves the session page: for one linked
+session it returns Strava's activity detail and streams, normalised, and keeps
+them in `strava_activity_cache` (migration 020) for six days. It shares this
+directory's client, token store and mapper; the only change here was
+`getActivityStreams` in `client.ts`, through the same `getJson`, so its errors
+map exactly as `getActivity`'s do. It asks for seven streams only (`time`,
+`distance`, `watts`, `heartrate`, `cadence`, `velocity_smooth`, `moving`), never
+`latlng`, altitude, gradient or temperature.
+
+**Deploy with JWT verification ON** (the default; never `--no-verify-jwt`). The
+user is the verified bearer's `sub`; the activity id comes from the
+`strava_session_links` row, never the request. Apply migration 020 first.
+
+```bash
+supabase functions deploy strava-activity
+```
+
+**Contract.** `POST {"session_id": <positive integer>}` (any `activity_id` or
+`user_id` in the body is ignored). Every typed outcome is HTTP 200 with a
+`status`, because `functions.invoke` turns a non-2xx into an error whose body is
+awkward to read:
+
+- `ok`: `cached`, `origin` (`inserted` | `adopted`), `strava_activity_id`,
+  `fetched_at`, `expires_at`, `activity` (`sport_type`, `device_name`,
+  `elapsed_time_s`, `moving_time_s`, `distance_m`, `total_elevation_gain_m`,
+  `calories`, `device_watts`, `laps[]`) and `streams` (each of the seven an array
+  or null);
+- `rate_limited` with `retry_at`;
+- `not_linked`, `not_connected`, `auth_failed`, `gone`,
+  `garmin_attribution_pending`, `upstream_error`.
+
+Non-2xx only for 400 `bad_request`, 401 `unauthorized`, 405, 500 `missing env`
+and 502 `strava_activity_failed`. Every response carries the CORS headers
+(including `sentry-trace` and `baggage`), `Content-Type: application/json` and
+`Cache-Control: no-store`.
+
+**What it writes, and what it never writes.** The cache row, and on a 429 a
+`rate_limit_resets_at` hold that can only be extended (quarter hour, or the next
+UTC midnight when the daily cap is spent). It never deletes the token row (its
+token store's `remove` is a no-op, as in disconnect) and never records a
+revocation: a 401 answers `auth_failed` and leaves that to the importer. Watts
+from a ride with no power meter (`device_watts` false) are dropped, never cached.
+Name, description, map, coordinates, segments, photos, athlete and gear are never
+copied.
+
+**The cache and its TTL.** Strava API Policy §6.2 allows Strava Data in a cache
+for at most seven days. A row expires six days after it was fetched; a check
+constraint refuses more than seven; the table is excluded from the nightly
+backup, is policy-less (RLS on, no grants to `anon` or `authenticated`) and is
+the only place Strava stream data may sit.
+
+**The sweep.** `public.strava_activity_cache_sweep()` deletes expired rows; the
+pg_cron job `strava-activity-cache-sweep` runs it at minute 23 of every hour as
+postgres, so expiry needs nobody to open a session. Worst-case retention is six
+days and one hour. A 404 on the detail deletes the row at once (`gone`).
+
+**Why purge coverage needed no edit to 019.** The cache row references
+`strava_session_links(session_id) ON DELETE CASCADE`. Every purge path in 019
+either deletes the session (the link cascades from `sessions`) or deletes the
+link, so disconnect, the revocation purge and the deletion sync all remove the
+cache row. Migration 020's self-test proves each path.
+
 ## Status and error codes
 
 `last_run_status` ∈ `ok | partial | noop | rate_limited | auth_failed | error`.

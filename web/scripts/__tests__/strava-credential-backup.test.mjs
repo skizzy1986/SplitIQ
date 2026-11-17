@@ -19,6 +19,7 @@ const STRAVA_TABLES = [
   'strava_oauth_state',
   'strava_sync_state',
   'strava_session_links',
+  'strava_activity_cache',
 ];
 
 // Comments carry prose that names tables and says "FORCE ROW LEVEL SECURITY";
@@ -181,5 +182,43 @@ describe('018 creates sessions_no_strava for agent sessions', () => {
 
   it('hides importer-inserted rows', () => {
     expect(view).toContain("l.origin is distinct from 'inserted'");
+  });
+});
+
+describe('020 keeps the Strava activity cache private and short-lived', () => {
+  const sql = strip(
+    readFileSync(join(migrationsDir, '020_strava_activity_cache.sql'), 'utf8')
+  );
+
+  it('enables RLS and never forces it', () => {
+    expect(sql).toContain(
+      'alter table public.strava_activity_cache enable row level security'
+    );
+    expect(sql).not.toMatch(/alter table [^;]*force row level security/);
+  });
+
+  it('grants nothing to anon or authenticated, and revokes from both', () => {
+    expect(sql).toContain(
+      'revoke all on public.strava_activity_cache from public, anon, authenticated'
+    );
+    expect(sql).not.toMatch(/grant [^;]* to [^;]*\b(anon|authenticated)\b/);
+  });
+
+  it('creates no policy', () => {
+    expect(sql).not.toMatch(/create policy/);
+  });
+
+  it('schedules the hourly sweep', () => {
+    expect(sql).toContain("cron.schedule( 'strava-activity-cache-sweep'");
+  });
+
+  it('cascades from the link row, so every purge path removes it', () => {
+    expect(sql).toMatch(
+      /references public\.strava_session_links\(session_id\) on delete cascade/
+    );
+  });
+
+  it('caps a row at seven days', () => {
+    expect(sql).toContain("expires_at <= fetched_at + interval '7 days'");
   });
 });

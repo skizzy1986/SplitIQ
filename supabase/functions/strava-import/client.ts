@@ -296,6 +296,35 @@ export async function getActivity(
   return { activity: body && typeof body === "object" ? (body as Record<string, unknown>) : null, rateLimit };
 }
 
+/**
+ * The only streams strava-activity ever asks for (#647). latlng, altitude,
+ * grade_smooth and temp are never requested: the app stores no geographic data
+ * (Strava API Policy §5.7) and draws no elevation profile.
+ */
+export const STREAM_KEYS = ["time", "distance", "watts", "heartrate", "cadence", "velocity_smooth", "moving"] as const;
+
+/**
+ * Activity streams, for the session page's cache (strava-activity). Strava's
+ * reference (developers.strava.com/docs/reference, via Context7
+ * /websites/developers_strava): `keys` is required, `key_by_type` is required
+ * and must be true. The documented sample is an array of {type, data, ...}
+ * while key_by_type=true answers an object keyed by type, so the body is
+ * returned as parsed and the normaliser accepts both shapes. Errors map exactly
+ * as getActivity's do (shared getJson); a 404 is not special-cased here.
+ */
+export async function getActivityStreams(
+  accessToken: string,
+  activityId: number,
+  opts?: RequestOptions,
+): Promise<{ streams: Record<string, unknown> | unknown[] | null; rateLimit: RateLimit }> {
+  const url = `${STRAVA_API_BASE}/activities/${activityId}/streams?keys=${STREAM_KEYS.join(",")}&key_by_type=true`;
+  const { body, rateLimit } = await getJson(url, accessToken, "activities/:id/streams", opts);
+  return {
+    streams: body && typeof body === "object" ? (body as Record<string, unknown> | unknown[]) : null,
+    rateLimit,
+  };
+}
+
 /** Disconnect waits this long for Strava before reporting the revocation unconfirmed. */
 export const DEAUTHORIZE_TIMEOUT_MS = 5000;
 

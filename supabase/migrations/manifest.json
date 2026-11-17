@@ -223,6 +223,12 @@
       ],
       "note": "Applied 2026-11-17 (#628), same method as 011, before the OAuth grant: the disconnect, revocation-purge and deletion-sync functions. Its self-test passed at apply.",
       "issue": 630
+    },
+    {
+      "file": "020_strava_activity_cache.sql",
+      "status": "pending",
+      "note": "strava_activity_cache (the session page's 7-day Strava cache, policy-less, cascading from strava_session_links), backup_snapshot() exclusion, hourly sweep cron job strava-activity-cache-sweep. Apply by the #628 method after a rolled-back trial, as postgres; flip to applied with the live version.",
+      "issue": 647
     }
   ],
   "liveOnly": [

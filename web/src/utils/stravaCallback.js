@@ -74,7 +74,7 @@ export function stravaCallbackMessage(callback) {
   if (callback.status === 'connected') {
     return {
       tone: 'positive',
-      text: t`Strava connected. Your history is importing now — it continues in the background.`,
+      text: t`Strava connected. Activities import at the next scheduled sync, or press Sync now to start straight away.`,
     };
   }
   // Declining on Strava's consent screen is a choice, not a fault: say so

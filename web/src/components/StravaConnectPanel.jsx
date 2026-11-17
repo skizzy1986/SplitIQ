@@ -111,9 +111,7 @@ export default function StravaConnectPanel({ compact = false, onSynced }) {
           </Trans>
         </div>
         <div style={{ fontSize: TYPE.bodySm.size, color: THEME.muted }}>
-          <Trans comment="Error state detail">
-            The connection itself may be fine — only this status read failed.
-          </Trans>
+          <Trans comment="Error state detail">Try again in a moment.</Trans>
         </div>
         <div style={{ display: 'flex', gap: SPACE.sm }}>
           <Button

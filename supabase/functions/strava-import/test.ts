@@ -14,6 +14,8 @@ import {
   avgWattsOrNull,
   hasUsableDeviceWatts,
   buildLabel,
+  ELIGIBLE_SPORT_TYPES,
+  isGarminRecorded,
   chooseAdoptionCandidate,
   distanceTolerance,
   formatDuration,
@@ -29,7 +31,11 @@ import {
 import {
   advanceBackfillCursor,
   advanceIncrementalWatermark,
+  isDailyCapExhausted,
+  isNearDailyCap,
+  mergeStopReason,
   nextQuarterHour,
+  nextUtcMidnight,
   shouldStopChunk,
 } from "./state.ts";
 import { EMPTY_RATE_LIMIT, parseRateLimit, StravaAuthError, StravaHttpError, type StravaTokens } from "./client.ts";
@@ -97,7 +103,7 @@ console.log("\nTC-01 eligibility allow-list");
 
 check("TC-01 Rowing accepted", isEligible(rowing, BACKFILL_FROM).eligible === true);
 check("TC-01 VirtualRide accepted", isEligible(virtualRide, BACKFILL_FROM).eligible === true);
-for (const sport of ["WeightTraining", "Ride", "Walk", "Workout", "Run", "Yoga", "Rowing "]) {
+for (const sport of ["WeightTraining", "Walk", "Workout", "Run", "Yoga", "Rowing "]) {
   const v = isEligible(act({ sport_type: sport }), BACKFILL_FROM);
   check(`TC-01 ${sport} rejected as sport_type`, v.eligible === false && v.reason === "sport_type", v);
 }
@@ -211,14 +217,15 @@ check("TC-04 a summary with HR but no device watts still needs detail",
   needsDetailFetch(act({ average_watts: undefined, has_device_watts: undefined })) === true);
 check("TC-04 a summary with device watts but no HR still needs detail",
   needsDetailFetch(act({ average_heartrate: undefined, has_heartrate: undefined })) === true);
-check("TC-04 a summary carrying BOTH needs no detail fetch",
-  needsDetailFetch(rowing) === false && needsDetailFetch(virtualRide) === false);
+check("TC-04 a summary carrying BOTH (and a device name) needs no detail fetch",
+  needsDetailFetch({ ...rowing, device_name: "Concept2 PM5" }) === false &&
+    needsDetailFetch({ ...virtualRide, device_name: "Zwift" }) === false);
 check("TC-04 a summary missing distance/moving_time/date needs detail",
   needsDetailFetch(act({ distance: undefined })) === true &&
   needsDetailFetch(act({ moving_time: undefined })) === true &&
   needsDetailFetch(act({ start_date_local: undefined })) === true);
 // A read spent on a sport we discard is a read taken from one that counts.
-for (const sport of ["WeightTraining", "Run", "Walk", "Ride"]) {
+for (const sport of ["WeightTraining", "Run", "Walk", "Handcycle"]) {
   check(`TC-04 ${sport} never costs a detail fetch`,
     needsDetailFetch(act({ sport_type: sport, average_watts: undefined,
       has_device_watts: undefined, has_heartrate: undefined })) === false);
@@ -731,6 +738,8 @@ type SessionRow = {
   distance_m: number | null;
   duration: string | null;
   source: string;
+  /** strava_session_links.origin for a linked row (migration 012); absent when unlinked. */
+  origin?: "inserted" | "adopted";
 };
 
 type DbOpts = {
@@ -835,9 +844,10 @@ function makeDb(opts: DbOpts) {
       const aid = Number(args.p_activity_id);
       const existing = state.sessions.find((s) => s.strava_activity_id === aid);
       if (existing) {
-        // Models migration 012's DO UPDATE, source guard included: duration and
-        // distance_m are refreshed only on rows this importer inserted.
-        if (existing.source === "strava") {
+        // Models migration 012's update branch, origin guard included: duration
+        // and distance_m are refreshed only on rows whose link origin is
+        // 'inserted' — never on an adopted row, whatever its source.
+        if (existing.origin === "inserted") {
           existing.duration = args.p_duration as string;
           existing.distance_m = args.p_distance_m as number;
         }
@@ -851,6 +861,7 @@ function makeDb(opts: DbOpts) {
         distance_m: args.p_distance_m as number,
         duration: args.p_duration as string,
         source: "strava",
+        origin: "inserted",
       };
       state.sessions.push(row);
       return Promise.resolve({ data: [{ session_id: row.id, action: "inserted" }], error: null });
@@ -861,6 +872,7 @@ function makeDb(opts: DbOpts) {
         return Promise.resolve({ data: [{ session_id: args.p_session_id, action: "adopt_lost_race" }], error: null });
       }
       row.strava_activity_id = Number(args.p_activity_id);
+      row.origin = "adopted";
       return Promise.resolve({ data: [{ session_id: row.id, action: "adopted" }], error: null });
     }
     return Promise.resolve({ data: null, error: null });
@@ -904,6 +916,8 @@ type StravaStub = {
   listStatus?: (call: number) => number | undefined;
   usage?: string;
   limit?: string;
+  /** Read-usage header on detail responses only, when it must differ from the list's. */
+  detailUsage?: string;
 };
 
 function installStrava(stub: StravaStub) {
@@ -967,9 +981,10 @@ function installStrava(stub: StravaStub) {
       const id = Number(m[1]);
       detailCalls.push(id);
       const d = stub.detail?.[id];
-      if (typeof d === "number") return Promise.resolve(new Response("{}", { status: d, headers }));
-      if (!d) return Promise.resolve(new Response("{}", { status: 404, headers }));
-      return Promise.resolve(new Response(JSON.stringify(d), { status: 200, headers }));
+      const dh = stub.detailUsage ? { ...headers, "x-readratelimit-usage": stub.detailUsage } : headers;
+      if (typeof d === "number") return Promise.resolve(new Response("{}", { status: d, headers: dh }));
+      if (!d) return Promise.resolve(new Response("{}", { status: 404, headers: dh }));
+      return Promise.resolve(new Response(JSON.stringify(d), { status: 200, headers: dh }));
     }
 
     return Promise.resolve(new Response("{}", { status: 404, headers }));
@@ -1032,9 +1047,13 @@ const detailed = (s: StravaActivity, over: Partial<StravaActivity> = {}): Strava
   ...over,
 });
 
-/** A summary that already carries power and HR, so no detail fetch is needed. */
+/**
+ * A summary that already carries power, HR and a (non-Garmin) device name, so
+ * no detail fetch is needed. Without the device name it WOULD need one (#629):
+ * device_name is documented on DetailedActivity only.
+ */
 const fullSummary = (id: number, localIso: string, over: Partial<StravaActivity> = {}): StravaActivity =>
-  detailed(summary(id, localIso), over);
+  detailed(summary(id, localIso), { device_name: "Concept2 PM5", ...over });
 
 // deno-lint-ignore no-explicit-any
 const run = (db: any, over: Record<string, unknown> = {}, opts: Record<string, unknown> = {}) =>
@@ -1554,6 +1573,494 @@ const run = (db: any, over: Record<string, unknown> = {}, opts: Record<string, u
   check("TC-25 a clean run -> ok", r.status === "ok" && r.ok === true, r);
   check("TC-25 counters are carried forward, not reset",
     db.lastSyncPatch().imported_total === 1, db.lastSyncPatch());
+}
+
+// ---------------------------------------------------------------------------
+// TC-26 — the approved eligibility list (#629, owner decision on #628)
+// ---------------------------------------------------------------------------
+console.log("\nTC-26 eligibility: rowing and every pedalled ride");
+
+const EXPECTED_ELIGIBLE: Record<string, "erg" | "cycling"> = {
+  Rowing: "erg",
+  VirtualRow: "erg",
+  Ride: "cycling",
+  VirtualRide: "cycling",
+  GravelRide: "cycling",
+  MountainBikeRide: "cycling",
+  EBikeRide: "cycling",
+  EMountainBikeRide: "cycling",
+};
+check("TC-26 exactly the eight approved types are eligible",
+  [...ELIGIBLE_SPORT_TYPES].sort().join() === Object.keys(EXPECTED_ELIGIBLE).sort().join(),
+  ELIGIBLE_SPORT_TYPES);
+for (const [sport, sessionType] of Object.entries(EXPECTED_ELIGIBLE)) {
+  const a = act({ sport_type: sport });
+  check(`TC-26 ${sport} eligible`, isEligible(a, BACKFILL_FROM).eligible === true, isEligible(a, BACKFILL_FROM));
+  check(`TC-26 ${sport} -> ${sessionType}`, mapActivityToSession(a).type === sessionType,
+    mapActivityToSession(a).type);
+}
+for (
+  const sport of [
+    "Handcycle", "Velomobile", "Walk", "Run", "Hike", "Workout", "WeightTraining", "Yoga", "NordicSki",
+    "ride", "Ride ", " Ride", "RIDE", "rowing", "virtualrow", "EBikeride",
+  ]
+) {
+  const v = isEligible(act({ sport_type: sport }), BACKFILL_FROM);
+  check(`TC-26 ${JSON.stringify(sport)} rejected as sport_type`,
+    v.eligible === false && v.reason === "sport_type", v);
+}
+
+// ---------------------------------------------------------------------------
+// TC-27 — detail fetch gate for the new types
+// ---------------------------------------------------------------------------
+console.log("\nTC-27 needsDetailFetch for rides");
+
+const powerlessSummary = { average_watts: undefined, has_device_watts: undefined, device_watts: undefined,
+  average_heartrate: undefined, has_heartrate: undefined };
+check("TC-27 a Ride with no watts needs detail",
+  needsDetailFetch(act({ sport_type: "Ride", ...powerlessSummary })) === true);
+for (const sport of ["Walk", "Run", "WeightTraining"]) {
+  check(`TC-27 ${sport} never needs detail`,
+    needsDetailFetch(act({ sport_type: sport, ...powerlessSummary })) === false);
+}
+
+// ---------------------------------------------------------------------------
+// TC-28 — a ride with no device power is WRITTEN, with null avg_watts
+// ---------------------------------------------------------------------------
+console.log("\nTC-28 rides without a power meter");
+{
+  const s = summary(2301, "2026-08-21T07:00:00", { sport_type: "Ride", distance: 30000, moving_time: 3600 });
+  // Strava estimates power for a ride with no meter: device_watts false, and an
+  // average_watts that must never reach the row.
+  const d = detailed(s, { has_device_watts: false, device_watts: false, average_watts: 180.2,
+    average_heartrate: 140.4, has_heartrate: true });
+  const db = makeDb({ sync: syncRow(), tokens: { ...freshTokens } });
+  const net = installStrava({ activities: [s], detail: { 2301: d } });
+  const r = await run(db);
+  net.restore();
+  const dec = r.decisions.find((x) => x.activityId === 2301);
+  check("TC-28 the detail was fetched", net.detailCalls.join() === "2301", net.detailCalls);
+  check("TC-28 decision is insert", dec?.action === "insert", dec);
+  check("TC-28 not deferred", r.deferred === 0 && r.imported === 1, r);
+  check("TC-28 avg_watts null (estimate discarded)", db.rpcCalls[0]?.args.p_avg_watts === null, db.rpcCalls[0]?.args);
+  check("TC-28 avg_hr set", db.rpcCalls[0]?.args.p_avg_hr === 140, db.rpcCalls[0]?.args);
+  check("TC-28 type cycling", db.rpcCalls[0]?.args.p_type === "cycling", db.rpcCalls[0]?.args);
+}
+{
+  const db = makeDb({ sync: syncRow(), tokens: { ...freshTokens } });
+  const net = installStrava({ activities: [fullSummary(2302, "2026-08-21T07:00:00", { sport_type: "EBikeRide" })] });
+  await run(db);
+  net.restore();
+  check("TC-28 EBikeRide with device watts -> avg_watts populated",
+    db.rpcCalls[0]?.args.p_avg_watts === 150 && db.rpcCalls[0]?.args.p_type === "cycling", db.rpcCalls[0]?.args);
+}
+
+// ---------------------------------------------------------------------------
+// TC-29 — adoption distance tolerance on a ride
+// ---------------------------------------------------------------------------
+console.log("\nTC-29 adoption tolerance for cycling");
+{
+  const ride = act({ id: 2401, sport_type: "Ride", distance: 22870, start_date_local: "2026-08-21T07:00:00" });
+  const near = chooseAdoptionCandidate(ride, [{ id: 2411, date_iso: "2026-08-21", type: "cycling", distance_m: 22900 }]);
+  check("TC-29 22,870 m vs a 22,900 m cycling row -> adopt",
+    near.decision === "adopt" && near.sessionId === 2411, near);
+  const far = chooseAdoptionCandidate(ride, [{ id: 2412, date_iso: "2026-08-21", type: "cycling", distance_m: 23000 }]);
+  check("TC-29 22,870 m vs a 23,000 m cycling row -> insert", far.decision === "insert", far);
+}
+
+// ---------------------------------------------------------------------------
+// TC-30 — Garmin-recorded activities are skipped (Strava API Policy §4.4, #632)
+// ---------------------------------------------------------------------------
+console.log("\nTC-30 Garmin skip");
+
+check("TC-30 'Garmin Edge 530' is Garmin", isGarminRecorded(act({ device_name: "Garmin Edge 530" })));
+check("TC-30 case-insensitive", isGarminRecorded(act({ device_name: "GARMIN fenix 7" })));
+for (const name of ["Concept2 PM5", "Zwift", null, undefined]) {
+  check(`TC-30 ${JSON.stringify(name)} is not Garmin`, !isGarminRecorded(act({ device_name: name })));
+  check(`TC-30 ${JSON.stringify(name)} stays eligible`,
+    isEligible(act({ device_name: name }), BACKFILL_FROM).eligible === true);
+}
+{
+  const missing = { ...rowing };
+  delete missing.device_name;
+  check("TC-30 device_name absent altogether is not Garmin",
+    !isGarminRecorded(missing) && isEligible(missing, BACKFILL_FROM).eligible === true);
+}
+for (const sport of ["Rowing", "Ride", "VirtualRide"]) {
+  const v = isEligible(act({ sport_type: sport, device_name: "Garmin Edge 530" }), BACKFILL_FROM);
+  check(`TC-30 Garmin ${sport} skipped as garmin_attribution_pending`,
+    v.eligible === false && v.reason === "garmin_attribution_pending", v);
+}
+check("TC-30 a Garmin summary needs no detail fetch, even without power",
+  needsDetailFetch(act({ sport_type: "Ride", device_name: "Garmin Edge 530", ...powerlessSummary })) === false);
+{
+  // Garmin on the summary: skipped with a named reason, and no read spent.
+  const g = summary(2501, "2026-08-21T07:00:00", { sport_type: "Ride", device_name: "Garmin Edge 530" });
+  const db = makeDb({ sync: syncRow(), tokens: { ...freshTokens } });
+  const net = installStrava({ activities: [g], detail: { 2501: detailed(g) } });
+  const r = await run(db);
+  net.restore();
+  const dec = r.decisions.find((x) => x.activityId === 2501);
+  check("TC-30 summary Garmin -> skip garmin_attribution_pending",
+    dec?.action === "skip" && dec?.detail === "garmin_attribution_pending", dec);
+  check("TC-30 summary Garmin -> NO detail fetch", net.detailCalls.length === 0, net.detailCalls);
+  check("TC-30 summary Garmin -> nothing written", db.rpcCalls.length === 0, db.rpcCalls);
+  check("TC-30 the watermark still advances past a Garmin-skipped activity",
+    db.lastSyncPatch().incremental_after === epochOf("2026-08-21T07:00:00Z"), db.lastSyncPatch());
+}
+{
+  // Garmin named only on the detail: still skipped, before any write.
+  const s = summary(2502, "2026-08-21T07:00:00");
+  const db = makeDb({ sync: syncRow(), tokens: { ...freshTokens } });
+  const net = installStrava({ activities: [s], detail: { 2502: detailed(s, { device_name: "Garmin Forerunner 965" }) } });
+  const r = await run(db);
+  net.restore();
+  const dec = r.decisions.find((x) => x.activityId === 2502);
+  check("TC-30 detail-only Garmin -> detail fetched once", net.detailCalls.join() === "2502", net.detailCalls);
+  check("TC-30 detail-only Garmin -> skipped before any write",
+    dec?.detail === "garmin_attribution_pending" && db.rpcCalls.length === 0, { dec, rpc: db.rpcCalls });
+  check("TC-30 detail-only Garmin -> not deferred", r.deferred === 0, r);
+}
+{
+  // A dry run shows the decision like any other skip.
+  const g = summary(2503, "2026-08-21T07:00:00", { device_name: "Garmin Edge 1040" });
+  const db = makeDb({ sync: syncRow(), tokens: { ...freshTokens } });
+  const net = installStrava({ activities: [g] });
+  const r = await run(db, {}, { dryRun: true });
+  net.restore();
+  check("TC-30 dry run reports the Garmin skip",
+    r.decisions.some((x) => x.activityId === 2503 && x.detail === "garmin_attribution_pending"), r.decisions);
+}
+{
+  // Non-Garmin devices are imported normally.
+  const db = makeDb({ sync: syncRow(), tokens: { ...freshTokens } });
+  const nullDevice = fullSummary(2506, "2026-08-23T07:00:00", { device_name: null });
+  const net = installStrava({
+    activities: [
+      fullSummary(2504, "2026-08-21T07:00:00", { device_name: "Concept2 PM5" }),
+      fullSummary(2505, "2026-08-22T07:00:00", { sport_type: "VirtualRide", device_name: "Zwift" }),
+      nullDevice,
+    ],
+    // A null device name on the summary costs a detail fetch; the detail is null too.
+    detail: { 2506: nullDevice },
+  });
+  const r = await run(db);
+  net.restore();
+  check("TC-30 Concept2 PM5, Zwift and null device are all imported", r.imported === 3, r);
+}
+
+// ---------------------------------------------------------------------------
+// TC-31 — p_device_name reaches both RPCs (provenance)
+// ---------------------------------------------------------------------------
+console.log("\nTC-31 device name is passed to the RPCs");
+{
+  const legacy: SessionRow = {
+    id: 77, strava_activity_id: null, date_iso: "2026-08-20", type: "erg", distance_m: 6000,
+    duration: "25min", source: "portal",
+  };
+  const db = makeDb({ sync: syncRow(), tokens: { ...freshTokens }, sessions: [legacy] });
+  const net = installStrava({
+    activities: [
+      fullSummary(2601, "2026-08-20T06:00:00", { device_name: "Concept2 PM5" }),
+      fullSummary(2602, "2026-08-24T06:00:00", { sport_type: "VirtualRide", distance: 30000, device_name: "Zwift" }),
+    ],
+  });
+  const r = await run(db);
+  net.restore();
+  const adopt = db.rpcCalls.find((c) => c.name === "adopt_strava_session");
+  const insert = db.rpcCalls.find((c) => c.name === "upsert_strava_session");
+  check("TC-31 one adopt, one insert", r.adopted === 1 && r.imported === 1, r);
+  check("TC-31 adopt_strava_session gets p_device_name", adopt?.args.p_device_name === "Concept2 PM5", adopt?.args);
+  check("TC-31 upsert_strava_session gets p_device_name", insert?.args.p_device_name === "Zwift", insert?.args);
+
+  // The update path (an already-linked activity) passes it too.
+  db.rpcCalls.length = 0;
+  db.state.sync.incremental_after = epochOf("2026-08-01T00:00:00Z");
+  const net2 = installStrava({ activities: [fullSummary(2602, "2026-08-24T06:00:00",
+    { sport_type: "VirtualRide", distance: 30000, device_name: "Zwift" })] });
+  const r2 = await run(db);
+  net2.restore();
+  check("TC-31 update path passes p_device_name",
+    r2.updated === 1 && db.rpcCalls[0]?.args.p_device_name === "Zwift", db.rpcCalls);
+}
+{
+  const db = makeDb({ sync: syncRow(), tokens: { ...freshTokens } });
+  const noDevice = fullSummary(2603, "2026-08-21T06:00:00", { device_name: undefined });
+  const net = installStrava({ activities: [noDevice], detail: { 2603: noDevice } });
+  await run(db);
+  net.restore();
+  check("TC-31 a missing device name is sent as null, not undefined",
+    "p_device_name" in (db.rpcCalls[0]?.args ?? {}) && db.rpcCalls[0]?.args.p_device_name === null,
+    db.rpcCalls[0]?.args);
+}
+
+// ---------------------------------------------------------------------------
+// TC-32 — the daily rate cap
+// ---------------------------------------------------------------------------
+console.log("\nTC-32 daily rate cap");
+
+const daily = (shortUsage: number, dailyUsage: number) => ({
+  ...EMPTY_RATE_LIMIT, shortLimit: 100, shortUsage, dailyLimit: 1000, dailyUsage, source: "read" as const,
+});
+const byDaily = shouldStopChunk(1, 10, daily(1, 800), budget);
+check("TC-32 80% of the DAILY quota stops a run inside its 15-minute budget",
+  byDaily.stop && byDaily.reason === "daily_rate_limit", byDaily);
+check("TC-32 just under 80% daily does not stop", shouldStopChunk(1, 10, daily(1, 799), budget).stop === false);
+check("TC-32 daily outranks the short window when both are near their cap",
+  shouldStopChunk(1, 10, daily(90, 900), budget).reason === "daily_rate_limit");
+check("TC-32 missing daily headers: the short window behaves as before",
+  shouldStopChunk(1, 10, { ...daily(80, 0), dailyLimit: null, dailyUsage: null }, budget).reason === "rate_limit" &&
+    shouldStopChunk(1, 10, { ...daily(1, 0), dailyLimit: null, dailyUsage: null }, budget).stop === false);
+check("TC-32 isNearDailyCap false without daily figures", isNearDailyCap(EMPTY_RATE_LIMIT) === false);
+check("TC-32 isDailyCapExhausted only at the limit",
+  isDailyCapExhausted(daily(1, 1000)) && !isDailyCapExhausted(daily(1, 999)));
+check("TC-32 header-derived daily usage drives the stop",
+  shouldStopChunk(0, 0, parseRateLimit(new Headers({
+    "X-ReadRateLimit-Limit": "100,1000",
+    "X-ReadRateLimit-Usage": "3,850",
+  })), budget).reason === "daily_rate_limit");
+
+check("TC-32 nextUtcMidnight rounds up to the next 00:00 UTC",
+  nextUtcMidnight(Date.parse("2026-08-22T10:07:31Z")) === Date.parse("2026-08-23T00:00:00Z"));
+check("TC-32 nextUtcMidnight exactly on midnight returns the FOLLOWING one",
+  nextUtcMidnight(Date.parse("2026-08-23T00:00:00Z")) === Date.parse("2026-08-24T00:00:00Z"));
+check("TC-32 nextUtcMidnight one ms before midnight",
+  nextUtcMidnight(Date.parse("2026-08-22T23:59:59.999Z")) === Date.parse("2026-08-23T00:00:00Z"));
+
+const NEXT_MIDNIGHT = "2026-08-29T00:00:00.000Z"; // after NOW_MS = 2026-08-28T00:00:00Z
+const NEXT_QUARTER = "2026-08-28T00:15:00.000Z";
+{
+  // Daily usage at 80%, 15-minute usage low: the run stops, defers the
+  // activity whose detail it would have fetched, and holds until midnight UTC.
+  const s = summary(2701, "2026-08-21T07:00:00");
+  const db = makeDb({ sync: syncRow(), tokens: { ...freshTokens } });
+  const net = installStrava({ activities: [s], detail: { 2701: detailed(s) }, limit: "100,1000", usage: "1,800" });
+  const r = await run(db);
+  net.restore();
+  check("TC-32 daily stop: stopReason daily_rate_limit", r.stopReason === "daily_rate_limit", r);
+  check("TC-32 daily stop: no detail fetch spent", net.detailCalls.length === 0, net.detailCalls);
+  check("TC-32 daily stop: the activity is deferred, not written",
+    r.deferred === 1 && db.rpcCalls.length === 0, r);
+  check("TC-32 daily stop: held until next UTC midnight",
+    db.lastSyncPatch().rate_limit_resets_at === NEXT_MIDNIGHT, db.lastSyncPatch());
+}
+{
+  // A 429 with the daily usage at its limit: wait for the daily reset.
+  const db = makeDb({ sync: syncRow(), tokens: { ...freshTokens } });
+  const net = installStrava({
+    activities: [fullSummary(2702, "2026-08-21T07:00:00")],
+    listStatus: () => 429,
+    limit: "100,1000",
+    usage: "5,1000",
+  });
+  const r = await run(db);
+  net.restore();
+  check("TC-32 daily-cap 429 -> rate_limited", r.status === "rate_limited", r);
+  check("TC-32 daily-cap 429 -> reset at next UTC midnight",
+    db.lastSyncPatch().rate_limit_resets_at === NEXT_MIDNIGHT, db.lastSyncPatch());
+}
+{
+  // A 429 from the 15-minute window keeps the quarter-hour hold.
+  const db = makeDb({ sync: syncRow(), tokens: { ...freshTokens } });
+  const net = installStrava({
+    activities: [fullSummary(2703, "2026-08-21T07:00:00")],
+    listStatus: () => 429,
+    limit: "100,1000",
+    usage: "100,500",
+  });
+  await run(db);
+  net.restore();
+  check("TC-32 short-window 429 -> reset at the next quarter hour",
+    db.lastSyncPatch().rate_limit_resets_at === NEXT_QUARTER, db.lastSyncPatch());
+}
+{
+  // No daily figures in the headers: exactly today's behaviour.
+  const db = makeDb({ sync: syncRow(), tokens: { ...freshTokens } });
+  const net = installStrava({
+    activities: [fullSummary(2704, "2026-08-21T07:00:00")],
+    listStatus: () => 429,
+    limit: "100",
+    usage: "100",
+  });
+  await run(db);
+  net.restore();
+  check("TC-32 429 without daily headers -> quarter hour, as before",
+    db.lastSyncPatch().rate_limit_resets_at === NEXT_QUARTER, db.lastSyncPatch());
+}
+{
+  // A clean run near neither cap arms no hold at all.
+  const db = makeDb({ sync: syncRow(), tokens: { ...freshTokens } });
+  const net = installStrava({ activities: [fullSummary(2705, "2026-08-21T07:00:00")], usage: "1,10" });
+  await run(db);
+  net.restore();
+  check("TC-32 a run below both caps arms no hold", db.lastSyncPatch().rate_limit_resets_at === null,
+    db.lastSyncPatch());
+}
+
+// ---------------------------------------------------------------------------
+// TC-33 — a summary without device_name is detail-fetched, so a Garmin cannot
+//         slip through (device_name is documented on DetailedActivity only)
+// ---------------------------------------------------------------------------
+console.log("\nTC-33 Garmin check needs the detail when the summary names no device");
+
+const fullRide = (id: number, over: Partial<StravaActivity> = {}) =>
+  fullSummary(id, "2026-08-21T07:00:00", { sport_type: "Ride", device_name: undefined, ...over });
+
+check("TC-33 full Ride summary with no device_name needs detail", needsDetailFetch(fullRide(1)) === true);
+check("TC-33 full Ride summary with device_name null needs detail",
+  needsDetailFetch(fullRide(1, { device_name: null })) === true);
+check("TC-33 full Ride summary naming a non-Garmin device needs no detail",
+  needsDetailFetch(fullRide(1, { device_name: "Zwift" })) === false);
+check("TC-33 a Walk with no device_name still costs no fetch",
+  needsDetailFetch(act({ sport_type: "Walk", device_name: undefined })) === false);
+{
+  // (a) the detail names a Garmin: one fetch, skipped, nothing written, cursor moves.
+  const s = fullRide(2801);
+  const db = makeDb({ sync: syncRow(), tokens: { ...freshTokens } });
+  const net = installStrava({ activities: [s], detail: { 2801: { ...s, device_name: "Garmin Edge 530" } } });
+  const r = await run(db);
+  net.restore();
+  const dec = r.decisions.find((x) => x.activityId === 2801);
+  check("TC-33 (a) exactly one detail fetch", net.detailCalls.join() === "2801", net.detailCalls);
+  check("TC-33 (a) skipped garmin_attribution_pending",
+    dec?.action === "skip" && dec?.detail === "garmin_attribution_pending", dec);
+  check("TC-33 (a) no RPC call", db.rpcCalls.length === 0, db.rpcCalls);
+  check("TC-33 (a) the cursor advances past it",
+    db.lastSyncPatch().incremental_after === epochOf("2026-08-21T07:00:00Z"), db.lastSyncPatch());
+}
+{
+  // (b) the detail names no device either: not Garmin, imported.
+  const s = fullRide(2802);
+  const db = makeDb({ sync: syncRow(), tokens: { ...freshTokens } });
+  const net = installStrava({ activities: [s], detail: { 2802: s } });
+  const r = await run(db);
+  net.restore();
+  check("TC-33 (b) no device name anywhere -> imported",
+    r.imported === 1 && net.detailCalls.join() === "2802" && db.rpcCalls[0]?.args.p_device_name === null,
+    { r, rpc: db.rpcCalls });
+}
+{
+  // (c) the detail names a non-Garmin device: imported, and the name recorded.
+  const s = fullRide(2803);
+  const db = makeDb({ sync: syncRow(), tokens: { ...freshTokens } });
+  const net = installStrava({ activities: [s], detail: { 2803: { ...s, device_name: "Zwift" } } });
+  const r = await run(db);
+  net.restore();
+  check("TC-33 (c) detail says Zwift -> imported with p_device_name Zwift",
+    r.imported === 1 && db.rpcCalls[0]?.args.p_device_name === "Zwift", db.rpcCalls);
+}
+{
+  // (d) a Walk with no device name costs no fetch in a real run either.
+  const w = summary(2804, "2026-08-21T07:00:00", { sport_type: "Walk" });
+  const db = makeDb({ sync: syncRow(), tokens: { ...freshTokens } });
+  const net = installStrava({ activities: [w], detail: { 2804: w } });
+  await run(db);
+  net.restore();
+  check("TC-33 (d) Walk without device_name -> no detail fetch", net.detailCalls.length === 0, net.detailCalls);
+}
+{
+  // The fetch could not happen (budget spent): the usual deferral, not a write.
+  const s = fullRide(2805);
+  const db = makeDb({ sync: syncRow(), tokens: { ...freshTokens } });
+  const net = installStrava({ activities: [s], detail: { 2805: s } });
+  // 1 list call spends the whole budget.
+  const r = await run(db, { budget: { maxCalls: 1, maxElapsedMs: 60_000 } });
+  net.restore();
+  check("TC-33 budget spent before the device check -> deferred, not written",
+    r.deferred === 1 && db.rpcCalls.length === 0 && net.detailCalls.length === 0, { r, rpc: db.rpcCalls });
+  check("TC-33 ... and the watermark is held below it",
+    db.lastSyncPatch().incremental_after === epochOf("2026-08-21T07:00:00Z") - 1, db.lastSyncPatch());
+}
+
+// ---------------------------------------------------------------------------
+// TC-34 — the daily cap wins over every other stop reason
+// ---------------------------------------------------------------------------
+console.log("\nTC-34 daily cap precedence");
+
+const dailyBoth = shouldStopChunk(50, 25_000, daily(90, 900), budget);
+check("TC-34 calls, elapsed and daily all true -> daily_rate_limit",
+  dailyBoth.stop && dailyBoth.reason === "daily_rate_limit", dailyBoth);
+check("TC-34 mergeStopReason keeps daily over a later calls stop",
+  mergeStopReason("daily_rate_limit", "calls") === "daily_rate_limit");
+check("TC-34 mergeStopReason keeps daily over a later 429",
+  mergeStopReason("daily_rate_limit", "rate_limit") === "daily_rate_limit");
+check("TC-34 mergeStopReason otherwise takes the newer reason",
+  mergeStopReason("calls", "rate_limit") === "rate_limit" && mergeStopReason(null, "calls") === "calls" &&
+    mergeStopReason("calls", "daily_rate_limit") === "daily_rate_limit");
+{
+  // Budget AND daily cap both spent by the first list call: daily wins, and
+  // the hold is midnight UTC, not none.
+  const s = summary(2901, "2026-08-21T07:00:00");
+  const db = makeDb({ sync: syncRow(), tokens: { ...freshTokens } });
+  const net = installStrava({ activities: [s], detail: { 2901: detailed(s) }, limit: "100,1000", usage: "1,800" });
+  const r = await run(db, { budget: { maxCalls: 1, maxElapsedMs: 60_000 } });
+  net.restore();
+  check("TC-34 calls and daily both true in a run -> daily_rate_limit", r.stopReason === "daily_rate_limit", r);
+  check("TC-34 ... held until next UTC midnight",
+    db.lastSyncPatch().rate_limit_resets_at === NEXT_MIDNIGHT, db.lastSyncPatch());
+}
+{
+  // A daily stop followed by more stop checks later in the same run (two
+  // deferrals, each re-testing the budget) still ends daily_rate_limit.
+  const a1 = summary(2902, "2026-08-21T07:00:00");
+  const a2 = summary(2903, "2026-08-22T07:00:00");
+  const db = makeDb({ sync: syncRow(), tokens: { ...freshTokens } });
+  const net = installStrava({
+    activities: [a1, a2],
+    detail: { 2902: detailed(a1), 2903: detailed(a2) },
+    limit: "100,1000",
+    usage: "1,800",
+  });
+  const r = await run(db, { budget: { maxCalls: 1, maxElapsedMs: 60_000 } });
+  net.restore();
+  check("TC-34 later stop checks in the same run keep daily_rate_limit",
+    r.stopReason === "daily_rate_limit" && r.deferred === 2, r);
+}
+
+// ---------------------------------------------------------------------------
+// TC-35 — two gaps the test analyst found
+// ---------------------------------------------------------------------------
+console.log("\nTC-35 detail-fetch daily 429; a legacy source='strava' row once adopted");
+{
+  // A 429 on the DETAIL fetch, with the daily usage at its limit.
+  const s = summary(3001, "2026-08-21T07:00:00");
+  const db = makeDb({ sync: syncRow(), tokens: { ...freshTokens } });
+  const net = installStrava({
+    activities: [s],
+    detail: { 3001: 429 },
+    limit: "100,1000",
+    usage: "1,10",
+    detailUsage: "5,1000",
+  });
+  const r = await run(db);
+  net.restore();
+  check("TC-35 detail 429 at the daily limit -> rate_limited, deferred",
+    r.status === "rate_limited" && r.deferred === 1 && db.rpcCalls.length === 0, r);
+  check("TC-35 detail 429 at the daily limit -> held until next UTC midnight",
+    db.lastSyncPatch().rate_limit_resets_at === NEXT_MIDNIGHT, db.lastSyncPatch());
+}
+{
+  // One of the six legacy rows that carry source = 'strava' from a hand import.
+  const a = fullSummary(3002, "2026-08-20T06:00:00");
+  const legacy: SessionRow = {
+    id: 3010, strava_activity_id: null, date_iso: "2026-08-20", type: "erg", distance_m: 6002,
+    duration: "25min", source: "strava",
+  };
+  const db = makeDb({ sync: syncRow(), tokens: { ...freshTokens }, sessions: [legacy] });
+  const net1 = installStrava({ activities: [a] });
+  const r1 = await run(db);
+  net1.restore();
+  check("TC-35 a legacy source='strava' row is adopted", r1.adopted === 1 && r1.imported === 0, r1);
+
+  db.rpcCalls.length = 0;
+  db.state.sync.incremental_after = epochOf("2026-08-01T00:00:00Z");
+  const net2 = installStrava({ activities: [fullSummary(3002, "2026-08-20T06:00:00", { moving_time: 1530 })] });
+  const r2 = await run(db);
+  net2.restore();
+  const row = db.state.sessions.find((x) => x.id === 3010);
+  check("TC-35 ... re-upserted on the next run", r2.updated === 1 && db.rpcCalls.length === 1, r2);
+  check("TC-35 ... and keeps its hand-filed duration and distance",
+    row?.duration === "25min" && row?.distance_m === 6002, row);
 }
 
 if (savedDsn === undefined) Deno.env.delete("SENTRY_DSN");

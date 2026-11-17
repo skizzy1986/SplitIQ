@@ -33,6 +33,8 @@ describe('describeConnection — the eight kinds', () => {
     expect(s.canSync).toBe(false);
     expect(s.tone).toBe('muted');
     expect(s.headline).toMatch(/not connected/i);
+    expect(s.detail).toMatch(/rowing and cycling/i);
+    expect(s.detail).not.toMatch(/runs/i);
   });
 
   it('1b. not_connected: an explicitly disconnected row', () => {
@@ -157,6 +159,8 @@ describe('describeConnection — the eight kinds', () => {
     const hh = String(resets.getHours()).padStart(2, '0');
     const mm = String(resets.getMinutes()).padStart(2, '0');
     expect(s.headline).toContain(`${hh}:${mm}`);
+    expect(s.detail).toMatch(/Nothing was lost/);
+    expect(s.detail).not.toMatch(/15 minutes/i);
   });
 
   it('5b. rate_limited: sync re-enables once the reset has passed', () => {

@@ -120,7 +120,7 @@ export function describeConnection(connection, now = new Date()) {
     return {
       kind: 'not_connected',
       headline: t`Strava not connected`,
-      detail: t`Connect Strava to import rides and runs into the training calendar automatically.`,
+      detail: t`Connect Strava to import rowing and cycling activities into the training calendar automatically.`,
       tone: 'muted',
       canSync: false,
       canConnect: true,
@@ -166,7 +166,7 @@ export function describeConnection(connection, now = new Date()) {
         : t`Strava rate limit reached. Sync resumes shortly.`,
       detail: cleared
         ? t`The limit has reset — you can sync again now.`
-        : t`Strava caps how many activities can be read per 15 minutes. Nothing was lost; importing continues from where it stopped.`,
+        : t`Strava limits how many activities can be read in a given period. Nothing was lost; importing continues from where it stopped.`,
       tone: 'caution',
       canSync: cleared,
       canConnect: false,

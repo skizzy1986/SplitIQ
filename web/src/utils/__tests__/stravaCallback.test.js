@@ -52,6 +52,8 @@ describe('stravaCallbackMessage', () => {
     const m = stravaCallbackMessage({ status: 'connected', reason: null });
     expect(m.tone).toBe('positive');
     expect(m.text).toMatch(/connected/i);
+    expect(m.text).toMatch(/next scheduled sync/i);
+    expect(m.text).not.toMatch(/importing now/i);
   });
 
   // The vocabulary strava-oauth-callback actually emits from its fail() calls.

@@ -275,8 +275,8 @@ msgid "Connect Strava"
 msgstr "Connect Strava"
 
 #: src/utils/stravaStatus.js
-msgid "Connect Strava to import rides and runs into the training calendar automatically."
-msgstr "Connect Strava to import rides and runs into the training calendar automatically."
+msgid "Connect Strava to import rowing and cycling activities into the training calendar automatically."
+msgstr "Connect Strava to import rowing and cycling activities into the training calendar automatically."
 
 #: src/views/mobile/MobileTrain.jsx
 msgid "Connect the PM5 and row against a watt band"
@@ -1096,13 +1096,9 @@ msgstr "Steady (UT1)"
 msgid "Strava access was revoked. Reconnect to resume importing."
 msgstr "Strava access was revoked. Reconnect to resume importing."
 
-#: src/utils/stravaStatus.js
-msgid "Strava caps how many activities can be read per 15 minutes. Nothing was lost; importing continues from where it stopped."
-msgstr "Strava caps how many activities can be read per 15 minutes. Nothing was lost; importing continues from where it stopped."
-
 #: src/utils/stravaCallback.js
-msgid "Strava connected. Your history is importing now — it continues in the background."
-msgstr "Strava connected. Your history is importing now — it continues in the background."
+msgid "Strava connected. Activities import at the next scheduled sync, or press Sync now to start straight away."
+msgstr "Strava connected. Activities import at the next scheduled sync, or press Sync now to start straight away."
 
 #. Screen reader only: name of the Strava settings panel
 #: src/components/StravaConnectPanel.jsx
@@ -1124,6 +1120,10 @@ msgstr "Strava did not send back an authorisation code. Start the connection aga
 #: src/utils/stravaStatus.js
 msgid "Strava is having problems. The next sync will retry."
 msgstr "Strava is having problems. The next sync will retry."
+
+#: src/utils/stravaStatus.js
+msgid "Strava limits how many activities can be read in a given period. Nothing was lost; importing continues from where it stopped."
+msgstr "Strava limits how many activities can be read in a given period. Nothing was lost; importing continues from where it stopped."
 
 #: src/utils/stravaStatus.js
 msgid "Strava not connected"
@@ -1218,11 +1218,6 @@ msgstr "The connection did not complete. Try again."
 #: src/utils/stravaStatus.js
 msgid "The connection is missing activity read permission. Reconnect and approve activity access."
 msgstr "The connection is missing activity read permission. Reconnect and approve activity access."
-
-#. Error state detail
-#: src/components/StravaConnectPanel.jsx
-msgid "The connection itself may be fine — only this status read failed."
-msgstr "The connection itself may be fine — only this status read failed."
 
 #: src/utils/stravaCallback.js
 msgid "The connection link had expired or been used already. Start the connection again."
@@ -1334,6 +1329,11 @@ msgstr "Training phase"
 #: src/utils/healthRecords.js
 msgid "Triglycerides"
 msgstr "Triglycerides"
+
+#. Error state detail
+#: src/components/StravaConnectPanel.jsx
+msgid "Try again in a moment."
+msgstr "Try again in a moment."
 
 #. Stat label, all capitals; TSS stays as is
 #: src/views/mobile/MobileToday.jsx

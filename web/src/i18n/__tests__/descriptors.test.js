@@ -23,10 +23,6 @@ import {
   CALLBACK_REASON_LABELS,
   CALLBACK_REASON_MESSAGES,
 } from '../../utils/stravaCallback.js';
-import {
-  DISCONNECT_CONFIRM,
-  DISCONNECT_CONFIRM_MSG,
-} from '../../hooks/useStravaConnect.js';
 
 vi.mock('../../supabaseClient.js', () => ({ supabase: {} }));
 vi.mock('../../views/ErgLiveView.jsx', () => ({ default: () => null }));
@@ -63,10 +59,6 @@ describe('English constants and their descriptors agree', () => {
     for (const [reason, label] of Object.entries(CALLBACK_REASON_LABELS)) {
       expect(i18n._(CALLBACK_REASON_MESSAGES[reason]), reason).toBe(label);
     }
-  });
-
-  it('the disconnect confirmation', () => {
-    expect(i18n._(DISCONNECT_CONFIRM_MSG)).toBe(DISCONNECT_CONFIRM);
   });
 
   it('TSB bands (i18n Phase 2a)', () => {

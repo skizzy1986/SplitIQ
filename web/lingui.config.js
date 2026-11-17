@@ -10,6 +10,7 @@ export const VIEWS_SOURCES = [
   'src/App.jsx',
   'src/utils/stravaStatus.js',
   'src/utils/stravaCallback.js',
+  'src/utils/stravaDisconnect.js',
   'src/views/SettingsView.jsx',
   'src/views/mobile/MobileSettings.jsx',
   'src/components/StravaConnectPanel.jsx',

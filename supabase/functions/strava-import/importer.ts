@@ -14,6 +14,7 @@ import {
   getActivity,
   listActivities,
   refreshAccessToken,
+  StravaAuthError,
   StravaRateLimitError,
   type RateLimit,
   EMPTY_RATE_LIMIT,
@@ -39,12 +40,39 @@ import {
   nextQuarterHour,
   mergeStopReason,
   nextUtcMidnight,
+  RECONCILE_BUDGET,
+  revokedPatch,
   shouldStopChunk,
   type ChunkBudget,
   type StopReason,
 } from "./state.ts";
 import { getFreshAccessToken, type RotatedTokens, type StoredTokens, type TokenStore } from "./tokens.ts";
+import { runReconcile, type ReconcileResult } from "./reconcile.ts";
 import { captureFunctionError } from "../_shared/sentry.ts";
+
+// Defined in state.ts (pure; reconcile.ts needs revokedPatch too and must not
+// import this module), exported from here as the importer's contract.
+export { PURGE_GRACE_DAYS, revokedPatch } from "./state.ts";
+
+/**
+ * SQLSTATE raised by upsert_strava_session / adopt_strava_session (migration
+ * 012) when the athlete's sync row is gone or disconnected: a disconnect or a
+ * revocation purge committed while this run was in flight. The connection no
+ * longer exists, so the run stops instead of retrying into it.
+ */
+export const CONNECTION_GONE_SQLSTATE = "P0003";
+
+class ConnectionGoneError extends Error {
+  constructor(fn: string) {
+    super(`${fn}: strava connection gone mid-run`);
+    this.name = "ConnectionGoneError";
+  }
+}
+
+const rpcFailure = (fn: string, error: { code?: string }): Error =>
+  error.code === CONNECTION_GONE_SQLSTATE
+    ? new ConnectionGoneError(fn)
+    : new Error(`${fn} failed: ${error.code ?? "unknown"}`);
 
 const FN = "strava-import";
 const PER_PAGE = 100;
@@ -93,6 +121,12 @@ export type ImportResult = {
   stravaCalls: number;
   backfillComplete: boolean;
   decisions: Decision[];
+  /**
+   * The deletion-sync pass, when this run reached it (#630; see reconcile.ts).
+   * Absent when the run did not get that far or was not eligible. It never
+   * changes status, errorCode or the cursors above.
+   */
+  reconcile?: ReconcileResult;
 };
 
 export type ImportDeps = {
@@ -171,12 +205,14 @@ type SyncState = {
   failed_total: number;
   ambiguous_activity_ids: number[];
   rate_limit_resets_at: string | null;
+  purge_due_at?: string | null;
+  reconcile_due_at?: string | null;
 };
 
 const SYNC_COLUMNS =
   "user_id, connected, backfill_from, backfill_complete, backfill_cursor_before, " +
   "incremental_after, imported_total, adopted_total, skipped_total, failed_total, " +
-  "ambiguous_activity_ids, rate_limit_resets_at";
+  "ambiguous_activity_ids, rate_limit_resets_at, purge_due_at, reconcile_due_at";
 
 async function readSyncState(supa: SupabaseClient, userId: string): Promise<SyncState | null> {
   const { data, error } = await supa
@@ -217,6 +253,22 @@ function isoDateToEpochSeconds(iso: string): number {
 // ---------------------------------------------------------------------------
 // The run
 // ---------------------------------------------------------------------------
+
+/**
+ * Whether a run may go on to the deletion sync (see maybeReconcile in
+ * runImport). Pure so each clause can be tested on its own: inside runImport
+ * an incomplete backfill almost always comes with a stop reason or a deferral,
+ * which would hide the loss of the backfill clause.
+ */
+export function mayReconcile(s: {
+  backfillComplete: boolean;
+  rateLimited: boolean;
+  stopReason: string | null;
+  deferred: number;
+  status: RunStatus;
+}): boolean {
+  return s.backfillComplete && !s.rateLimited && s.stopReason === null && s.deferred === 0 && s.status !== "error";
+}
 
 export async function runImport(deps: ImportDeps, opts: ImportOptions): Promise<ImportResult> {
   const { supa, clientId, clientSecret, backfillFrom } = deps;
@@ -287,16 +339,8 @@ export async function runImport(deps: ImportDeps, opts: ImportOptions): Promise<
     if (token.status === "auth_failed") {
       result.status = "auth_failed";
       result.errorCode = "auth_failed";
-      if (!dryRun) {
-        await writeSyncState(supa, userId, {
-          connected: false,
-          disconnected_at: new Date(now()).toISOString(),
-          last_run_at: new Date(now()).toISOString(),
-          last_run_mode: mode,
-          last_run_status: "auth_failed",
-          last_error_code: "auth_failed",
-        });
-      }
+      // revokedPatch also schedules the purge (purge_due_at, 21 days, set once).
+      if (!dryRun) await writeSyncState(supa, userId, revokedPatch(sync, mode, now()));
       await captureFunctionError(FN, new Error("strava connection revoked"), { userId, mode });
       return result;
     }
@@ -349,6 +393,22 @@ export async function runImport(deps: ImportDeps, opts: ImportOptions): Promise<
       return new Date(nextUtcMidnight(now())).toISOString();
     }
     return rateLimited ? new Date(nextQuarterHour(now())).toISOString() : null;
+  };
+
+  // Strava refused the access token we hold (401) on a listing or detail call,
+  // after the token itself checked out fresh. That is a revoked grant, not an
+  // outage (Gate 2, Q5): end the run with NOTHING written — no session, no
+  // cursor — apart from revokedPatch, which marks the connection down and
+  // schedules the purge. The token row stays (D10); only the purge deletes it.
+  // A dry run writes nothing at all.
+  const authFailed = async (stage: string): Promise<ImportResult> => {
+    result.ok = false;
+    result.status = "auth_failed";
+    result.errorCode = "auth_failed";
+    result.stravaCalls = calls;
+    if (!dryRun) await writeSyncState(supa, userId, revokedPatch(sync, mode, now()));
+    await captureFunctionError(FN, new Error("strava connection revoked"), { userId, mode, stage });
+    return result;
   };
 
   const collect = (activities: Record<string, unknown>[]): number[] => {
@@ -460,6 +520,8 @@ export async function runImport(deps: ImportDeps, opts: ImportOptions): Promise<
       rateLimited = true;
       rateLimit = e.rateLimit;
       stopReason = mergeStopReason(stopReason, "rate_limit");
+    } else if (e instanceof StravaAuthError) {
+      return await authFailed("list");
     } else {
       result.ok = false;
       result.status = "error";
@@ -567,6 +629,8 @@ export async function runImport(deps: ImportDeps, opts: ImportOptions): Promise<
           if (!detail) throw new Error("strava activity detail was empty");
           activity = detail as StravaActivity;
         } catch (e) {
+          // Before any session write, so ending here writes no row (Q5).
+          if (e instanceof StravaAuthError) return await authFailed("detail");
           if (e instanceof StravaRateLimitError) {
             rateLimited = true;
             rateLimit = e.rateLimit;
@@ -606,6 +670,52 @@ export async function runImport(deps: ImportDeps, opts: ImportOptions): Promise<
   result.stopReason = stopReason;
   result.backfillComplete = backfillComplete;
 
+  // The deletion sync (#630, reconcile.ts), after the import's own writes. Only
+  // a run that finished its import cleanly gets here: backfill complete (the
+  // window of links is then stable), and no rate limit, daily cap, budget stop,
+  // deferral or error — a run that stopped on any of those has no quota or time
+  // left worth spending on housekeeping, and the next run retries. Its budget is
+  // RECONCILE_BUDGET or what is left of this run's, whichever is tighter, and it
+  // reuses this run's access token and last-seen quota. Its result is attached;
+  // it never changes this run's status or cursors.
+  const maybeReconcile = async (): Promise<void> => {
+    if (
+      !mayReconcile({
+        backfillComplete,
+        rateLimited,
+        stopReason,
+        deferred: deferredIds.length,
+        status: result.status,
+      })
+    ) return;
+    const remaining: ChunkBudget = {
+      maxCalls: Math.min(RECONCILE_BUDGET.maxCalls, budget.maxCalls - calls),
+      maxElapsedMs: Math.min(RECONCILE_BUDGET.maxElapsedMs, budget.maxElapsedMs - elapsed()),
+    };
+    try {
+      result.reconcile = await runReconcile(
+        { supa, accessToken, backfillFrom, now, budget: remaining, rateLimit },
+        { userId, mode, dryRun, sync },
+      );
+    } catch (e) {
+      await captureFunctionError(FN, e, { userId, mode, stage: "reconcile" });
+      result.reconcile = {
+        ok: false,
+        status: "error",
+        reason: "threw",
+        links: 0,
+        listed: 0,
+        candidates: 0,
+        cap: 0,
+        confirmedGone: 0,
+        deleted: 0,
+        keptUnlinked: 0,
+        restored: 0,
+        stravaCalls: 0,
+      };
+    }
+  };
+
   if (eligible.length === 0) {
     result.status = rateLimited ? "rate_limited" : "noop";
     if (rateLimited) result.errorCode = "rate_limited";
@@ -625,6 +735,7 @@ export async function runImport(deps: ImportDeps, opts: ImportOptions): Promise<
         rate_limit_resets_at: rateLimitResetsAt(),
       });
     }
+    await maybeReconcile();
     return result;
   }
 
@@ -667,6 +778,7 @@ export async function runImport(deps: ImportDeps, opts: ImportOptions): Promise<
   // better than 14 activities left unimported because of one bad row.
   // -------------------------------------------------------------------------
   const ambiguous: number[] = [];
+  let connectionGone = false;
 
   for (const a of eligible) {
     const draft = mapActivityToSession(a);
@@ -693,7 +805,7 @@ export async function runImport(deps: ImportDeps, opts: ImportOptions): Promise<
             p_avg_hr: draft.avg_hr,
             p_device_name: a.device_name ?? null,
           });
-          if (error) throw new Error(`upsert_strava_session failed: ${error.code ?? "unknown"}`);
+          if (error) throw rpcFailure("upsert_strava_session", error);
           decision.detail = String((data as { action: string }[] | null)?.[0]?.action ?? "updated");
         }
         result.updated++;
@@ -728,7 +840,7 @@ export async function runImport(deps: ImportDeps, opts: ImportOptions): Promise<
             p_avg_hr: avgHrOrNull(a),
             p_device_name: a.device_name ?? null,
           });
-          if (error) throw new Error(`adopt_strava_session failed: ${error.code ?? "unknown"}`);
+          if (error) throw rpcFailure("adopt_strava_session", error);
           const action = String((data as { action: string }[] | null)?.[0]?.action ?? "adopted");
           decision.detail = `${choice.sessionId}:${action}`;
           if (action === "adopt_lost_race") {
@@ -768,7 +880,7 @@ export async function runImport(deps: ImportDeps, opts: ImportOptions): Promise<
           p_avg_hr: draft.avg_hr,
           p_device_name: a.device_name ?? null,
         });
-        if (error) throw new Error(`upsert_strava_session failed: ${error.code ?? "unknown"}`);
+        if (error) throw rpcFailure("upsert_strava_session", error);
         decision.detail = String((data as { action: string }[] | null)?.[0]?.action ?? "inserted");
       }
       result.imported++;
@@ -776,12 +888,32 @@ export async function runImport(deps: ImportDeps, opts: ImportOptions): Promise<
     } catch (e) {
       decision.action = "failed";
       result.failed++;
+      if (e instanceof ConnectionGoneError) {
+        // Not a per-activity failure: every later write would raise the same.
+        decision.detail = "connection_gone";
+        result.decisions.push(decision);
+        connectionGone = true;
+        break;
+      }
       result.decisions.push(decision);
       await captureFunctionError(FN, e, { userId, mode, activityId: a.id, stage: "write" });
     }
   }
 
   result.ambiguousActivityIds = ambiguous;
+
+  if (connectionGone) {
+    // A disconnect or revocation purge committed mid-run (migration 012 raised
+    // P0003). Stop cleanly: no retry, no reconcile, and NO sync-state write —
+    // the row is either deleted or now says auth_failed with a purge deadline,
+    // and overwriting last_run_status would hide that. 'unknown' because the
+    // error-code CHECK is closed and nothing nearer fits.
+    result.ok = false;
+    result.status = "error";
+    result.errorCode = "unknown";
+    await captureFunctionError(FN, new Error("strava connection gone mid-run"), { userId, mode, stage: "write" });
+    return result;
+  }
 
   if (ambiguous.length) {
     // Once per run, not once per activity — this is a to-do list for Scott, not
@@ -827,5 +959,6 @@ export async function runImport(deps: ImportDeps, opts: ImportOptions): Promise<
     });
   }
 
+  await maybeReconcile();
   return result;
 }

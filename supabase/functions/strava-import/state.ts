@@ -41,6 +41,52 @@ export const DEFAULT_BUDGET: ChunkBudget = {
 };
 
 /**
+ * The deletion-sync pass (#630, reconcile.ts) stops at HALF of either Strava
+ * window, not 80%. It is housekeeping: it must never be the reason the import
+ * or a manual Sync finds the quota spent, and a reconcile that stops early just
+ * retries an hour later (Strava's deletion deadline is 48 hours).
+ */
+export const RECONCILE_STOP_FRACTION = 0.5;
+
+/**
+ * Reconcile's own ceiling. It runs inside runImport after the import's writes,
+ * and is ALSO held to whatever is left of the run's budget — whichever is
+ * tighter wins (see runImport).
+ */
+export const RECONCILE_BUDGET: ChunkBudget = { maxCalls: 20, maxElapsedMs: 20_000 };
+
+/** Days between Strava reporting a grant dead and the purge (owner decision on #628). */
+export const PURGE_GRACE_DAYS = 21;
+
+/**
+ * The strava_sync_state patch for "Strava says this grant is dead": the
+ * connection is marked down and the purge is scheduled PURGE_GRACE_DAYS out.
+ *
+ * purge_due_at is set ONCE and never pushed later (D11): a second auth failure
+ * inside the grace period keeps the first deadline, or a grant that kept
+ * failing would never be purged. The token row is NOT touched here (D10): only
+ * purge_strava_user (migration 019) deletes it. Pure, so it lives here rather
+ * than in importer.ts, where reconcile.ts could not import it without a cycle;
+ * importer.ts re-exports it.
+ */
+export function revokedPatch(
+  sync: { purge_due_at?: string | null },
+  mode: "cron" | "user",
+  nowMs: number,
+): Record<string, unknown> {
+  const nowISO = new Date(nowMs).toISOString();
+  return {
+    connected: false,
+    disconnected_at: nowISO,
+    last_run_at: nowISO,
+    last_run_mode: mode,
+    last_run_status: "auth_failed",
+    last_error_code: "auth_failed",
+    purge_due_at: sync.purge_due_at ?? new Date(nowMs + PURGE_GRACE_DAYS * DAY_MS).toISOString(),
+  };
+}
+
+/**
  * Should this invocation stop fetching and persist what it has?
  *
  * The four limits are independent and any one of them trips: a run can be
@@ -57,15 +103,16 @@ export function shouldStopChunk(
   elapsedMs: number,
   rateLimit: RateLimit,
   budget: ChunkBudget = DEFAULT_BUDGET,
+  stopFraction: number = RATE_LIMIT_STOP_FRACTION,
 ): { stop: boolean; reason: StopReason } {
-  if (isNearDailyCap(rateLimit)) return { stop: true, reason: "daily_rate_limit" };
+  if (isNearDailyCap(rateLimit, stopFraction)) return { stop: true, reason: "daily_rate_limit" };
   if (calls >= budget.maxCalls) return { stop: true, reason: "calls" };
   if (elapsedMs >= budget.maxElapsedMs) return { stop: true, reason: "elapsed" };
   if (
     rateLimit.shortLimit != null &&
     rateLimit.shortUsage != null &&
     rateLimit.shortLimit > 0 &&
-    rateLimit.shortUsage >= RATE_LIMIT_STOP_FRACTION * rateLimit.shortLimit
+    rateLimit.shortUsage >= stopFraction * rateLimit.shortLimit
   ) {
     return { stop: true, reason: "rate_limit" };
   }
@@ -83,13 +130,16 @@ export function mergeStopReason(current: StopReason, next: StopReason): StopReas
   return next ?? current;
 }
 
-/** Daily usage at or past 80% of the daily limit. False when Strava sent no daily figures. */
-export function isNearDailyCap(rateLimit: RateLimit): boolean {
+/**
+ * Daily usage at or past `fraction` (80% by default) of the daily limit. False
+ * when Strava sent no daily figures.
+ */
+export function isNearDailyCap(rateLimit: RateLimit, fraction: number = RATE_LIMIT_STOP_FRACTION): boolean {
   return (
     rateLimit.dailyLimit != null &&
     rateLimit.dailyUsage != null &&
     rateLimit.dailyLimit > 0 &&
-    rateLimit.dailyUsage >= RATE_LIMIT_STOP_FRACTION * rateLimit.dailyLimit
+    rateLimit.dailyUsage >= fraction * rateLimit.dailyLimit
   );
 }
 

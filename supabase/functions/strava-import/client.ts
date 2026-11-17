@@ -206,13 +206,23 @@ export function refreshAccessToken(
   );
 }
 
-async function getJson(url: string, accessToken: string, what: string): Promise<{
+/** Optional per-request ceiling. Without it a request waits as long as fetch does. */
+export type RequestOptions = { timeoutMs?: number };
+
+// AbortSignal.timeout (Context7 /websites/deno_api): the fetch rejects with a
+// DOMException named "TimeoutError" once the time is up. Its timer does not
+// keep the isolate alive (verified on Deno 2.9.8), so an unused one is free.
+const timeoutSignal = (opts?: RequestOptions): AbortSignal | undefined =>
+  opts?.timeoutMs != null ? AbortSignal.timeout(opts.timeoutMs) : undefined;
+
+async function getJson(url: string, accessToken: string, what: string, opts?: RequestOptions): Promise<{
   body: unknown;
   rateLimit: RateLimit;
 }> {
   const res = await fetch(url, {
     method: "GET",
     headers: { Authorization: `Bearer ${accessToken}` },
+    signal: timeoutSignal(opts),
   });
   const rateLimit = parseRateLimit(res.headers);
 
@@ -230,22 +240,34 @@ export type ListParams = {
   before?: number | null;
   page?: number;
   perPage?: number;
+  timeoutMs?: number;
 };
 
+/**
+ * `wellFormed` is false when a 200 carried something other than an array. The
+ * import has always treated that as an empty page (and still does — it only
+ * ever ADDS from a listing), but the deletion sync must not: an empty listing
+ * would make every linked activity look deleted on Strava. reconcile.ts aborts
+ * on it instead.
+ */
 export async function listActivities(
   accessToken: string,
   params: ListParams,
-): Promise<{ activities: Record<string, unknown>[]; rateLimit: RateLimit }> {
+): Promise<{ activities: Record<string, unknown>[]; rateLimit: RateLimit; wellFormed: boolean }> {
   const url = new URL(`${STRAVA_API_BASE}/athlete/activities`);
   if (params.after != null) url.searchParams.set("after", String(params.after));
   if (params.before != null) url.searchParams.set("before", String(params.before));
   url.searchParams.set("page", String(params.page ?? 1));
   url.searchParams.set("per_page", String(params.perPage ?? 100));
 
-  const { body, rateLimit } = await getJson(url.toString(), accessToken, "athlete/activities");
+  const { body, rateLimit } = await getJson(url.toString(), accessToken, "athlete/activities", {
+    timeoutMs: params.timeoutMs,
+  });
+  const wellFormed = Array.isArray(body);
   return {
-    activities: Array.isArray(body) ? (body as Record<string, unknown>[]) : [],
+    activities: wellFormed ? (body as Record<string, unknown>[]) : [],
     rateLimit,
+    wellFormed,
   };
 }
 
@@ -262,29 +284,38 @@ export async function listActivities(
 export async function getActivity(
   accessToken: string,
   activityId: number,
+  opts?: RequestOptions,
 ): Promise<{ activity: Record<string, unknown> | null; rateLimit: RateLimit }> {
   const { body, rateLimit } = await getJson(
     `${STRAVA_API_BASE}/activities/${activityId}`,
     accessToken,
     "activities/:id",
+    opts,
   );
   return { activity: body && typeof body === "object" ? (body as Record<string, unknown>) : null, rateLimit };
 }
+
+/** Disconnect waits this long for Strava before reporting the revocation unconfirmed. */
+export const DEAUTHORIZE_TIMEOUT_MS = 5000;
 
 /**
  * Revoke an access token at Strava. Best-effort by contract: the caller is
  * either disconnecting (where a failure must not block deleting our copy) or
  * backing out of a connect that was granted the wrong scope (where the local
- * state was never written in the first place). Returns whether Strava accepted.
+ * state was never written in the first place). Returns whether Strava accepted;
+ * a timeout, a network failure or a non-2xx all return false.
  */
-export async function deauthorize(accessToken: string): Promise<boolean> {
+export async function deauthorize(accessToken: string, timeoutMs = DEAUTHORIZE_TIMEOUT_MS): Promise<boolean> {
   try {
     const res = await fetch(STRAVA_DEAUTHORIZE_URL, {
       method: "POST",
       headers: { Authorization: `Bearer ${accessToken}` },
+      signal: AbortSignal.timeout(timeoutMs),
     });
     return res.ok;
   } catch {
+    // Expected non-event: a timeout or network failure IS the `false` answer,
+    // and every caller reports an unconfirmed revocation itself.
     return false;
   }
 }

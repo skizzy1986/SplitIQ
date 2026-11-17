@@ -3,14 +3,16 @@
 // NOT use --no-verify-jwt). The Supabase gateway validates the session JWT
 // before this handler runs.
 //
-// Actions: { action: "start" } -> { url } to send the browser to
-//          { action: "disconnect" } -> revoke at Strava and forget the tokens
+// Actions (the contract the dashboard codes against, #630):
+//   { action: "start" }                       -> { ok, authorize_url }
+//   { action: "disconnect_preview" }          -> { ok, preview: { toDelete, toKeep, toRestore } }
+//   { action: "disconnect", confirm: true }   -> { ok, disconnected, removed, kept, restored, revocation }
+// Disconnect deletes the athlete's Strava-derived data; see disconnect.ts.
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { captureFunctionError } from "../_shared/sentry.ts";
 import { subjectFromAuthHeader } from "../_shared/jwtSubject.ts";
 import { deauthorize, refreshAccessToken, STRAVA_AUTHORIZE_URL } from "../strava-import/client.ts";
-import { createSupabaseTokenStore } from "../strava-import/importer.ts";
-import { getFreshAccessToken } from "../strava-import/tokens.ts";
+import { routeDisconnect } from "./disconnect.ts";
 
 const FN = "strava-connect";
 
@@ -89,9 +91,12 @@ Deno.serve(async (req: Request) => {
   }
 
   let action = "start";
+  let confirm = false;
   try {
     const body = await req.json();
     if (typeof body?.action === "string") action = body.action;
+    // Strictly `true`: a disconnect deletes data, so nothing truthy-ish counts.
+    confirm = body?.confirm === true;
   } catch {
     // no body -> default to start
   }
@@ -132,48 +137,19 @@ Deno.serve(async (req: Request) => {
       return json({ ok: true, authorize_url: authorize.toString() });
     }
 
-    if (action === "disconnect") {
-      const store = createSupabaseTokenStore(supa);
-
-      // Revoke at Strava before forgetting the token, and refresh first if
-      // needed: deauthorize requires a live access token, and once our copy is
-      // deleted there is no programmatic way to revoke the grant at all — it
-      // would sit on Scott's Strava account until he found it by hand.
-      let revoked = false;
-      try {
-        const token = await getFreshAccessToken(
-          store,
-          (rt) => refreshAccessToken(clientId!, clientSecret!, rt),
-          userId,
-          Date.now(),
-        );
-        if (token.status === "ok") revoked = await deauthorize(token.accessToken);
-      } catch (e) {
-        // Best effort by design: a Strava outage must not leave the user unable
-        // to disconnect locally. Reported, then we carry on and delete.
-        await captureFunctionError(FN, e, { userId, stage: "deauthorize" });
-      }
-
-      await store.remove(userId);
-      const { error } = await supa
-        .from("strava_sync_state")
-        .update({
-          connected: false,
-          disconnected_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq("user_id", userId);
-      if (error) throw new Error(`sync state update failed: ${error.code ?? "unknown"}`);
-
-      // revokedAtStrava:false means the local tokens are gone but the app
-      // authorisation may still stand — the UI should point the user at
-      // https://www.strava.com/settings/apps rather than claim success.
-      return json({ ok: true, disconnected: true, revokedAtStrava: revoked });
-    }
+    const routed = await routeDisconnect(action, confirm, {
+      supa,
+      userId,
+      refresh: (rt) => refreshAccessToken(clientId!, clientSecret!, rt),
+      deauthorize: (token) => deauthorize(token),
+    });
+    if (routed) return json(routed.body, routed.status);
 
     return json({ error: "unknown action" }, 400);
   } catch (e) {
     await captureFunctionError(FN, e, { userId, action });
+    if (action === "disconnect") return json({ error: "disconnect_failed" }, 502);
+    if (action === "disconnect_preview") return json({ error: "disconnect_preview_failed" }, 502);
     return json({ error: "strava connect failed" }, 502);
   }
 });

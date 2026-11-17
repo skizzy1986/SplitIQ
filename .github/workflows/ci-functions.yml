@@ -63,6 +63,11 @@ jobs:
       # function's tests run only once a step is added for them by hand.
       - name: strava-import mapper + state + tokens + cron guard + runImport
         run: deno run --allow-env strava-import/test.ts
+      - name: strava-import deletion sync + revocation purge (#630)
+        run: deno run --allow-env strava-import/deletion_test.ts
+      - name: strava-connect disconnect preview + confirm + reconnect patch (#630)
+        # --allow-read scoped to the one file CT-05 reads (the callback's source).
+        run: deno run --allow-env --allow-read=strava-oauth-callback/index.ts strava-connect/test.ts
       - name: vitals-sync CORS + date window + specs + upsert args + activity mapper
         run: deno run vitals-sync/test.ts
       # Last, so a lint finding never hides a test result.

@@ -121,13 +121,13 @@
     {
       "file": "011_sessions_strava_activity_id.sql",
       "status": "unapplied",
-      "reason": "Strava go-live (#628) not yet applied: apply 011, 012 and 018, and the purge migration from #630, in one sitting with the owner's approval, after all three slices merge and before any OAuth grant.",
+      "reason": "Strava go-live (#628) not yet applied: apply 011, 012, 018 and 019_strava_purge in one sitting with the owner's approval, after all three slices merge and before any OAuth grant.",
       "issue": 629
     },
     {
       "file": "012_strava_integration.sql",
       "status": "unapplied",
-      "reason": "Amended by #629 (provenance table, FORCE RLS dropped, RPCs record provenance); depends on 011. Strava go-live (#628) not yet applied: apply with 011, 018 and the purge migration from #630, in one sitting, before any OAuth grant.",
+      "reason": "Amended by #629 (provenance table, FORCE RLS dropped, RPCs record provenance) and #630 (P0003 race guard on both RPCs); depends on 011. Strava go-live (#628) not yet applied: apply with 011, 018 and 019_strava_purge, in one sitting, before any OAuth grant.",
       "issue": 629
     },
     {
@@ -191,8 +191,14 @@
     {
       "file": "018_strava_backup_exclusion.sql",
       "status": "unapplied",
-      "reason": "Excludes the strava_* tables from backup_snapshot() and adds sessions_no_strava; needs 012 applied first. Strava go-live (#628) not yet applied: apply with 011, 012 and the purge migration from #630, in one sitting, before any OAuth grant.",
+      "reason": "Excludes the strava_* tables from backup_snapshot() and adds sessions_no_strava; needs 012 applied first. Strava go-live (#628) not yet applied: apply with 011, 012 and 019_strava_purge, in one sitting, before any OAuth grant.",
       "issue": 629
+    },
+    {
+      "file": "019_strava_purge.sql",
+      "status": "unapplied",
+      "reason": "Strava go-live (#628) not yet applied: apply with 011, 012 and 018 in one sitting, before any OAuth grant; depends on 012 and 018.",
+      "issue": 630
     }
   ],
   "liveOnly": [

@@ -41,7 +41,7 @@ import {
 import { EMPTY_RATE_LIMIT, parseRateLimit, StravaAuthError, StravaHttpError, type StravaTokens } from "./client.ts";
 import { getFreshAccessToken, type RotatedTokens, type StoredTokens, type TokenStore } from "./tokens.ts";
 import { checkCronSecret } from "../_shared/cronGuard.ts";
-import { runImport } from "./importer.ts";
+import { mayReconcile, runImport } from "./importer.ts";
 
 let pass = 0, fail = 0;
 const check = (name: string, cond: boolean, actual?: unknown) => {
@@ -748,6 +748,8 @@ type DbOpts = {
   sessions?: SessionRow[];
   /** Return an error object to make this write fail; undefined to let it through. */
   rpcFails?: (name: string, args: FakeRow) => { code: string } | undefined;
+  /** Data returned by any other RPC (the #630 deletion-sync RPCs), by name. */
+  rpcData?: Record<string, unknown | ((args: FakeRow) => unknown)>;
 };
 
 function makeDb(opts: DbOpts) {
@@ -874,6 +876,11 @@ function makeDb(opts: DbOpts) {
       row.strava_activity_id = Number(args.p_activity_id);
       row.origin = "adopted";
       return Promise.resolve({ data: [{ session_id: row.id, action: "adopted" }], error: null });
+    }
+    const canned = opts.rpcData?.[name];
+    if (canned !== undefined) {
+      const data = typeof canned === "function" ? (canned as (a: FakeRow) => unknown)(args) : canned;
+      return Promise.resolve({ data, error: null });
     }
     return Promise.resolve({ data: null, error: null });
   };
@@ -1022,6 +1029,12 @@ const syncRow = (over: FakeRow = {}): FakeRow => ({
   failed_total: 0,
   ambiguous_activity_ids: [],
   rate_limit_resets_at: null,
+  purge_due_at: null,
+  // Not due by default, so the deletion sync (#630) stays out of the import
+  // tests above; TC-36 onwards set it to null to exercise the wiring. A DRY run
+  // ignores it (D7) and reads strava_link_inventory, which this fake answers
+  // with no links — no Strava call and no write.
+  reconcile_due_at: "2099-01-01T00:00:00.000Z",
   ...over,
 });
 
@@ -1087,7 +1100,10 @@ const run = (db: any, over: Record<string, unknown> = {}, opts: Record<string, u
 
   check("TC-16 dry run sees both activities", r.imported === 2, r);
   check("TC-16 dry run makes ZERO writes of any kind", db.writes().length === 0, db.writes());
-  check("TC-16 dry run calls no RPC", db.rpcCalls.length === 0, db.rpcCalls);
+  // strava_link_inventory is the deletion sync's READ (a dry run ignores its
+  // due time, D7); no other RPC may be called.
+  check("TC-16 dry run calls no write RPC",
+    db.rpcCalls.every((c) => c.name === "strava_link_inventory"), db.rpcCalls);
   check("TC-16 dry run writes no sync state", db.syncPatches.length === 0, db.syncPatches);
   check(
     "TC-16 dry run does not move the incremental cursor",
@@ -2061,6 +2077,214 @@ console.log("\nTC-35 detail-fetch daily 429; a legacy source='strava' row once a
   check("TC-35 ... re-upserted on the next run", r2.updated === 1 && db.rpcCalls.length === 1, r2);
   check("TC-35 ... and keeps its hand-filed duration and distance",
     row?.duration === "25min" && row?.distance_m === 6002, row);
+}
+
+// ---------------------------------------------------------------------------
+// TC-36 — the deletion sync is wired into runImport (#630, AC16)
+// ---------------------------------------------------------------------------
+console.log("\nTC-36 reconcile inside runImport");
+const PURGE_DUE_21D = new Date(NOW_MS + 21 * 24 * 3600_000).toISOString();
+const inventoryRow = (activityId: number, sessionId: number) => ({
+  session_id: sessionId,
+  strava_activity_id: activityId,
+  date_iso: "2026-08-10",
+  link_created_at: "2026-08-11T00:00:00+00:00",
+});
+const purgeActivities = (args: FakeRow) => ({
+  status: args.p_dry_run ? "would_purge" : "purged",
+  deleted: (args.p_activity_ids as number[]).length,
+  kept: 0,
+  restored: 0,
+  not_found: 0,
+  actions: (args.p_activity_ids as number[]).map((id) => ({ activity_id: id, action: "delete" })),
+});
+{
+  // Activity 3101 is still on Strava (listed); 3199 is linked here but gone
+  // there (not listed, detail 404).
+  const a = fullSummary(3101, "2026-08-21T07:00:00");
+  const db = makeDb({
+    sync: syncRow({ reconcile_due_at: null }),
+    tokens: { ...freshTokens },
+    rpcData: {
+      strava_link_inventory: [inventoryRow(3101, 31), inventoryRow(3199, 32)],
+      purge_strava_activities: purgeActivities,
+    },
+  });
+  const net = installStrava({ activities: [a] });
+  const r = await run(db);
+  net.restore();
+  const purge = db.rpcCalls.find((c) => c.name === "purge_strava_activities");
+  check("TC-36 due + backfill complete -> reconcile runs after the import",
+    r.status === "ok" && r.imported === 1 && r.reconcile?.status === "ok", r.reconcile);
+  check("TC-36 the gone activity reaches purge_strava_activities",
+    (purge?.args.p_activity_ids as number[] | undefined)?.join() === "3199" && purge?.args.p_dry_run === false, purge);
+  check("TC-36 the import's own sync write lands BEFORE the reconcile's delete",
+    db.indexOf((c) => c.table === "strava_sync_state" && c.op === "update") <
+      db.indexOf((c) => c.table === "rpc" && c.op === "purge_strava_activities"), db.log.map((c) => `${c.table}.${c.op}`));
+  check("TC-36 reconcile schedules itself 12 h out",
+    db.lastSyncPatch().reconcile_due_at === new Date(NOW_MS + 12 * 3600_000).toISOString(), db.lastSyncPatch());
+  check("TC-36 the import's status and cursors are untouched by reconcile",
+    db.syncPatches[0].last_run_status === "ok" && "incremental_after" in db.syncPatches[0], db.syncPatches[0]);
+  check("TC-36 a real run's reconcile carries no activity ids", !("decisions" in (r.reconcile ?? {})), r.reconcile);
+}
+{
+  const db = makeDb({ sync: syncRow(), tokens: { ...freshTokens } });
+  const net = installStrava({ activities: [fullSummary(3102, "2026-08-21T07:00:00")] });
+  const r = await run(db);
+  net.restore();
+  check("TC-36 not due -> no inventory read, nothing attached as run",
+    !db.rpcCalls.some((c) => c.name === "strava_link_inventory") && r.reconcile?.status === "not_due", r.reconcile);
+}
+{
+  // A deferral means the run stopped short: no reconcile at all.
+  const s = summary(3103, "2026-08-21T07:00:00");
+  const db = makeDb({ sync: syncRow({ reconcile_due_at: null }), tokens: { ...freshTokens } });
+  const net = installStrava({ activities: [s], detail: { 3103: 500 } });
+  const r = await run(db);
+  net.restore();
+  check("TC-36 a deferral skips reconcile",
+    r.deferred === 1 && r.reconcile === undefined && !db.rpcCalls.some((c) => c.name === "strava_link_inventory"), r);
+}
+{
+  // A rate-limited run skips it too.
+  const s = summary(3104, "2026-08-21T07:00:00");
+  const db = makeDb({ sync: syncRow({ reconcile_due_at: null }), tokens: { ...freshTokens } });
+  const net = installStrava({ activities: [s], detail: { 3104: 429 } });
+  const r = await run(db);
+  net.restore();
+  check("TC-36 a rate-limited run skips reconcile", r.status === "rate_limited" && r.reconcile === undefined, r);
+}
+{
+  // Backfill not complete, reconcile due: no inventory read, no reconcile. The
+  // budget is what leaves the backfill open here (runImport cannot end with an
+  // incomplete backfill any other way short of a deferral), so the clause
+  // itself is pinned by the mayReconcile cases below.
+  const db = makeDb({
+    sync: syncRow({ backfill_complete: false, backfill_cursor_before: null, reconcile_due_at: null }),
+    tokens: { ...freshTokens },
+    rpcData: { strava_link_inventory: [inventoryRow(3110, 35)], purge_strava_activities: purgeActivities },
+  });
+  const net = installStrava({ activities: [] });
+  const r = await run(db, { budget: { maxCalls: 1, maxElapsedMs: 60_000 } });
+  net.restore();
+  check("TC-36 backfill incomplete + reconcile due -> no strava_link_inventory call, no reconcile",
+    r.backfillComplete === false && r.reconcile === undefined &&
+      !db.rpcCalls.some((c) => c.name === "strava_link_inventory"), { r, rpc: db.rpcCalls });
+}
+{
+  const clean = { backfillComplete: true, rateLimited: false, stopReason: null, deferred: 0, status: "ok" as const };
+  check("TC-36 mayReconcile: a clean, complete run may reconcile", mayReconcile(clean), clean);
+  check("TC-36 mayReconcile: backfill_complete=false ALONE blocks it",
+    !mayReconcile({ ...clean, backfillComplete: false }), null);
+  check("TC-36 mayReconcile: rate limit, stop reason, deferral or error each block it",
+    !mayReconcile({ ...clean, rateLimited: true }) && !mayReconcile({ ...clean, stopReason: "budget" }) &&
+      !mayReconcile({ ...clean, deferred: 1 }) && !mayReconcile({ ...clean, status: "error" }), null);
+}
+{
+  // A dry run ignores the due time and shows the plan, writing nothing.
+  const a = fullSummary(3105, "2026-08-21T07:00:00");
+  const db = makeDb({
+    sync: syncRow(),
+    tokens: { ...freshTokens },
+    rpcData: {
+      strava_link_inventory: [inventoryRow(3105, 33), inventoryRow(3198, 34)],
+      purge_strava_activities: purgeActivities,
+    },
+  });
+  const net = installStrava({ activities: [a] });
+  const r = await run(db, {}, { dryRun: true });
+  net.restore();
+  const purge = db.rpcCalls.find((c) => c.name === "purge_strava_activities");
+  check("TC-36 dry run reconciles with p_dry_run:true and writes nothing",
+    purge?.args.p_dry_run === true && db.writes().length === 0 && db.syncPatches.length === 0, { purge, w: db.writes() });
+  check("TC-36 dry run reconcile returns its decisions",
+    r.reconcile?.decisions?.some((d) => d.activityId === 3198 && d.action === "delete") === true, r.reconcile);
+}
+
+// ---------------------------------------------------------------------------
+// TC-37 — a 401 on a listing or detail call is a revoked grant (Gate 2, Q5)
+// ---------------------------------------------------------------------------
+console.log("\nTC-37 listing/detail 401 -> auth_failed with a purge deadline");
+{
+  const db = makeDb({ sync: syncRow(), tokens: { ...freshTokens } });
+  const net = installStrava({ activities: [fullSummary(3201, "2026-08-21T07:00:00")], listStatus: () => 401 });
+  const r = await run(db);
+  net.restore();
+  const p = db.lastSyncPatch();
+  check("TC-37 listing 401 after an ok token -> auth_failed (was upstream_5xx)",
+    r.status === "auth_failed" && r.errorCode === "auth_failed", r);
+  check("TC-37 ... purge_due_at = now + 21 d, connection down",
+    p?.purge_due_at === PURGE_DUE_21D && p?.connected === false && p?.last_run_status === "auth_failed", p);
+  check("TC-37 ... no RPC write and no cursor write",
+    db.rpcCalls.length === 0 && !("incremental_after" in p) && !("backfill_cursor_before" in p), { rpc: db.rpcCalls, p });
+  check("TC-37 ... the token row is NOT deleted (D10)", db.state.tokens !== null, db.state.tokens);
+}
+{
+  const s = summary(3202, "2026-08-21T07:00:00");
+  const t = summary(3203, "2026-08-22T07:00:00");
+  const db = makeDb({ sync: syncRow(), tokens: { ...freshTokens } });
+  const net = installStrava({ activities: [s, t], detail: { 3202: 401, 3203: detailed(t) } });
+  const r = await run(db);
+  net.restore();
+  check("TC-37 detail 401 -> auth_failed (was a deferral), nothing written",
+    r.status === "auth_failed" && r.deferred === 0 && db.rpcCalls.length === 0 &&
+      db.lastSyncPatch()?.purge_due_at === PURGE_DUE_21D, { r, rpc: db.rpcCalls });
+}
+{
+  const db = makeDb({ sync: syncRow(), tokens: { ...freshTokens } });
+  const net = installStrava({ activities: [fullSummary(3204, "2026-08-21T07:00:00")], listStatus: () => 401 });
+  const r = await run(db, {}, { dryRun: true });
+  net.restore();
+  check("TC-37 a dry run with a listing 401 writes nothing at all",
+    r.status === "auth_failed" && db.writes().length === 0, db.writes());
+}
+
+// ---------------------------------------------------------------------------
+// TC-38 — the token-level revocation schedules the purge too (AC10)
+// ---------------------------------------------------------------------------
+console.log("\nTC-38 auth_failed writes purge_due_at, once");
+{
+  const stale = { ...freshTokens, expires_at: new Date(NOW_MS - 60_000).toISOString() };
+  const db = makeDb({ sync: syncRow(), tokens: stale });
+  const net = installStrava({ activities: [], token: "invalid_grant" });
+  await run(db);
+  net.restore();
+  check("TC-38 a revoked grant schedules the purge 21 days out",
+    db.lastSyncPatch()?.purge_due_at === PURGE_DUE_21D, db.lastSyncPatch());
+}
+{
+  const stale = { ...freshTokens, expires_at: new Date(NOW_MS - 60_000).toISOString() };
+  const earlier = "2026-09-01T00:00:00.000Z";
+  const db = makeDb({ sync: syncRow({ purge_due_at: earlier }), tokens: stale });
+  const net = installStrava({ activities: [], token: "invalid_grant" });
+  await run(db);
+  net.restore();
+  check("TC-38 an existing earlier deadline is kept, never pushed later",
+    db.lastSyncPatch()?.purge_due_at === earlier, db.lastSyncPatch());
+}
+
+// ---------------------------------------------------------------------------
+// TC-39 — P0003: the connection went away mid-run (Gate 2, Q-A)
+// ---------------------------------------------------------------------------
+console.log("\nTC-39 P0003 stops the run cleanly");
+{
+  const a1 = fullSummary(3301, "2026-08-21T07:00:00");
+  const a2 = fullSummary(3302, "2026-08-22T07:00:00");
+  const db = makeDb({
+    sync: syncRow({ reconcile_due_at: null }),
+    tokens: { ...freshTokens },
+    rpcFails: (name) => (name === "upsert_strava_session" ? { code: "P0003" } : undefined),
+  });
+  const net = installStrava({ activities: [a1, a2] });
+  const r = await run(db);
+  net.restore();
+  check("TC-39 the first P0003 stops the write loop (no retry storm)",
+    db.rpcCalls.filter((c) => c.name === "upsert_strava_session").length === 1, db.rpcCalls);
+  check("TC-39 status error with the closed-enum code 'unknown'",
+    r.status === "error" && r.errorCode === "unknown" && !r.ok, r);
+  check("TC-39 no sync-state write (the row is gone or says auth_failed)", db.syncPatches.length === 0, db.syncPatches);
+  check("TC-39 no reconcile after it",
+    r.reconcile === undefined && !db.rpcCalls.some((c) => c.name === "strava_link_inventory"), r.reconcile);
 }
 
 if (savedDsn === undefined) Deno.env.delete("SENTRY_DSN");

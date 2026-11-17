@@ -48,6 +48,32 @@ describe('useStravaConnection', () => {
     expect(result.current.statusKind).toBe('healthy');
   });
 
+  it('selects purge_due_at so a revoked row can show its deadline', async () => {
+    const select = vi.fn();
+    const chain = {
+      select: (cols) => {
+        select(cols);
+        return chain;
+      },
+      maybeSingle: () =>
+        Promise.resolve({
+          data: {
+            connected: false,
+            last_run_status: 'auth_failed',
+            purge_due_at: '2026-12-08T12:00:00Z',
+          },
+          error: null,
+        }),
+    };
+    fromMock.mockReturnValue(chain);
+    const { result } = renderHook(() => useStravaConnection(), { wrapper });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    const cols = select.mock.calls[0][0].split(',').map((c) => c.trim());
+    expect(cols).toContain('purge_due_at');
+    expect(result.current.statusKind).toBe('auth_failed');
+    expect(result.current.isConnected).toBe(false);
+  });
+
   it('resolves a missing row to null, not an error', async () => {
     mockRow(null);
     const { result } = renderHook(() => useStravaConnection(), { wrapper });

@@ -91,6 +91,22 @@ describe('Strava status wording', () => {
       );
     });
 
+    it('formats the purge deadline in the active language', () => {
+      const s = describeConnection(
+        {
+          ...base,
+          connected: false,
+          last_run_status: 'auth_failed',
+          last_error_code: 'auth_failed',
+          purge_due_at: '2026-12-08T12:00:00Z',
+        },
+        NOW
+      );
+      expect(s.detail).toMatch(
+        /^Los datos de Strava de tu registro se quitarán el 8 dic\.? 2026 si no reconectas\. Lo que escribiste se queda\.$/
+      );
+    });
+
     it('translates the OAuth callback notice', () => {
       expect(
         stravaCallbackMessage({ status: 'error', reason: 'state' }).text

@@ -27,6 +27,7 @@ const COLUMNS = [
   'failed_total',
   'ambiguous_activity_ids',
   'rate_limit_resets_at',
+  'purge_due_at',
   'updated_at',
 ].join(', ');
 

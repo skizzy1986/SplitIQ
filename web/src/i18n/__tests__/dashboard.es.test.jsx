@@ -74,8 +74,8 @@ vi.mock('../../hooks/useStravaConnection.js', async () => {
 vi.mock('../../hooks/useStravaConnect.js', () => ({
   useStravaConnect: () => ({
     start: { isPending: false, isError: true, mutate: () => {} },
-    disconnect: { isPending: false },
-    requestDisconnect: () => {},
+    preview: { isPending: false, isError: false, mutate: () => {} },
+    disconnect: { isPending: false, isSuccess: false, mutate: () => {} },
   }),
 }));
 vi.mock('../../hooks/useStravaSync.js', () => ({

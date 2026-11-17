@@ -116,6 +116,17 @@ function relative(thenMs, nowMs) {
 export function describeConnection(connection, now = new Date()) {
   const nowMs = toMs(now) ?? Date.now();
 
+  // Checked BEFORE the not-connected branch: the importer writes
+  // connected=false on a revoked token, so a row awaiting its purge deadline is
+  // disconnected and must still say so, or the warning could never render.
+  if (
+    connection &&
+    (connection.last_run_status === 'auth_failed' ||
+      connection.purge_due_at != null)
+  ) {
+    return describeAuthFailed(connection);
+  }
+
   if (!connection || connection.connected !== true) {
     return {
       kind: 'not_connected',
@@ -138,23 +149,6 @@ export function describeConnection(connection, now = new Date()) {
   // Precedence: a problem that blocks importing outranks progress, and progress
   // outranks the merely informational. Otherwise a revoked token would render
   // as "Importing history — continuing automatically", which is a lie.
-  if (status === 'auth_failed') {
-    return {
-      kind: 'auth_failed',
-      headline: t`Strava access was revoked. Reconnect to resume importing.`,
-      // A more specific code (an expired refresh token, a missing scope) says
-      // something the headline does not; `auth_failed` would only repeat it.
-      detail:
-        connection.last_error_code &&
-        connection.last_error_code !== 'auth_failed'
-          ? errorDetail
-          : t`Nothing already imported is affected — reconnecting resumes from where it stopped.`,
-      tone: 'critical',
-      canSync: false,
-      canConnect: true,
-    };
-  }
-
   if (status === 'rate_limited') {
     const resetMs = toMs(connection.rate_limit_resets_at);
     const cleared = resetMs == null || resetMs <= nowMs;
@@ -257,6 +251,44 @@ export function describeConnection(connection, now = new Date()) {
     canSync: true,
     canConnect: false,
   };
+}
+
+function describeAuthFailed(connection) {
+  const code = connection.last_error_code;
+  // A more specific code (an expired refresh token, a missing scope) says
+  // something the headline does not; `auth_failed` would only repeat it.
+  const specific =
+    code && code !== 'auth_failed' ? describeErrorCode(code) : null;
+  const dueMs = toMs(connection.purge_due_at);
+  const deadline = dueMs == null ? null : purgeDeadline(formatDeadline(dueMs));
+  // The deadline is the data-loss warning, so it is never dropped in favour of
+  // a more specific code; the two are joined.
+  const detail =
+    specific && deadline
+      ? `${specific} ${deadline}`
+      : (specific ??
+        deadline ??
+        t`Reconnect to keep Strava data in your log; without access it will be removed.`);
+  return {
+    kind: 'auth_failed',
+    headline: t`Strava access was revoked. Reconnect to resume importing.`,
+    detail,
+    tone: 'critical',
+    canSync: false,
+    canConnect: true,
+  };
+}
+
+// Lingui 6 deprecates i18n.date in favour of Intl with the active locale
+// (Context7, /lingui/js-lingui migration-6: "Deprecated Intl Wrappers").
+function formatDeadline(ms) {
+  return new Intl.DateTimeFormat(i18n.locale || 'en', {
+    dateStyle: 'medium',
+  }).format(ms);
+}
+
+function purgeDeadline(date) {
+  return t`Strava data in your log will be removed on ${date} unless you reconnect. Anything you typed stays.`;
 }
 
 function lastSync(when) {

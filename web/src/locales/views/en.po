@@ -44,6 +44,14 @@ msgstr "{count, plural, one {{count} session imported since connecting} other {{
 msgid "{daysAgo, plural, one {{daysAgo} day ago} other {{daysAgo} days ago}}"
 msgstr "{daysAgo, plural, one {{daysAgo} day ago} other {{daysAgo} days ago}}"
 
+#: src/utils/stravaDisconnect.js
+msgid "{del, plural, one {{del} imported session deleted.} other {{del} imported sessions deleted.}}"
+msgstr "{del, plural, one {{del} imported session deleted.} other {{del} imported sessions deleted.}}"
+
+#: src/utils/stravaDisconnect.js
+msgid "{del, plural, one {{del} imported session will be deleted.} other {{del} imported sessions will be deleted.}}"
+msgstr "{del, plural, one {{del} imported session will be deleted.} other {{del} imported sessions will be deleted.}}"
+
 #. Day badge, all capitals: sessions done that day
 #: src/views/CalendarView.jsx
 msgid "{doneCount, plural, one {✓ DONE} other {✓ DONE ×{doneCount}}}"
@@ -61,9 +69,25 @@ msgstr "{importedText}; {matchedText}"
 msgid "{importedText}. New Strava activities are imported automatically."
 msgstr "{importedText}. New Strava activities are imported automatically."
 
+#: src/utils/stravaDisconnect.js
+msgid "{keep, plural, one {{keep} imported session kept, without Strava power and heart rate.} other {{keep} imported sessions kept, without Strava power and heart rate.}}"
+msgstr "{keep, plural, one {{keep} imported session kept, without Strava power and heart rate.} other {{keep} imported sessions kept, without Strava power and heart rate.}}"
+
+#: src/utils/stravaDisconnect.js
+msgid "{keep, plural, one {{keep} imported session with your own sRPE or notes will be kept, without Strava power and heart rate.} other {{keep} imported sessions with your own sRPE or notes will be kept, without Strava power and heart rate.}}"
+msgstr "{keep, plural, one {{keep} imported session with your own sRPE or notes will be kept, without Strava power and heart rate.} other {{keep} imported sessions with your own sRPE or notes will be kept, without Strava power and heart rate.}}"
+
 #: src/utils/stravaStatus.js
 msgid "{minutes, plural, one {{minutes} minute ago} other {{minutes} minutes ago}}"
 msgstr "{minutes, plural, one {{minutes} minute ago} other {{minutes} minutes ago}}"
+
+#: src/utils/stravaDisconnect.js
+msgid "{restore, plural, one {Strava power and heart rate removed from {restore} session you logged yourself.} other {Strava power and heart rate removed from {restore} sessions you logged yourself.}}"
+msgstr "{restore, plural, one {Strava power and heart rate removed from {restore} session you logged yourself.} other {Strava power and heart rate removed from {restore} sessions you logged yourself.}}"
+
+#: src/utils/stravaDisconnect.js
+msgid "{restore, plural, one {Strava power and heart rate will be removed from {restore} session you logged yourself.} other {Strava power and heart rate will be removed from {restore} sessions you logged yourself.}}"
+msgstr "{restore, plural, one {Strava power and heart rate will be removed from {restore} session you logged yourself.} other {Strava power and heart rate will be removed from {restore} sessions you logged yourself.}}"
 
 #: src/components/LogSessionForm.jsx
 msgid "＋ add exercise"
@@ -134,6 +158,10 @@ msgstr "6/19/26"
 #: src/views/mobile/MobileAnalytics.jsx
 msgid "8-WEEK TSS HISTORY"
 msgstr "8-WEEK TSS HISTORY"
+
+#: src/utils/stravaDisconnect.js
+msgid "Access at Strava revoked."
+msgstr "Access at Strava revoked."
 
 #. Followed by a list of Strava activity numbers
 #. placeholder {0}: (connection?.ambiguous_activity_ids ?? []).join(', ')
@@ -218,6 +246,11 @@ msgstr "BODYWEIGHT — 14 DAYS (kg)"
 msgid "Calendar"
 msgstr "Calendar"
 
+#. Button
+#: src/components/StravaConnectPanel.jsx
+msgid "Cancel"
+msgstr "Cancel"
+
 #: src/views/mobile/MobileSessionLog.jsx
 msgid "Cancelled"
 msgstr "Cancelled"
@@ -291,6 +324,11 @@ msgstr "Connected · waiting for the first sync"
 msgid "Could do all day. Full conversation, nose-breathing."
 msgstr "Could do all day. Full conversation, nose-breathing."
 
+#. Error when the disconnect preview could not be loaded
+#: src/components/StravaConnectPanel.jsx
+msgid "Could not count the Strava data in your log. Try again."
+msgstr "Could not count the Strava data in your log. Try again."
+
 #. Error state heading
 #: src/components/StravaConnectPanel.jsx
 msgid "Could not read the Strava connection status"
@@ -313,6 +351,11 @@ msgstr "Couldn't refresh sessions — showing what loaded earlier."
 #: src/components/HealthRecordCard.jsx
 msgid "Couldn't refresh, showing earlier data."
 msgstr "Couldn't refresh, showing earlier data."
+
+#. Loading state while counting Strava-sourced sessions before a disconnect
+#: src/components/StravaConnectPanel.jsx
+msgid "Counting the Strava data in your log…"
+msgstr "Counting the Strava data in your log…"
 
 #: src/views/OverviewView.jsx
 msgid "CP unavailable"
@@ -346,6 +389,20 @@ msgstr "default"
 #: src/components/StravaConnectPanel.jsx
 msgid "Disconnect"
 msgstr "Disconnect"
+
+#. Button that confirms disconnecting Strava and deleting its data
+#: src/utils/stravaDisconnect.js
+msgid "Disconnect and delete"
+msgstr "Disconnect and delete"
+
+#. Error after confirming a Strava disconnect
+#: src/components/StravaConnectPanel.jsx
+msgid "Disconnect failed. Nothing was changed. Try again."
+msgstr "Disconnect failed. Nothing was changed. Try again."
+
+#: src/utils/stravaDisconnect.js
+msgid "Disconnect Strava and delete its data?"
+msgstr "Disconnect Strava and delete its data?"
 
 #. Button, busy
 #: src/components/StravaConnectPanel.jsx
@@ -735,9 +792,13 @@ msgstr "No upcoming sessions"
 msgid "No vitals recorded yet"
 msgstr "No vitals recorded yet"
 
-#: src/utils/stravaStatus.js
-msgid "Nothing already imported is affected — reconnecting resumes from where it stopped."
-msgstr "Nothing already imported is affected — reconnecting resumes from where it stopped."
+#: src/utils/stravaDisconnect.js
+msgid "Nothing in your log came from Strava; nothing will be removed."
+msgstr "Nothing in your log came from Strava; nothing will be removed."
+
+#: src/utils/stravaDisconnect.js
+msgid "Nothing in your log came from Strava."
+msgstr "Nothing in your log came from Strava."
 
 #: src/views/mobile/MobileToday.jsx
 msgid "Nothing prescribed today."
@@ -897,6 +958,10 @@ msgstr "RECENT SESSIONS"
 msgid "Reconnect"
 msgstr "Reconnect"
 
+#: src/utils/stravaStatus.js
+msgid "Reconnect to keep Strava data in your log; without access it will be removed."
+msgstr "Reconnect to keep Strava data in your log; without access it will be removed."
+
 #. Training zone name
 #: src/constants/srpeGuideMessages.js
 msgid "Recovery"
@@ -934,6 +999,7 @@ msgstr "RESTING HR TREND"
 msgid "RESTING HR TREND — 14 DAYS"
 msgstr "RESTING HR TREND — 14 DAYS"
 
+#. Button in the error state
 #. Button in the error state
 #: src/components/StravaConnectPanel.jsx
 msgid "Retry"
@@ -1062,6 +1128,10 @@ msgstr "Some activities could not be saved to the database. Run the sync again."
 msgid "Something went wrong finishing the connection. Try again."
 msgstr "Something went wrong finishing the connection. Try again."
 
+#: src/utils/stravaDisconnect.js
+msgid "SplitIQ's access at Strava had already ended."
+msgstr "SplitIQ's access at Strava had already ended."
+
 #. Training zone name
 #: src/constants/srpeGuideMessages.js
 msgid "Sprint"
@@ -1113,9 +1183,21 @@ msgstr "Strava connection cancelled. Nothing was changed — connect whenever yo
 msgid "Strava could not be connected. {why}"
 msgstr "Strava could not be connected. {why}"
 
+#: src/utils/stravaStatus.js
+msgid "Strava data in your log will be removed on {date} unless you reconnect. Anything you typed stays."
+msgstr "Strava data in your log will be removed on {date} unless you reconnect. Anything you typed stays."
+
+#: src/utils/stravaDisconnect.js
+msgid "Strava did not confirm the revocation. Remove SplitIQ in Strava → Settings → My Apps."
+msgstr "Strava did not confirm the revocation. Remove SplitIQ in Strava → Settings → My Apps."
+
 #: src/utils/stravaCallback.js
 msgid "Strava did not send back an authorisation code. Start the connection again."
 msgstr "Strava did not send back an authorisation code. Start the connection again."
+
+#: src/utils/stravaDisconnect.js
+msgid "Strava disconnected."
+msgstr "Strava disconnected."
 
 #: src/utils/stravaStatus.js
 msgid "Strava is having problems. The next sync will retry."
@@ -1402,3 +1484,7 @@ msgstr "Working backwards from {from}."
 #: src/views/RecoveryView.jsx
 msgid "your avg"
 msgstr "your avg"
+
+#: src/utils/stravaDisconnect.js
+msgid "Your training load will be recalculated. This cannot be undone."
+msgstr "Your training load will be recalculated. This cannot be undone."

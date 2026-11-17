@@ -836,7 +836,7 @@ function makeDb(opts: DbOpts) {
     return self;
   };
 
-  const rpc = (name: string, args: FakeRow) => {
+  const rpcSettle = (name: string, args: FakeRow) => {
     log.push({ table: "rpc", op: name, payload: args });
     rpcCalls.push({ name, args });
     const failure = opts.rpcFails?.(name, args);
@@ -884,6 +884,14 @@ function makeDb(opts: DbOpts) {
     }
     return Promise.resolve({ data: null, error: null });
   };
+  // reconcile.ts pages strava_link_inventory with .range(from, to) (inclusive).
+  const rpc = (name: string, args: FakeRow) => {
+    const p = rpcSettle(name, args);
+    return Object.assign(p, {
+      range: (from: number, to: number) =>
+        p.then((r) => (Array.isArray(r.data) ? { ...r, data: r.data.slice(from, to + 1) } : r)),
+    });
+  };
 
   const supa = {
     from: (table: string) => ({
@@ -921,6 +929,8 @@ type StravaStub = {
   token?: "ok" | "invalid_grant" | number;
   /** Per list call, a status to return instead of 200. */
   listStatus?: (call: number) => number | undefined;
+  /** Per list call (1-based), a raw JSON body to answer with instead of the page (e.g. a non-array). */
+  listBody?: (call: number) => unknown;
   usage?: string;
   limit?: string;
   /** Read-usage header on detail responses only, when it must differ from the list's. */
@@ -974,6 +984,8 @@ function installStrava(stub: StravaStub) {
 
       const status = stub.listStatus?.(listCalls.length);
       if (status) return Promise.resolve(new Response("[]", { status, headers }));
+      const raw = stub.listBody?.(listCalls.length);
+      if (raw !== undefined) return Promise.resolve(new Response(JSON.stringify(raw), { status: 200, headers }));
 
       // Strava orders /athlete/activities newest-first.
       let pool = stub.activities.slice().sort((x, y) => epoch(y) - epoch(x));
@@ -2285,6 +2297,40 @@ console.log("\nTC-39 P0003 stops the run cleanly");
   check("TC-39 no sync-state write (the row is gone or says auth_failed)", db.syncPatches.length === 0, db.syncPatches);
   check("TC-39 no reconcile after it",
     r.reconcile === undefined && !db.rpcCalls.some((c) => c.name === "strava_link_inventory"), r.reconcile);
+}
+
+// ---------------------------------------------------------------------------
+// TC-40 — a non-array 200 on an import listing is an error, not an empty page (#641)
+// ---------------------------------------------------------------------------
+console.log("\nTC-40 malformed listing");
+{
+  const db = makeDb({ sync: syncRow({ reconcile_due_at: null }), tokens: { ...freshTokens } });
+  const net = installStrava({ activities: [], listBody: () => ({ message: "not a list" }) });
+  const r = await run(db);
+  net.restore();
+  const p = db.lastSyncPatch();
+  check("TC-40 non-array 200 on the incremental listing -> error/upstream_5xx, no cursor write, no reconcile",
+    r.status === "error" && r.errorCode === "upstream_5xx" && p?.last_run_status === "error" &&
+      !("incremental_after" in p) && !("backfill_cursor_before" in p) && !("backfill_complete" in p) &&
+      r.reconcile === undefined && !db.rpcCalls.some((c) => c.name === "strava_link_inventory"),
+    { r, p, rpc: db.rpcCalls });
+}
+{
+  const db = makeDb({
+    sync: syncRow({ backfill_complete: false, backfill_cursor_before: null, reconcile_due_at: null }),
+    tokens: { ...freshTokens },
+  });
+  // Call 1 is the incremental page (well-formed, empty); call 2 the first backfill page.
+  const net = installStrava({ activities: [], listBody: (c) => (c === 2 ? { message: "not a list" } : undefined) });
+  const r = await run(db);
+  net.restore();
+  check("TC-40 non-array 200 on a backfill page -> backfill_complete not written",
+    r.status === "error" && r.errorCode === "upstream_5xx" && net.listCalls.length === 2 &&
+      !db.syncPatches.some((x: Record<string, unknown>) =>
+        "backfill_complete" in x || "backfill_cursor_before" in x || "incremental_after" in x
+      ) &&
+      r.reconcile === undefined && !db.rpcCalls.some((c) => c.name === "strava_link_inventory"),
+    { r, patches: db.syncPatches });
 }
 
 if (savedDsn === undefined) Deno.env.delete("SENTRY_DSN");

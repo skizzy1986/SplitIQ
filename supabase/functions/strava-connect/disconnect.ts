@@ -16,7 +16,7 @@ import { captureFunctionError } from "../_shared/sentry.ts";
 
 const FN = "strava-connect";
 
-export type DisconnectPreview = { toDelete: number; toKeep: number; toRestore: number };
+export type DisconnectPreview = { toDelete: number; toKeep: number; toRestore: number; toUnlink: number };
 export type Revocation = "revoked" | "failed" | "not_attempted";
 
 export type PreviewResult =
@@ -24,7 +24,7 @@ export type PreviewResult =
   | { ok: false; error: "disconnect_preview_failed" };
 
 export type ConfirmResult =
-  | { ok: true; removed: number; kept: number; restored: number; revocation: Revocation }
+  | { ok: true; removed: number; kept: number; restored: number; unlinked: number; revocation: Revocation }
   | { ok: false; error: "disconnect_failed" };
 
 const num = (v: unknown): number => (typeof v === "number" && Number.isFinite(v) ? v : 0);
@@ -32,8 +32,9 @@ const num = (v: unknown): number => (typeof v === "number" && Number.isFinite(v)
 /**
  * What a disconnect would do, counted by the same function that will do it
  * (purge_strava_user with p_dry_run). No Strava call and no write. Orphans — a
- * session carrying a Strava id with no provenance row — are kept and unlinked,
- * so they count as kept.
+ * session carrying a Strava id with no provenance row — are kept and unlinked;
+ * they are counted apart (toUnlink), since unlike `toKeep` they keep Strava's
+ * figures and lose only the link.
  */
 export async function previewDisconnect(deps: { supa: SupabaseClient; userId: string }): Promise<PreviewResult> {
   const { supa, userId } = deps;
@@ -54,8 +55,9 @@ export async function previewDisconnect(deps: { supa: SupabaseClient; userId: st
     ok: true,
     preview: {
       toDelete: num(o.deleted),
-      toKeep: num(o.kept) + num(o.orphans_unlinked),
+      toKeep: num(o.kept),
       toRestore: num(o.restored),
+      toUnlink: num(o.orphans_unlinked),
     },
   };
 }
@@ -142,8 +144,9 @@ export async function confirmDisconnect(deps: ConfirmDeps): Promise<ConfirmResul
   return {
     ok: true,
     removed: num(o.deleted),
-    kept: num(o.kept) + num(o.orphans_unlinked),
+    kept: num(o.kept),
     restored: num(o.restored),
+    unlinked: num(o.orphans_unlinked),
     revocation,
   };
 }
@@ -175,6 +178,7 @@ export async function routeDisconnect(action: string, confirm: boolean, deps: Co
         removed: r.removed,
         kept: r.kept,
         restored: r.restored,
+        unlinked: r.unlinked,
         revocation: r.revocation,
       },
     };

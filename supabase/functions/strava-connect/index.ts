@@ -5,8 +5,8 @@
 //
 // Actions (the contract the dashboard codes against, #630):
 //   { action: "start" }                       -> { ok, authorize_url }
-//   { action: "disconnect_preview" }          -> { ok, preview: { toDelete, toKeep, toRestore } }
-//   { action: "disconnect", confirm: true }   -> { ok, disconnected, removed, kept, restored, revocation }
+//   { action: "disconnect_preview" }          -> { ok, preview: { toDelete, toKeep, toRestore, toUnlink } }
+//   { action: "disconnect", confirm: true }   -> { ok, disconnected, removed, kept, restored, unlinked, revocation }
 // Disconnect deletes the athlete's Strava-derived data; see disconnect.ts.
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { captureFunctionError } from "../_shared/sentry.ts";

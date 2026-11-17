@@ -327,6 +327,15 @@ describe('StravaConnectPanel — disconnect confirmation (#630)', () => {
     expect(screen.queryByRole('group')).toBeNull();
   });
 
+  it('renders the orphan line when the preview has sessions to unlink', async () => {
+    await openWithPreview({ ...PREVIEW, toUnlink: 2 });
+    expect(
+      screen.getByText(
+        '2 sessions linked to Strava outside the importer will be kept as they are, with the Strava link removed.'
+      )
+    ).toBeInTheDocument();
+  });
+
   it('shows the all-zero preview and still lets the user disconnect', async () => {
     await openWithPreview({ toDelete: 0, toKeep: 0, toRestore: 0 });
     expect(

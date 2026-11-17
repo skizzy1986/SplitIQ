@@ -244,11 +244,12 @@ export type ListParams = {
 };
 
 /**
- * `wellFormed` is false when a 200 carried something other than an array. The
- * import has always treated that as an empty page (and still does — it only
- * ever ADDS from a listing), but the deletion sync must not: an empty listing
- * would make every linked activity look deleted on Strava. reconcile.ts aborts
- * on it instead.
+ * `wellFormed` is false when a 200 carried something other than an array, and
+ * `activities` is then []. Both callers refuse to read that as an empty page:
+ * the import ends the run as an error before any cursor moves (an "empty" page
+ * would mark the backfill complete or advance the watermark past an unlisted
+ * window), and the deletion sync aborts (an empty listing would make every
+ * linked activity look deleted on Strava).
  */
 export async function listActivities(
   accessToken: string,

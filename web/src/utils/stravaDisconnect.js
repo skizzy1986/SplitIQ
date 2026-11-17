@@ -13,10 +13,12 @@ export function describeDisconnectPreview({
   toDelete,
   toKeep,
   toRestore,
+  toUnlink,
 } = {}) {
   const del = n(toDelete);
   const keep = n(toKeep);
   const restore = n(toRestore);
+  const unlink = n(toUnlink);
   const lines = [];
 
   if (del > 0) {
@@ -43,6 +45,14 @@ export function describeDisconnectPreview({
       })
     );
   }
+  if (unlink > 0) {
+    lines.push(
+      plural(unlink, {
+        one: `${unlink} session linked to Strava outside the importer will be kept as it is, with the Strava link removed.`,
+        other: `${unlink} sessions linked to Strava outside the importer will be kept as they are, with the Strava link removed.`,
+      })
+    );
+  }
   lines.push(
     lines.length === 0
       ? t`Nothing in your log came from Strava; nothing will be removed.`
@@ -64,11 +74,13 @@ export function describeDisconnectResult({
   removed,
   kept,
   restored,
+  unlinked,
   revocation,
 } = {}) {
   const del = n(removed);
   const keep = n(kept);
   const restore = n(restored);
+  const unlink = n(unlinked);
   const parts = [t`Strava disconnected.`];
 
   if (del > 0) {
@@ -95,7 +107,15 @@ export function describeDisconnectResult({
       })
     );
   }
-  if (del + keep + restore === 0) {
+  if (unlink > 0) {
+    parts.push(
+      plural(unlink, {
+        one: `${unlink} session kept as it was, with the Strava link removed.`,
+        other: `${unlink} sessions kept as they were, with the Strava link removed.`,
+      })
+    );
+  }
+  if (del + keep + restore + unlink === 0) {
     parts.push(t`Nothing in your log came from Strava.`);
   }
 

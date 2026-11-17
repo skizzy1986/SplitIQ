@@ -89,6 +89,14 @@ msgstr "{restore, plural, one {Strava power and heart rate removed from {restore
 msgid "{restore, plural, one {Strava power and heart rate will be removed from {restore} session you logged yourself.} other {Strava power and heart rate will be removed from {restore} sessions you logged yourself.}}"
 msgstr "{restore, plural, one {Strava power and heart rate will be removed from {restore} session you logged yourself.} other {Strava power and heart rate will be removed from {restore} sessions you logged yourself.}}"
 
+#: src/utils/stravaDisconnect.js
+msgid "{unlink, plural, one {{unlink} session kept as it was, with the Strava link removed.} other {{unlink} sessions kept as they were, with the Strava link removed.}}"
+msgstr "{unlink, plural, one {{unlink} session kept as it was, with the Strava link removed.} other {{unlink} sessions kept as they were, with the Strava link removed.}}"
+
+#: src/utils/stravaDisconnect.js
+msgid "{unlink, plural, one {{unlink} session linked to Strava outside the importer will be kept as it is, with the Strava link removed.} other {{unlink} sessions linked to Strava outside the importer will be kept as they are, with the Strava link removed.}}"
+msgstr "{unlink, plural, one {{unlink} session linked to Strava outside the importer will be kept as it is, with the Strava link removed.} other {{unlink} sessions linked to Strava outside the importer will be kept as they are, with the Strava link removed.}}"
+
 #: src/components/LogSessionForm.jsx
 msgid "＋ add exercise"
 msgstr "＋ add exercise"

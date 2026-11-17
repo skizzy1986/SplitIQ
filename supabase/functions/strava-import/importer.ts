@@ -442,13 +442,16 @@ export async function runImport(deps: ImportDeps, opts: ImportOptions): Promise<
     const incrementalEpochs: number[] = [];
     let incrementalExhausted = false;
     for (let page = 1; !checkStop(); page++) {
-      const { activities, rateLimit: rl } = await listActivities(accessToken, {
+      const { activities, rateLimit: rl, wellFormed } = await listActivities(accessToken, {
         after: startingIncrementalAfter,
         page,
         perPage: PER_PAGE,
       });
       calls++;
       rateLimit = rl;
+      // A non-array 200 read as an empty page would end the loop "exhausted"
+      // and move the watermark past a window that was never listed.
+      if (!wellFormed) throw new Error("strava listing was not an array");
       incrementalEpochs.push(...collect(activities));
       if (activities.length < PER_PAGE) {
         incrementalExhausted = true;
@@ -474,12 +477,14 @@ export async function runImport(deps: ImportDeps, opts: ImportOptions): Promise<
     if (!backfillComplete) {
       let cursor = backfillCursor ?? Math.floor(now() / 1000);
       while (!checkStop()) {
-        const { activities, rateLimit: rl } = await listActivities(accessToken, {
+        const { activities, rateLimit: rl, wellFormed } = await listActivities(accessToken, {
           before: cursor,
           perPage: PER_PAGE,
         });
         calls++;
         rateLimit = rl;
+        // Read as empty, a non-array 200 would mark the backfill complete.
+        if (!wellFormed) throw new Error("strava listing was not an array");
 
         if (activities.length === 0) {
           backfillComplete = true;

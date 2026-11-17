@@ -108,7 +108,10 @@ describe('useStravaConnect — start', () => {
 describe('useStravaConnect — disconnect preview', () => {
   it('asks for the preview and resolves the three counts, with no write', async () => {
     invokeMock.mockResolvedValue({
-      data: { ok: true, preview: { toDelete: 4, toKeep: 1, toRestore: 2 } },
+      data: {
+        ok: true,
+        preview: { toDelete: 4, toKeep: 1, toRestore: 2, toUnlink: 3 },
+      },
       error: null,
     });
     const invalidateSpy = vi.spyOn(client, 'invalidateQueries');
@@ -124,8 +127,25 @@ describe('useStravaConnect — disconnect preview', () => {
       toDelete: 4,
       toKeep: 1,
       toRestore: 2,
+      toUnlink: 3,
     });
     expect(invalidateSpy).not.toHaveBeenCalled();
+  });
+
+  it('missing toUnlink defaults to 0 (an older edge function still previews)', async () => {
+    invokeMock.mockResolvedValue({
+      data: { ok: true, preview: { toDelete: 4, toKeep: 1, toRestore: 2 } },
+      error: null,
+    });
+    const { result } = renderHook(() => useStravaConnect(), { wrapper });
+    result.current.preview.mutate();
+    await waitFor(() => expect(result.current.preview.isSuccess).toBe(true));
+    expect(result.current.preview.data).toEqual({
+      toDelete: 4,
+      toKeep: 1,
+      toRestore: 2,
+      toUnlink: 0,
+    });
   });
 
   it('treats a preview without integer counts as an error, never as zeros', async () => {
@@ -155,6 +175,7 @@ describe('useStravaConnect — disconnect', () => {
         removed: 4,
         kept: 1,
         restored: 2,
+        unlinked: 3,
         revocation: 'revoked',
       },
       error: null,
@@ -172,6 +193,7 @@ describe('useStravaConnect — disconnect', () => {
       removed: 4,
       kept: 1,
       restored: 2,
+      unlinked: 3,
       revocation: 'revoked',
     });
     const keys = invalidateSpy.mock.calls.map(([arg]) => arg.queryKey);

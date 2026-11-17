@@ -105,7 +105,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `bt_S9M` | Composite of RHR vs baseline, HRV vs baseline, sleep, and training load (TSB unavailable — excluded from this score). Heuristic, not validated — cross-check against sRPE and how you actually feel. | Combina la RHR frente a la línea base, la HRV frente a la línea base, el sueño y la carga de entrenamiento (TSB no disponible: queda fuera de este puntaje). Es una heurística, no está validada: contrástala con el sRPE y con cómo te sientes de verdad. | src/views/RecoveryView.jsx |
 | `rJ7VtO` | Connect Google Health to populate this view | Conecta Google Health para llenar esta vista | Google Health is a brand name: keep it · src/views/mobile/MobileRecovery.jsx |
 | `OPQd1-` | Connect Strava | Conectar Strava | Button · src/components/StravaConnectPanel.jsx |
-| `EHqnWb` | Connect Strava to import rides and runs into the training calendar automatically. | Conecta Strava para importar automáticamente tus recorridos en bici y tus carreras al calendario de entrenamiento. | src/utils/stravaStatus.js |
+| `nnqtTB` | Connect Strava to import rowing and cycling activities into the training calendar automatically. | Conecta Strava para importar automáticamente tus actividades de remo y ciclismo al calendario de entrenamiento. | src/utils/stravaStatus.js |
 | `xf6cmU` | Connect the PM5 and row against a watt band | Conecta el PM5 y rema dentro de una banda de vatios | src/views/mobile/MobileTrain.jsx |
 | `fb1ABp` | Connected · waiting for the first sync | Conectado · esperando la primera sincronización | src/utils/stravaStatus.js |
 | `-uLBTN` | Could do all day. Full conversation, nose-breathing. | Podrías seguir todo el día. Conversación completa, respirando por la nariz. | sRPE scale, effort 1-2: the talk test · src/constants/srpeGuideMessages.js |
@@ -275,13 +275,13 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `Ul5Zpl` | START SESSION | INICIAR SESIÓN DE ENTRENAMIENTO | Button, all capitals · src/views/mobile/MobileToday.jsx |
 | `lqrTOx` | Steady (UT1) | Constante (UT1) | sRPE scale, effort 5-6 · src/constants/srpeGuideMessages.js |
 | `maUeij` | Strava access was revoked. Reconnect to resume importing. | Se revocó el acceso a Strava. Reconecta para seguir importando. | src/utils/stravaStatus.js |
-| `GYUuRA` | Strava caps how many activities can be read per 15 minutes. Nothing was lost; importing continues from where it stopped. | Strava limita cuántas actividades se pueden leer cada 15 minutos. No se perdió nada; la importación sigue desde donde se detuvo. | src/utils/stravaStatus.js |
-| `FtGtvr` | Strava connected. Your history is importing now — it continues in the background. | Strava conectado. Tu historial se está importando y sigue en segundo plano. | src/utils/stravaCallback.js |
+| `6GyMVL` | Strava connected. Activities import at the next scheduled sync, or press Sync now to start straight away. | Strava conectado. Las actividades se importan en la próxima sincronización programada, o pulsa Sincronizar ahora para empezar de una vez. | src/utils/stravaCallback.js |
 | `k4MTJt` | Strava connection | Conexión con Strava | Screen reader only: name of the Strava settings panel · src/components/StravaConnectPanel.jsx |
 | `_0O7vR` | Strava connection cancelled. Nothing was changed — connect whenever you are ready. | Se canceló la conexión con Strava. No se cambió nada: conéctalo cuando quieras. | src/utils/stravaCallback.js |
 | `OYw425` | Strava could not be connected. {why} | No se pudo conectar Strava. {why} | src/utils/stravaCallback.js |
 | `JNZ_Bm` | Strava did not send back an authorisation code. Start the connection again. | Strava no devolvió un código de autorización. Vuelve a iniciar la conexión. | src/utils/stravaCallback.js |
 | `mlUx6O` | Strava is having problems. The next sync will retry. | Strava tiene problemas. La próxima sincronización lo volverá a intentar. | src/utils/stravaStatus.js |
+| `gU7drG` | Strava limits how many activities can be read in a given period. Nothing was lost; importing continues from where it stopped. | Strava limita cuántas actividades se pueden leer en un periodo determinado. No se perdió nada; la importación sigue desde donde se detuvo. | src/utils/stravaStatus.js |
 | `snAOUC` | Strava not connected | Strava no está conectado | src/utils/stravaStatus.js |
 | `DU55u-` | Strava rate limit reached. Importing pauses until it resets. | Se alcanzó el límite de uso de Strava. La importación se pausa hasta que se restablezca. | src/utils/stravaStatus.js |
 | `P0qUKp` | Strava rate limit reached. Sync resumes at {resumesAt}. | Se alcanzó el límite de uso de Strava. La sincronización se reanuda a las {resumesAt}. | src/utils/stravaStatus.js |
@@ -302,7 +302,6 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `lK2Rxb` | That is a different Strava account from the one already connected. Disconnect the current account first. | Esa es una cuenta de Strava distinta de la que ya está conectada. Primero desconecta la cuenta actual. | src/utils/stravaCallback.js |
 | `a4CYJj` | The connection did not complete. Try again. | La conexión no se completó. Inténtalo de nuevo. | src/utils/stravaCallback.js |
 | `1iC7R3` | The connection is missing activity read permission. Reconnect and approve activity access. | A la conexión le falta el permiso para leer actividades. Reconecta y aprueba el acceso a las actividades. | src/utils/stravaStatus.js |
-| `BbVTrT` | The connection itself may be fine — only this status read failed. | Puede que la conexión esté bien: solo falló esta lectura del estado. | Error state detail · src/components/StravaConnectPanel.jsx |
 | `Ni__g1` | The connection link had expired or been used already. Start the connection again. | El enlace de conexión había caducado o ya se había usado. Vuelve a iniciar la conexión. | src/utils/stravaCallback.js |
 | `70UKmT` | The connection link was opened incorrectly. Start the connection again. | El enlace de conexión se abrió de forma incorrecta. Vuelve a iniciar la conexión. | src/utils/stravaCallback.js |
 | `b7aZ-4` | The connection was missing permission to read your activities. Connect again and approve activity access. | A la conexión le faltaba el permiso para leer tus actividades. Vuelve a conectar y aprueba el acceso a las actividades. | src/utils/stravaCallback.js |
@@ -327,6 +326,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `ouzTMv` | TRAINING LOAD UNAVAILABLE | CARGA DE ENTRENAMIENTO NO DISPONIBLE | All capitals · All capitals · src/views/mobile/MobileAnalytics.jsx · src/views/OverviewView.jsx |
 | `V1yilb` | Training phase | Fase de entrenamiento | src/views/OverviewView.jsx |
 | `rHdlg1` | Triglycerides | Triglicéridos | Blood lipid marker · src/utils/healthRecords.js |
+| `u62wQ4` | Try again in a moment. | Inténtalo de nuevo en un momento. | Error state detail · src/components/StravaConnectPanel.jsx |
 | `sLqPhy` | TSS LOGGED | TSS REGISTRADO | Stat label, all capitals; TSS stays as is · src/views/mobile/MobileToday.jsx |
 | `zSzBX4` | UPCOMING | PRÓXIMAS | Section heading, all capitals · src/views/mobile/MobileAnalytics.jsx |
 | `qDKS2V` | Upcoming planned sessions (today forward). A dashed border marks a planned session; tap any card for the targets. Cards mark ✓ done once you log the matching session. | Sesiones planificadas de hoy en adelante. Un borde discontinuo indica una sesión planificada; toca cualquier tarjeta para ver los objetivos. Las tarjetas muestran ✓ cuando registras la sesión correspondiente. | src/views/PlanView.jsx |

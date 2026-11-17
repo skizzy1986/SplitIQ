@@ -8,23 +8,54 @@
 // Eligibility constants
 // ---------------------------------------------------------------------------
 
-// ALLOW-LIST, never a deny-list. Scott's Strava account also contains Ride,
-// Walk, Workout and WeightTraining. A deny-list would silently start importing
-// whatever new sport_type Strava adds next, and strength in particular is
-// already logged in far richer detail through the strength subsystem — a thin
-// Strava duplicate of it would corrupt the load model, not enrich it.
-export const ELIGIBLE_SPORT_TYPES = ["Rowing", "VirtualRide"] as const;
+// ALLOW-LIST, never a deny-list, matched exactly (no case folding, no trim).
+// Owner decision on #628: rowing and every pedalled bike ride. Everything else
+// stays out, Handcycle and Velomobile included (not bike rides in the sense
+// the load model means), as do Walk, Run, Hike, Workout, WeightTraining, Yoga
+// and NordicSki. A deny-list would silently start importing whatever new
+// sport_type Strava adds next, and strength in particular is already logged in
+// far richer detail through the strength subsystem — a thin Strava duplicate
+// of it would corrupt the load model, not enrich it.
+export const ELIGIBLE_SPORT_TYPES = [
+  "Rowing",
+  "VirtualRow",
+  "Ride",
+  "VirtualRide",
+  "GravelRide",
+  "MountainBikeRide",
+  "EBikeRide",
+  "EMountainBikeRide",
+] as const;
 export type EligibleSportType = (typeof ELIGIBLE_SPORT_TYPES)[number];
 
 // These two spellings are load-bearing and must stay lower case exactly as
 // written. normType() in web/src/utils/formatting.js maps 'erg' -> 'Z2 Aerobic'
-// and 'cycling' -> 'Cycling'; it has no 'Rowing' or 'VirtualRide' branch, so
-// storing Strava's own names would render every imported session as a
-// colourless unknown in the Log and the calendar.
+// and 'cycling' -> 'Cycling'; it has no branch for Strava's own names, so
+// storing those would render every imported session as a colourless unknown in
+// the Log and the calendar.
 export const SPORT_TYPE_TO_SESSION_TYPE: Record<EligibleSportType, "erg" | "cycling"> = {
   Rowing: "erg",
+  VirtualRow: "erg",
+  Ride: "cycling",
   VirtualRide: "cycling",
+  GravelRide: "cycling",
+  MountainBikeRide: "cycling",
+  EBikeRide: "cycling",
+  EMountainBikeRide: "cycling",
 };
+
+// Strava API Policy §4.4: data from a Garmin device must carry Garmin
+// attribution, which the app does not display yet (#632). Until it does, an
+// activity recorded on a Garmin is not imported at all. Matched on Strava's
+// `device_name` ("The name of the device used to record the activity").
+//
+// What is documented, and what is not: Context7 (/websites/developers_strava)
+// lists device_name under DetailedActivity only. Strava's own sample response
+// for GET /athlete/activities does carry it, but a sample is not a contract.
+// So a summary's device_name is treated as unreliable: its PRESENCE is trusted
+// (a Garmin name on the summary skips the activity with no read spent), its
+// ABSENCE is not — see needsDetailFetch.
+export const GARMIN_DEVICE_RE = /garmin/i;
 
 // Floors chosen against the real account, not picked round:
 //   120 s keeps a 240 s CP Test while dropping the few-second to ~1-minute
@@ -67,6 +98,8 @@ export type StravaActivity = {
   has_device_watts?: boolean | null;
   average_heartrate?: number | null;
   has_heartrate?: boolean | null;
+  /** The recording device, e.g. "Concept2 PM5", "Zwift", "Garmin Edge 530". */
+  device_name?: string | null;
 };
 
 export type SessionDraft = {
@@ -87,7 +120,8 @@ export type IneligibleReason =
   | "sport_type"
   | "before_backfill_from"
   | "moving_time"
-  | "distance";
+  | "distance"
+  | "garmin_attribution_pending";
 
 export type Eligibility =
   | { eligible: true; reason: null }
@@ -216,12 +250,23 @@ export function avgHrOrNull(a: StravaActivity): number | null {
  * opposite of its purpose, and silently. The 50-call budget in state.ts exists
  * to pay for these fetches.
  *
+ * A summary with no device_name also needs the detail, even when it carries
+ * watts and heart rate: device_name is documented on DetailedActivity only, so
+ * a summary without it proves nothing about the device, and the Garmin skip
+ * (isEligible, run again on the detail before any write) can only see a Garmin
+ * the detail names. If the detail has no device_name either, the activity is
+ * not Garmin and imports as before.
+ *
  * Answering false for a sport we do not import is not an optimisation: a read
  * spent on a Walk we are going to discard is a read taken away from a row that
- * would have counted.
+ * would have counted. The caller also skips the fetch for anything the summary
+ * already proves ineligible on date or the floors.
  */
 export function needsDetailFetch(a: StravaActivity): boolean {
   if (!(ELIGIBLE_SPORT_TYPES as readonly string[]).includes(String(a.sport_type))) return false;
+  // A Garmin summary is skipped whatever its detail says, so it costs no read.
+  if (isGarminRecorded(a)) return false;
+  if (a.device_name == null) return true;
   if (
     typeof a.distance !== "number" ||
     typeof a.moving_time !== "number" ||
@@ -280,7 +325,16 @@ export function isEligible(a: StravaActivity, backfillFrom: string): Eligibility
   }
   if (a.moving_time < MIN_MOVING_TIME_S) return { eligible: false, reason: "moving_time" };
   if (a.distance < MIN_DISTANCE_M) return { eligible: false, reason: "distance" };
+  // Last, so the dry run names the more basic reason when there is one. It
+  // runs on the summary and again on the detail (runImport calls isEligible on
+  // both), so a summary that lacked device_name cannot slip a Garmin through.
+  if (isGarminRecorded(a)) return { eligible: false, reason: "garmin_attribution_pending" };
   return { eligible: true, reason: null };
+}
+
+/** True when Strava says a Garmin device recorded the activity. Null/missing is not Garmin. */
+export function isGarminRecorded(a: StravaActivity): boolean {
+  return typeof a.device_name === "string" && GARMIN_DEVICE_RE.test(a.device_name);
 }
 
 // ---------------------------------------------------------------------------

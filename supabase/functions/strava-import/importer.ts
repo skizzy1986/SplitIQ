@@ -35,7 +35,10 @@ import {
   advanceIncrementalWatermark,
   DEFAULT_BUDGET,
   epochSecondsFromUTC,
+  isDailyCapExhausted,
   nextQuarterHour,
+  mergeStopReason,
+  nextUtcMidnight,
   shouldStopChunk,
   type ChunkBudget,
   type StopReason,
@@ -249,9 +252,9 @@ export async function runImport(deps: ImportDeps, opts: ImportOptions): Promise<
   }
   result.backfillComplete = sync.backfill_complete;
 
-  // A previous run hit 429 and asked us to wait for the quarter-hour reset.
-  // Honouring it is what stops a 15-minute cron from turning one 429 into
-  // ninety-six of them a day.
+  // A previous run hit 429 or the daily cap and asked us to wait for a reset
+  // (the quarter hour, or midnight UTC for the daily window). Honouring it is
+  // what stops a 15-minute cron from turning one 429 into ninety-six a day.
   if (sync.rate_limit_resets_at && Date.parse(sync.rate_limit_resets_at) > now()) {
     result.status = "rate_limited";
     result.errorCode = "rate_limited";
@@ -330,8 +333,22 @@ export async function runImport(deps: ImportDeps, opts: ImportOptions): Promise<
   const elapsed = () => now() - startedAt;
   const checkStop = (): boolean => {
     const s = shouldStopChunk(calls, elapsed(), rateLimit, budget);
-    if (s.stop) stopReason = s.reason;
+    // mergeStopReason: a daily-cap stop is never overwritten later in the run.
+    if (s.stop) stopReason = mergeStopReason(stopReason, s.reason);
     return s.stop;
+  };
+
+  // When the next run may call Strava again. The daily window is the longer
+  // wait and wins: a run that stopped near the daily cap, or took a 429 with
+  // the daily usage at its limit, holds until next UTC midnight — retrying on
+  // the quarter hour would only spend one more read, or collect one more 429,
+  // every 15 minutes until then. A 429 without daily figures in its headers
+  // keeps the quarter-hour hold it always had.
+  const rateLimitResetsAt = (): string | null => {
+    if (stopReason === "daily_rate_limit" || (rateLimited && isDailyCapExhausted(rateLimit))) {
+      return new Date(nextUtcMidnight(now())).toISOString();
+    }
+    return rateLimited ? new Date(nextQuarterHour(now())).toISOString() : null;
   };
 
   const collect = (activities: Record<string, unknown>[]): number[] => {
@@ -442,7 +459,7 @@ export async function runImport(deps: ImportDeps, opts: ImportOptions): Promise<
     if (e instanceof StravaRateLimitError) {
       rateLimited = true;
       rateLimit = e.rateLimit;
-      stopReason = "rate_limit";
+      stopReason = mergeStopReason(stopReason, "rate_limit");
     } else {
       result.ok = false;
       result.status = "error";
@@ -553,7 +570,7 @@ export async function runImport(deps: ImportDeps, opts: ImportOptions): Promise<
           if (e instanceof StravaRateLimitError) {
             rateLimited = true;
             rateLimit = e.rateLimit;
-            stopReason = "rate_limit";
+            stopReason = mergeStopReason(stopReason, "rate_limit");
           } else {
             await captureFunctionError(FN, e, {
               userId,
@@ -605,7 +622,7 @@ export async function runImport(deps: ImportDeps, opts: ImportOptions): Promise<
         last_run_mode: mode,
         last_run_status: result.status,
         last_error_code: result.errorCode,
-        rate_limit_resets_at: rateLimited ? new Date(nextQuarterHour(now())).toISOString() : null,
+        rate_limit_resets_at: rateLimitResetsAt(),
       });
     }
     return result;
@@ -674,6 +691,7 @@ export async function runImport(deps: ImportDeps, opts: ImportOptions): Promise<
             p_distance_m: draft.distance_m,
             p_avg_watts: draft.avg_watts,
             p_avg_hr: draft.avg_hr,
+            p_device_name: a.device_name ?? null,
           });
           if (error) throw new Error(`upsert_strava_session failed: ${error.code ?? "unknown"}`);
           decision.detail = String((data as { action: string }[] | null)?.[0]?.action ?? "updated");
@@ -708,6 +726,7 @@ export async function runImport(deps: ImportDeps, opts: ImportOptions): Promise<
             p_avg_watts: avgWattsOrNull(a),
             p_has_device_watts: hasUsableDeviceWatts(a),
             p_avg_hr: avgHrOrNull(a),
+            p_device_name: a.device_name ?? null,
           });
           if (error) throw new Error(`adopt_strava_session failed: ${error.code ?? "unknown"}`);
           const action = String((data as { action: string }[] | null)?.[0]?.action ?? "adopted");
@@ -747,6 +766,7 @@ export async function runImport(deps: ImportDeps, opts: ImportOptions): Promise<
           p_distance_m: draft.distance_m,
           p_avg_watts: draft.avg_watts,
           p_avg_hr: draft.avg_hr,
+          p_device_name: a.device_name ?? null,
         });
         if (error) throw new Error(`upsert_strava_session failed: ${error.code ?? "unknown"}`);
         decision.detail = String((data as { action: string }[] | null)?.[0]?.action ?? "inserted");
@@ -803,7 +823,7 @@ export async function runImport(deps: ImportDeps, opts: ImportOptions): Promise<
       ambiguous_activity_ids: Array.from(
         new Set([...(sync.ambiguous_activity_ids ?? []), ...ambiguous]),
       ),
-      rate_limit_resets_at: rateLimited ? new Date(nextQuarterHour(now())).toISOString() : null,
+      rate_limit_resets_at: rateLimitResetsAt(),
     });
   }
 

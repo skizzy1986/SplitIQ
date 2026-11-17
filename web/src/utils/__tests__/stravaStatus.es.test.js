@@ -85,6 +85,12 @@ describe('Strava status wording', () => {
       );
     });
 
+    it('translates the never-connected detail', () => {
+      expect(describeConnection(null, NOW).detail).toBe(
+        'Conecta Strava para importar automáticamente tus actividades de remo y ciclismo al calendario de entrenamiento.'
+      );
+    });
+
     it('translates the OAuth callback notice', () => {
       expect(
         stravaCallbackMessage({ status: 'error', reason: 'state' }).text

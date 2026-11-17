@@ -33,8 +33,10 @@ for an existing unlinked session in the same type family, within ±1 day, whose
 
 - **exactly one** match → `adopt_strava_session` (links the existing row, writes
   only `strava_activity_id`, device `avg_watts` and `avg_hr` — never
-  `coach_note`, `duration`, `label`, `date` or `source`)
-- **zero** matches → `upsert_strava_session` (a new row)
+  `coach_note`, `duration`, `label`, `date` or `source` — and records an
+  `adopted` provenance row holding the values it replaced)
+- **zero** matches → `upsert_strava_session` (a new row, with an `inserted`
+  provenance row)
 - **two or more** → **nothing at all.** The activity id is appended to
   `strava_sync_state.ambiguous_activity_ids`, `skipped_total` increments, and
   Sentry gets one issue for the run. A wrong adoption silently rewrites power
@@ -53,32 +55,106 @@ so an unguarded `DO UPDATE` there would undo the adoption's restraint one cron
 cycle later — `60min` → `60:00`, `9998` → `10000`, and `9min` → `8:49`, which
 changes the parsed duration from 9.0 to 8.82 minutes and therefore the load.
 
-The discriminator is `sessions.source`, which is `'strava'` **only** on rows this
-importer inserted; an adopted row keeps its original `portal` / `coach` /
-`coach_plan` / `claude_csv` / `concept2`. So:
+The discriminator is the **`origin` of the row's `strava_session_links` entry**,
+not `sessions.source`. `source = 'strava'` does not mean "this importer inserted
+it": six legacy rows carry it from a hand import, and once adopted they must
+keep their hand-filed duration and distance. So:
 
-| | `duration`, `distance_m` | `avg_watts`, `avg_hr` |
+| link `origin` | `duration`, `distance_m` | `avg_watts`, `avg_hr` |
 |---|---|---|
-| row this importer inserted (`source = 'strava'`) | refreshed each run | enriched (coalesce) |
-| row adopted from another source | **never touched** | enriched (coalesce) |
+| `inserted` (this importer created the row) | refreshed each run | enriched (coalesce) |
+| `adopted` (the athlete filed it), whatever its `source` | **never touched** | enriched (coalesce) |
 
-Adoption never sets `source = 'strava'`, and that omission is what makes the
-guarantee permanent rather than momentary.
+A linked session with no link row is refused outright: the RPC raises rather
+than guess whether its duration may be rewritten.
+
+**`avg_watts` and `avg_hr` are not protected the same way.** On an adopted row,
+every later re-listing of the activity writes Strava's values over them again
+(when Strava has a value). A correction the athlete types into either field
+after adoption is therefore **not preserved**: the next run that sees the
+activity replaces it. `prior_*` does not help there either — it is captured
+once, on the importer's first write, so it holds what the athlete had *before
+adoption*, not a later edit.
+
+### Provenance: `strava_session_links`
+
+Every write the importer makes records what it did, so a later deletion (#630:
+disconnect, revocation purge, deletion sync) can remove exactly that and
+restore what the athlete had typed.
+
+| column | meaning |
+|---|---|
+| `session_id` | PK, FK → `sessions.id` `ON DELETE CASCADE` |
+| `user_id`, `strava_activity_id` | `UNIQUE (user_id, strava_activity_id)` |
+| `origin` | `inserted` (delete the row) or `adopted` (keep the row, strip what was written) |
+| `wrote_avg_watts`, `prior_avg_watts` | whether the importer wrote `avg_watts`, and what was there before |
+| `wrote_avg_hr`, `prior_avg_hr` | the same for `avg_hr` |
+| `device_name` | the recording device, so Garmin rows can be found when attribution ships (#632) |
+| `created_at` | when the link was made |
+
+`wrote_*` flips and `prior_*` is captured on the **first** write of each column
+only. A later re-import that enriches the row again never touches `prior_*`, so
+the athlete's original figure cannot be replaced by an earlier Strava one. On an
+`inserted` row `prior_*` is always null — there was nothing underneath.
+
+Both RPCs are race-safe. Two runs inserting the same activity: the second
+blocks on 011's partial unique index, catches the `unique_violation` in a
+subtransaction and retries as an update — one row, no error. Two runs adopting
+the same row: the candidate is read `FOR UPDATE` with `strava_activity_id IS
+NULL`, so the second finds it claimed and returns `adopt_lost_race`. Migration
+012 self-tests both RPCs against synthetic rows inside a subtransaction that is
+always rolled back.
 
 ## Eligibility
 
-All four must hold. `sport_type` is an **allow-list**, never a deny-list — the
-account also contains `Ride`, `Walk`, `Workout` and `WeightTraining`.
+All five must hold. `sport_type` is an **allow-list**, never a deny-list, and is
+matched exactly — `"ride"` and `"Ride "` are not `Ride`.
 
 | Rule | Value |
 |---|---|
-| `sport_type` | `Rowing` → `type='erg'`, `VirtualRide` → `type='cycling'` |
+| `sport_type` | `Rowing`, `VirtualRow` → `type='erg'`; `Ride`, `VirtualRide`, `GravelRide`, `MountainBikeRide`, `EBikeRide`, `EMountainBikeRide` → `type='cycling'` |
 | local date | `>= STRAVA_BACKFILL_FROM` (`2026-06-14`) |
 | `moving_time` | `>= 120 s` |
 | `distance` | `>= 200 m` |
+| `device_name` | not a Garmin (see below) |
+
+Everything else is ineligible, including `Handcycle`, `Velomobile`, `Walk`,
+`Run`, `Hike`, `Workout`, `WeightTraining`, `Yoga` and `NordicSki`.
 
 The floors keep the 240 s / 1080 m `CP Test` while dropping the 4 s / 16 s /
 23 s / 72 s and 9 m / 40 m / 53 m / 155 m fragments a bumped PM5 records.
+
+### Garmin-recorded activities are skipped
+
+Strava's API Policy §4.4 requires Garmin attribution on data from a Garmin
+device, and the app does not show it yet (#632). Until it does, an activity
+whose `device_name` matches `/garmin/i` is **not imported**, whatever its sport,
+with skip reason `garmin_attribution_pending`. The skip shows in a dry run like
+any other, and the watermark moves past it like any other ineligible activity.
+
+**Where the device name comes from.** Strava documents `device_name` ("The name
+of the device used to record the activity") on `DetailedActivity` only (Context7,
+`/websites/developers_strava`). Its sample `GET /athlete/activities` response
+does carry it, but a sample is not a contract, so a summary's `device_name` is
+treated as unreliable:
+
+- a summary that **names a Garmin** is skipped there and then, with **no detail
+  fetch**;
+- a summary that **names no device** (`null` or missing) gets a detail fetch —
+  even when it already carries power and heart rate — and the Garmin check runs
+  again on the detail **before any write**. If the detail names no device
+  either, the activity is not Garmin and imports as before;
+- a summary that names a non-Garmin device follows the normal detail-fetch rules;
+- an ineligible sport, or an activity the summary already proves ineligible on
+  date or the floors, still costs no read.
+
+If the detail cannot be fetched (budget spent, quota near its cap, a 429 or an
+error) the activity is deferred under the usual rules — never written unchecked.
+
+The read-budget cost is small in practice: list payloads rarely carry both watts
+and heart rate, so nearly every eligible activity is detail-fetched already (see
+below). The extra reads fall only on a summary that has both but names no
+device.
 
 ## Mapping contract
 
@@ -89,7 +165,7 @@ The floors keep the 240 s / 1080 m `CP Test` while dropping the 4 s / 16 s /
 | `label` | `` `<name> HH:MM` ``, ≤120 chars. **Never contains a watts figure** — that is what breaks dedupe today |
 | `duration` | `m:ss` from `moving_time` (1500 → `25:00`, 2465 → `41:05`) |
 | `distance_m` | `Math.round(distance)` |
-| `avg_watts` | only when Strava reports device watts; **never a pace-derived estimate**. Almost always comes from the detail fetch, not the list payload — see below |
+| `avg_watts` | only when Strava reports device watts; **never a pace- or speed-derived estimate**. Almost always comes from the detail fetch, not the list payload — see below. A ride with no power meter is written with null |
 | `avg_hr` | only when `has_heartrate`. Same |
 | `status` / `source` | `'completed'` / `'strava'` |
 | `srpe`, `coach_note`, `prs`, `exercises`, `coach_flag`, `benchmark_key` | **never written** |
@@ -117,7 +193,14 @@ sport whose summary lacks usable device watts **or** heart rate (or lacks the
 core mapping fields), and false for everything else — including sports we do not
 import, because a read spent on a `Walk` is a read taken from a row that counts.
 An activity the summary already proves ineligible (too short, before
-`STRAVA_BACKFILL_FROM`) costs no read either.
+`STRAVA_BACKFILL_FROM`, recorded on a Garmin) costs no read either.
+
+**A ride with no power meter is still imported.** When the detail fetch succeeds
+and Strava says the power was not measured (`device_watts: false`), the row is
+**written** with `avg_watts` null and `avg_hr` set. It is not deferred — the
+detail was read, and there is no power to wait for. Such a session scores zero
+load in `sessionLoad()` until the athlete adds an sRPE (owner decision on #628);
+a heart-rate load fallback is #633.
 
 ### What happens when the detail cannot be fetched
 
@@ -164,7 +247,11 @@ never carry token material.
 
 ## Deploy
 
-Apply the migrations first (`011` then `012`), then:
+Apply the migrations first, in one sitting, with the owner's approval: `011`,
+then `012`, then `018` (which keeps the `strava_*` tables out of the nightly
+backup — until it runs, `backup_snapshot()` would export the OAuth tokens). The
+purge migration from #630 (the deletion paths) must also be applied **before any
+OAuth grant**. Then:
 
 ```bash
 # JWT verification ON — do NOT pass --no-verify-jwt to these two
@@ -204,14 +291,35 @@ select cron.schedule(
 To stop it: `select cron.unschedule('strava-import');`
 
 A run that hits HTTP 429 sets `strava_sync_state.rate_limit_resets_at` to the
-next quarter hour, and every run before that returns immediately — which is what
-stops one 429 becoming ninety-six a day.
+next quarter hour — or to the next midnight UTC when the daily cap is the cause
+(see **Backfill, incremental and throttling**) — and every run before that
+returns immediately, which is what stops one 429 becoming ninety-six a day.
 
 ## Dry run — and the legacy-6 verification
 
 **Do this before the first real import.** `dry_run` runs the entire pipeline and
 reports the per-activity decision with **zero writes**, including no sync-state
 update, so inspecting the plan cannot change what the next real run does.
+
+**Who runs it.** The dry run, and every read-back below that returns Strava
+data, is run and read by the owner — not by an AI agent. Strava's API Policy
+§5.3 forbids Strava Data being read into an AI application's context window.
+
+**Do not press Sync after connecting until this gate has passed.** Sync performs
+a **real** import and bypasses the gate entirely.
+
+**The gate is iterative.** A run is capped at 50 Strava calls, so one dry run
+cannot show a whole backfill: it shows the first chunk, and everything past the
+budget appears as `deferred:`. So:
+
+1. dry run, and check the decisions below;
+2. the owner approves;
+3. one real run, at least 15 minutes after the dry run (so the 15-minute quota
+   has reset);
+4. dry run again — it now shows the next chunk;
+
+and repeat until a dry run reports nothing deferred. Only then register the
+cron.
 
 ```bash
 # cron entry point
@@ -226,9 +334,10 @@ curl -sS -X POST 'https://swdrueaserjzhuxnzmeu.supabase.co/functions/v1/strava-s
 
 Each entry in `.decisions` is `{ activityId, sportType, date, action, detail }`
 where `action` is `insert`, `adopt` (detail = the session id), `update`, `skip`
-(detail = the reason) or `ambiguous` (detail = the tied session ids). A `skip`
-whose detail starts `deferred:` is **not** a decision about the activity — the
-run could not fetch its detail and the next run will process it.
+(detail = the reason, e.g. `sport_type`, `moving_time`,
+`garmin_attribution_pending`) or `ambiguous` (detail = the tied session ids). A
+`skip` whose detail starts `deferred:` is **not** a decision about the activity —
+the run could not fetch its detail and the next run will process it.
 
 A dry run makes **zero writes of any kind**, and that explicitly includes the
 token row: `getFreshAccessToken` deletes it on a second consecutive
@@ -266,9 +375,10 @@ Then, in the dry-run output:
 4. `insert` decisions should be activities with no counterpart in the table at
    all. Spot-check a few dates against the Log.
 
-Only when 1–3 hold should the cron be registered.
+Only when 1–3 hold, and the iterative gate above has reached a dry run with
+nothing deferred, should the cron be registered.
 
-After the first real run:
+After the first real run (owner-run — these return Strava-derived data):
 
 ```sql
 select last_run_at, last_run_status, last_error_code, imported_total, adopted_total,
@@ -303,11 +413,28 @@ select strava_activity_id, count(*) from public.sessions
   last durable cursor, which is idempotent and costs one repeated page.
   `backfill_complete` is set when a page returns an activity older than
   `STRAVA_BACKFILL_FROM`, comes back short, or is empty.
-- **Budget:** 50 Strava calls (list *and* detail) and 20 s of wall clock per invocation, and the run
-  stops at **80% of the 15-minute quota read from the response headers**
-  (`X-RateLimit-Limit` / `X-RateLimit-Usage`, preferring the `X-ReadRateLimit-*`
-  pair). The remaining 20% is headroom for `vitals-import`, the Coach tab and a
-  manual sync — spending the quota to the last call would make *those* fail.
+- **Budget:** 50 Strava calls (list *and* detail) and 20 s of wall clock per
+  invocation, and the run stops at **80% of either Strava window, read from the
+  response headers** (`X-RateLimit-Limit` / `X-RateLimit-Usage`, preferring the
+  `X-ReadRateLimit-*` pair; each is a `15-minute,daily` pair). The app's read
+  limits are 100 per 15 minutes and 1,000 per day (overall 200 and 2,000), but
+  the code only ever uses the figures in the headers. The remaining 20% is
+  headroom for a manual sync — spending the quota to the last call would make
+  *that* fail.
+- **Daily cap.** At 80% of the daily read limit the run stops with
+  `stopReason: "daily_rate_limit"`, defers whatever it had not fetched, and
+  sets `rate_limit_resets_at` to the **next midnight UTC** — Strava: "The daily
+  limit resets at midnight UTC" (developers.strava.com/docs/rate-limits). A 429
+  whose headers show the daily usage at its limit holds until midnight UTC too;
+  any other 429 holds until the next quarter hour, as before. A response with no
+  daily figures behaves exactly as before. When the daily cap and another stop
+  condition (call budget, wall clock, the 15-minute window) are true together,
+  the daily cap is the reason recorded, and once recorded no later stop in the
+  same run replaces it — otherwise the midnight hold would be lost.
+  **What the athlete sees:** the run that stops at the daily cap still ends
+  `ok` (or `noop` if it had nothing to write), but every later run — cron or Sync — returns
+  `rate_limited` until the hold expires at midnight UTC, even though no 429
+  occurred. That is intended: it is the hold doing its job.
 - **Per-activity `try/catch`:** one failure increments `failed_total`, reports to
   Sentry and continues. A run failing 2 of 14 ends `partial` with 12 rows
   correctly written. A failed *write* does **not** hold the cursor, on purpose: a
@@ -363,10 +490,28 @@ with no symptom except activities quietly ceasing to appear.
 
 ## Security notes worth not undoing
 
-- `strava_tokens` and `strava_oauth_state` have RLS **enabled and forced** with
-  **no policies at all**. Only `service_role` (BYPASSRLS) can reach them. Adding
+- `strava_tokens`, `strava_oauth_state` and `strava_session_links` have RLS
+  **enabled**, **no policies at all**, and nothing granted to `anon` or
+  `authenticated`. That is the whole of their privacy from the browser. Adding
   a policy to `strava_tokens` would hand a token granting full read access to
-  Scott's entire Strava history to anything holding a session JWT.
+  the athlete's entire Strava history to anything holding a session JWT.
+  Migration 012 asserts there are none.
+- RLS is **not forced**, on purpose. `postgres` and `service_role` both have
+  `rolbypassrls = true` on this project, and `FORCE ROW LEVEL SECURITY` does not
+  bind a BYPASSRLS role — so it protected nothing, while breaking 017's
+  invariant that no public table is forced (a forced table would export only
+  policy-visible rows). It was removed in #629.
+- **The nightly backup excludes the four `strava_*` tables by name** (migration
+  018, `backup_snapshot()`'s `v_excluded`). `backup_snapshot()` runs as
+  `postgres`, which bypasses RLS, so the exclusion list is the only thing keeping
+  the tokens out of `backup_snapshots`.
+  `web/scripts/__tests__/strava-credential-backup.test.mjs` fails CI if a later
+  migration redefines the function and drops one. `sessions` stays in the
+  snapshot, whole.
+- Agent sessions read `public.sessions_no_strava` (018), a `security_invoker`
+  view that hides importer-inserted rows and shows adopted rows with the
+  athlete's own `avg_watts` / `avg_hr`. The guardrail that points agents at it
+  is #631; the connectors bypass RLS, so it is a rule, not enforcement.
 - `strava_sync_state` is **SELECT-only** for `authenticated`, own row only.
 - Both RPCs are `REVOKE ALL ... FROM public, anon, authenticated` and granted
   only to `service_role`. Revoking from `PUBLIC` is the load-bearing half —
@@ -401,7 +546,7 @@ with no symptom except activities quietly ceasing to appear.
 deno run --allow-env supabase/functions/strava-import/test.ts
 ```
 
-242 assertions, TC-01 to TC-25. No network, no database, no dependence on the
+364 assertions, TC-01 to TC-35. No network, no database, no dependence on the
 machine's clock or timezone. Wired into `.github/workflows/ci-functions.yml`;
 that job's steps are **hardcoded**, so a new function's tests are not
 auto-discovered and need a step adding by hand.
@@ -416,6 +561,20 @@ auto-discovered and need a step adding by hand.
   the per-activity failure isolation, the detail fetch and its deferral
   behaviour, the cursor-after-rows ordering, multi-page incremental completeness
   and the `status` precedence.
+- **TC-26 to TC-32** pin the #629 changes: the eight eligible types and the
+  rejected ones, the detail-fetch gate for rides, a ride with no power meter
+  written with null `avg_watts`, the cycling adoption tolerance, the Garmin skip
+  (no detail fetch, skipped before any write, cursor still advances),
+  `p_device_name` reaching both RPCs, and the daily rate cap.
+- **TC-33 to TC-35** pin the review fixes: a summary naming no device is
+  detail-fetched so a Garmin named only on the detail is still skipped (and a
+  fetch that cannot happen defers), the daily cap's precedence over every other
+  stop reason, a daily-cap 429 on the detail fetch, and a legacy
+  `source = 'strava'` row that keeps its duration and distance once adopted.
+
+The fake client models only the RPCs' contract. The SQL itself is exercised by
+the self-test at the end of migration 012, which runs when the migration is
+applied.
 
 Call **order** is asserted, not only call counts: two of the defects these tests
 exist to pin (a cursor written before the rows it describes, a watermark moved

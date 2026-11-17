@@ -19,16 +19,20 @@ export const MAX_STRAVA_CALLS = 50;
 export const MAX_WALL_MS = 20_000;
 
 /**
- * Stop at 80% of the 15-minute window rather than 100%. The remaining 20% is
- * headroom for vitals-import, the Coach tab and any manual sync that fires in
- * the same window — spending the quota to the last call would make THOSE fail
- * instead, which is a much worse trade than one slower backfill.
+ * Stop at 80% of a Strava window rather than 100%, for both the 15-minute and
+ * the daily window. The remaining 20% is headroom for a manual Sync and any
+ * other caller sharing the app's quota in the same window — spending the quota
+ * to the last call would make THOSE fail instead, which is a much worse trade
+ * than one slower backfill. The app's read limits are 100 per 15 minutes and
+ * 1,000 per day, but the figures used are always the ones in the response
+ * headers, never these.
  */
 export const RATE_LIMIT_STOP_FRACTION = 0.8;
 
 export const QUARTER_HOUR_MS = 15 * 60 * 1000;
+export const DAY_MS = 24 * 60 * 60 * 1000;
 
-export type StopReason = "calls" | "elapsed" | "rate_limit" | null;
+export type StopReason = "calls" | "elapsed" | "rate_limit" | "daily_rate_limit" | null;
 export type ChunkBudget = { maxCalls: number; maxElapsedMs: number };
 
 export const DEFAULT_BUDGET: ChunkBudget = {
@@ -39,9 +43,14 @@ export const DEFAULT_BUDGET: ChunkBudget = {
 /**
  * Should this invocation stop fetching and persist what it has?
  *
- * The three limits are independent and any one of them trips: a run can be
+ * The four limits are independent and any one of them trips: a run can be
  * inside its call budget and inside its time budget and still have to stop
- * because the shared 15-minute quota is nearly spent.
+ * because a shared Strava quota is nearly spent.
+ *
+ * When several are true at once the daily cap is reported, ahead of calls and
+ * elapsed too: it is the only reason that changes when the next run may start
+ * (the hold until midnight UTC), so reporting a weaker one would drop that hold
+ * and let the cron spend a read every 15 minutes until the reset.
  */
 export function shouldStopChunk(
   calls: number,
@@ -49,6 +58,7 @@ export function shouldStopChunk(
   rateLimit: RateLimit,
   budget: ChunkBudget = DEFAULT_BUDGET,
 ): { stop: boolean; reason: StopReason } {
+  if (isNearDailyCap(rateLimit)) return { stop: true, reason: "daily_rate_limit" };
   if (calls >= budget.maxCalls) return { stop: true, reason: "calls" };
   if (elapsedMs >= budget.maxElapsedMs) return { stop: true, reason: "elapsed" };
   if (
@@ -60,6 +70,51 @@ export function shouldStopChunk(
     return { stop: true, reason: "rate_limit" };
   }
   return { stop: false, reason: null };
+}
+
+/**
+ * The stop reason a run records when a new one arrives. Once the daily cap has
+ * stopped the run it stays the reason for the rest of it: a later `calls`,
+ * `elapsed` or quarter-hour stop must not overwrite it and lose the midnight
+ * hold. Otherwise the latest reason wins, as it always has.
+ */
+export function mergeStopReason(current: StopReason, next: StopReason): StopReason {
+  if (current === "daily_rate_limit") return current;
+  return next ?? current;
+}
+
+/** Daily usage at or past 80% of the daily limit. False when Strava sent no daily figures. */
+export function isNearDailyCap(rateLimit: RateLimit): boolean {
+  return (
+    rateLimit.dailyLimit != null &&
+    rateLimit.dailyUsage != null &&
+    rateLimit.dailyLimit > 0 &&
+    rateLimit.dailyUsage >= RATE_LIMIT_STOP_FRACTION * rateLimit.dailyLimit
+  );
+}
+
+/**
+ * Daily usage at or past the daily limit itself: a 429 carrying this is the
+ * daily cap, not the 15-minute one, and retrying on the quarter hour would
+ * only collect another 429 every 15 minutes until midnight UTC.
+ */
+export function isDailyCapExhausted(rateLimit: RateLimit): boolean {
+  return (
+    rateLimit.dailyLimit != null &&
+    rateLimit.dailyUsage != null &&
+    rateLimit.dailyLimit > 0 &&
+    rateLimit.dailyUsage >= rateLimit.dailyLimit
+  );
+}
+
+/**
+ * Next 00:00 UTC, strictly after `nowMs`. Strava: "The daily limit resets at
+ * midnight UTC" (developers.strava.com/docs/rate-limits, read 2026-11-16).
+ * Exactly on midnight returns the FOLLOWING midnight, for the same reason as
+ * nextQuarterHour.
+ */
+export function nextUtcMidnight(nowMs: number): number {
+  return (Math.floor(nowMs / DAY_MS) + 1) * DAY_MS;
 }
 
 /**

@@ -106,6 +106,13 @@ matrix). It does not run during a read-only cloud turn, and an IDE with
 third-party import may also run the Claude `PreToolUse` hook on the same
 commit. The Claude script remains the check.
 
+Strava data has no Cursor hook. Claude Code also runs
+`.claude/hooks/block-strava-data-read.sh` on the Supabase `execute_sql` tools;
+nothing in `.cursor/hooks.json` does the same. Under Cursor the written rule is
+all there is: never query the `sessions` base table, a `strava_*` table or
+`backup_snapshots`; read `public.sessions_no_strava`. Read "Strava data and
+agent sessions" in `.claude/skills/supabase-patterns.md`.
+
 Husky is separate, and it only runs when `core.hooksPath` is `.husky`. Cursor
 cloud agents point that elsewhere, so run the commands yourself when they
 apply:

@@ -172,3 +172,91 @@ create policy "read" on <table> for select to authenticated using (true);
   migration. The payload is schema v2: rows sit under `tables`, with
   `schema_version`, `exported_at`, `excluded` and `counts` beside them; a row
   without `schema_version` is v1 (tables at the top level).
+
+## Strava data and agent sessions
+
+Strava's API Policy (§5.3) bars Strava data from being used in operating an AI
+application, including being read into a context window; Strava's own MCP
+connector is the one exception. This repo is worked on by agent sessions that
+query the database, so an agent must never read Strava data (#628, #631).
+
+**Off limits to an agent**, in any form — rows, counts, aggregates, a sample:
+
+- the `sessions` base table, because the importer writes Strava activities into it;
+- every `strava_*` table (`strava_tokens`, `strava_oauth_state`,
+  `strava_sync_state`, `strava_session_links`) and the `strava_activity_id` column;
+- the whole `backup_snapshots` table, not only its payloads (the hook blocks every
+  mention, `select id, created_at` included), and `backup_snapshot()`'s output,
+  which holds `sessions` rows. Where a workflow needs proof of a fresh backup row
+  before a destructive change, the owner confirms it at that approval gate;
+- planner statistics (`pg_stats`, `pg_statistic`, `pg_stats_ext`,
+  `pg_stats_ext_exprs`), which return sampled column values; and row counts for the
+  off-limits tables from `pg_class.reltuples` or `pg_stat_user_tables`. The hook
+  blocks the first group; it cannot see the second, so this rule covers it.
+
+**The sanctioned read is `public.sessions_no_strava`** (migration 018). It is
+`sessions` without the rows the importer inserted, without linked rows that have no
+provenance, and without `strava_activity_id`. On a row the importer adopted (a
+session the athlete had already logged), it shows the athlete's own pre-Strava
+`avg_watts` and `avg_hr` in place of Strava's. Read the view's values for an adopted
+row, never the base row. Order it by `date_iso` exactly as you would `sessions`. If
+the view is missing, an agent has no `sessions` read at all, and says so rather than
+reading the base table.
+
+**Merge order.** The guard merges with or after migrations 012 and 018 are applied
+(the view joins `strava_session_links`), and before the owner's OAuth grant. Merged
+earlier, agents lose every `sessions` read and read-back and gain nothing, because no
+Strava rows exist yet.
+
+**When the guard is live.** Hooks run from `$CLAUDE_PROJECT_DIR`, the project root
+where the session started. A session started in the main checkout is guarded only
+once that checkout has the merged files: merging on GitHub does nothing until you
+pull. A session launched inside a worktree is guarded only if that worktree's branch
+includes the commit.
+
+**Writes.** A write to `sessions` goes through the write-capable connector under the
+owner's approval, as before, and must not return row data: `INSERT … VALUES`,
+`UPDATE … SET` and `DELETE` with no `RETURNING`, no `SELECT` and no `FROM`/`USING`
+of their own. "Read back every write" becomes: read it back through
+`sessions_no_strava` (by `id`, or `date` + `label`). An adopted row reads back with
+the athlete's values, which is the point.
+
+**An agent may still run**, at go-live and after: `list_migrations`; catalogue
+queries (`information_schema`, `pg_class`, `pg_policies`, `pg_proc`, `to_regclass`)
+that name these relations only as string literals and return structure, not rows or
+counts; edge-function `verify_jwt` flags;
+`cron.job` `jobname`, `schedule` and `active` — never `command`, which holds a
+secret; unauthenticated HTTP probes of the `strava-*` functions; and snapshot
+key-presence checks such as
+`select (public.backup_snapshot()->'tables') ? 'strava_tokens'`.
+
+**The owner's alone:** any row, count or aggregate from the off-limits relations;
+the importer's dry-run and sync output; and Sentry events from the `strava-*`
+functions (project `erg-dashboard-functions`), which carry Strava activity ids. An
+agent can tell the owner which query to run; the owner runs it and reads it. For an
+agent to look at the owner's Strava data at all, the owner uses Strava's own MCP
+connector, which the policy permits.
+
+**The hook is a guardrail, not enforcement.** The connector roles bypass RLS and can
+read every table, so nothing in the database keeps an agent out. A `PreToolUse` hook
+(`.claude/hooks/block-strava-data-read.sh`) blocks a Supabase `execute_sql` call
+whose SQL names `sessions`, a `strava_*` identifier, `backup_snapshots` or the
+planner statistics outside comments and string literals. It is string matching.
+Where it does not reach, this section is the rule. It does not cover:
+
+- `run_notebook` / `create_notebook`, and `apply_migration` (a migration that
+  selects, or creates a view over the base table);
+- `query_logs` / `get_logs` for the `strava-*` functions and the Postgres logs;
+- Sentry replays and breadcrumbs from the app project (`erg-dashboard`), as well as
+  `strava-*` function events; Vercel and edge logs;
+- a write whose error message echoes a value (a failing cast in an `UPDATE`), and a
+  write that copies Strava values into columns the view exposes;
+- dynamic SQL, a function or view that reads the table under another name, `COPY`,
+  the PostgREST API, `psql` in a shell;
+- other agent hosts: Cursor, Codex, and cloud sessions on a checkout without the
+  commit (no hook; they have this rule);
+- output a person pastes in.
+
+**If the guard misfires on every call** (say a payload change in a future Claude Code
+release), the owner disables that one entry in `.claude/settings.json` and opens an
+issue. An agent never edits it out.

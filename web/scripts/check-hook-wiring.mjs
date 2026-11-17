@@ -27,6 +27,11 @@ export const EXPECTED_HOOKS = [
   { event: 'SessionStart', matcher: null, script: 'session-start.sh' },
   { event: 'PreToolUse', matcher: 'Bash', script: 'block-secret-commit.sh' },
   {
+    event: 'PreToolUse',
+    matcher: '^mcp__.*[Ss]upabase.*__execute_sql$',
+    script: 'block-strava-data-read.sh',
+  },
+  {
     event: 'PostToolUse',
     matcher: 'Edit|Write',
     script: 'lint-edited-file.sh',
@@ -65,6 +70,13 @@ export function checkWiring(settings, { exists, hookScripts }) {
   const hooks = settings.hooks;
   const wired = new Set();
   const expectedEvents = new Set(EXPECTED_HOOKS.map((h) => h.event));
+  // Events where an expected matcher was not found: the "found ..." list in
+  // that error already names the stray entries, so they are not reported twice.
+  const unmatched = new Set();
+  // The entries an expected row claimed. Every other entry is an error: a
+  // duplicate matcher, a stray command under an expected matcher, or a matcher
+  // nobody expects.
+  const claimed = new Set();
 
   for (const { event, matcher, script } of EXPECTED_HOOKS) {
     wired.add(script);
@@ -75,11 +87,13 @@ export function checkWiring(settings, { exists, hookScripts }) {
     }
     const entry = entries.find((e) => matcherOf(e) === matcher);
     if (!entry) {
+      unmatched.add(event);
       const found = entries.map((e) => show(matcherOf(e))).join(', ');
       errors.push(
         `${event}: matcher must be ${show(matcher)} (found ${found}) for ${script}`
       );
     } else {
+      claimed.add(entry);
       const want = commandFor(script);
       const list = Array.isArray(entry.hooks) ? entry.hooks : [];
       const ok = list.some((h) => h?.type === 'command' && h.command === want);
@@ -107,22 +121,27 @@ export function checkWiring(settings, { exists, hookScripts }) {
           }
         }
       }
-      for (const e of entries) {
-        if (e !== entry) {
-          errors.push(
-            `${event}: entry with ${show(matcherOf(e))} not in EXPECTED_HOOKS; add it to the table`
-          );
-        }
-      }
     }
     if (!exists(join(repoRoot, HOOKS_DIR, script))) {
       errors.push(`${event}: hook script missing: ${HOOKS_DIR}/${script}`);
     }
   }
 
+  // Once per event, not per row: an event can carry several expected matchers
+  // (PreToolUse has Bash and the Supabase SQL tools).
   for (const event of Object.keys(hooks)) {
     if (!expectedEvents.has(event)) {
       errors.push(`${event}: event not in EXPECTED_HOOKS; add it to the table`);
+      continue;
+    }
+    if (unmatched.has(event)) continue;
+    const entries = Array.isArray(hooks[event]) ? hooks[event] : [];
+    for (const e of entries) {
+      if (!claimed.has(e)) {
+        errors.push(
+          `${event}: entry with ${show(matcherOf(e))} not in EXPECTED_HOOKS; add it to the table`
+        );
+      }
     }
   }
 

@@ -136,8 +136,7 @@ via `supabase/migrations/manifest.json`; never quote a count. **An MCP `execute_
   `.claude/skills/training-science.md`; prose stays in git) and maintains itself:
   `doctrine-sha-guard.yml` opens an issue on drift; the **`Supabase Doctrine_SHA anchor
   update`** Routine supersedes it nightly at 01:00 UTC (only that key, no-op when it
-  matches, stops on ambiguity) and closes the issue. Never hand-supersede it unless the
-  Routine is disabled.
+  matches, stops on ambiguity) and closes the issue. Never hand-supersede it unless the Routine is disabled.
 - **Lanes:** Code owns the schema (tables, structural seed, migrations). Scott owns and
   authorises row content — every diary entry and anchor (`rowing_cp`, `bike_ftp`,
   `current_phase`, `current_block`, `drag_factor`), because each encodes a decision.
@@ -148,8 +147,9 @@ via `supabase/migrations/manifest.json`; never quote a count. **An MCP `execute_
   - Order `sessions` by `date_iso`, never the text `date` (lexical order returns the
     wrong rows under a `LIMIT`); descending needs `NULLS LAST` (`nullsFirst: false`).
     Never `to_date(...)`: it is STABLE, so it cannot be indexed or generated.
-  - `UNIQUE(date, label)` on `sessions` — temp-suffix labels before bulk shuffles
-    (`set label = label || '~tmp'`).
+  - **Agents never read Strava data:** reads and write read-backs go through `sessions_no_strava`,
+    never `sessions`, `strava_*` or `backup_snapshots`; the hook is a guardrail, not enforcement (`supabase-patterns.md`).
+  - `UNIQUE(date, label)` on `sessions` — temp-suffix labels before bulk shuffles (`set label = label || '~tmp'`).
   - Vitals upsert: `on conflict (user_id, date) do update`. DDL via a named
     `apply_migration`, never raw `execute_sql`; migrations are additive with a rollback
     file (`supabase-patterns.md`).

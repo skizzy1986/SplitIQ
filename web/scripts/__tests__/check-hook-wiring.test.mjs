@@ -29,7 +29,7 @@ function goodSettings() {
   for (const { event, matcher, script } of EXPECTED_HOOKS) {
     const entry = { hooks: [{ type: 'command', command: commandFor(script) }] };
     if (matcher) entry.matcher = matcher;
-    hooks[event] = [entry];
+    (hooks[event] ??= []).push(entry);
   }
   return { permissions: {}, hooks };
 }
@@ -153,6 +153,108 @@ describe('check-hook-wiring', () => {
     const errors = checkWiring({ permissions: {} }, deps());
     expect(errors).toHaveLength(1);
     expect(errors[0]).toContain('no "hooks" object');
+  });
+
+  // #631: the Strava data guard shares PreToolUse with the Bash hook. Each
+  // case starts from the REAL settings.json, so unwiring it there fails here.
+  const STRAVA = 'block-strava-data-read.sh';
+  const realDeps = { exists: existsSync, hookScripts: realScripts };
+  const strip = (s, pred) => {
+    s.hooks.PreToolUse = s.hooks.PreToolUse.filter((e) => !pred(e));
+    return s;
+  };
+  const isStrava = (e) =>
+    e.hooks?.some((h) => h.command === commandFor(STRAVA));
+
+  it('T13 removing the Strava guard entry is an error naming it', () => {
+    const s = strip(parseSettings(settingsText), isStrava);
+    const errors = checkWiring(s, realDeps);
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toMatch(/^PreToolUse: matcher must be .*block-strava/);
+  });
+
+  it('T14 a narrowed Strava matcher is reported with the value found', () => {
+    const s = parseSettings(settingsText);
+    s.hooks.PreToolUse.find(isStrava).matcher = 'mcp__Supabase__execute_sql';
+    const errors = checkWiring(s, realDeps);
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toContain("found 'Bash', 'mcp__Supabase__execute_sql'");
+  });
+
+  it('T15 a second PreToolUse entry does not flag the other as extra', () => {
+    const entries = parseSettings(settingsText).hooks.PreToolUse;
+    expect(entries.map((e) => e.matcher)).toEqual(
+      EXPECTED_HOOKS.filter((h) => h.event === 'PreToolUse').map(
+        (h) => h.matcher
+      )
+    );
+    const s = strip(parseSettings(settingsText), (e) => e.matcher === 'Bash');
+    expect(checkWiring(s, realDeps)).toEqual([
+      "PreToolUse: matcher must be 'Bash' (found '^mcp__.*[Ss]upabase.*__execute_sql$') for block-secret-commit.sh",
+    ]);
+  });
+
+  // A second entry under an EXPECTED matcher must still fail: matching an
+  // expected matcher is not the same as being the entry a row claimed.
+  const stray = (matcher, script) => ({
+    matcher,
+    hooks: [{ type: 'command', command: commandFor(script) }],
+  });
+
+  it('T17 a duplicate Bash entry running a stray script is an error', () => {
+    const s = parseSettings(settingsText);
+    s.hooks.PreToolUse.push(stray('Bash', 'stray.sh'));
+    expect(checkWiring(s, realDeps)).toEqual([
+      "PreToolUse: entry with 'Bash' not in EXPECTED_HOOKS; add it to the table",
+    ]);
+  });
+
+  it('T18 a second Supabase-matcher entry running another script is an error', () => {
+    const s = parseSettings(settingsText);
+    s.hooks.PreToolUse.push(
+      stray('^mcp__.*[Ss]upabase.*__execute_sql$', 'other.sh')
+    );
+    expect(checkWiring(s, realDeps)).toEqual([
+      "PreToolUse: entry with '^mcp__.*[Ss]upabase.*__execute_sql$' not in EXPECTED_HOOKS; add it to the table",
+    ]);
+  });
+
+  it('T19 a second Edit|Write entry is an error', () => {
+    const s = parseSettings(settingsText);
+    s.hooks.PostToolUse.push(stray('Edit|Write', 'lint-edited-file.sh'));
+    expect(checkWiring(s, realDeps)).toEqual([
+      "PostToolUse: entry with 'Edit|Write' not in EXPECTED_HOOKS; add it to the table",
+    ]);
+  });
+
+  it('T20 the real Strava entry carries a 10 s timeout and onFailure block', () => {
+    const h = parseSettings(settingsText)
+      .hooks.PreToolUse.find(isStrava)
+      .hooks.find((x) => x.command === commandFor(STRAVA));
+    expect(h).toMatchObject({ timeout: 10, onFailure: 'block' });
+  });
+
+  // Claude Code tests a matcher with any character outside [A-Za-z0-9_ ,|-] as
+  // an unanchored JS RegExp (https://code.claude.com/docs/en/hooks).
+  it('T16 the Strava matcher hits every Supabase execute_sql and nothing else', () => {
+    const re = new RegExp(
+      parseSettings(settingsText).hooks.PreToolUse.find(isStrava).matcher
+    );
+    for (const name of [
+      'mcp__Supabase__execute_sql',
+      'mcp__claude_ai_Supabase__execute_sql',
+      'mcp__supabase-readonly__execute_sql',
+    ]) {
+      expect(re.test(name)).toBe(true);
+    }
+    for (const name of [
+      'mcp__supabase-readonly__list_tables',
+      'mcp__claude_ai_Supabase__apply_migration',
+      'mcp__postgres__execute_sql',
+      'Bash',
+    ]) {
+      expect(re.test(name)).toBe(false);
+    }
   });
 
   it('T11 the CLI passes on the real repo', () => {

@@ -404,6 +404,20 @@ describe('downsample: a grouped run reaches its end', () => {
     expect(rows.at(-1).watts).toBe(250);
   });
 
+  it('a grouped row spans its group, x to xEnd; a per-sample row is one instant', () => {
+    const rows = downsample(steady(1801), 'erg', 600);
+    const groups = rows.filter((r) => r.xEnd != null);
+    // 1800 intervals in groups of four; each ends where the next begins.
+    expect(groups[0]).toMatchObject({ x: 0, xEnd: 4 });
+    for (let k = 1; k < groups.length; k += 1) {
+      expect(groups[k].x).toBe(groups[k - 1].xEnd);
+    }
+    expect(groups.at(-1).xEnd).toBe(1800);
+    expect(downsample(steady(600), 'erg', 600).some((r) => 'xEnd' in r)).toBe(
+      false
+    );
+  });
+
   it('keeps a single long run within maxPoints with its closing row', () => {
     const rows = downsample(steady(3 * 3600), 'erg', 600);
     expect(rows.length).toBeLessThanOrEqual(600);

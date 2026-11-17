@@ -210,11 +210,13 @@ export default function SessionView({
     const stats = rangeStats(series, sport, live.i0, live.i1);
     const t0 = series.t[0];
     selected = {
+      from: 'trace',
       stats,
       area: { x0: series.t[stats.i0] - t0, x1: series.t[stats.i1] - t0 },
     };
   } else if (selectedSplit) {
     selected = {
+      from: 'split',
       stats: selectedSplit,
       area: { x0: selectedSplit.startS, x1: selectedSplit.endS },
     };
@@ -420,6 +422,18 @@ export default function SessionView({
       }
     : null;
 
+  // The selection's summary sits beside the control that made it: under the
+  // trace for a drag, above the splits table for a split row, so a keyboard
+  // or phone user sees it without scrolling back up. Each spot is a polite
+  // live region, so a screen reader hears the figures as they change.
+  const rangeSummary = selected && (
+    <RangeSummary
+      stats={selected.stats}
+      sport={sport}
+      onClear={clearSelection}
+    />
+  );
+
   let trace;
   if (seriesState.state === 'loading') {
     trace = <Skeleton label={t`Loading the trace`} />;
@@ -438,18 +452,17 @@ export default function SessionView({
           selection={selected?.area ?? null}
           onSelectRange={onSelectRange}
         />
-        {selected && (
-          <RangeSummary
-            stats={selected.stats}
-            sport={sport}
-            onClear={clearSelection}
-          />
-        )}
+        <div aria-live="polite" data-live="trace">
+          {selected?.from === 'trace' && rangeSummary}
+        </div>
         <SectionHeader>{t`Time in zone`}</SectionHeader>
         <ZoneBar result={zoneResult} anchor={anchor} hasPower={has.power} />
         {splitView?.splits.length > 0 && (
           <>
             <SectionHeader>{t`Splits`}</SectionHeader>
+            <div aria-live="polite" data-live="splits">
+              {selected?.from === 'split' && rangeSummary}
+            </div>
             <SplitsTable
               splits={splitView.splits}
               sport={sport}

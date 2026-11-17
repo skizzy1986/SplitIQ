@@ -198,6 +198,20 @@ describe('normalizedPower and variabilityIndex', () => {
   });
 });
 
+describe('a session of zero power', () => {
+  it('needs power, not heart rate, and shows no zero peak', () => {
+    const s = trace(1801, () => 0);
+    expect(analysisNeeds(s)).toEqual({ variability: 'power', drift: 'power' });
+    expect(variabilityIndex(s)).toBeNull();
+    expect(aerobicDrift(s)).toBeNull();
+    expect(peakPowers(s).map((p) => [p.watts, p.needs])).toEqual([
+      [null, 'power'],
+      [null, 'power'],
+      [null, 'power'],
+    ]);
+  });
+});
+
 describe('aerobicDrift', () => {
   it('compares power per beat in the two halves of moving time', () => {
     const s = trace(

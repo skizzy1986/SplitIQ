@@ -2,6 +2,13 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import MoreDetail from '../MoreDetail.jsx';
 import { NBSP } from '../units.js';
 import { spoken } from '../../../test/sessionFixtures.js';
+import { createSeries } from '../../../utils/sessionSeries.js';
+import {
+  aerobicDrift,
+  analysisNeeds,
+  peakPowers,
+  variabilityIndex,
+} from '../../../utils/sessionAnalysis.js';
 
 const detail = (key) => document.querySelector(`[data-detail="${key}"]`);
 
@@ -55,9 +62,17 @@ describe('MoreDetail', () => {
     expect(detail('peak-60').querySelector('dd').textContent).toBe(
       `412${NBSP}W`
     );
-    expect(detail('peak-1200')).toHaveTextContent(
-      'The highest average power over any stretch of that length in the elapsed time, a pause counting as 0 W.'
-    );
+    // Each peak row carries its own derivation, with its own window.
+    for (const [key, min] of [
+      ['peak-60', 1],
+      ['peak-300', 5],
+      ['peak-1200', 20],
+    ]) {
+      expect(detail(key).querySelectorAll('dd')).toHaveLength(2);
+      expect(detail(key)).toHaveTextContent(
+        `The highest average power over any ${min} min of the elapsed time, a pause counting as 0 W.`
+      );
+    }
     const value = (key) => detail(key).querySelector('dd').textContent;
     expect(value('weighted')).toBe(`239${NBSP}W`);
     expect(detail('weighted')).toHaveTextContent('fourth power');
@@ -103,6 +118,43 @@ describe('MoreDetail', () => {
     expect(detail('drift')).toHaveTextContent(
       'Needs a heart rate reading for at least 80% of each half of the moving time.'
     );
+  });
+
+  it('a session of zero power asks for power, never for heart rate', () => {
+    const series = createSeries({
+      source: 'test',
+      t: Array.from({ length: 1801 }, (_, i) => i),
+      channels: {
+        watts: Array(1801).fill(0),
+        hr: Array(1801).fill(140),
+      },
+    });
+    render(
+      <MoreDetail
+        peaks={peakPowers(series)}
+        variability={variabilityIndex(series)}
+        drift={aerobicDrift(series)}
+        needs={analysisNeeds(series)}
+      />
+    );
+    fireEvent.click(toggle());
+    const text = document.body.textContent;
+    expect(text).not.toMatch(/heart rate reading/);
+    expect(detail('peak-60')).toHaveTextContent('Needs a power reading.');
+    for (const key of ['weighted', 'variability', 'drift']) {
+      expect(detail(key), key).toHaveTextContent(
+        'Needs a power reading for at least 80% of the moving time.'
+      );
+    }
+  });
+
+  it('leaves out a figure with no value and no known need', () => {
+    render(<MoreDetail peaks={[]} needs={{}} />);
+    fireEvent.click(toggle());
+    expect(detail('weighted')).toBeNull();
+    expect(detail('variability')).toBeNull();
+    expect(detail('drift')).toBeNull();
+    expect(document.body.textContent).not.toMatch(/Needs/);
   });
 
   it('describes; never judges or instructs', () => {

@@ -281,12 +281,12 @@ msgid "Average heart rate"
 msgstr "Average heart rate"
 
 #: src/components/session/SessionTrace.jsx
-msgid "Average heart rate {avg} bpm. Your rides in the 30 days before averaged {mean} bpm across {count} sessions."
-msgstr "Average heart rate {avg} bpm. Your rides in the 30 days before averaged {mean} bpm across {count} sessions."
+msgid "Average heart rate {own}. Your rides in the 30 days before averaged {mean} across {count} sessions."
+msgstr "Average heart rate {own}. Your rides in the 30 days before averaged {mean} across {count} sessions."
 
 #: src/components/session/SessionTrace.jsx
-msgid "Average heart rate {avg} bpm. Your rowing sessions in the 30 days before averaged {mean} bpm across {count} sessions."
-msgstr "Average heart rate {avg} bpm. Your rowing sessions in the 30 days before averaged {mean} bpm across {count} sessions."
+msgid "Average heart rate {own}. Your rowing sessions in the 30 days before averaged {mean} across {count} sessions."
+msgstr "Average heart rate {own}. Your rowing sessions in the 30 days before averaged {mean} across {count} sessions."
 
 #: src/components/session/RangeSummary.jsx
 #: src/components/session/SessionSummary.jsx
@@ -299,12 +299,12 @@ msgid "Average power"
 msgstr "Average power"
 
 #: src/components/session/SessionSummary.jsx
-msgid "Average power {watts} W. Your rides in the 30 days before averaged {mean} W across {count} sessions."
-msgstr "Average power {watts} W. Your rides in the 30 days before averaged {mean} W across {count} sessions."
+msgid "Average power {watts}. Your rides in the 30 days before averaged {mean} across {count} sessions."
+msgstr "Average power {watts}. Your rides in the 30 days before averaged {mean} across {count} sessions."
 
 #: src/components/session/SessionSummary.jsx
-msgid "Average power {watts} W. Your rowing sessions in the 30 days before averaged {mean} W across {count} sessions."
-msgstr "Average power {watts} W. Your rowing sessions in the 30 days before averaged {mean} W across {count} sessions."
+msgid "Average power {watts}. Your rowing sessions in the 30 days before averaged {mean} across {count} sessions."
+msgstr "Average power {watts}. Your rowing sessions in the 30 days before averaged {mean} across {count} sessions."
 
 #: src/components/session/MoreDetail.jsx
 msgid "Average power over average heart rate in each half of the moving time, and the change between them as a share of the first."
@@ -1867,8 +1867,8 @@ msgid "The dashboard stays dark. Light and Auto apply to the squat tool."
 msgstr "The dashboard stays dark. Light and Auto apply to the squat tool."
 
 #: src/components/session/MoreDetail.jsx
-msgid "The highest average power over any stretch of that length in the elapsed time, a pause counting as 0 W."
-msgstr "The highest average power over any stretch of that length in the elapsed time, a pause counting as 0 W."
+msgid "The highest average power over any {window} min of the elapsed time, a pause counting as 0 W."
+msgstr "The highest average power over any {window} min of the elapsed time, a pause counting as 0 W."
 
 #: src/utils/stravaStatus.js
 msgid "The last sync failed for an unrecognised reason. Try again."

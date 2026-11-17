@@ -64,17 +64,26 @@ const SMOOTHING_S = 30;
 
 const reading = (key, v) => v != null && (key === 'watts' ? v >= 0 : v > 0);
 
-// Moving seconds in the whole series, and those with a reading of `key`.
+// Moving seconds in the whole series, those with a reading of `key`, and
+// the time-weighted mean of those readings.
 function coverage(series, key) {
   const values = series.channels[key];
   let moving = 0;
   let covered = 0;
+  let sum = 0;
   for (let i = 0; i < series.n - 1; i += 1) {
     if (!series.live[i]) continue;
     moving += series.dt[i];
-    if (reading(key, values?.[i])) covered += series.dt[i];
+    if (!reading(key, values?.[i])) continue;
+    covered += series.dt[i];
+    sum += values[i] * series.dt[i];
   }
-  return { moving, covered, share: moving > 0 ? covered / moving : 0 };
+  return {
+    moving,
+    covered,
+    share: moving > 0 ? covered / moving : 0,
+    mean: covered > 0 ? sum / covered : null,
+  };
 }
 
 // Moving time cut in two halves by cumulative moving seconds; the interval
@@ -114,13 +123,16 @@ function driftHalves(series) {
 
 // What the series lacks for weighted power and variability, and for drift:
 // null when it has enough, else 'duration' (under MIN_ANALYSIS_S of moving
-// time), 'power' or 'hr' (a reading for under MIN_COVERAGE of it; for drift,
-// heart rate is checked in each half).
+// time), 'power' (a reading for under MIN_COVERAGE of it, or an average of
+// 0 W, which leaves nothing to divide by) or 'hr' (for drift, a heart-rate
+// reading for under MIN_COVERAGE of either half).
 export function analysisNeeds(series) {
   const power = coverage(series, 'watts');
   let variability = null;
   if (power.moving < MIN_ANALYSIS_S) variability = 'duration';
-  else if (power.share < MIN_COVERAGE) variability = 'power';
+  else if (power.share < MIN_COVERAGE || !(power.mean > 0)) {
+    variability = 'power';
+  }
   let drift = variability;
   if (!drift) {
     const halves = driftHalves(series);
@@ -174,6 +186,8 @@ export function peakPowers(series) {
       if (t[j] - windowS < t[0]) continue;
       best = Math.max(best, energy[j] - energyAt(t[j] - windowS, behind));
     }
+    // A session of zeros has no peak to show, only a missing reading.
+    if (!(best > 0)) return { windowS, watts: null, needs: 'power' };
     return { windowS, watts: best / windowS, needs: null };
   });
 }

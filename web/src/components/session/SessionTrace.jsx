@@ -16,6 +16,7 @@ import { FONT } from '../../constants/type.js';
 import { formatPace, wattsToPace500 } from '../../utils/pace.js';
 import { formatClock } from '../../utils/sessionPage.js';
 import TraceTooltip from './TraceTooltip.jsx';
+import { bpmText } from './units.js';
 
 // One sync group per page: one hover drives all three charts. Synchronisation
 // is by index by default, so the charts must share one rows array (Context7
@@ -192,13 +193,29 @@ function Chart({
 function timeUnder(state, rows) {
   const index = state?.activeTooltipIndex ?? state?.activeIndex;
   if (index == null) return null;
-  const x = rows[Number(index)]?.x;
-  return Number.isFinite(x) ? x : null;
+  const row = rows[Number(index)];
+  if (!Number.isFinite(row?.x)) return null;
+  // A grouped row (over 600 samples) stands for a stretch, x to xEnd; any
+  // other row for one instant.
+  return { x: row.x, xEnd: Number.isFinite(row.xEnd) ? row.xEnd : row.x };
+}
+
+// The stretch two hovered rows cover, both of their spans included, so a
+// drag in either direction holds every sample the pointer passed over. Null
+// while the pointer has not left the row it pressed on.
+function spanOf(drag) {
+  if (!drag || drag.to.x === drag.from.x) return null;
+  return {
+    x0: Math.min(drag.from.x, drag.to.x),
+    x1: Math.max(drag.from.xEnd, drag.to.xEnd),
+  };
 }
 
 // Mouse drag selection shared by the three charts. Each chart only hears the
-// pointer over itself (only tooltips sync), so the drag lives here; a
-// mouseup anywhere ends it, so leaving the charts mid-drag does too.
+// pointer over itself (only tooltips sync), so the drag lives here. A mouseup
+// anywhere in the window ends it, and so does a move with no button held,
+// which is what a release outside the window looks like when the pointer
+// comes back.
 function useDragSelect(rows, onSelectRange) {
   const [drag, setDrag] = useState(null);
   const dragRef = useRef(null);
@@ -207,13 +224,11 @@ function useDragSelect(rows, onSelectRange) {
     setDrag(next);
   };
   const finish = useCallback(() => {
-    const d = dragRef.current;
-    if (!d) return;
+    const span = spanOf(dragRef.current);
+    if (!dragRef.current) return;
     dragRef.current = null;
     setDrag(null);
-    if (d.to !== d.from) {
-      onSelectRange?.(Math.min(d.from, d.to), Math.max(d.from, d.to));
-    }
+    if (span) onSelectRange?.(span.x0, span.x1);
   }, [onSelectRange]);
   const dragging = drag != null;
   useEffect(() => {
@@ -223,20 +238,20 @@ function useDragSelect(rows, onSelectRange) {
   }, [dragging, finish]);
   if (!onSelectRange) return { area: null, handlers: null };
   return {
-    area:
-      drag && drag.to !== drag.from
-        ? { x0: Math.min(drag.from, drag.to), x1: Math.max(drag.from, drag.to) }
-        : null,
+    area: spanOf(drag),
     handlers: {
       onMouseDown: (state) => {
-        const x = timeUnder(state, rows);
-        if (x != null) update({ from: x, to: x });
+        const at = timeUnder(state, rows);
+        if (at) update({ from: at, to: at });
       },
-      onMouseMove: (state) => {
-        const x = timeUnder(state, rows);
-        if (dragRef.current && x != null) {
-          update({ ...dragRef.current, to: x });
+      onMouseMove: (state, event) => {
+        if (!dragRef.current) return;
+        if (event?.buttons === 0) {
+          finish();
+          return;
         }
+        const at = timeUnder(state, rows);
+        if (at) update({ ...dragRef.current, to: at });
       },
       onMouseUp: finish,
     },
@@ -377,13 +392,14 @@ export default function SessionTrace({
       />
     );
     if (hrBaseline && avg != null) {
-      const mean = Math.round(hrBaseline.meanHr);
+      const own = bpmText(avg);
+      const mean = bpmText(hrBaseline.meanHr);
       const count = hrBaseline.count;
       out.push(
         <p key="hr-history" style={missingStyle}>
           {sport === 'cycling'
-            ? t`Average heart rate ${avg} bpm. Your rides in the 30 days before averaged ${mean} bpm across ${count} sessions.`
-            : t`Average heart rate ${avg} bpm. Your rowing sessions in the 30 days before averaged ${mean} bpm across ${count} sessions.`}
+            ? t`Average heart rate ${own}. Your rides in the 30 days before averaged ${mean} across ${count} sessions.`
+            : t`Average heart rate ${own}. Your rowing sessions in the 30 days before averaged ${mean} across ${count} sessions.`}
         </p>
       );
     }

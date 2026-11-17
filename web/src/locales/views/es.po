@@ -119,7 +119,7 @@ msgstr "{minutes, plural, one {# minuto de remo.} other {# minutos de remo.}}"
 #. Splits table: the last split, shorter than the others
 #: src/components/session/SplitsTable.jsx
 msgid "{n} (partial)"
-msgstr "{n} (parcial)"
+msgstr "{n} (incompleto)"
 
 #: src/utils/stravaDisconnect.js
 msgid "{restore, plural, one {Strava power and heart rate removed from {restore} session you logged yourself.} other {Strava power and heart rate removed from {restore} sessions you logged yourself.}}"
@@ -281,12 +281,12 @@ msgid "Average heart rate"
 msgstr "Frecuencia cardíaca promedio"
 
 #: src/components/session/SessionTrace.jsx
-msgid "Average heart rate {avg} bpm. Your rides in the 30 days before averaged {mean} bpm across {count} sessions."
-msgstr "Frecuencia cardíaca promedio {avg} bpm. Tus salidas en bici de los 30 días anteriores promediaron {mean} bpm en {count} sesiones."
+msgid "Average heart rate {own}. Your rides in the 30 days before averaged {mean} across {count} sessions."
+msgstr "Frecuencia cardíaca promedio {own}. Tus salidas en bici de los 30 días anteriores promediaron {mean} en {count} sesiones."
 
 #: src/components/session/SessionTrace.jsx
-msgid "Average heart rate {avg} bpm. Your rowing sessions in the 30 days before averaged {mean} bpm across {count} sessions."
-msgstr "Frecuencia cardíaca promedio {avg} bpm. Tus sesiones de remo de los 30 días anteriores promediaron {mean} bpm en {count} sesiones."
+msgid "Average heart rate {own}. Your rowing sessions in the 30 days before averaged {mean} across {count} sessions."
+msgstr "Frecuencia cardíaca promedio {own}. Tus sesiones de remo de los 30 días anteriores promediaron {mean} en {count} sesiones."
 
 #: src/components/session/RangeSummary.jsx
 #: src/components/session/SessionSummary.jsx
@@ -299,12 +299,12 @@ msgid "Average power"
 msgstr "Potencia promedio"
 
 #: src/components/session/SessionSummary.jsx
-msgid "Average power {watts} W. Your rides in the 30 days before averaged {mean} W across {count} sessions."
-msgstr "Potencia promedio {watts} W. Tus salidas en bici de los 30 días anteriores promediaron {mean} W en {count} sesiones."
+msgid "Average power {watts}. Your rides in the 30 days before averaged {mean} across {count} sessions."
+msgstr "Potencia promedio {watts}. Tus salidas en bici de los 30 días anteriores promediaron {mean} en {count} sesiones."
 
 #: src/components/session/SessionSummary.jsx
-msgid "Average power {watts} W. Your rowing sessions in the 30 days before averaged {mean} W across {count} sessions."
-msgstr "Potencia promedio {watts} W. Tus sesiones de remo de los 30 días anteriores promediaron {mean} W en {count} sesiones."
+msgid "Average power {watts}. Your rowing sessions in the 30 days before averaged {mean} across {count} sessions."
+msgstr "Potencia promedio {watts}. Tus sesiones de remo de los 30 días anteriores promediaron {mean} en {count} sesiones."
 
 #: src/components/session/MoreDetail.jsx
 msgid "Average power over average heart rate in each half of the moving time, and the change between them as a share of the first."
@@ -1257,7 +1257,7 @@ msgstr "ritmo a partir de la potencia"
 
 #: src/components/session/MoreDetail.jsx
 msgid "Peak power, {window} min"
-msgstr "Potencia máxima, {window} min"
+msgstr "Potencia pico, {window} min"
 
 #. Desktop Train pane
 #: src/App.jsx
@@ -1867,8 +1867,8 @@ msgid "The dashboard stays dark. Light and Auto apply to the squat tool."
 msgstr "El panel permanece oscuro. Claro y Automático se aplican a la herramienta de sentadilla."
 
 #: src/components/session/MoreDetail.jsx
-msgid "The highest average power over any stretch of that length in the elapsed time, a pause counting as 0 W."
-msgstr "La potencia promedio más alta en cualquier tramo de esa duración dentro del tiempo total; una pausa cuenta como 0 W."
+msgid "The highest average power over any {window} min of the elapsed time, a pause counting as 0 W."
+msgstr "La potencia promedio más alta en cualquier tramo de {window} min dentro del tiempo total; una pausa cuenta como 0 W."
 
 #: src/utils/stravaStatus.js
 msgid "The last sync failed for an unrecognised reason. Try again."

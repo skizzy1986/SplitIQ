@@ -901,7 +901,7 @@ describe('Session page in Spanish', () => {
     ).toBeInTheDocument();
     expect(screen.getAllByRole('columnheader')[0]).toHaveTextContent('Parcial');
     expect(
-      screen.getByRole('button', { name: '15 (parcial)' })
+      screen.getByRole('button', { name: '15 (incompleto)' })
     ).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '1' }));
     expect(
@@ -911,7 +911,7 @@ describe('Session page in Spanish', () => {
     expect(screen.getByRole('button', { name: 'Quitar' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Más detalle' }));
     for (const text of [
-      'Potencia máxima, 1 min',
+      'Potencia pico, 1 min',
       'Potencia ponderada',
       'Variabilidad',
       'Deriva',

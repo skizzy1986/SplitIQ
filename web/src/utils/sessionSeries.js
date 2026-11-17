@@ -419,9 +419,10 @@ const gapRow = (x) => {
 // the line breaks there and nowhere else.
 //   n <= maxPoints: one row per sample, x = t[i] - t[0].
 //   above that: consecutive moving intervals grouped by index, each value the
-//   group's time-weighted mean, plus one row per run at its closing sample
-//   carrying that sample's own values (as the per-sample path draws it), so
-//   the line reaches the run's end. The group size leaves room for those rows
+//   group's time-weighted mean, x its first sample and xEnd its last (a row
+//   without xEnd stands for one instant), plus one row per run at its
+//   closing sample carrying that sample's own values (as the per-sample path
+//   draws it), so the line reaches the run's end. The group size leaves room for those rows
 //   and the gaps, so the total stays within maxPoints. Grouping by index, not
 //   by clock, means irregular spacing can never leave an empty group.
 export function downsample(series, sport, maxPoints = 600) {
@@ -466,7 +467,9 @@ export function downsample(series, sport, maxPoints = 600) {
     if (r > 0) pushGap((t[runs[r - 1][1]] + t[a]) / 2 - t0);
     for (let g = a; g < b; g += size) {
       const end = Math.min(g + size, b);
-      const row = { x: t[g] - t0 };
+      // xEnd: where the group's last interval ends, so a selection made on
+      // this row can cover every sample the row stands for.
+      const row = { x: t[g] - t0, xEnd: t[end] - t0 };
       for (const key of ROW_KEYS) {
         let sum = 0;
         let weight = 0;

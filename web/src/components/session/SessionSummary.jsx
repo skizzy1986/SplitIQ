@@ -125,13 +125,13 @@ export default function SessionSummary({
   const ownWatts = summary.avgWatts;
   let history = null;
   if (baseline && ownWatts) {
-    const watts = Math.round(ownWatts);
-    const mean = Math.round(baseline.meanWatts);
+    const watts = wattsText(ownWatts);
+    const mean = wattsText(baseline.meanWatts);
     const count = baseline.count;
     history =
       sport === 'cycling'
-        ? t`Average power ${watts} W. Your rides in the 30 days before averaged ${mean} W across ${count} sessions.`
-        : t`Average power ${watts} W. Your rowing sessions in the 30 days before averaged ${mean} W across ${count} sessions.`;
+        ? t`Average power ${watts}. Your rides in the 30 days before averaged ${mean} across ${count} sessions.`
+        : t`Average power ${watts}. Your rowing sessions in the 30 days before averaged ${mean} across ${count} sessions.`;
   }
 
   return (

@@ -51,23 +51,32 @@ export default function MoreDetail({
     if (need === 'power') {
       return t`Needs a power reading for at least ${percent}% of the moving time.`;
     }
-    return t`Needs a heart rate reading for at least ${percent}% of each half of the moving time.`;
+    if (need === 'hr') {
+      return t`Needs a heart rate reading for at least ${percent}% of each half of the moving time.`;
+    }
+    return null;
   };
 
   const rows = [];
-  const add = (key, name, value, how) => rows.push({ key, name, value, how });
+  // A figure with neither a value nor a known need is left out, not guessed at.
+  const add = (key, name, value, how) => {
+    if (value != null) rows.push({ key, name, value, how });
+  };
 
   for (const p of peaks) {
     const window = Math.round(p.windowS / 60);
-    let value;
+    let value = null;
     if (p.watts != null) value = wattsText(p.watts);
     else if (p.needs === 'power') value = t`Needs a power reading.`;
-    else value = t`Needs a session at least ${window} min long.`;
-    add(`peak-${p.windowS}`, t`Peak power, ${window} min`, value, null);
-  }
-  if (peaks.length) {
-    rows[rows.length - 1].how =
-      t`The highest average power over any stretch of that length in the elapsed time, a pause counting as 0 W.`;
+    else if (p.needs === 'duration') {
+      value = t`Needs a session at least ${window} min long.`;
+    }
+    add(
+      `peak-${p.windowS}`,
+      t`Peak power, ${window} min`,
+      value,
+      t`The highest average power over any ${window} min of the elapsed time, a pause counting as 0 W.`
+    );
   }
 
   add(

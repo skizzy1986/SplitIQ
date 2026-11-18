@@ -52,8 +52,7 @@
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "recharts": "^3.10.1",
-    "three": "0.187.0",
-    "vite-plugin-pwa": "^2.0.0"
+    "three": "0.187.0"
   },
   "overrides": {
     "eslint-plugin-react": {
@@ -85,6 +84,7 @@
     "prettier": "^3.10.1",
     "sharp": "^0.35.5",
     "vite": "^8.3.8",
+    "vite-plugin-pwa": "^2.0.0",
     "vitest": "^5.1.0"
   }
 }

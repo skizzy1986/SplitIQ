@@ -1,11 +1,11 @@
 // Dev container for SplitIQ — the "desktop box".
 //
 // WHAT THIS IS FOR: one definition of the dev toolchain that VS Code, Cursor,
-// Codespaces and Claude Code all use. On Scott's desktop it is reached three
-// ways at once, all landing in the same container: VS Code on the laptop over a
-// Remote Tunnel ("Reopen in Container"), the Claude Code CLI in its terminal, and
-// `claude remote-control` started inside it, which puts that session on
-// claude.ai/code, the phone and the Desktop app. Setup: docs/DEV_ENVIRONMENTS.md.
+// Codespaces and Claude Code all use. It can be reached three ways at once, all
+// landing in the same container: VS Code ("Reopen in Container", locally or over
+// a Remote Tunnel to the machine running Docker), the Claude Code CLI in its
+// terminal, and `claude remote-control` started inside it, which puts that
+// session on claude.ai/code and the Claude app. Usage: docs/DEV_ENVIRONMENTS.md.
 //
 // WHAT IT IS NOT: the Anthropic-managed cloud environments (SplitIQ, Full,
 // Default) do NOT read this file — they are a setup script on a fixed base image,
@@ -14,7 +14,7 @@
 // https://code.claude.com/docs/en/cloud-environments
 //
 // WHY DOCKER-OUTSIDE-OF-DOCKER: containers started in here run on the HOST's
-// Docker (the desktop's Docker Desktop), sharing its image cache — the ~2 GB
+// Docker (e.g. its Docker Desktop), sharing its image cache — the ~2 GB
 // Playwright image is pulled once, not once per container rebuild — and they show
 // in Docker Desktop. The cost: a `docker run -v` path is resolved on the host, so
 // it must be the host path, which is why LOCAL_WORKSPACE_FOLDER is exported

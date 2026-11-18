@@ -74,6 +74,14 @@ check:migrations | check:no-llm | check:names | check:hooks`.
   guardrail, not the reason.
 - Never hardcode credentials (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`).
 
+### Context7
+
+Library docs come from the Context7 MCP connector, never from memory, and before
+WebSearch: `resolve-library-id` (`libraryName`, `query`) → `query-docs` (`libraryId`,
+`query`). This binds on every library in the stack. Fall back to WebSearch only when
+it returns nothing, or for tooling it does not index. **Name the source for every
+library claim.** SplitIQ-ops `scripts/check-context7.mjs` guards this rule.
+
 ## Shipping
 
 GitHub Issue → branch → PR → CI → `main`. Branch `<type>/<issue>-<slug>`; PR title

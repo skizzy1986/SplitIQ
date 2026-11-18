@@ -3,6 +3,9 @@
 This is enough to rebuild the claude.ai cloud environment for this repo from nothing.
 Every setting carries its reason, so a later change can be judged against why it was made.
 
+This is the cloud box of two; the desktop dev container and the shared
+`npm run e2e:docker` are in `docs/DEV_ENVIRONMENTS.md`.
+
 The environment itself is configured in claude.ai (the environment settings for Claude
 Code on the web), not in the repo. Only two pieces live in git: the project permissions in
 `.claude/settings.json` and the SessionStart hook in `.claude/hooks/session-start.sh`.

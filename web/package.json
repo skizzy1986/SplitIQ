@@ -15,6 +15,7 @@
     "test:e2e": "playwright test --project=chromium",
     "test:visual": "playwright test --project=visual",
     "test:visual:update": "playwright test --project=visual --update-snapshots",
+    "e2e:docker": "node scripts/playwright-docker.mjs",
     "lint": "eslint src/ scripts/",
     "format": "prettier --write src/ scripts/",
     "format:check": "prettier --check src/ scripts/",

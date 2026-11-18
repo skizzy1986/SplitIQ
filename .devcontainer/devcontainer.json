@@ -1,27 +1,32 @@
-// Dev container for SplitIQ.
+// Dev container for SplitIQ — the "desktop box".
 //
-// WHAT THIS IS FOR: one definition of the dev toolchain that VS Code, Cursor and
-// GitHub Codespaces all read, so the environment is described once in the repo
-// instead of rebuilt by hand per machine and per editor. The anthropics feature
-// installs the Claude Code CLI inside it, so a container session gets the same
-// box the editors do.
+// WHAT THIS IS FOR: one definition of the dev toolchain that VS Code, Cursor,
+// Codespaces and Claude Code all use. On Scott's desktop it is reached three
+// ways at once, all landing in the same container: VS Code on the laptop over a
+// Remote Tunnel ("Reopen in Container"), the Claude Code CLI in its terminal, and
+// `claude remote-control` started inside it, which puts that session on
+// claude.ai/code, the phone and the Desktop app. Setup: docs/DEV_ENVIRONMENTS.md.
 //
 // WHAT IT IS NOT: the Anthropic-managed cloud environments (SplitIQ, Full,
-// Default) do NOT read this file. Those are configured by a setup script layered
-// on a base image that cannot be replaced, and no editor can attach to them —
-// they have no SSH. Keeping them in step with this file is manual, and that is
-// the one duplication there is no way around.
+// Default) do NOT read this file — they are a setup script on a fixed base image,
+// and no editor can attach to them. That is the "cloud box"; the two boxes share
+// the toolchain versions and `npm run e2e:docker`, not a definition.
 // https://code.claude.com/docs/en/cloud-environments
+//
+// WHY DOCKER-OUTSIDE-OF-DOCKER: containers started in here run on the HOST's
+// Docker (the desktop's Docker Desktop), sharing its image cache — the ~2 GB
+// Playwright image is pulled once, not once per container rebuild — and they show
+// in Docker Desktop. The cost: a `docker run -v` path is resolved on the host, so
+// it must be the host path, which is why LOCAL_WORKSPACE_FOLDER is exported
+// below and web/scripts/playwright-docker.mjs uses it.
+// https://github.com/devcontainers/features/tree/main/src/docker-outside-of-docker
 //
 // WHY PLAYWRIGHT IS NOT BAKED IN: a visual baseline is only valid when generated
 // in the exact pinned image, and e2e-web.yml reads that tag FROM
-// web/package-lock.json specifically so a hardcoded tag cannot rot (see its
-// header — a hardcoded tag died on every Dependabot bump). Hardcoding the same
-// tag here would reintroduce that rot with a worse failure mode: a drifted
-// container still produces PNGs, they are just silently wrong. So this ships
-// docker-in-docker instead, and the documented `docker run` recipe in
-// web/e2e/visual.spec.js runs unchanged inside it, reading the version from the
-// lockfile exactly as CI does. One source of truth, not two.
+// web/package-lock.json so a hardcoded tag cannot rot. Hardcoding it here would
+// reintroduce that rot with a worse failure mode: a drifted container still
+// produces PNGs, they are just silently wrong. `npm run e2e:docker` reads the
+// version from the lockfile exactly as CI does. One source of truth, not two.
 //
 // WHY NO ANDROID SDK: ci-android.yml builds the APK on a GitHub runner that
 // already ships the SDK. Adding it here would cost several GB on every container
@@ -51,11 +56,24 @@
     // pipeline/squat-anatomy; ci-pipeline.yml pins 3.13.
     "ghcr.io/devcontainers/features/python:1": { "version": "3.13" },
 
-    // Lets the pinned-Playwright `docker run` recipe work inside the container.
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    // Docker CLI wired to the host's daemon — see the header.
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
 
     "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
   },
+
+  // The host path of this checkout, for `docker run -v` under
+  // docker-outside-of-docker.
+  "remoteEnv": { "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}" },
+
+  // Keeps the Claude Code login, settings and the Remote Control trust prompt
+  // across rebuilds. Without CLAUDE_CONFIG_DIR, ~/.claude.json stays in the home
+  // directory and is discarded on rebuild.
+  // https://code.claude.com/docs/en/devcontainer#persist-authentication-and-settings-across-rebuilds
+  "mounts": [
+    "source=claude-code-config-${devcontainerId},target=/home/node/.claude,type=volume"
+  ],
+  "containerEnv": { "CLAUDE_CONFIG_DIR": "/home/node/.claude" },
 
   // Runs during a Codespaces prebuild, so node_modules is baked into the
   // prebuilt image rather than installed on every start. postCreateCommand

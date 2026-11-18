@@ -7,7 +7,9 @@ export const NBSP = '\u00a0';
 export const withUnit = (value, unit) => `${value}${NBSP}${unit}`;
 
 export const PACE_UNIT = `/500${NBSP}m`;
-export const paceText = (secs) => withUnit(formatPace(secs), PACE_UNIT);
+// The one exception: a pace may break before "/500 m". Held whole, it runs
+// out of a summary tile on a desktop row of six.
+export const paceText = (secs) => `${formatPace(secs)} ${PACE_UNIT}`;
 export const wattsText = (w) => withUnit(Math.round(w), 'W');
 export const bpmText = (hr) => withUnit(Math.round(hr), 'bpm');
 export const rateText = (rate, sport) =>

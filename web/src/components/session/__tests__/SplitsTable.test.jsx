@@ -59,7 +59,7 @@ describe('SplitsTable', () => {
       '2:05',
       `500${NBSP}m`,
       `200${NBSP}W`,
-      `2:05.0${NBSP}/500${NBSP}m`,
+      `2:05.0 /500${NBSP}m`,
       `140${NBSP}bpm`,
       `24${NBSP}spm`,
     ]);

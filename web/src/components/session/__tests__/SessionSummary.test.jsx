@@ -187,8 +187,9 @@ describe('SessionSummary', () => {
     });
     // The value line of each tile, label and detail aside.
     const value = (key) => tile(key).firstChild.children[1].textContent;
-    expect(value('pace')).toBe('2:05.0\u00a0/500\u00a0m');
-    expect(value('pace')).not.toContain(' ');
+    // A pace may break before its unit (else it overflows a desktop tile);
+    // the unit itself stays whole.
+    expect(value('pace')).toBe('2:05.0 /500\u00a0m');
     for (const key of [
       'distance',
       'watts',

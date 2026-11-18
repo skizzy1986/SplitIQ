@@ -26,7 +26,7 @@ describe('RangeSummary', () => {
     expect(value('elapsed')).toBe('5:30');
     expect(value('distance')).toBe(`1.20${NBSP}km`);
     expect(value('watts')).toBe(`201${NBSP}W`);
-    expect(value('pace')).toBe(`2:05.0${NBSP}/500${NBSP}m`);
+    expect(value('pace')).toBe(`2:05.0 /500${NBSP}m`);
     expect(value('hr')).toBe(`151${NBSP}bpm`);
     expect(value('rate')).toBe(`24${NBSP}spm`);
     expect(screen.getByText('Average stroke rate')).toBeInTheDocument();

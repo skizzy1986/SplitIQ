@@ -31,13 +31,29 @@ build need no Docker — run them directly in either box.
    the clone **inside WSL** (`~/SplitIQ`, not `/mnt/c/...`): bind mounts from the Windows
    filesystem make `npm ci` and vitest crawl. Run the steps below from the WSL shell.
 2. Clone the repo (the main checkout — **not** a git worktree; see the devcontainer header).
-3. Start the tunnel as a service so it survives reboots and logout
-   ([Remote Tunnels](https://code.visualstudio.com/docs/remote/tunnels)):
+3. Start the tunnel as a service ([Remote Tunnels](https://code.visualstudio.com/docs/remote/tunnels)):
    ```
    code tunnel service install
    ```
-   Sign in with GitHub when asked, and name the machine. Stop the desktop sleeping, or
-   the tunnel drops (`code tunnel --no-sleep` for a foreground run).
+   Sign in with GitHub when asked, and name the machine.
+4. **On Windows, keep WSL — and so the tunnel — running.** A WSL distro is not an
+   always-on Linux box, and each of these alone drops the tunnel:
+   - **systemd off.** The Linux tunnel service is a systemd *user* unit. In
+     `/etc/wsl.conf` set `[boot]` `systemd=true` (its default is `false` —
+     [WSL config](https://learn.microsoft.com/windows/wsl/wsl-config#systemd-support)).
+   - **User units stop at disconnect.** Run `sudo loginctl enable-linger $USER` once — the
+     CLI's own tip (`cli/src/tunnels/service_linux.rs` in microsoft/vscode).
+   - **WSL idles out.** A distro shuts down 15 s after its last shell closes. In
+     `%UserProfile%\.wslconfig` set `[general]` `instanceIdleTimeout=-1`
+     ([WSL config](https://learn.microsoft.com/windows/wsl/wsl-config#general-wsl-settings)).
+   - **Nothing starts WSL at boot.** Add a Task Scheduler task, trigger *At log on*,
+     action `wsl.exe -d Ubuntu --exec /bin/true` (name your distro). With the idle timeout
+     off, starting it once keeps it up.
+
+   Then `wsl --shutdown` from PowerShell so the settings take effect. Also: Docker Desktop
+   set to start at sign-in with WSL integration on for the distro, and Windows power
+   settings to never sleep on mains. Both the task and Docker Desktop need you signed in
+   — a locked screen is fine, signed out is not.
 
 ## Desktop box — from the laptop
 
@@ -70,5 +86,7 @@ host worktree opened from outside.
 - The docker-outside-of-docker feature has not been built — only `npm run e2e:docker` in
   the cloud box (Smoke 69 passed, Visual 10 passed against the committed baselines).
 - Python 3.13 feature: not built yet.
+- The Windows keep-alive in setup step 4 is assembled from the WSL and VS Code docs and
+  the CLI source; not yet run on the desktop.
 - Codespaces with docker-outside-of-docker: whether `LOCAL_WORKSPACE_FOLDER` resolves to a
   path its Docker host can mount is untested.

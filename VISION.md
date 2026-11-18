@@ -61,9 +61,11 @@ quietly reintroduce them.
   Coach tab, `coach_messages`) is removed, not fixed. It also sidesteps per-user
   inference cost and two external constraints a public AI feature would have had to
   answer for — the EU AI Act's chatbot disclosure duty and Strava's API terms on
-  using its data in AI models. Both were read from secondary sources only; they are
-  a bonus of this decision, not its basis. A person coaching through the app is not
-  AI coaching, and neither is the planner below: it is ordinary, tested code.
+  using its data in AI models. The AI Act duty was read from secondary sources only;
+  Strava's terms were read first-hand on 2026-11-18 (API Policy §5.3, quoted in
+  `docs/strava/API_TERMS.md`). Both are a bonus of this decision, not its basis. A
+  person coaching through the app is not AI coaching, and neither is the planner
+  below: it is ordinary, tested code.
 - **No prescription fitted to one person in the source.** Nothing in the code
   prescribes one athlete's season. Microcycles, roster regimes, event ladders and
   adaptive rules fitted to one person's June numbers are gone, and they stay gone.

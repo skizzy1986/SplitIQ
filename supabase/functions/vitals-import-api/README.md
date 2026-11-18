@@ -57,7 +57,7 @@ Set in Supabase dashboard → Edge Functions → Secrets.
 ## Getting the refresh token
 
 One-time local grant (Bridge/Scott, ~20 min). Full Google Cloud setup is in
-`coach/work-orders/WO-005-google-health-api.md` §Google Cloud Setup. Briefly:
+the WO-005 work order (private) §Google Cloud Setup. Briefly:
 
 1. Create a GCP project, enable the Google Health API, configure the OAuth consent
    screen (User type **External**, publishing status **Production** — Testing tokens

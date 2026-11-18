@@ -13,7 +13,7 @@ body:
     id: layer
     attributes:
       label: Target layer
-      description: Per the strangler-fig migration order in .claude/skills/architecture.md.
+      description: One strangler-fig extraction at a time, never a rewrite.
       options:
         - constants
         - utils

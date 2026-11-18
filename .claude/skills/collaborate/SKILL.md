@@ -57,7 +57,7 @@ architecture, the quality bar — still applies to any code you write.
   unless Scott has asked for it in a Discussion.
 - **No secrets, no personal data.** Don't create `.env` files with real keys, don't use
   any Supabase, Sentry or Vercel connector against Scott's projects, and don't quote
-  Scott's personal training details (in `coach/` or the database) in anything you post.
+  Scott's personal training details (from the app or the database) in anything you post.
 - **Honesty labels stay.** The model's values are *modelled*; activation is *estimated,
   not EMG*. Never present a modelled number as measured.
 - **Licences — check `PERMISSIONS.md` first.** The code is proprietary (root `LICENSE`)
@@ -74,7 +74,7 @@ architecture, the quality bar — still applies to any code you write.
     Keep open-source library licence notices (three.js and others).
   - **Never add OpenCap data** to the repo or his published projects
     (`docs/squat/LAB_DATA.md` explains why).
-  - **Never publish Scott's personal training material** (`coach/`).
+  - **Never publish Scott's personal training material.**
 
 ## What to ignore in `CLAUDE.md`
 
@@ -92,8 +92,9 @@ Those sections are for Scott's own sessions. In collaborator mode:
 
 ## Library documentation
 
-When you rely on a library API (React, Vite, Vitest, three.js, Playwright…), follow the
-Context7-first rule in `.claude/skills/erg-context.md` and name your source.
+When you rely on a library API (React, Vite, Vitest, three.js, Playwright…), look it up
+in Context7 first (`resolve-library-id` → `query-docs`), never answer from memory, and
+name your source.
 
 ## Workflows (pick the one that matches what he asks)
 
@@ -115,7 +116,7 @@ Use `docs/onboarding/README.md` as the map. In short chapters, with him clicking
 `/squat` as you go: what the tool shows; how the data loads; how the 3D model is posed
 (`web/src/anatomy/`, `docs/squat/SKINNING.md` — explain the idea, not the maths, unless
 he asks); where coaching content lives (`web/src/squat/constants/`); how Scott's build
-pipeline works (`FACTORY.md`). Check understanding with a question at the end of each
+pipeline works (the outline in `README.md`). Check understanding with a question at the end of each
 chapter.
 
 ### `idea <topic>` — turn a thought into something Scott can act on
@@ -163,9 +164,9 @@ don't. Post the result as an Idea.
 
 ### `learn <topic>` — understand how and why it was built
 For curiosity rather than output. Good topics: how the 3D posing works; how a React
-component is tested; what CI checks and why (`.github/workflows/`, and "What protects
-`main`" in `.claude/skills/steward/SKILL.md`); how Scott's agent pipeline is staged and gated (`FACTORY.md`,
-`.claude/skills/orchestrate/SKILL.md`) and why gates catch bugs; how the bundle budgets
+component is tested; what CI checks and why (`.github/workflows/`, each file's header says why it
+exists); how Scott's agent pipeline is staged and gated (the outline in `README.md`) and
+why gates catch bugs; how the bundle budgets
 work. Explain with the real files open, use small experiments on an `explore/` branch
 ("change this number, watch what happens"), and finish with one or two things he could
 try next. If he wants, run a **practice `/orchestrate`** on a tiny change in his clone,

@@ -7,7 +7,7 @@
 # roles behind the agent connectors bypass RLS, so nothing in the database can
 # keep an agent out. This hook is a GUARDRAIL, NOT ENFORCEMENT: it blocks the
 # obvious reads and says what to do instead. The rules it backs are in
-# .claude/skills/supabase-patterns.md, "Strava data and agent sessions".
+# the Supabase doctrine, "Strava data and agent sessions" (private skill, #674).
 #
 # Merge order: this ships with or after migrations 012 and 018 are applied (the
 # sessions_no_strava view joins strava_session_links) and before the owner's
@@ -76,15 +76,15 @@
 set -uo pipefail
 
 if ! command -v node >/dev/null 2>&1; then
-  echo "BLOCKED: the Strava data guard could not run (node not found), so Supabase SQL is blocked. Install node, or ask the owner to run the query. See .claude/skills/supabase-patterns.md." >&2
+  echo "BLOCKED: the Strava data guard could not run (node not found), so Supabase SQL is blocked. Install node, or ask the owner to run the query. Rule: references/supabase-patterns.md in the anthropic-skills:splitiq skill." >&2
   exit 2
 fi
 
 # The payload is piped straight to node: an env var or argv would hit the
 # Windows 32 KB limit, and execute_sql accepts queries up to about 2 MB.
 node -e '
-const FAIL = "BLOCKED: the Strava data guard could not read this tool call, so it is blocked. Ask the owner to run the query. See .claude/skills/supabase-patterns.md.";
-const ADVICE = "Read sessions through public.sessions_no_strava. Dry-run output, sync results and any read-back that returns Strava data are run and read by the owner, not an agent. Rule: .claude/skills/supabase-patterns.md, \"Strava data and agent sessions\".";
+const FAIL = "BLOCKED: the Strava data guard could not read this tool call, so it is blocked. Ask the owner to run the query. Rule: references/supabase-patterns.md in the anthropic-skills:splitiq skill.";
+const ADVICE = "Read sessions through public.sessions_no_strava. Dry-run output, sync results and any read-back that returns Strava data are run and read by the owner, not an agent. Rule: references/supabase-patterns.md in the anthropic-skills:splitiq skill, \"Strava data and agent sessions\".";
 
 function block(msg) {
   process.stderr.write(msg + "\n");

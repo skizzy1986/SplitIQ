@@ -16,7 +16,7 @@
 //
 //   live       (--live <path>) additionally diffs the manifest against a saved
 //              `list_migrations` result. CI cannot produce that file; the
-//              nightly scheduled task in docs/routines/migration-drift-check.md
+//              nightly scheduled task (migration drift check, private)
 //              does, and opens an issue on drift.
 //
 // Exit codes: 0 OK; 1 manifest invalid or drift; 2 usage error, unreadable or
@@ -538,7 +538,7 @@ export function summarise(manifest, names) {
 const REMEDY =
   'Fix the manifest, or apply the migration — never weaken this check to make\n' +
   'it pass. A manifest that disagrees with production is exactly the silent\n' +
-  'state #429 was. See WORKFLOW.md § Database migrations.\n';
+  'state #429 was. See supabase/migrations/manifest.json.\n';
 
 function fail(header, items, kinds) {
   console.error(`\n${header}\n`);

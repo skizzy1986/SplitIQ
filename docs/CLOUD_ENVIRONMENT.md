@@ -353,7 +353,7 @@ run: eight `move` dispatches queued together on 2026-11-07 ran two and cancelled
 background `until` loop polling `gh api repos/<owner>/<repo>/actions/workflows/project-board.yml/runs?per_page=1`
 works for the wait (that read path was reachable on 2026-11-07, despite the caveat below).
 
-The board's built-in workflows handle every automatic move (see `WORKFLOW.md`). This
+The board's built-in workflows handle every automatic move (see `.github/workflows/add-to-project.yml`). This
 workflow exists so a session can read the board and set the roadmap fields. It was also
 how a session made the two hand moves, to Ready and to In progress. Those moves were
 retired on 2026-11-16 (#593): status comes from the Kepler stage and the PR, so `move`
@@ -414,7 +414,7 @@ standing caller.
 **The one automatic writer.** `.github/workflows/discussion-shipped.yml` is not dispatched
 by a session. It runs when a PR merges into `main` and posts a fixed "Shipped: #PR closed
 #issue" reply on the Discussion an issue names with a `Discussion:` line. It is the only
-Discussions write with no approval step; `WORKFLOW.md`, *Ideas that start in Discussions*,
+Discussions write with no approval step; the workflow doc (private), *Ideas that start in Discussions*,
 has the convention.
 
 **Author.** With no extra setup the post is authored by `github-actions[bot]`. To post as

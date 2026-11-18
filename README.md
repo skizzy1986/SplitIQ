@@ -196,7 +196,7 @@ SplitIQ/
 | **Build** | `npm run build` exits 0, then the bundle-size budgets (runs only after Test passes) |
 
 These are three of many checks; the other workflows in `.github/workflows/`
-report too, and the required set is described in `WORKFLOW.md` § 4.
+report too, and the required set is the `main` branch ruleset.
 
 ### Android (`ci-android.yml`) — runs on every PR, and on push to `main`
 
@@ -237,16 +237,15 @@ research  →  story  →  [GATE 1]  →  spec  →  [GATE 2]
           →  [GATE 3]  →  PR  →  CI  →  merge
 ```
 
-The Agency agents the factory uses live in `.claude/agents/` (the rest of the
-library is parked in `.claude/agent-library/`); the pipeline itself is
-defined in `.claude/skills/orchestrate/SKILL.md` (see `FACTORY.md` for the
-model). It never advances past a gate without explicit approval.
+The pipeline, its agents and the doctrine behind them are private (a claude.ai
+account skill, so the same in a local and a cloud session; #674). It never
+advances past a gate without explicit approval.
 
 ---
 
 ## Roadmap
 
-See [`docs/ROADMAP.md`](docs/ROADMAP.md). Still open from the original list:
+The roadmap epic is [#432](https://github.com/skizzy1986/SplitIQ/issues/432). Still open from the original list:
 
 - **Signed Android release APK** — for Play Store or direct distribution
 

@@ -1,4 +1,4 @@
-# Canonical label taxonomy for SplitIQ (see WORKFLOW.md §1).
+# Canonical label taxonomy for SplitIQ (see the private workflow doc §1).
 # Synced to the repo by .github/workflows/labels.yml. Edit here, not in the UI.
 # `aliases` renames a legacy label in place on sync, so issues keep it.
 
@@ -45,7 +45,7 @@
   color: '0366d6'
   description: 'Dependency updates (Dependabot; dependabot-maintenance.yml files issues with it)'
 
-# ── 3. AREA (Subsystem Domain — one Kepler task group each, WORKFLOW.md) ──────
+# ── 3. AREA (Subsystem Domain — one Kepler task group each, the private workflow doc) ──────
 - name: 'area: anatomy'
   color: '1d76db'
   description: '3D engine, Three.js, squat model, biomechanics runtime'
@@ -84,7 +84,7 @@
 # ── 5. EPIC (set by epic-labels.yml, never by hand) ──────────────────────────
 # One per open epic, named `epic: <issue number> <short name>`. The workflow
 # copies it onto every sub-issue of that epic and onto each PR that names one
-# (WORKFLOW.md §1). An epic with no entry here is given a bare `epic: <n>`; to
+# (the private workflow doc §1). An epic with no entry here is given a bare `epic: <n>`; to
 # name it, add the entry with `aliases: ['epic: <n>']` so the sync renames it
 # in place and nothing loses the label.
 - name: 'epic: 432 roadmap'

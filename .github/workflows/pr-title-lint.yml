@@ -3,12 +3,12 @@ name: PR title lint
 # Squash-merge uses the PR title as the commit message, so the title must be a
 # well-formed Conventional Commit. This keeps main's history clean and machine-
 # readable. Allowed types match the prefixes this repo uses (incl. config /
-# housekeeping from WORKFLOW.md branch types).
+# housekeeping from the private workflow doc branch types).
 #
 # The title must also end with its issue number — `fix(strength): … (#567)` —
 # so every commit on main reads `… (#issue) (#PR)`: GitHub appends the PR
 # number on squash, and the bracket before it is always the issue
-# (WORKFLOW.md §3). Both rules run in the one job because the ruleset binds
+# (the private workflow doc §3). Both rules run in the one job because the ruleset binds
 # that job's name: renaming it, or moving a rule to a second job, would leave
 # the rule unrequired until the ruleset was edited by hand.
 on:
@@ -61,7 +61,7 @@ jobs:
             const want =
               'End the PR title with its issue number: ' +
               '"<type>(<scope>): <what the change does> (#<issue>)". ' +
-              'GitHub adds the PR number itself on squash-merge. See WORKFLOW.md §3.';
+              'GitHub adds the PR number itself on squash-merge. See CLAUDE.md, Shipping.';
             const match = pr.title.match(/\S \(#(\d+)\)$/);
             if (!match) {
               throw new Error(`"${pr.title}" does not end with " (#<issue>)". ${want}`);

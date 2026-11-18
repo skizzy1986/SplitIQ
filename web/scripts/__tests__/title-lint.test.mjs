@@ -4,7 +4,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect, vi } from 'vitest';
 
-// The naming and PR type-label rules in WORKFLOW.md §1 and §3 are enforced by
+// The naming and PR type-label rules in the private workflow doc §1 and §3 are enforced by
 // three inline github-script steps. These tests run those scripts as they
 // stand in the workflow files, so a rule cannot be edited there without this
 // noticing.
@@ -519,14 +519,9 @@ describe('PR type label follows the title type', () => {
       expect(labelerWorkflow).not.toMatch(/actions\/checkout/);
     });
 
-    it('leaves the staleness job as it was: no `edited`, its own group', () => {
-      const job = jobBlock(labelerWorkflow, 'steward-staleness');
-      expect(job).toContain("if: github.event.action != 'edited'");
-      expect(job).toContain(
-        'group: steward-staleness-${{ github.event.pull_request.number }}'
-      );
-      expect(job).toContain('cancel-in-progress: false');
-      expect(job).not.toContain('pr-labels-');
+    // The steward-staleness job left with the steward skill (#674).
+    it('has no steward-staleness job', () => {
+      expect(() => jobBlock(labelerWorkflow, 'steward-staleness')).toThrow();
     });
   });
 });

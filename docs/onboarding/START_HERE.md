@@ -88,7 +88,6 @@ there in your browser, or have Claude Code post for you.
   publish it, or a 3D model made from it, credit BodyParts3D and use the same licence.
 - The numbers in the model are **modelled estimates**, not measurements. Keep that
   label on anything you build.
-- Don't repost anything personal about Scott, for example from the docs under
-  `coach/`.
+- Don't repost anything personal about Scott.
 
 Welcome aboard, and have fun!

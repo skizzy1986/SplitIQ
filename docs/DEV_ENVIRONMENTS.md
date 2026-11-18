@@ -12,6 +12,21 @@ two boxes that share toolchain versions and one CI-in-Docker command, not one de
 
 The desktop box needs the desktop on. The cloud box works with it off.
 
+## Claude tooling — the same in every box
+
+Scott's skills, agents and doctrine are claude.ai account skills (`anthropic-skills:splitiq*`,
+source in the private SplitIQ-ops repo, #674), not repo files. Nothing per box to install:
+
+| Where | How the skills arrive | Repo hooks (`.claude/settings.json`) |
+|---|---|---|
+| Local CLI on the laptop | synced to `~/.claude/skills/synced/` at sign-in | ✅ |
+| Desktop box | the same sync, into the container's `CLAUDE_CONFIG_DIR` volume, after `/login` once | ✅ |
+| Cloud box | loaded at session start | ✅ (a single-repo session only — attaching a second repo turns hooks off) |
+
+The root `CLAUDE.md` loads in all three and tells the session to invoke
+`anthropic-skills:splitiq` first. Plugins are deliberately not used: a cloud session
+never loads them ([cloud environments](https://code.claude.com/docs/en/cloud-environments.md#what-carries-over-from-your-setup)).
+
 ## CI in Docker — the same command in both boxes
 
 ```
@@ -88,5 +103,8 @@ host worktree opened from outside.
 - Python 3.13 feature: not built yet.
 - The Windows keep-alive in setup step 4 is assembled from the WSL and VS Code docs and
   the CLI source; not yet run on the desktop.
+- Account-skill sync inside the desktop box: assumed to follow `CLAUDE_CONFIG_DIR` into
+  the volume (`/skills` in the container's CLI should list `anthropic-skills:splitiq`);
+  verified only for the laptop CLI and a cloud session (#674).
 - Codespaces with docker-outside-of-docker: whether `LOCAL_WORKSPACE_FOLDER` resolves to a
   path its Docker host can mount is untested.

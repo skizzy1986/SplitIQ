@@ -40,6 +40,7 @@ Recharts, Lingui, Supabase, Vercel, Vitest + RTL.
   here, never memorise it). Tracking is GitHub Issues.
 - `.claude/` — `settings.json` (permissions allow/ask + hooks), `hooks/` (mechanical
   guardrails, smoke-tested in CI), `skills/collaborate/`.
+- `.devcontainer/` — the desktop dev box (`docs/DEV_ENVIRONMENTS.md`: desktop box vs cloud box).
 - Env vars: `web/.env.example`. Cloud sessions: `docs/CLOUD_ENVIRONMENT.md`.
 
 ## Commands (in `web/`)
@@ -48,7 +49,8 @@ Recharts, Lingui, Supabase, Vercel, Vitest + RTL.
 (`npx vitest run --coverage` for the report) · `npm run lint` · `npm run format |
 format:check` · `npm run build && npm run size` (bundle budgets — re-measure, never
 quote a figure) · `npm run check:zones | check:colours | check:design-sync |
-check:migrations | check:no-llm | check:names | check:hooks`.
+check:migrations | check:no-llm | check:names | check:hooks` · `npm run e2e:docker --
+smoke | visual | visual:update` (Playwright in CI's pinned image; needs Docker).
 
 ## Writing code
 

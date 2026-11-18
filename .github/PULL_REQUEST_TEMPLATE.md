@@ -1,5 +1,5 @@
 Closes #<!-- issue number — links the PR to its issue so merging closes it and the Split IQ board moves it to Done -->
-<!-- Title: <type>(<scope>): <what the change does> (#<issue>) — the same issue number, last thing in the title. Never the PR number: GitHub adds it. CI enforces this (WORKFLOW.md §3). -->
+<!-- Title: <type>(<scope>): <what the change does> (#<issue>) — the same issue number, last thing in the title. Never the PR number: GitHub adds it. CI enforces this (pr-title-lint.yml). -->
 
 ## What changed and why
 
@@ -21,7 +21,7 @@ Closes #<!-- issue number — links the PR to its issue so merging closes it and
 - [ ] Touches `/squat`'s static graph (`web/src/squat/**`, `web/src/anatomy/**`,
       `RouteRoot.jsx`): no — or the five squat figures from `npm run build && npm run size`
       (squat entry · squat total · squat 3D · squat data · largest precached file) are
-      pasted below, re-measured on this branch, never quoted from a doc (see docs/ROADMAP.md)
+      pasted below, re-measured on this branch, never quoted from a doc
 - [ ] Migration PR: applied with `apply_migration` named as the file stem, read back, and `supabase/migrations/manifest.json` updated — read-back pasted below (N/A if nothing under `supabase/migrations/` changed)
 
 ## Migration read-back

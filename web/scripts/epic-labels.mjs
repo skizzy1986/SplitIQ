@@ -4,7 +4,7 @@
 // (an issue labelled `type: epic`). The label is the copy people scan for in
 // the issue and pull-request lists, where sub-issues do not show. It is set
 // here and nowhere else, so it cannot drift from the hierarchy the way a
-// hand-applied label or a "Part of #n" line does (WORKFLOW.md §1, #586).
+// hand-applied label or a "Part of #n" line does (the private workflow doc §1, #586).
 //
 // One full reconcile per run rather than a reaction to the event that woke
 // it: GitHub has no workflow trigger for "sub-issue added", so any run has to
@@ -20,7 +20,7 @@ const EPIC_LABEL = /^epic: (\d+)(?: .+)?$/;
 // against a cycle the API should never return.
 const MAX_DEPTH = 8;
 
-// The issue a PR title names: the number in its last bracket (WORKFLOW.md §3).
+// The issue a PR title names: the number in its last bracket (the private workflow doc §3).
 export function issueNumberFromTitle(title) {
   const match = /\S \(#(\d+)\)$/.exec(title ?? '');
   return match ? Number(match[1]) : null;

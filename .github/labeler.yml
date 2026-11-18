@@ -30,8 +30,6 @@
           - '.claude/**'
           - '.github/**'
           - 'CLAUDE.md'
-          - 'WORKFLOW.md'
-          - 'FACTORY.md'
 
 'area: mobile':
   - changed-files:

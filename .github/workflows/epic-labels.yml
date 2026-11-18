@@ -5,7 +5,7 @@ name: Epic labels
 # A slice is a sub-issue of its epic; that hierarchy is the source of truth.
 # The label is the copy that shows in the issue and pull-request lists, where
 # sub-issues do not, so one glance or one filter finds an epic's whole body of
-# work. This job is the only thing that sets or removes it (WORKFLOW.md §1).
+# work. This job is the only thing that sets or removes it (the private workflow doc §1).
 #
 # Every run is a full reconcile, not a reaction to its event. GitHub has no
 # workflow trigger for "sub-issue added" (Events that trigger workflows, read

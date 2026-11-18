@@ -44,7 +44,7 @@ For **personal, non-commercial** purposes, Paul may:
 - **This is a permission to Paul personally.** It doesn't make the repository open source,
   and it doesn't extend to anyone else.
 - **Scott's personal material.** This permission covers the software, the content and the
-  assets. It doesn't cover Scott's personal training notes and data (for example
-  `coach/` and the personal parts of `CLAUDE.md`); please keep those private.
+  assets. It doesn't cover Scott's personal training notes and data (none of
+  it is in this repo any more); please keep anything of that kind private.
 - **Future changes.** Scott may update this permission for future versions of the
   repository. Anything Paul has already built or published under it stays fine.

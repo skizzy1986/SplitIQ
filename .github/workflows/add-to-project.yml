@@ -1,7 +1,7 @@
 name: Add to Split IQ
 
 # Adds new issues and PRs to the "Split IQ" GitHub Project as a CI-driven backstop
-# behind the board's built-in auto-add workflow (see WORKFLOW.md).
+# behind the board's built-in auto-add workflow (see the private workflow doc).
 #
 # This is a NO-OP unless the ADD_TO_PROJECT_PAT secret is set, because the default
 # GITHUB_TOKEN cannot write to a user-owned Project v2. The secret holds a classic

@@ -21,7 +21,6 @@
     "check:zones": "node scripts/check-zone-bands.mjs",
     "check:design-sync": "node scripts/check-design-sync-entry.mjs",
     "check:colours": "node scripts/check-colour-literals.mjs",
-    "check:context7": "node scripts/check-context7.mjs",
     "check:no-llm": "node scripts/check-no-llm-path.mjs",
     "check:names": "node scripts/check-names.mjs",
     "check:migrations": "node scripts/check-migrations.mjs",

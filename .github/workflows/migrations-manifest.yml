@@ -13,7 +13,7 @@ name: Migrations manifest
 # consistency only: every file accounted for once, statuses well formed,
 # versions unique, rollback and naming conventions held. Whether production
 # actually matches is checked nightly by the scheduled task in
-# docs/routines/migration-drift-check.md (`--live` mode of the same script).
+# the private nightly drift-check routine (`--live` mode of the same script).
 #
 # The script imports nothing outside node builtins, so this needs a checkout and
 # node — no npm ci. It enumerates files with `git ls-files`, so the checkout

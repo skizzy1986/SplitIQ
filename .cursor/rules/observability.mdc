@@ -1,9 +1,0 @@
----
-description: Pointer to the Claude observability path rule. The rule file is the source of truth.
-globs: web/src/utils/sentry.js,web/vercel.json,web/vite.config.js,web/scripts/check-bundle-size.mjs,supabase/functions/**
-alwaysApply: false
----
-
-Read `.claude/rules/observability.md` and follow it before you change a file
-matched by this rule. Those paths are the `paths` frontmatter of that file.
-Do not copy the rule into this one.

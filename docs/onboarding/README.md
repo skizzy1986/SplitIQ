@@ -36,9 +36,9 @@ SplitIQ is one app: **a training app where the movements explain themselves.**
 | **Squat tool** | `/squat` | **none** | The first product on the engine: a public, no-login, 3D modelled high-bar back squat with muscles, depth and time controls, a coaching guide and a form check. **This is the part you're here for.** |
 | **Training log** | `/` | Supabase login | The context around the movements: sessions, strength logging and a load model that doesn't claim more than it can support. You need your own Supabase project to run it, and you don't need it for `/squat`. |
 
-**Where it's going** lives in two places, so this page doesn't repeat it: the roadmap epic
-[#432](https://github.com/skizzy1986/SplitIQ/issues/432), and the H1 table under
-[The horizons](../ROADMAP.md#the-horizons) in `docs/ROADMAP.md`.
+**Where it's going** lives in the roadmap epic
+[#432](https://github.com/skizzy1986/SplitIQ/issues/432) and its sub-issues; the roadmap
+document itself is private.
 
 The issue and PR threads are the best history of *why* things are the way they are —
 each PR description carries its decisions, review trail and follow-ups.
@@ -134,8 +134,7 @@ useAnatomyData → { manifest, buffer }      (squat/hooks/)
 Most of this repo was built with **Claude Code** running a gated "software factory":
 Research → Story → **Gate 1** → Spec → **Gate 2** → Build + tests → Test verification →
 Review (two independent judges) → **Gate 3** → PR. Scott approves at each gate. The
-pipeline is defined in [`.claude/skills/orchestrate/SKILL.md`](../../.claude/skills/orchestrate/SKILL.md)
-and explained in [`FACTORY.md`](../../FACTORY.md) and [`WORKFLOW.md`](../../WORKFLOW.md).
+pipeline's outline is in the [README](../../README.md); its definition is private.
 
 Read [`VISION.md`](../../VISION.md) first: it says what SplitIQ is for.
 [`CLAUDE.md`](../../CLAUDE.md) is the project briefing every agent session reads, and it
@@ -169,15 +168,11 @@ main point of your access.
 
 Please don't open issues directly for ideas — the Issues list is the live backlog.
 
-**Where good ideas would land.** [`docs/ROADMAP.md`](../ROADMAP.md) is the map:
-
-- **H2 and H3**, under [The horizons](../ROADMAP.md#the-horizons): further flagship
-  movements, and the coach and athlete surfaces.
-- **"Parked, signal needed"**, the paragraph straight after the H3 table: ideas held
-  until there is evidence someone wants them. **This is where your ideas count as
-  signal.** If you would use one of them, say so in 💡 Ideas.
-- **[What we are not building](../ROADMAP.md#what-we-are-not-building)**, and why. Worth
-  a read before you sketch something big.
+**Where good ideas would land.** The roadmap epic
+[#432](https://github.com/skizzy1986/SplitIQ/issues/432) is the map: further flagship
+movements first. Ideas held until there is evidence someone wants them count your
+interest as **signal** — if you would use something, say so in 💡 Ideas. `VISION.md`
+says what is not being built, and why; worth a read before you sketch something big.
 
 **New movements** are welcome: see [`NEW_MOVEMENT.md`](NEW_MOVEMENT.md).
 <!-- TODO(R12, #440): point to the movement-config doc here once it lands. -->

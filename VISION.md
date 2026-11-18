@@ -230,7 +230,7 @@ The views that consume these change with them: Calendar, Overview, Program,
 Journal, Recovery and the strength logger all read the constants above.
 
 Open issues that only serve one athlete's season close with the cull. The backlog
-audit (`coach/BACKLOG_AUDIT_2026-11-05.md`) classified them; roughly eight of about
+audit of 2026-11-05 (private) classified them; roughly eight of about
 thirty are in that bucket.
 
 The 2026-11-13 amendment takes nothing off this list. The generic planner is new
@@ -248,7 +248,7 @@ code written to the rule under *The shape*, not a revival of these files.
 - The code is proprietary (`LICENSE`), with named exceptions in `PERMISSIONS.md`.
 - **Other people's data** (added 2026-11-13). Holding a second person's training or
   health data may bring privacy-law duties with it, business or not. That has
-  been researched in the draft [R33 note](docs/coherence/PRIVACY_RESEARCH.md).
+  been researched in the draft R33 note (private).
   Applicability and operating arrangements remain unresolved. Scott considered the
   research and approved the coach specification on 2026-11-15; development of the
   private, non-commercial app continues. This stays an open item before any coach reads an athlete's row,
@@ -257,11 +257,11 @@ code written to the rule under *The shape*, not a revival of these files.
 ## How to read this against the rest of the docs
 
 `CLAUDE.md` was rewritten for SplitIQ in #424, carrying the 2026-11-13 amendment, as
-does the project paragraph in `.claude/skills/erg-context.md`. The earlier framing (a
+does the project paragraph in the private agent preamble. The earlier framing (a
 personal coaching dashboard for one user, replacing commercial apps) is superseded by
 this file.
 
-`docs/ROADMAP.md` was decided on 2026-11-07, before the amendment. It recorded the
+The roadmap (private) was decided on 2026-11-07, before the amendment. It recorded the
 amendment on 2026-11-13 as decisions D13–D18 and a second track for the log (L1–L3):
 coach access is specified before the desktop IA and built after H2; coach grants
 are invite-based, while D25 separately approves open account registration. The

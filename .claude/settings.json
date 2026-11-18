@@ -12,7 +12,6 @@
       "Bash(npm run check:zones)",
       "Bash(npm run check:design-sync)",
       "Bash(npm run check:colours)",
-      "Bash(npm run check:context7)",
       "Bash(npm run test:e2e)",
       "Bash(npx vitest run *)",
       "Bash(npm --prefix web test *)",

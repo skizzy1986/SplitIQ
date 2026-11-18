@@ -10,6 +10,8 @@ places below. Each entry records a sha256 where one exists, so a copy can be che
 | BodyParts3D STLs | Fetched on demand by `pipeline/squat-anatomy/scripts/fetch_stl.sh` | Public upstream; refetching gives byte-identical files. |
 | OpenCap / SimTK lab-validation data | Scott's Google Drive, `SplitIQ/datasets/opencap-labvalidation/` (with a `SOURCE.md`) | Licence not verified ([`docs/squat/LAB_DATA.md`](squat/LAB_DATA.md)). **Never commit it.** |
 | Session handoff prompts, research notes, renders and screenshots | Scott's Google Drive, `SplitIQ/` (`handoffs/`, `research/`, `media/`) | Working material, not source. |
+| Claude skills, agents and doctrine; the roadmap and planning history | Private repo `skizzy1986/SplitIQ-ops`, delivered as claude.ai account skills (zips in Drive `SplitIQ/skills/`) | Not app source. Account skills are the only private layer that reaches cloud sessions as well as the local CLI (#674). |
+| Backups of this repo and SplitIQ-ops | Scott's Google Drive, `SplitIQ/backups/` (daily git bundles) | Copies, not source. |
 
 ## The Drive hub (`My Drive/SplitIQ`)
 
@@ -20,5 +22,7 @@ Scott owns it; collaborators don't have access unless he shares a folder. Its
 - `handoffs/` — named `YYYY-MM topic`, marked `(CURRENT)` or `(SUPERSEDED)`.
 - `datasets/` — one folder per dataset, each with a `SOURCE.md` giving its origin and licence.
 - `research/`, `media/`.
+- `skills/` — built skill zips and `MANIFEST.md`; generated, never edited.
+- `backups/` — daily bundles, 14 daily and 12 monthly kept; `git clone <bundle>` restores.
 
 When you add something there that the code depends on, add a row to the table above.

@@ -19,7 +19,7 @@
 > | PR-2 | /squat chrome on Lingui | not started |
 > | PR-3 | /squat prose overlay | not started |
 >
-> Status as of 2026-11-14; the roadmap's language track (I1–I8 in `docs/ROADMAP.md`) is
+> Status as of 2026-11-14; the roadmap's language track (I1–I8 in the roadmap, private) is
 > the live tracker. Native review was waived as a merge gate for PR-1 and Phase 2a (D22)
 > and stays pending. Phase 2a replaced this spec's per-view catalog idea (§ "Phase 2+
 > watch item") with one shared views catalog loaded by the dashboard shells.
@@ -398,7 +398,7 @@ Not display: `StrengthLogger.jsx:167` (`en-CA`) is an ISO generator and is not t
 
 ### 11. PR-M: mobile Settings (its own deliverable)
 
-**Constraint.** Mobile navigation is fixed at four destinations. `constants/destinations.js:1-20` cites DESIGN_BRIEF §2.2, and `.claude/AGENTS.md:56` routes "the mobile nav cut to four destinations" to IA review. A fifth BottomTabBar item breaks that IA; reject it.
+**Constraint.** Mobile navigation is fixed at four destinations. `constants/destinations.js:1-20` cites DESIGN_BRIEF §2.2, and the agent routing map sends "the mobile nav cut to four destinations" to IA review. A fifth BottomTabBar item breaks that IA; reject it.
 
 **Entry point (recommended):** a 44 px gear button in the **Today** header, next to the date line (`views/mobile/MobileToday.jsx:144`).
 - It navigates to a `settings` route that is **not** a destination.

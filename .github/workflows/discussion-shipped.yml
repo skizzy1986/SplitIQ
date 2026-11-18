@@ -10,7 +10,7 @@ name: Discussion shipped
 #
 # (`Discussion: #<n>` also works). When the PR that closes that issue merges,
 # this job posts one fixed reply on the thread. A PR with no issue can carry
-# the line in its own body. See WORKFLOW.md, "Ideas that start in Discussions".
+# the line in its own body. See the private workflow doc, "Ideas that start in Discussions".
 #
 # This is the ONE Discussions write that runs without Scott approving the text
 # (his decision, 2026-11-13). That is acceptable only because the reply is a

@@ -123,5 +123,5 @@ only be done from a local session — never from a remote agent container.
 ## Working on design
 
 Design is a lane on the normal rail: **Issue → branch → PR → CI → `main`** (see
-[`WORKFLOW.md`](WORKFLOW.md)). Label it `design`. A PR that changes what the app looks
+`CLAUDE.md`, *Shipping*). Label it `design`. A PR that changes what the app looks
 like carries a screenshot or a baseline diff.

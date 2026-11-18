@@ -117,8 +117,16 @@ import { parsePo } from './i18n-review-sheet.mjs';
 // chunk with the rest of the views catalog. Worth it: it is the first screen
 // that shows one session, and none of it is on first paint. Rule:
 // 411.4 + 2 = 413.4, to the nearest whole KB: 413.
+//
+// TOTAL raised 413 -> 419 on 2026-11-18 (Scott, at Gate 3, #649 under #504:
+// range selection, splits and More detail on the session page). Measured
+// 411.4 -> 416.7 KB with ENTRY unchanged at 204.1 and DASH_ES 10.2 -> 10.9:
+// the SessionView chunk grows 10.1 -> 14.7 KB (the splits table, the range
+// summary, the drag selection and the peak, weighted-power and drift maths),
+// all still lazy and none of it on first paint. Rule: 416.7 + 2 = 418.7, to
+// the nearest whole KB: 419.
 const MAX_ENTRY_GZIP_KB = 208;
-const MAX_TOTAL_GZIP_KB = 413;
+const MAX_TOTAL_GZIP_KB = 419;
 
 // Squat tool, measured 2026-11-04 on PR1 (no three.js yet): SQUAT_ENTRY
 // 107.2 KB, SQUAT_TOTAL 18.8 KB. Entry gets the approved +10 KB (117), total

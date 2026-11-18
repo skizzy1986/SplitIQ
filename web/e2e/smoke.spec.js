@@ -215,7 +215,8 @@ test.describe('session page with a synthetic trace', () => {
       await expect(tips.nth(i)).toBeVisible();
     }
     const texts = await tips.allInnerTexts();
-    expect(texts[0]).toMatch(/Pace[\s\S]*\/500 m[\s\S]*Power[\s\S]*W/);
+    // Value and unit are joined by a non-breaking space, which `\s` matches.
+    expect(texts[0]).toMatch(/Pace[\s\S]*\/500\sm[\s\S]*Power[\s\S]*W/);
     expect(texts[1]).toMatch(/Heart rate[\s\S]*bpm/);
     expect(texts[2]).toMatch(/Stroke rate[\s\S]*spm/);
     // The same instant on all three.
@@ -224,8 +225,8 @@ test.describe('session page with a synthetic trace', () => {
     expect(time(texts[2])).toBe(time(texts[0]));
     // Each series once: heart rate only on its own chart, and so on.
     expect(texts[0]).not.toMatch(/bpm|spm/);
-    expect(texts[1]).not.toMatch(/\/500 m|spm/);
-    expect(texts[2]).not.toMatch(/\/500 m|bpm/);
+    expect(texts[1]).not.toMatch(/\/500\sm|spm/);
+    expect(texts[2]).not.toMatch(/\/500\sm|bpm/);
     // A local look at the result, never committed.
     if (process.env.SESSION_SHOT_DIR) {
       await page.setViewportSize({ width: 1280, height: 1100 });

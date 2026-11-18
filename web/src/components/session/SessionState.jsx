@@ -36,21 +36,23 @@ const actionStyle = {
   cursor: 'pointer',
 };
 
-// Whether the athlete has followed a Settings link from a session page in
-// this app session. A connection problem is only worth retrying after that:
-// before it, the same answer would come back. Held for the life of the page
-// load, which is how long an in-app trip to Settings and back lasts.
-let settingsVisited = false;
+// The session whose page the athlete last followed a Settings link from. A
+// connection problem is only worth retrying after that trip: before it, the
+// same answer would come back. Module-level because the page unmounts while
+// Settings is open; scoped to that one session, and spent by its Retry.
+let settingsVisitedFrom = null;
 export function resetSettingsVisited() {
-  settingsVisited = false;
+  settingsVisitedFrom = null;
 }
 
 // One message per page or trace state; none of them draws a chart.
 //   kind: 'not_found' | 'wrong_sport' | 'detail_error' | 'none' (reason
 //         'no_trace' when the source answered with no trace) |
 //         'unavailable' (with reason) | 'error'
+//   sessionId: the session the page shows, for the Settings round trip
 export default function SessionState({
   kind,
+  sessionId = null,
   reason = null,
   source = null,
   retryAt = null,
@@ -103,7 +105,9 @@ export default function SessionState({
         : i18n._(copy.message, { time: timed ? clockTime(retryMs) : '' });
     settings = !!copy.settings;
     if (copy.retry === 'now') retry = true;
-    if (copy.retry === 'after_settings') retry = settingsVisited;
+    if (copy.retry === 'after_settings') {
+      retry = sessionId != null && settingsVisitedFrom === sessionId;
+    }
     if (copy.retry === 'after_time') {
       retry = true;
       retryDisabled = timed && retryMs > now;
@@ -124,7 +128,7 @@ export default function SessionState({
             href="#/settings"
             style={actionStyle}
             onClick={() => {
-              settingsVisited = true;
+              settingsVisitedFrom = sessionId;
             }}
           >
             {t({ message: 'Settings', comment: 'Link to the Settings screen' })}
@@ -133,7 +137,10 @@ export default function SessionState({
         {retry && onRetry && (
           <button
             type="button"
-            onClick={onRetry}
+            onClick={() => {
+              if (settingsVisitedFrom === sessionId) settingsVisitedFrom = null;
+              onRetry();
+            }}
             disabled={retryDisabled}
             style={{
               ...actionStyle,

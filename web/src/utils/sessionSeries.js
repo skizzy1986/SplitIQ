@@ -12,11 +12,14 @@ import { wattsToPace500 } from './pace.js';
 // time-weighted average sums intervals a..b-1. Sampling once a second, once a
 // stroke or irregularly needs no special case.
 
-// Without a `moving` channel, an interval is a pause (excluded from moving
-// time and from every average) when it is longer than both PAUSE_MIN_S and
-// PAUSE_MEDIAN_FACTOR times the series' median interval. The floor keeps a
-// one-second trace from calling a 3 s hiccup a pause; the factor keeps a trace
-// sampled every 6 s (or once a stroke) from calling every interval one.
+// An interval is a pause (excluded from moving time and from every average)
+// when it is longer than both PAUSE_MIN_S and PAUSE_MEDIAN_FACTOR times the
+// series' median interval. The floor keeps a one-second trace from calling a
+// 3 s hiccup a pause; the factor keeps a trace sampled every 6 s (or once a
+// stroke) from calling every interval one. A `moving` channel can only take
+// time away: an interval is live when the channel says moving AND it passes
+// the pause rule, because a recorder that drops samples during a stop can
+// still flag the long interval that spans it as moving.
 export const PAUSE_MIN_S = 5;
 export const PAUSE_MEDIAN_FACTOR = 3;
 
@@ -56,13 +59,11 @@ function intervals(t) {
 function liveIntervals(dt, moving) {
   const n = dt.length;
   const live = new Array(n).fill(false);
-  if (moving) {
-    for (let i = 0; i < n - 1; i += 1) live[i] = !!moving[i];
-    return { live, pauseThresholdS: null };
-  }
   const typical = median(dt.slice(0, n - 1)) ?? 0;
   const pauseThresholdS = Math.max(PAUSE_MIN_S, PAUSE_MEDIAN_FACTOR * typical);
-  for (let i = 0; i < n - 1; i += 1) live[i] = dt[i] <= pauseThresholdS;
+  for (let i = 0; i < n - 1; i += 1) {
+    live[i] = (!moving || !!moving[i]) && dt[i] <= pauseThresholdS;
+  }
   return { live, pauseThresholdS };
 }
 
@@ -222,6 +223,166 @@ export function rangeStats(series, sport, i0 = 0, i1 = series.n - 1) {
   };
 }
 
+// Default split distances: 500 m is the erg's own split; 5 km gives a ride
+// of an hour or two a table of a dozen rows. Rowing can also split by 1 km or
+// 2 km, the race distance.
+export const ROWING_SPLIT_M = 500;
+export const CYCLING_SPLIT_M = 5000;
+export const ROWING_SPLIT_OPTIONS = [500, 1000, 2000];
+
+// The samples covering times t0..t1 (absolute, on the series' own clock): i0
+// is the last sample at or before the earlier time and i1 the first at or
+// after the later one, so the range never falls short of what was asked.
+// Clamped to the series and ordered.
+export function indexRangeForTimes(series, t0, t1) {
+  const { t, n } = series;
+  const lo = Math.min(t0, t1);
+  const hi = Math.max(t0, t1);
+  // Last index with t[i] <= x (0 when x is before the first sample).
+  const atOrBefore = (x) => {
+    let a = 0;
+    let b = n - 1;
+    if (!(x >= t[0])) return 0;
+    while (a < b) {
+      const mid = Math.ceil((a + b) / 2);
+      if (t[mid] <= x) a = mid;
+      else b = mid - 1;
+    }
+    return a;
+  };
+  const i0 = atOrBefore(lo);
+  let i1 = atOrBefore(hi);
+  if (i1 < n - 1 && t[i1] < hi) i1 += 1;
+  return { i0, i1: Math.max(i0, i1) };
+}
+
+// A point inside the series: interval k (k = n - 1 means the last sample),
+// a fraction f of the way through it.
+function positionAt(series, time) {
+  const { t, dt, n } = series;
+  const { i0: k } = indexRangeForTimes(series, time, time);
+  if (k >= n - 1 || !(dt[k] > 0)) return { k, f: 0 };
+  return { k, f: Math.min(Math.max((time - t[k]) / dt[k], 0), 1) };
+}
+
+// Moving seconds from the first sample to a position, a boundary inside an
+// interval taking its share of it.
+function movingTo(series, cum, { k, f }) {
+  const part = k < series.n - 1 && series.live[k] ? f * series.dt[k] : 0;
+  return cum[k] + part;
+}
+
+function cumulativeMoving(series) {
+  const cum = new Array(series.n).fill(0);
+  for (let i = 1; i < series.n; i += 1) {
+    cum[i] = cum[i - 1] + (series.live[i - 1] ? series.dt[i - 1] : 0);
+  }
+  return cum;
+}
+
+// A split's figures, in rangeStats' shape so the page shows a split and a
+// selection the same way. Time and distance run between the interpolated
+// boundaries (the intervals a boundary cuts are prorated); average power,
+// heart rate and rate come from rangeStats over the enclosing samples i0..i1,
+// the same samples selecting the split uses, so the row and the selection
+// agree on them.
+function splitFigures(series, sport, cum, from, to, startT, endT, distanceM) {
+  const i0 = from.k;
+  const i1 = to.f > 0 ? to.k + 1 : to.k;
+  const inner = rangeStats(series, sport, i0, i1);
+  const moving = movingTo(series, cum, to) - movingTo(series, cum, from);
+  const movingS = moving > 0 ? moving : null;
+  let pace500 = null;
+  let speedKmh = null;
+  if (sport === 'erg' && distanceM > 0 && movingS) {
+    pace500 = (500 * movingS) / distanceM;
+  } else if (sport === 'cycling' && distanceM > 0 && movingS) {
+    speedKmh = (distanceM / movingS) * 3.6;
+  }
+  const t0 = series.t[0];
+  return {
+    i0,
+    i1,
+    startS: startT - t0,
+    endS: endT - t0,
+    elapsedS: endT - startT > 0 ? endT - startT : null,
+    movingS,
+    distanceM,
+    avgWatts: inner.avgWatts,
+    avgHr: inner.avgHr,
+    avgRate: inner.avgRate,
+    pace500,
+    speedKmh,
+  };
+}
+
+// Splits every `splitM` metres along the distance channel. A boundary's time
+// is interpolated linearly between the two samples either side of it. The
+// last split is whatever distance is left, marked partial and always shown.
+// [] without a distance channel.
+export function distanceSplits(series, sport, splitM) {
+  const dist = series.channels.dist;
+  if (!dist || !(splitM > 0)) return [];
+  const known = [];
+  for (let i = 0; i < series.n; i += 1) if (dist[i] != null) known.push(i);
+  if (known.length < 2) return [];
+  const first = known[0];
+  const last = known.at(-1);
+  const total = dist[last] - dist[first];
+  if (!(total > 0)) return [];
+  const { t } = series;
+  const cum = cumulativeMoving(series);
+  // Boundary times, from the first known distance to the last.
+  const times = [t[first]];
+  let j = 0;
+  for (let d = dist[first] + splitM; d < dist[last] - 1e-6; d += splitM) {
+    while (j < known.length - 1 && dist[known[j + 1]] < d) j += 1;
+    const a = known[j];
+    const b = known[j + 1];
+    const span = dist[b] - dist[a];
+    const frac = span > 0 ? (d - dist[a]) / span : 0;
+    times.push(t[a] + frac * (t[b] - t[a]));
+  }
+  times.push(t[last]);
+  const splits = [];
+  for (let s = 0; s < times.length - 1; s += 1) {
+    const lastSplit = s === times.length - 2;
+    const distanceM = lastSplit ? total - s * splitM : splitM;
+    splits.push({
+      index: s,
+      partial: lastSplit && distanceM < splitM - 1e-6,
+      ...splitFigures(
+        series,
+        sport,
+        cum,
+        positionAt(series, times[s]),
+        positionAt(series, times[s + 1]),
+        times[s],
+        times[s + 1],
+        distanceM
+      ),
+    });
+  }
+  return splits;
+}
+
+// One split per recorded lap, only when there is more than one: a single
+// lap is the whole session again.
+export function lapSplits(series, sport) {
+  if (series.laps.length < 2) return [];
+  const t0 = series.t[0];
+  return series.laps.map((lap, index) => {
+    const stats = rangeStats(series, sport, lap.i0, lap.i1);
+    return {
+      ...stats,
+      index,
+      partial: false,
+      startS: series.t[stats.i0] - t0,
+      endS: series.t[stats.i1] - t0,
+    };
+  });
+}
+
 // Pace for one sample, for drawing only.
 function samplePace(watts, speed) {
   if (watts > 0) return wattsToPace500(watts);
@@ -257,10 +418,13 @@ const gapRow = (x) => {
 // the full series. A null row marks a real gap (a pause, or `moving` off) so
 // the line breaks there and nowhere else.
 //   n <= maxPoints: one row per sample, x = t[i] - t[0].
-//   above that: consecutive moving intervals grouped by index into at most
-//   maxPoints groups, each value the group's time-weighted mean. Grouping by
-//   index, not by clock, means irregular spacing can never leave an empty
-//   group.
+//   above that: consecutive moving intervals grouped by index, each value the
+//   group's time-weighted mean, x its first sample and xEnd its last (a row
+//   without xEnd stands for one instant), plus one row per run at its
+//   closing sample carrying that sample's own values (as the per-sample path
+//   draws it), so the line reaches the run's end. The group size leaves room for those rows
+//   and the gaps, so the total stays within maxPoints. Grouping by index, not
+//   by clock, means irregular spacing can never leave an empty group.
 export function downsample(series, sport, maxPoints = 600) {
   const { n, t, live } = series;
   const t0 = t[0];
@@ -294,13 +458,18 @@ export function downsample(series, sport, maxPoints = 600) {
   }
   if (start != null) runs.push([start, n - 1]);
   const liveCount = runs.reduce((s, [a, b]) => s + (b - a), 0);
-  const size = Math.max(1, Math.ceil(liveCount / maxPoints));
+  // Groups per run round up (at most one extra each), each run adds a closing
+  // row, and each run after the first a gap row.
+  const budget = Math.max(1, maxPoints - 3 * runs.length + 1);
+  const size = Math.max(1, Math.ceil(liveCount / budget));
 
   runs.forEach(([a, b], r) => {
     if (r > 0) pushGap((t[runs[r - 1][1]] + t[a]) / 2 - t0);
     for (let g = a; g < b; g += size) {
       const end = Math.min(g + size, b);
-      const row = { x: t[g] - t0 };
+      // xEnd: where the group's last interval ends, so a selection made on
+      // this row can cover every sample the row stands for.
+      const row = { x: t[g] - t0, xEnd: t[end] - t0 };
       for (const key of ROW_KEYS) {
         let sum = 0;
         let weight = 0;
@@ -327,6 +496,7 @@ export function downsample(series, sport, maxPoints = 600) {
       }
       rows.push(row);
     }
+    rows.push(sampleRow(series, sport, b));
   });
   return rows;
 }

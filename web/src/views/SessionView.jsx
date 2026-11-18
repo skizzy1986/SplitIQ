@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLingui } from '@lingui/react/macro';
 import { plural } from '@lingui/core/macro';
 import { useSessionDetail } from '../hooks/useSessionDetail.js';
@@ -16,16 +16,30 @@ import { formatPace } from '../utils/pace.js';
 import { isCompletedStatus } from '../utils/sessionStatus.js';
 import { toISODate } from '../utils/dateFormat.js';
 import {
+  recentHrBaseline,
   recentPowerBaseline,
   sessionSport,
   storedSummary,
 } from '../utils/sessionPage.js';
 import {
+  CYCLING_SPLIT_M,
+  ROWING_SPLIT_M,
+  ROWING_SPLIT_OPTIONS,
+  distanceSplits,
   downsample,
+  indexRangeForTimes,
+  lapSplits,
   rangeStats,
   seriesExtras,
 } from '../utils/sessionSeries.js';
-import { dominantZone, timeInZones } from '../utils/sessionAnalysis.js';
+import {
+  aerobicDrift,
+  analysisNeeds,
+  dominantZone,
+  peakPowers,
+  timeInZones,
+  variabilityIndex,
+} from '../utils/sessionAnalysis.js';
 import { sessionLoadBasis } from '../utils/trainingLoad.js';
 import SectionHeader from '../components/SectionHeader.jsx';
 import SessionSummary from '../components/session/SessionSummary.jsx';
@@ -33,6 +47,9 @@ import SessionTrace from '../components/session/SessionTrace.jsx';
 import ZoneBar from '../components/session/ZoneBar.jsx';
 import ProvenanceNote from '../components/session/ProvenanceNote.jsx';
 import SessionState from '../components/session/SessionState.jsx';
+import RangeSummary from '../components/session/RangeSummary.jsx';
+import SplitsTable from '../components/session/SplitsTable.jsx';
+import MoreDetail from '../components/session/MoreDetail.jsx';
 import { zoneLabel } from '../components/session/zoneLabels.js';
 
 const backStyle = {
@@ -65,7 +82,10 @@ function Skeleton({ label, height = 120 }) {
 }
 
 // One session, explained: a plain headline, the stored summary and how it was
-// scored, the trace across the session and time in the athlete's own zones.
+// scored, the trace across the session and time in the athlete's own zones,
+// then its splits and, behind "More detail", peak powers, variability and
+// drift. A stretch selected on the trace or in the splits is summarised under
+// the trace.
 // Source-neutral: the series arrives through useSessionSeries, whatever
 // produced it. One view for both shells; `layout` only changes density.
 export default function SessionView({
@@ -138,6 +158,93 @@ export default function SessionView({
     const iso = session.date_iso ?? toISODate(session.date);
     return recentPowerBaseline(history.data ?? [], sport, iso);
   }, [history.data, session, sport]);
+  const hrBaseline = useMemo(() => {
+    if (!session || !sport) return null;
+    const iso = session.date_iso ?? toISODate(session.date);
+    return recentHrBaseline(history.data ?? [], sport, iso);
+  }, [history.data, session, sport]);
+
+  // Splits: rowing by distance (the athlete picks 500 m, 1 km or 2 km);
+  // cycling by recorded lap when there is more than one, else by 5 km.
+  const [rowingSplitM, setRowingSplitM] = useState(ROWING_SPLIT_M);
+  const splitView = useMemo(() => {
+    if (!series || !sport) return null;
+    if (sport === 'erg') {
+      return {
+        mode: 'distance',
+        splitM: rowingSplitM,
+        splits: distanceSplits(series, sport, rowingSplitM),
+      };
+    }
+    const laps = lapSplits(series, sport);
+    if (laps.length) return { mode: 'laps', splitM: null, splits: laps };
+    return {
+      mode: 'distance',
+      splitM: CYCLING_SPLIT_M,
+      splits: distanceSplits(series, sport, CYCLING_SPLIT_M),
+    };
+  }, [series, sport, rowingSplitM]);
+
+  const analysis = useMemo(
+    () =>
+      series
+        ? {
+            peaks: peakPowers(series),
+            variability: variabilityIndex(series),
+            drift: aerobicDrift(series),
+            needs: analysisNeeds(series),
+          }
+        : null,
+    [series]
+  );
+
+  // The selected stretch: a dragged range of samples or a split. It belongs
+  // to the series it was made on, so a new series starts unselected.
+  const [selection, setSelection] = useState(null);
+  const clearSelection = useCallback(() => setSelection(null), []);
+  const live = selection && selection.series === series ? selection : null;
+  const selectedSplit =
+    live?.kind === 'split' ? (splitView?.splits[live.index] ?? null) : null;
+  let selected = null;
+  if (live?.kind === 'range') {
+    const stats = rangeStats(series, sport, live.i0, live.i1);
+    const t0 = series.t[0];
+    selected = {
+      from: 'trace',
+      stats,
+      area: { x0: series.t[stats.i0] - t0, x1: series.t[stats.i1] - t0 },
+    };
+  } else if (selectedSplit) {
+    selected = {
+      from: 'split',
+      stats: selectedSplit,
+      area: { x0: selectedSplit.startS, x1: selectedSplit.endS },
+    };
+  }
+  const onSelectRange = useCallback(
+    (x0, x1) => {
+      if (!series) return;
+      const t0 = series.t[0];
+      const { i0, i1 } = indexRangeForTimes(series, t0 + x0, t0 + x1);
+      setSelection({ series, kind: 'range', i0, i1 });
+    },
+    [series]
+  );
+  const onSelectSplit = (index) =>
+    setSelection(index == null ? null : { series, kind: 'split', index });
+  const onSplitM = (m) => {
+    setRowingSplitM(m);
+    if (live?.kind === 'split') setSelection(null);
+  };
+  const hasSelection = selected != null;
+  useEffect(() => {
+    if (!hasSelection) return undefined;
+    const onKey = (e) => {
+      if (e.key === 'Escape') setSelection(null);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [hasSelection]);
 
   const back = (
     <button type="button" onClick={onBack} style={backStyle}>
@@ -315,6 +422,18 @@ export default function SessionView({
       }
     : null;
 
+  // The selection's summary sits beside the control that made it: under the
+  // trace for a drag, above the splits table for a split row, so a keyboard
+  // or phone user sees it without scrolling back up. Each spot is a polite
+  // live region, so a screen reader hears the figures as they change.
+  const rangeSummary = selected && (
+    <RangeSummary
+      stats={selected.stats}
+      sport={sport}
+      onClear={clearSelection}
+    />
+  );
+
   let trace;
   if (seriesState.state === 'loading') {
     trace = <Skeleton label={t`Loading the trace`} />;
@@ -329,15 +448,50 @@ export default function SessionView({
           averages={averages}
           durationS={computed.stats.elapsedS}
           layout={layout}
+          hrBaseline={hrBaseline}
+          selection={selected?.area ?? null}
+          onSelectRange={onSelectRange}
         />
+        <div aria-live="polite" data-live="trace">
+          {selected?.from === 'trace' && rangeSummary}
+        </div>
         <SectionHeader>{t`Time in zone`}</SectionHeader>
         <ZoneBar result={zoneResult} anchor={anchor} hasPower={has.power} />
+        {splitView?.splits.length > 0 && (
+          <>
+            <SectionHeader>{t`Splits`}</SectionHeader>
+            <div aria-live="polite" data-live="splits">
+              {selected?.from === 'split' && rangeSummary}
+            </div>
+            <SplitsTable
+              splits={splitView.splits}
+              sport={sport}
+              mode={splitView.mode}
+              splitM={splitView.splitM}
+              splitOptions={sport === 'erg' ? ROWING_SPLIT_OPTIONS : null}
+              onSplitM={sport === 'erg' ? onSplitM : null}
+              selectedIndex={selectedSplit ? live.index : null}
+              onSelect={onSelectSplit}
+            />
+          </>
+        )}
+        {analysis && (
+          <div style={{ marginTop: SPACE.xl }}>
+            <MoreDetail
+              peaks={analysis.peaks}
+              variability={analysis.variability}
+              drift={analysis.drift}
+              needs={analysis.needs}
+            />
+          </div>
+        )}
       </>
     );
   } else {
     trace = (
       <SessionState
         kind={seriesState.state === 'ready' ? 'none' : seriesState.state}
+        sessionId={sessionId}
         reason={seriesState.reason}
         source={seriesState.source}
         retryAt={seriesState.retryAt}

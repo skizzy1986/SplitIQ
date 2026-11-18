@@ -5,6 +5,7 @@ import {
   formatClock,
   httpsUrlOrNull,
   parseSessionId,
+  recentHrBaseline,
   recentPowerBaseline,
   sessionHref,
   sessionIdFromHash,
@@ -129,6 +130,42 @@ describe('recentPowerBaseline', () => {
       )
     ).toBeNull();
     expect(recentPowerBaseline([], 'erg', '')).toBeNull();
+  });
+});
+
+describe('recentHrBaseline', () => {
+  const row = (date_iso, avg_hr, type = 'cycling', status = 'completed') => ({
+    date_iso,
+    avg_hr,
+    type,
+    status,
+  });
+
+  it('averages heart rate by the same rule as power', () => {
+    const rows = [
+      row('2026-11-10', 150),
+      row('2026-11-01', 140),
+      row('2026-10-20', 145),
+      row('2026-11-15', 199), // the session's own day: excluded
+      row('2026-10-01', 100), // outside the window
+      row('2026-11-05', 170, 'erg'),
+      row('2026-11-06', 170, 'cycling', 'planned'),
+      row('2026-11-07', 0),
+    ];
+    expect(recentHrBaseline(rows, 'cycling', '2026-11-15')).toEqual({
+      meanHr: 145,
+      count: 3,
+    });
+  });
+
+  it('is null with fewer than three sessions', () => {
+    expect(
+      recentHrBaseline(
+        [row('2026-11-10', 150), row('2026-11-01', 140)],
+        'cycling',
+        '2026-11-15'
+      )
+    ).toBeNull();
   });
 });
 

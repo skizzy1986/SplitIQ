@@ -53,28 +53,40 @@ export function canOpenSessionPage(entry) {
 
 const DAY_MS = 86_400_000;
 
-// Mean average power of completed same-sport sessions in the `days` before
-// `dateIso` (the session's own day excluded, so the session never grounds
-// itself). Null with fewer than three: too few to say anything about.
-export function recentPowerBaseline(sessions, sport, dateIso, days = 30) {
+// Mean of one stored field over completed same-sport sessions in the `days`
+// before `dateIso` (the session's own day excluded, so the session never
+// grounds itself). Null with fewer than three: too few to say anything about.
+function recentMean(sessions, sport, dateIso, field, days) {
   if (!dateIso || !Array.isArray(sessions)) return null;
   const end = Date.parse(`${dateIso}T00:00:00Z`);
   if (!Number.isFinite(end)) return null;
   const startIso = new Date(end - days * DAY_MS).toISOString().slice(0, 10);
-  const watts = [];
+  const values = [];
   for (const s of sessions) {
     if (!isCompletedStatus(s?.status) || sessionSport(s.type) !== sport)
       continue;
-    if (!(s.avg_watts > 0)) continue;
+    if (!(s[field] > 0)) continue;
     const iso = s.date_iso ?? toISODate(s.date);
     if (!iso || iso < startIso || iso >= dateIso) continue;
-    watts.push(s.avg_watts);
+    values.push(s[field]);
   }
-  if (watts.length < 3) return null;
+  if (values.length < 3) return null;
   return {
-    meanWatts: watts.reduce((a, b) => a + b, 0) / watts.length,
-    count: watts.length,
+    mean: values.reduce((a, b) => a + b, 0) / values.length,
+    count: values.length,
   };
+}
+
+// Average power's own-history grounding: { meanWatts, count } or null.
+export function recentPowerBaseline(sessions, sport, dateIso, days = 30) {
+  const r = recentMean(sessions, sport, dateIso, 'avg_watts', days);
+  return r && { meanWatts: r.mean, count: r.count };
+}
+
+// Average heart rate's, by the same rule: { meanHr, count } or null.
+export function recentHrBaseline(sessions, sport, dateIso, days = 30) {
+  const r = recentMean(sessions, sport, dateIso, 'avg_hr', days);
+  return r && { meanHr: r.mean, count: r.count };
 }
 
 const positive = (v) => (typeof v === 'number' && v > 0 ? v : null);

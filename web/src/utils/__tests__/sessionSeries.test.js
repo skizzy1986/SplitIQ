@@ -1,8 +1,14 @@
 import {
+  CYCLING_SPLIT_M,
   PAUSE_MEDIAN_FACTOR,
   PAUSE_MIN_S,
+  ROWING_SPLIT_M,
+  ROWING_SPLIT_OPTIONS,
   createSeries,
+  distanceSplits,
   downsample,
+  indexRangeForTimes,
+  lapSplits,
   rangeStats,
   seriesExtras,
 } from '../sessionSeries.js';
@@ -96,7 +102,19 @@ describe('createSeries', () => {
       channels: { moving: [1, 0, 1, 1] },
     });
     expect(s.live).toEqual([true, false, true, false]);
-    expect(s.pauseThresholdS).toBeNull();
+    // The pause rule is always worked out, moving channel or not.
+    expect(s.pauseThresholdS).toBe(PAUSE_MIN_S);
+  });
+
+  it('never counts a long gap as live, even when the moving channel says moving', () => {
+    // Sampling stopped for 120 s while the recorder still flagged moving.
+    const s = createSeries({
+      source: 'x',
+      t: [0, 1, 2, 122, 123, 124],
+      channels: { watts: Array(6).fill(200), moving: [1, 1, 1, 1, 1, 1] },
+    });
+    expect(s.live).toEqual([true, true, false, true, true, false]);
+    expect(rangeStats(s, 'cycling').movingS).toBe(4);
   });
 });
 
@@ -364,5 +382,198 @@ describe('seriesExtras', () => {
     // The last sample (141 bpm) opens no interval.
     expect(e.maxHr).toBe(140);
     expect(e.avgRate).toBeGreaterThan(24);
+  });
+});
+
+describe('downsample: a grouped run reaches its end', () => {
+  it('draws the closing sample of every run above maxPoints', () => {
+    // 1801 samples, 1 s apart, a 61 s pause in the middle: two runs, grouped.
+    const t = [];
+    for (let i = 0; i < 1801; i += 1) t.push(i < 900 ? i : i + 60);
+    const s = createSeries({
+      source: 'x',
+      t,
+      channels: { watts: t.map((_, i) => (i < 900 ? 150 : 250)) },
+    });
+    const rows = downsample(s, 'cycling', 600);
+    expect(rows.length).toBeLessThanOrEqual(600);
+    // The first run ends at sample 899, the second at the last sample.
+    expect(rows.filter((r) => !isGap(r)).some((r) => r.x === 899)).toBe(true);
+    expect(rows.at(-1).x).toBe(t.at(-1));
+    // The closing row carries the closing sample's own value.
+    expect(rows.at(-1).watts).toBe(250);
+  });
+
+  it('a grouped row spans its group, x to xEnd; a per-sample row is one instant', () => {
+    const rows = downsample(steady(1801), 'erg', 600);
+    const groups = rows.filter((r) => r.xEnd != null);
+    // 1800 intervals in groups of four; each ends where the next begins.
+    expect(groups[0]).toMatchObject({ x: 0, xEnd: 4 });
+    for (let k = 1; k < groups.length; k += 1) {
+      expect(groups[k].x).toBe(groups[k - 1].xEnd);
+    }
+    expect(groups.at(-1).xEnd).toBe(1800);
+    expect(downsample(steady(600), 'erg', 600).some((r) => 'xEnd' in r)).toBe(
+      false
+    );
+  });
+
+  it('keeps a single long run within maxPoints with its closing row', () => {
+    const rows = downsample(steady(3 * 3600), 'erg', 600);
+    expect(rows.length).toBeLessThanOrEqual(600);
+    expect(rows.at(-1).x).toBe(3 * 3600 - 1);
+  });
+});
+
+describe('indexRangeForTimes', () => {
+  const s = createSeries({ source: 'x', t: [0, 1, 2.5, 4, 10, 11] });
+
+  it('covers the asked times: at or before the start, at or after the end', () => {
+    expect(indexRangeForTimes(s, 1, 4)).toEqual({ i0: 1, i1: 3 });
+    expect(indexRangeForTimes(s, 1.2, 3)).toEqual({ i0: 1, i1: 3 });
+  });
+
+  it('orders and clamps', () => {
+    expect(indexRangeForTimes(s, 4, 1)).toEqual({ i0: 1, i1: 3 });
+    expect(indexRangeForTimes(s, -5, 50)).toEqual({ i0: 0, i1: 5 });
+  });
+
+  it('works on an offset clock', () => {
+    const late = createSeries({ source: 'x', t: [100, 101, 102, 103] });
+    expect(indexRangeForTimes(late, 101, 102)).toEqual({ i0: 1, i1: 2 });
+  });
+});
+
+describe('distanceSplits', () => {
+  it('names its split distances', () => {
+    expect(ROWING_SPLIT_M).toBe(500);
+    expect(CYCLING_SPLIT_M).toBe(5000);
+    expect(ROWING_SPLIT_OPTIONS).toEqual([500, 1000, 2000]);
+  });
+
+  it('splits a steady row every 500 m with a partial last split, always shown', () => {
+    // 4 m/s for 299 s: 1196 m, so 500, 500 and a partial 196.
+    const splits = distanceSplits(steady(300), 'erg', 500);
+    expect(splits.map((x) => x.distanceM)).toEqual([500, 500, 196]);
+    expect(splits.map((x) => x.partial)).toEqual([false, false, true]);
+    expect(splits[0]).toMatchObject({
+      index: 0,
+      i0: 0,
+      i1: 125,
+      startS: 0,
+      endS: 125,
+      movingS: 125,
+      elapsedS: 125,
+      avgWatts: 200,
+      avgHr: 140,
+      avgRate: 24,
+    });
+    expect(splits[0].pace500).toBeCloseTo(125);
+    expect(splits[2].endS).toBe(299);
+  });
+
+  it('interpolates a boundary between samples and prorates the interval it cuts', () => {
+    // A sample every 10 s, 40 m apart: 500 m falls 5 s into 120..130 s.
+    const s = steady(31, 10);
+    const [first, second] = distanceSplits(s, 'erg', 500);
+    expect(first.endS).toBeCloseTo(125);
+    expect(first.movingS).toBeCloseTo(125);
+    expect(first.i0).toBe(0);
+    // The enclosing samples, 0..13 (130 s): what selecting the split uses.
+    expect(first.i1).toBe(13);
+    expect(second.startS).toBeCloseTo(125);
+    expect(second.movingS).toBeCloseTo(125);
+    expect(second.i0).toBe(12);
+    const sel = rangeStats(s, 'erg', first.i0, first.i1);
+    expect(first.avgWatts).toBe(sel.avgWatts);
+    expect(first.avgHr).toBe(sel.avgHr);
+  });
+
+  it('a whole number of splits leaves no partial row', () => {
+    const splits = distanceSplits(steady(251), 'erg', 500); // 1000 m
+    expect(splits).toHaveLength(2);
+    expect(splits.every((x) => !x.partial)).toBe(true);
+  });
+
+  it('gives a ride speed, and [] without a distance channel', () => {
+    const [first] = distanceSplits(steady(3000), 'cycling', 5000);
+    expect(first.speedKmh).toBeCloseTo(14.4);
+    expect(first.pace500).toBeNull();
+    const noDist = createSeries({
+      source: 'x',
+      t: [0, 1, 2],
+      channels: { watts: [1, 2, 3] },
+    });
+    expect(distanceSplits(noDist, 'erg', 500)).toEqual([]);
+  });
+
+  it('leaves a pause out of a split’s time and averages', () => {
+    const s = createSeries({
+      source: 'x',
+      t: [0, 50, 100, 400, 450],
+      channels: {
+        watts: [200, 200, 999, 200, 200],
+        dist: [0, 200, 400, 400, 600],
+      },
+    });
+    const [first, last] = distanceSplits(s, 'erg', 500);
+    // 500 m is 25 s into the last interval: 125 s moving, the 300 s stop out.
+    expect(first.movingS).toBeCloseTo(125);
+    expect(first.elapsedS).toBeCloseTo(425);
+    expect(first.avgWatts).toBe(200);
+    expect(last).toMatchObject({ partial: true, distanceM: 100 });
+  });
+
+  it('works on the irregular, per-stroke series', () => {
+    const s = captureSeries();
+    // 65 m in 10 m splits: six full and a partial 5 m.
+    const splits = distanceSplits(s, 'erg', 10);
+    expect(splits).toHaveLength(7);
+    expect(splits[6]).toMatchObject({ partial: true, distanceM: 5 });
+    // 50 to 60 m spans the 18 s pause, which counts nowhere: 60 m falls
+    // halfway into the 2.5 s interval from 55 to 65 m.
+    expect(splits[5].movingS).toBeCloseTo(1.25);
+    const total = splits.reduce((a, x) => a + x.movingS, 0);
+    expect(total).toBeCloseTo(rangeStats(s, 'erg').movingS);
+  });
+});
+
+describe('lapSplits', () => {
+  const laps = (list) =>
+    createSeries({
+      source: 'x',
+      t: Array.from({ length: 11 }, (_, i) => i * 10),
+      channels: {
+        watts: Array(11).fill(250),
+        dist: Array.from({ length: 11 }, (_, i) => i * 80),
+      },
+      laps: list,
+    });
+
+  it('one split per lap, when there is more than one', () => {
+    const splits = lapSplits(
+      laps([
+        { i0: 0, i1: 4 },
+        { i0: 4, i1: 10 },
+      ]),
+      'cycling'
+    );
+    expect(splits).toHaveLength(2);
+    expect(splits[0]).toMatchObject({
+      index: 0,
+      i0: 0,
+      i1: 4,
+      startS: 0,
+      endS: 40,
+      distanceM: 320,
+      avgWatts: 250,
+      partial: false,
+    });
+    expect(splits[1].speedKmh).toBeCloseTo(28.8);
+  });
+
+  it('a single lap is the whole session again: []', () => {
+    expect(lapSplits(laps([{ i0: 0, i1: 10 }]), 'cycling')).toEqual([]);
+    expect(lapSplits(laps([]), 'cycling')).toEqual([]);
   });
 });

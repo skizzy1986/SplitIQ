@@ -16,7 +16,8 @@
 // The image tag is read from package-lock.json exactly as e2e-web.yml's
 // `changes` job does, so it cannot drift from CI on a Dependabot bump.
 import { execFileSync, spawn, spawnSync } from 'node:child_process';
-import { existsSync, openSync, readFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, openSync, readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
@@ -101,13 +102,16 @@ async function ensureDaemon() {
       'no Docker daemon reachable. In the dev container, check Docker Desktop is running on the host; elsewhere, start Docker first.'
     );
   }
-  const log = openSync('/tmp/dockerd.log', 'a');
+  // A fresh 0700 directory, not a fixed /tmp path: this runs as root, and a
+  // predictable name could be pre-planted as a symlink to redirect the write.
+  const logPath = join(mkdtempSync(join(tmpdir(), 'dockerd-')), 'dockerd.log');
+  const log = openSync(logPath, 'wx');
   spawn('dockerd', [], { detached: true, stdio: ['ignore', log, log] }).unref();
   for (let i = 0; i < 30; i += 1) {
     await sleep(1000);
     if (daemonUp()) return;
   }
-  throw new Error('dockerd did not come up in 30 s — see /tmp/dockerd.log');
+  throw new Error(`dockerd did not come up in 30 s — see ${logPath}`);
 }
 
 async function main() {

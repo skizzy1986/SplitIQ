@@ -3,11 +3,56 @@ import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import {
   connectToPM5,
-  subscribeToRowingStatus,
-  subscribeToWorkoutEnd,
+  subscribe,
   disconnectPM5,
-  WorkoutState,
+  parseGeneralStatus,
+  parseAdditionalStatus1,
+  parseAdditionalStatus2,
+  parseRowingSummary,
+  mergeStatus,
+  buildPM5Summary,
+  summaryReference,
+  REFINE_MARGIN_S,
+  isWorkingState,
+  isEndState,
 } from '../services/pm5Bluetooth';
+import { captureError } from '../utils/sentry.js';
+
+function freshPiece() {
+  return {
+    samples: [],
+    maxWatts: 0,
+    lastSample: null,
+    add1: null,
+    add2: null,
+    rowSummary: null,
+    sawWork: false,
+    summaryBuilt: false,
+  };
+}
+
+// A missing or failed optional characteristic costs only its fields; the
+// piece still records from 0031.
+async function subscribeOptional(
+  characteristic,
+  fetchError,
+  parser,
+  callback,
+  char
+) {
+  if (!characteristic) {
+    captureError(
+      fetchError ?? new Error(`PM5 characteristic ${char} unavailable`),
+      { source: 'pm5Bluetooth', char }
+    );
+    return;
+  }
+  try {
+    await subscribe(characteristic, parser, callback);
+  } catch (err) {
+    captureError(err, { source: 'pm5Bluetooth', char });
+  }
+}
 
 export function usePM5() {
   const [status, setStatus] = useState('idle');
@@ -20,8 +65,9 @@ export function usePM5() {
   const [errorCode, setErrorCode] = useState(null);
 
   const deviceRef = useRef(null);
-  // Track peak metrics for end-of-session summary
-  const peakMetrics = useRef({ maxWatts: 0, strokeCount: 0, samples: [] });
+  // Notification callbacks are created once per connect, so everything they
+  // read lives in this ref; React state inside them would be a stale closure.
+  const pieceRef = useRef(freshPiece());
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
@@ -53,15 +99,83 @@ export function usePM5() {
     };
   }, []);
 
+  const finishPiece = useCallback(() => {
+    const piece = pieceRef.current;
+    if (piece.summaryBuilt) return;
+    piece.summaryBuilt = true;
+    setSummary(buildPM5Summary(piece));
+    setStatus('finished');
+  }, []);
+
   const connect = useCallback(async () => {
     setStatus('connecting');
     setError(null);
     setErrorCode(null);
     setSummary(null);
-    peakMetrics.current = { maxWatts: 0, strokeCount: 0, samples: [] };
+    pieceRef.current = freshPiece();
 
+    const onGeneralStatus = (general) => {
+      const piece = pieceRef.current;
+      const sample = mergeStatus(general, piece.add1, piece.add2);
+      setMetrics(sample);
+      // Frozen once built, so a later 0039 is judged against the piece that ended.
+      if (piece.summaryBuilt) return;
+      piece.lastSample = sample;
+
+      if (isWorkingState(sample.workoutState)) {
+        piece.sawWork = true;
+        if (sample.rowingState === 1) {
+          piece.samples.push(sample);
+          if (sample.watts != null && sample.watts > piece.maxWatts) {
+            piece.maxWatts = sample.watts;
+          }
+          setStatus('rowing');
+        } else {
+          setStatus('connected');
+        }
+      } else if (isEndState(sample.workoutState) && piece.sawWork) {
+        finishPiece();
+      } else {
+        setStatus('connected');
+      }
+    };
+
+    const onRowSummary = (rowSummary) => {
+      const piece = pieceRef.current;
+      // A summary arriving before any work belongs to an earlier piece.
+      if (!piece.sawWork) return;
+      if (!piece.summaryBuilt) {
+        piece.rowSummary = rowSummary;
+        finishPiece();
+        return;
+      }
+      // Already ended by a status packet or END. A 0039 ending well before that
+      // piece did is the next piece's and must not overwrite an unsaved summary.
+      const ref = summaryReference(piece.samples, piece.lastSample);
+      if (ref && rowSummary.elapsedTime < ref.elapsedTime - REFINE_MARGIN_S) {
+        return;
+      }
+      piece.rowSummary = rowSummary;
+      // Refine only what 0039 carries.
+      const refined = buildPM5Summary(piece);
+      setSummary((prev) =>
+        prev
+          ? {
+              ...prev,
+              elapsedTime: refined.elapsedTime,
+              elapsedStr: refined.elapsedStr,
+              distance: refined.distance,
+              avgSpm: refined.avgSpm,
+            }
+          : prev
+      );
+    };
+
+    let device = null;
     try {
-      const { device, chars } = await connectToPM5();
+      const connected = await connectToPM5();
+      device = connected.device;
+      const { chars, errors = {} } = connected;
       deviceRef.current = device;
 
       device.addEventListener('gattserverdisconnected', () => {
@@ -69,63 +183,53 @@ export function usePM5() {
         setMetrics(null);
       });
 
-      await subscribeToRowingStatus(chars.rowingStatus, (m) => {
-        setMetrics(m);
-        if (m.workoutState === WorkoutState.ACTIVE) {
-          setStatus('rowing');
-          if (m.watts > peakMetrics.current.maxWatts) {
-            peakMetrics.current.maxWatts = m.watts;
-          }
-          peakMetrics.current.samples.push(m);
-        }
-        if (m.workoutState === WorkoutState.FINISHED) {
-          buildSummary(m);
-        }
-      });
+      await subscribe(chars.generalStatus, parseGeneralStatus, onGeneralStatus);
+      await subscribeOptional(
+        chars.additionalStatus1,
+        errors.additionalStatus1,
+        parseAdditionalStatus1,
+        (add1) => {
+          pieceRef.current.add1 = add1;
+        },
+        '0032'
+      );
+      await subscribeOptional(
+        chars.additionalStatus2,
+        errors.additionalStatus2,
+        parseAdditionalStatus2,
+        (add2) => {
+          pieceRef.current.add2 = add2;
+        },
+        '0033'
+      );
+      await subscribeOptional(
+        chars.workoutSummary,
+        errors.workoutSummary,
+        parseRowingSummary,
+        onRowSummary,
+        '0039'
+      );
 
-      await subscribeToWorkoutEnd(chars.workoutSummary, (endData) => {
-        buildSummary(endData);
-      });
-
-      setStatus('connected');
+      // 0031 packets can land during the awaits above; don't clobber them.
+      setStatus((prev) => (prev === 'connecting' ? 'connected' : prev));
     } catch (err) {
+      // Only failures after the link is up are reported: before that the
+      // rejection is usually the user dismissing the device chooser.
+      if (device) {
+        captureError(err, { source: 'pm5Bluetooth' });
+        disconnectPM5(device);
+        deviceRef.current = null;
+      }
       setError(err.message);
       setErrorCode(typeof err.code === 'string' ? err.code : null);
       setStatus('error');
     }
-  }, []);
+  }, [finishPiece]);
 
-  function buildSummary(finalMetrics) {
-    const samples = peakMetrics.current.samples;
-    const avgWatts = samples.length
-      ? Math.round(samples.reduce((a, s) => a + s.watts, 0) / samples.length)
-      : 0;
-    const avgPace = samples.length
-      ? Math.round(samples.reduce((a, s) => a + s.pace500, 0) / samples.length)
-      : 0;
-    const avgSpm = samples.length
-      ? Math.round(
-          samples.reduce((a, s) => a + s.strokeRate, 0) / samples.length
-        )
-      : 0;
-
-    setSummary({
-      distance: finalMetrics.distance || finalMetrics.totalDistance || 0,
-      elapsedTime: finalMetrics.elapsedTime || 0,
-      elapsedStr: finalMetrics.elapsedStr || '--:--',
-      avgWatts,
-      avgPace,
-      avgSpm,
-      maxWatts: peakMetrics.current.maxWatts,
-      calories: finalMetrics.calories || 0,
-    });
-    setStatus('finished');
-  }
-
-  // Manual END: the PM5 never sends a FINISHED packet, so build the summary
-  // from the last metrics we saw rather than dropping the session on the floor.
+  // Manual END: the PM5 may never send an end state (Just Row), so build the
+  // summary from what has been seen rather than dropping the session.
   function finish() {
-    buildSummary(metrics || {});
+    finishPiece();
   }
 
   const disconnect = useCallback(() => {

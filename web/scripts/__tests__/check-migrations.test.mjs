@@ -104,7 +104,7 @@ const kinds = (result) => result.drift.map((d) => d.kind);
 describe('constants', () => {
   it('exports the documented values', () => {
     expect(STATUSES).toEqual(['applied', 'mirror', 'unapplied', 'pending']);
-    expect(GRANDFATHERED_DUPLICATE_PREFIXES).toEqual(['011']);
+    expect(GRANDFATHERED_DUPLICATE_PREFIXES).toEqual(['011', '018']);
     expect(CONVENTION_FROM).toBe(14);
     expect(PROJECT_REF).toBe('swdrueaserjzhuxnzmeu');
   });
@@ -591,8 +591,8 @@ describe('the real manifest', () => {
     // last one (for 014 while it was pending) was removed when 014 was applied.
     expect(drift).toEqual([]);
     expect(counts.live).toBe(41);
-    expect(counts.byFile).toBe(17);
-    expect(counts.liveOnly).toBe(24);
+    expect(counts.byFile).toBe(18);
+    expect(counts.liveOnly).toBe(23);
   });
 });
 

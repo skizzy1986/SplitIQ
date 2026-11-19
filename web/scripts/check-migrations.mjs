@@ -36,7 +36,10 @@ export const STATUSES = ['applied', 'mirror', 'unapplied', 'pending'];
 // Two forward files share 011 because two PRs picked the same next number
 // before the convention was enforced. Renaming an applied file would break the
 // file-stem ↔ live-name link, so the pair stays; no new prefix may join it.
-export const GRANDFATHERED_DUPLICATE_PREFIXES = ['011'];
+// 018 joined anyway, the same way: 018_exercises_and_strength_views (#435) was
+// applied on 2026-11-15 from a PR, and 018_strava_backup_exclusion (#628) was
+// applied on 2026-11-17 before that PR landed. Both are live under those names.
+export const GRANDFATHERED_DUPLICATE_PREFIXES = ['011', '018'];
 // Rollback files and stem-named applies are enforced from this number on;
 // earlier files predate the convention.
 export const CONVENTION_FROM = 14;

@@ -202,8 +202,14 @@
     },
     {
       "file": "018_exercises_and_strength_views.sql",
-      "status": "pending",
-      "note": "Captures public.exercises (live shape), its read policy and indexes, strength_set_metrics security_invoker, and the 6 live-only strength/exercise views; closing shape guard over all 8 objects. Verified no-op capture once applied. Seed is supabase/seed/exercises.sql (never applied to production; fingerprint 149ed35cc65128b5ee354a997d7fdd79).",
+      "status": "applied",
+      "live": [
+        {
+          "version": "20261115152808",
+          "name": "018_exercises_and_strength_views"
+        }
+      ],
+      "note": "Applied 2026-11-15 via apply_migration (#435): captures public.exercises (live shape), its read policy and indexes, strength_set_metrics security_invoker, and the 6 live-only strength/exercise views; closing shape guard over all 8 objects passed. Verified no-op: pg_class oids and reloptions of all 8 objects identical before and after (read-back in PR #578). Shares the 018 prefix with 018_strava_backup_exclusion (grandfathered in check-migrations.mjs). Seed is supabase/seed/exercises.sql (never applied to production; fingerprint 149ed35cc65128b5ee354a997d7fdd79).",
       "issue": 435
     },
     {
@@ -361,12 +367,6 @@
       "version": "20261106035601",
       "name": "vitals_nutrition_intake",
       "note": "Reorientation epic; no file"
-    },
-    {
-      "version": "20261115152808",
-      "name": "018_exercises_and_strength_views",
-      "note": "Applied 2026-11-15 for #435; its file is in draft PR #578 and not on main yet. Recorded here when the live snapshot was refreshed for the Strava go-live (#628). Move it to `files` when that PR lands; it will share the 018 prefix with 018_strava_backup_exclusion.",
-      "issue": 435
     }
   ]
 }

@@ -15,7 +15,10 @@ import { useAnchors } from '../../hooks/useAnchors.js';
 import { toISODate, toLogDate } from '../../utils/dateFormat.js';
 import ScreenHeader from '../../components/ScreenHeader.jsx';
 import Button from '../../components/Button.jsx';
-import { COMPLETED_STATUSES } from '../../constants/sessionStatus.js';
+import {
+  COMPLETED_STATUSES,
+  PLANNED_STATUS,
+} from '../../constants/sessionStatus.js';
 import { FONT } from '../../constants/type.js';
 
 const tsbColor = (tsb) => THEME[tsbBand(tsb)?.token] ?? THEME.muted;
@@ -363,7 +366,9 @@ export default function MobileAnalytics({
       {(() => {
         const today = toISODate(toLogDate(new Date()));
         const upcoming = (sessionsData ?? [])
-          .filter((s) => s.status === 'planned' && toISODate(s.date) >= today)
+          .filter(
+            (s) => s.status === PLANNED_STATUS && toISODate(s.date) >= today
+          )
           .sort((a, b) => (toISODate(a.date) < toISODate(b.date) ? -1 : 1))
           .slice(0, 3);
         return (

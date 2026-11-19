@@ -19,6 +19,12 @@ points, so a manual sync and a scheduled one cannot drift apart. `supaClient.ts`
 holds `serviceClient` and is the one file that value-imports supabase-js — see
 **Tests** for why that split is load-bearing.
 
+**Strava's terms.** The clauses this importer is built around (deletion,
+Policy §6.3 and Policy §7.4; the cache, Policy §6.2; Garmin attribution,
+Policy §4.4; agent reads, Policy §5.3) are quoted, dated and set against this
+code in [docs/strava/API_TERMS.md](../../../docs/strava/API_TERMS.md). Section
+numbers elsewhere in this README are the API Policy's.
+
 ## Why adoption is the whole feature
 
 Around twenty sessions in `public.sessions` are the **same training** as a

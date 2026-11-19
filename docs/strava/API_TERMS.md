@@ -14,7 +14,7 @@ Code read at origin/main 3017ed4.
 
 **Status.** Not legal advice. This is an agent's reading of Strava's published text, made for the project owner. Only a written answer from Strava settles an item marked Ambiguous.
 
-**What this file holds.** Strava's published legal text and SplitIQ's reading of it, and no athlete data: no rows, no counts, nothing from a query. Agents may read it. The #631 rule is unchanged: no Strava data in an agent's context (`.claude/skills/supabase-patterns.md`, section *Strava data and agent sessions*).
+**What this file holds.** Strava's published legal text and SplitIQ's reading of it, and no athlete data: no rows, no counts, nothing from a query. Agents may read it. The #631 rule is unchanged: no Strava data in an agent's context (root `CLAUDE.md`, *Never read Strava data*, and `.claude/hooks/block-strava-data-read.sh`).
 
 ## 1. Keeping this current
 
@@ -159,7 +159,7 @@ Section numbers are always prefixed Policy or Agreement. The Agreement's unnumbe
   - Reading 1: Agreement highlights bullet 4 states the display bar with no condition, so the Agreement confirms the strict reading of A1 and A2.
   - Reading 2: Agreement highlights bullet 6 carries the consent wording, so the Agreement itself holds both readings and the precedence rule settles neither A1 nor A2.
 - **Inferred:** by Agreement §2.3(i), every field an importer takes from the API is Strava Data.
-- **Verified (code):** coach access is an approved specification and is not implemented (`docs/coherence/COACH_ACCESS_SPEC.md:3`).
+- **Verified (code):** coach access is an approved specification and is not implemented (`docs/coherence/COACH_ACCESS_SPEC.md:3` at 3017ed4; the specification moved to the private ops repo in #677).
 - **Verified (code):** on a row it inserts, SplitIQ's importer writes these columns from API fields: `date`, `type`, `label`, `duration`, `distance_m`, `avg_watts` and `avg_hr` (`supabase/functions/strava-import/mapper.ts:353-359`).
 
 What a coach may see of Strava-sourced data is tracked in #668.
@@ -346,7 +346,7 @@ How Strava-sourced values on rows kept after disconnect are handled is tracked i
 — API Policy §3.5, https://www.strava.com/legal/api_policy
 
 - **Verified:** the Policy §5.3 prohibition covers data derived from Strava Data and "ingestion into a context window or working memory". The Strava MCP exception is for a subscriber's personal use of their own data (Policy §3.5).
-- **Verified (code):** agent sessions read `public.sessions_no_strava`, which hides importer-inserted rows (`supabase/migrations/018_strava_backup_exclusion.sql:29-34`), and a PreToolUse hook blocks the obvious reads of Strava data (`.claude/hooks/block-strava-data-read.sh:5`). The rules are in `.claude/skills/supabase-patterns.md`, section *Strava data and agent sessions*.
+- **Verified (code):** agent sessions read `public.sessions_no_strava`, which hides importer-inserted rows (`supabase/migrations/018_strava_backup_exclusion.sql:29-34`), and a PreToolUse hook blocks the obvious reads of Strava data (`.claude/hooks/block-strava-data-read.sh:5`). The rule is in root `CLAUDE.md` (*Never read Strava data*); its fuller version moved to the private ops repo in #677.
 - **Not verified:** whether any anchor (for example `rowing_cp`) was calibrated from Strava-imported watts.
 - **Not verified:** Policy §5.16 has not been assessed against the database connectors agents use.
 
@@ -458,14 +458,13 @@ Built from this search, run after this record's pointer edits:
 git grep -n -I -i -E 'strava.{0,3} (api )?(policy|terms|agreement)|strava.{0,3} (brand )?guidelines|legal/api|developers@strava|deletion deadline' -- . ':!.claude/agent-library' ':!docs/strava'
 ```
 
-Line numbers rot; what is enforced is that every file the search returns appears in this table. Lines are at 3017ed4, except `VISION.md`, `.claude/skills/supabase-patterns.md` and `supabase/functions/strava-import/README.md`, which are after this record's pointer edits.
+Line numbers rot; what is enforced is that every file the search returns appears in this table. Lines are at 3017ed4, except `VISION.md` and `supabase/functions/strava-import/README.md`, which are after this record's pointer edits. Rows marked *Moved (#677)* name files that #677 moved to the private ops repo; they are no longer in this repo and the search no longer returns them.
 
 | Path:line | Clause cited | Agrees? | Note |
 |---|---|---|---|
 | `.claude/hooks/block-strava-data-read.sh:5` | Policy §5.3 (written s5.3) | Yes | AI use and context windows |
-| `.claude/skills/audit/SKILL.md:82` | Policy §5.3, unnumbered | Yes | Agent context |
-| `.claude/skills/supabase-patterns.md:178` | Policy §5.3 | Yes | Agent sessions rule |
-| `.claude/skills/supabase-patterns.md:181-183` | This record | Pointer | Added for #667 |
+| `.claude/skills/audit/SKILL.md:82` | Policy §5.3, unnumbered | Moved (#677) | Agent context; agreed at 3017ed4 |
+| `.claude/skills/supabase-patterns.md:178` | Policy §5.3 | Moved (#677) | Agent sessions rule; agreed at 3017ed4. The pointer planned for #667 was not added, because the file moved before merge |
 | `VISION.md:63-68` | Policy §5.3 | Yes | Updated for #667: read first-hand 2026-11-18 |
 | `supabase/functions/strava-activity/normalise.ts:12` | Policy §6.2 | Yes | Seven-day cache |
 | `supabase/functions/strava-import/README.md:22-26` | This record | Pointer | Added for #667 |
@@ -485,13 +484,14 @@ Line numbers rot; what is enforced is that every file the search returns appears
 | `supabase/migrations/020_strava_activity_cache.sql:23-24` | Policy §6.2 | Yes | Its quote of the first sentence matches the live text |
 | `supabase/migrations/020_strava_activity_cache.sql:163` | Policy §6.2 | Yes | In a `COMMENT ON` string; applied migration, not edited |
 | `web/src/components/session/sourceCopy.js:8` | Brand Guidelines, heading 3 | Yes | Exact link text |
-| `coach/REORIENTATION_EPIC_2026-11-06.md:295` | Display to others, from secondary sources | Historical | Superseded by this record |
-| `docs/roadmap/RESEARCH_CODEBASE_2026-11-07.md:289` | Display to others, from secondary sources | Historical | Superseded by this record |
-| `docs/roadmap/RESEARCH_CODEBASE_2026-11-07.md:560` | Display to others, unread | Historical | Superseded by this record; the search does not match this line |
-| `docs/roadmap/ROADMAP_PACKET_2026-11-07.md:299` | Display to others | Historical | Superseded by this record |
+| `coach/REORIENTATION_EPIC_2026-11-06.md:295` | Display to others, from secondary sources | Moved (#677) | Historical; superseded by this record |
+| `docs/roadmap/RESEARCH_CODEBASE_2026-11-07.md:289` | Display to others, from secondary sources | Moved (#677) | Historical; superseded by this record |
+| `docs/roadmap/RESEARCH_CODEBASE_2026-11-07.md:560` | Display to others, unread | Moved (#677) | Historical; superseded by this record |
+| `docs/roadmap/ROADMAP_PACKET_2026-11-07.md:299` | Display to others | Moved (#677) | Historical; superseded by this record |
 
 ## 18. Record history
 
 | Date | Change | By |
 |---|---|---|
 | 2026-11-18 | Created from #667's first-hand read | PR for #667 |
+| 2026-11-19 | Rebased on #677: citations to files moved to the private ops repo are marked *Moved (#677)*; the agent rule now points at root `CLAUDE.md` and the hook. No quote or label changed | PR for #667 |

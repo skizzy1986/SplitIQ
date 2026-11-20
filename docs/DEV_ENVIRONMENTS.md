@@ -44,6 +44,26 @@ scope: a committed `.mcp.json` would also load in the cloud box and duplicate it
 connector. In the desktop box, the entry lands in the `CLAUDE_CONFIG_DIR` volume, so it
 survives rebuilds.
 
+**Outside the container (a local CLI, or plain WSL beside the desktop box).** The
+container ships Node 22, but a bare Ubuntu does not, and the repo needs it in three
+ways. `npm` in `web/` needs it. So does the lint-on-edit hook. And the Strava-data guard
+*fails closed* without Node: it blocks every Supabase `execute_sql` until Node is there.
+Install Node 22 (CI's `node-version: 22`, `engines: >=22.19` in `web/package.json`) per
+user with [nvm](https://github.com/nvm-sh/nvm), not apt's `nodejs`:
+
+```
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.41.0/install.sh | bash
+exec bash -l
+nvm install 22
+node -v   # v22.x
+```
+
+For issues and PRs, install `gh` from GitHub's apt repository
+([Debian/Ubuntu steps](https://github.com/cli/cli/blob/trunk/docs/install_linux.md#debian)),
+then run `gh auth login`. On a WSL clone, the container and WSL share the same
+`web/node_modules`. Keep both on Node 22, or native modules built by one break in the
+other.
+
 ## CI in Docker — the same command in both boxes
 
 ```

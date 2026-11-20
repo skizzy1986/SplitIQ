@@ -45,6 +45,11 @@ build need no Docker — run them directly in either box.
 - **Locally:** open the repo in VS Code (or Cursor) with Docker running, then
   **Dev Containers: Reopen in Container**. Open the main checkout, not a git worktree
   (see the devcontainer header).
+- **On Windows, clone inside WSL** (e.g. `~/SplitIQ` in Ubuntu), not on a Windows drive.
+  On a Windows-drive checkout, the bind mount can't carry Linux file owners. Git in the
+  container then refuses the repo ("detected dubious ownership"), and so does every check
+  built on `git ls-files`. A WSL clone works when your WSL user is UID 1000 (the first user
+  a distro creates), which matches the container's `node` user.
 - **On another machine's Docker:** connect VS Code to it over a
   [Remote Tunnel](https://code.visualstudio.com/docs/remote/tunnels), open the repo there,
   then Reopen in Container. The container builds on that machine's Docker
@@ -57,11 +62,17 @@ build need no Docker — run them directly in either box.
 Scott's own desktop setup — the always-on tunnel, the WSL keep-alive, Remote Control
 from the phone — is a private runbook (SplitIQ-ops `docs/DESKTOP_BOX.md`).
 
+## Verified
+
+- Cloud box: `npm run e2e:docker`: Smoke 69 passed, Visual 10 passed against the
+  committed baselines.
+- Desktop box (Windows 11, Docker Desktop, WSL clone): all four features build
+  (docker-outside-of-docker, Python 3.13, Deno, Claude Code). Inside the container, git
+  and `check:migrations` work, and `npm run e2e:docker -- visual` passes 10/10 on the
+  host's Docker.
+
 ## Not yet verified
 
-- The docker-outside-of-docker feature has not been built — only `npm run e2e:docker` in
-  the cloud box (Smoke 69 passed, Visual 10 passed against the committed baselines).
-- Python 3.13 feature: not built yet.
 - Account-skill sync inside the desktop box: assumed to follow `CLAUDE_CONFIG_DIR` into
   the volume (`/skills` in the container's CLI should list `anthropic-skills:splitiq`);
   verified only for a local CLI and a cloud session (#674).

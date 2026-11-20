@@ -70,6 +70,10 @@ describe('dockerRunArgs', () => {
     expect(cmd).toMatch(/status=\$\?.*exit \$status$/);
   });
 
+  it('hands back the webServer build output too', () => {
+    expect(dockerRunArgs(base).at(-1)).toMatch(/chown -R 1000:1000 .*\bdist\b/);
+  });
+
   it('does not chown when the caller is root', () => {
     expect(dockerRunArgs({ ...base, uid: 0, gid: 0 }).at(-1)).not.toContain(
       'chown'

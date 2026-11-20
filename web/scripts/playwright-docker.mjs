@@ -74,10 +74,12 @@ export function dockerRunArgs({ version, hostRepo, job, uid, gid, caFile }) {
     );
   }
   // The container runs as root, so hand what it wrote back to the caller —
-  // otherwise regenerated baselines are root-owned in the checkout.
+  // otherwise regenerated baselines are root-owned in the checkout, and the
+  // webServer's `vite build` leaves a root-owned dist/ that breaks the next
+  // `npm run build` outside the container.
   const chown =
     uid > 0
-      ? `; chown -R ${uid}:${gid} e2e test-results playwright-report 2>/dev/null`
+      ? `; chown -R ${uid}:${gid} e2e test-results playwright-report dist 2>/dev/null`
       : '';
   args.push(
     `mcr.microsoft.com/playwright:v${version}-noble`,

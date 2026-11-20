@@ -59,6 +59,12 @@
     // Docker CLI wired to the host's daemon — see the header.
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
 
+    // The shipping workflow calls `gh` (`gh pr checks`, `gh api .../rulesets`,
+    // opening PRs), and this box has no GitHub MCP connector, so gh is its
+    // road to GitHub. "latest" is fine: gh is not a
+    // CI-parity tool. The lockfile pins the install script, not the binary.
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+
     "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
   },
 
@@ -70,15 +76,53 @@
   // across rebuilds. Without CLAUDE_CONFIG_DIR, ~/.claude.json stays in the home
   // directory and is discarded on rebuild.
   // https://code.claude.com/docs/en/devcontainer#persist-authentication-and-settings-across-rebuilds
+  //
+  // gh's login gets a volume of its own. ~/.config is not on a volume, so
+  // `gh auth login` would be lost on rebuild; with no keyring in a container,
+  // gh writes the token as plain text to hosts.yml in GH_CONFIG_DIR. A named
+  // volume never leaves Docker, unlike mounting the host's gh config, which the
+  // Claude devcontainer page warns against. A direct child of /home/node, so
+  // Docker never creates a root-owned ~/.config; separate from the Claude
+  // volume, so each login resets alone.
+  // https://cli.github.com/manual/gh_auth_login
+  // https://cli.github.com/manual/gh_help_environment
   "mounts": [
-    "source=claude-code-config-${devcontainerId},target=/home/node/.claude,type=volume"
+    "source=claude-code-config-${devcontainerId},target=/home/node/.claude,type=volume",
+    "source=gh-config-${devcontainerId},target=/home/node/.gh-config,type=volume"
   ],
-  "containerEnv": { "CLAUDE_CONFIG_DIR": "/home/node/.claude" },
+  "containerEnv": {
+    "CLAUDE_CONFIG_DIR": "/home/node/.claude",
+    "GH_CONFIG_DIR": "/home/node/.gh-config"
+  },
 
   // Runs during a Codespaces prebuild, so node_modules is baked into the
   // prebuilt image rather than installed on every start. postCreateCommand
-  // would run too late for that.
-  "onCreateCommand": "cd web && npm ci",
+  // would run too late for that. The root install runs husky's `prepare`,
+  // which sets core.hooksPath; without it, a clone opened straight into the
+  // container skips the pre-commit and pre-push hooks silently.
+  "onCreateCommand": "npm ci && cd web && npm ci",
+
+  // Object form: the entries run in parallel, and they are independent.
+  // https://containers.dev/implementors/json_reference/#formatting-string-vs-array-properties
+  //
+  // context7: the Context7-first rule in CLAUDE.md needs the server, and only
+  // the cloud box gets it as a connector. User scope lands in the
+  // CLAUDE_CONFIG_DIR volume. `mcp add` fails with "already exists" on a
+  // rebuild, so `mcp get` guards it (exit 0 for any configured server, 1 for a
+  // missing one: observed on CLI 2.1.329, not documented). The name must be
+  // `Context7` to match the allow-list in .claude/settings.json. Not a
+  // committed .mcp.json: the cloud box would load it beside its own connector.
+  // postCreate, not onCreate: onCreate also runs in a Codespaces prebuild,
+  // before the user's config volume is theirs. A failed add (offline) warns on
+  // stderr rather than failing the container's creation; the next rebuild, or
+  // the command in docs/DEV_ENVIRONMENTS.md, adds it.
+  //
+  // gh-config: a fresh named volume can come up root-owned.
+  // https://code.visualstudio.com/remote/advancedcontainers/improve-performance
+  "postCreateCommand": {
+    "context7": "claude mcp get Context7 >/dev/null 2>&1 || claude mcp add --scope user --transport http Context7 https://mcp.context7.com/mcp || echo 'Context7 not added; see docs/DEV_ENVIRONMENTS.md' >&2",
+    "gh-config": "sudo chown node:node /home/node/.gh-config"
+  },
 
   "forwardPorts": [5173, 4173],
   "portsAttributes": {

@@ -15,7 +15,8 @@ The desktop box needs its machine on. The cloud box needs nothing running.
 ## Claude tooling — the same in every box
 
 Scott's skills, agents and doctrine are claude.ai account skills (`anthropic-skills:splitiq*`,
-source in the private SplitIQ-ops repo, #674), not repo files. Nothing per box to install:
+source in the private SplitIQ-ops repo, #674), not repo files. They need nothing installed
+per box (Context7, below, is the one exception):
 
 | Where | How the skills arrive | Repo hooks (`.claude/settings.json`) |
 |---|---|---|
@@ -26,6 +27,22 @@ source in the private SplitIQ-ops repo, #674), not repo files. Nothing per box t
 The root `CLAUDE.md` loads in all three and tells the session to invoke
 `anthropic-skills:splitiq` first. Plugins are deliberately not used: a cloud session
 never loads them ([cloud environments](https://code.claude.com/docs/en/cloud-environments.md#what-carries-over-from-your-setup)).
+
+**Context7, once per local box.** The cloud box gets Context7 from its environment's
+connectors (`docs/CLOUD_ENVIRONMENT.md`). A local CLI and the desktop box do not, so the
+Context7-first rule in `CLAUDE.md` has nothing to call there until you add it. Run this
+once in each, outside `claude`:
+
+```
+claude mcp add --scope user --transport http Context7 https://mcp.context7.com/mcp
+claude mcp get Context7   # Status: ✔ Connected
+```
+
+The name must be `Context7`. That makes the tools `mcp__Context7__resolve-library-id` and
+`mcp__Context7__query-docs`, the names `.claude/settings.json` already allows. Use user
+scope: a committed `.mcp.json` would also load in the cloud box and duplicate its
+connector. In the desktop box, the entry lands in the `CLAUDE_CONFIG_DIR` volume, so it
+survives rebuilds.
 
 ## CI in Docker — the same command in both boxes
 

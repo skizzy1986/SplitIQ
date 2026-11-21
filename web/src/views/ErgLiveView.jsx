@@ -300,7 +300,9 @@ function RowingScreen({ metrics, status, todaySession, onEnd }) {
               message: 'DIST',
               comment: 'Live metric label, short for distance',
             })}
-            value={metrics?.distance}
+            value={
+              metrics?.distance != null ? Math.round(metrics.distance) : null
+            }
             unit="m"
             accent={THEME.accent}
             dimmed={!isRowing}

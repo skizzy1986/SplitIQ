@@ -209,8 +209,10 @@ with Gradle. The APK is uploaded as a build artifact (retained 14 days).
   through PRs with passing CI.
 - **Vercel:** auto-deploys on push to main; preview URLs on every PR.
 - **Dependabot:** weekly grouped PRs for npm and GitHub Actions updates.
-- **Pre-commit (Husky + lint-staged):** ESLint + Prettier run automatically on
-  staged `.js`/`.jsx` files before every local commit.
+- **Git hooks (Husky):** pre-commit runs ESLint + Prettier on staged
+  `.js`/`.jsx` files (lint-staged); pre-push runs the tests the diff reaches
+  (`vitest run --changed origin/main`). Installed by `npm ci` / `npm install`
+  in `web/`.
 - **Design system:** the visual direction, the light redesign spec and the
   synced claude.ai/design component library live under `web/.design-sync/`.
   Start at [`DESIGN.md`](DESIGN.md); `npm run check:design-sync` guards it in CI.

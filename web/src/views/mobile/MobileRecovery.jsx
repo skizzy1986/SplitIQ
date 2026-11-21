@@ -237,15 +237,19 @@ export default function MobileRecovery({ onOpenSettings }) {
           >
             {(() => {
               const rhrDelta =
-                Math.round(
-                  ((latest.rhr ?? 0) - personalBaselines.rhrBaseline) * 10
-                ) / 10;
+                latest.rhr != null
+                  ? Math.round(
+                      (latest.rhr - personalBaselines.rhrBaseline) * 10
+                    ) / 10
+                  : null;
               const rhrColor =
-                rhrDelta > 5
-                  ? THEME.critical
-                  : rhrDelta > 2
-                    ? THEME.caution
-                    : THEME.positive;
+                rhrDelta == null
+                  ? THEME.muted
+                  : rhrDelta > 5
+                    ? THEME.critical
+                    : rhrDelta > 2
+                      ? THEME.caution
+                      : THEME.positive;
               return (
                 <div
                   style={{
@@ -269,33 +273,39 @@ export default function MobileRecovery({ onOpenSettings }) {
                   >
                     {latest.rhr != null ? `${latest.rhr} bpm` : t`No reading`}
                   </div>
-                  <div
-                    style={{ fontSize: 10, color: THEME.muted, marginTop: 4 }}
-                  >
-                    {rhrDelta > 0
-                      ? '↑ +' + rhrDelta
-                      : rhrDelta < 0
-                        ? '↓ ' + rhrDelta
-                        : '='}{' '}
-                    <Trans comment="Compared with, e.g. vs your avg">
-                      vs {baselineLabel}
-                    </Trans>
-                  </div>
+                  {rhrDelta != null && (
+                    <div
+                      style={{ fontSize: 10, color: THEME.muted, marginTop: 4 }}
+                    >
+                      {rhrDelta > 0
+                        ? '↑ +' + rhrDelta
+                        : rhrDelta < 0
+                          ? '↓ ' + rhrDelta
+                          : '='}{' '}
+                      <Trans comment="Compared with, e.g. vs your avg">
+                        vs {baselineLabel}
+                      </Trans>
+                    </div>
+                  )}
                 </div>
               );
             })()}
 
             {(() => {
               const deficit =
-                Math.round(
-                  (personalBaselines.hrvBaseline - (latest.hrv ?? 0)) * 10
-                ) / 10;
+                latest.hrv != null
+                  ? Math.round(
+                      (personalBaselines.hrvBaseline - latest.hrv) * 10
+                    ) / 10
+                  : null;
               const hrvColor =
-                deficit < 3
-                  ? THEME.positive
-                  : deficit < 8
-                    ? THEME.caution
-                    : THEME.critical;
+                deficit == null
+                  ? THEME.muted
+                  : deficit < 3
+                    ? THEME.positive
+                    : deficit < 8
+                      ? THEME.caution
+                      : THEME.critical;
               return (
                 <div
                   style={{
@@ -319,21 +329,22 @@ export default function MobileRecovery({ onOpenSettings }) {
                   >
                     {latest.hrv != null ? `${latest.hrv} ms` : t`No reading`}
                   </div>
-                  <div
-                    style={{ fontSize: 10, color: THEME.muted, marginTop: 4 }}
-                  >
-                    {(latest.hrv ?? 0) >= personalBaselines.hrvBaseline
-                      ? '↑ +' +
-                        Math.round(
-                          ((latest.hrv ?? 0) - personalBaselines.hrvBaseline) *
+                  {deficit != null && (
+                    <div
+                      style={{ fontSize: 10, color: THEME.muted, marginTop: 4 }}
+                    >
+                      {latest.hrv >= personalBaselines.hrvBaseline
+                        ? '↑ +' +
+                          Math.round(
+                            (latest.hrv - personalBaselines.hrvBaseline) * 10
+                          ) /
                             10
-                        ) /
-                          10
-                      : '↓ ' + deficit}{' '}
-                    <Trans comment="Compared with, e.g. vs your avg">
-                      vs {baselineLabel}
-                    </Trans>
-                  </div>
+                        : '↓ ' + deficit}{' '}
+                      <Trans comment="Compared with, e.g. vs your avg">
+                        vs {baselineLabel}
+                      </Trans>
+                    </div>
+                  )}
                 </div>
               );
             })()}

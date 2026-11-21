@@ -127,10 +127,19 @@ describe('MobileRecovery', () => {
       expect(screen.getByText('Train as planned')).toBeInTheDocument();
     });
 
+    it('undefined readings are treated as missing, the same as null', () => {
+      renderWith({ rhr: undefined, hrv: undefined });
+
+      expectNoReading(tileFor('RESTING HR'));
+      expectNoReading(tileFor('HRV'));
+    });
+
     it.each([
       [50, '=', 'var(--color-positive)'],
       [54, '↑ +4', 'var(--color-caution)'],
       [57, '↑ +7', 'var(--color-critical)'],
+      // Below baseline keeps the existing arrow-plus-sign format.
+      [47, '↓ -3', 'var(--color-positive)'],
     ])('RHR %i renders "%s" with colour %s', (rhr, delta, colour) => {
       renderWith({ rhr });
 
@@ -145,6 +154,7 @@ describe('MobileRecovery', () => {
       [60, '↑ +0', 'var(--color-positive)'],
       [55, '↓ 5', 'var(--color-caution)'],
       [50, '↓ 10', 'var(--color-critical)'],
+      [65, '↑ +5', 'var(--color-positive)'],
     ])('HRV %i renders "%s" with colour %s', (hrv, delta, colour) => {
       renderWith({ hrv });
 

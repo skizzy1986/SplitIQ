@@ -145,7 +145,7 @@ chapter.
 1. Ask whether he wants to share code or just the result. Results alone (screenshots +
    description) are often enough.
 2. For code: create his fork (`gh repo fork skizzy1986/SplitIQ --remote=false`;
-   if forking is disabled for this private repo, say so and share a summary + key code
+   if forking is disabled for this repo, say so and share a summary + key code
    snippets in the post instead), add it as remote `fork`, and push the `explore/*`
    branch there. Never push to `origin`.
 3. Draft a **Show and tell** Discussion in the shape of

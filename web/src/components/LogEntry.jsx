@@ -6,6 +6,8 @@ import { RADIUS, TYPE } from '../constants/tokens.js';
 import { alpha } from '../utils/themeCss.js';
 import { displayLogDate } from '../utils/displayLocale.js';
 import { canOpenSessionPage, sessionHref } from '../utils/sessionPage.js';
+import { isCancelledStatus } from '../utils/sessionStatus.js';
+import { PLANNED_STATUS } from '../constants/sessionStatus.js';
 
 export default function LogEntry({ entry, done = false }) {
   const { t, i18n } = useLingui();
@@ -13,8 +15,8 @@ export default function LogEntry({ entry, done = false }) {
   const color = C[entry.type] || THEME.neutralAccent;
   const isErg = !!entry._isErg;
   const duration = entry.duration;
-  const planned = entry.status === 'planned';
-  const cancelled = entry.status === 'cancelled';
+  const planned = entry.status === PLANNED_STATUS;
+  const cancelled = isCancelledStatus(entry.status);
   const canOpen = canOpenSessionPage(entry);
   const sessionId = entry._id ?? entry.id;
   const label = entry.label ?? '';

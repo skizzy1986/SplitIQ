@@ -121,8 +121,9 @@ esac
 web="$tree/web"
 eslint="$web/node_modules/.bin/eslint"
 
-# Mirror `npm run lint`, which covers only src/ and scripts/ under web/. Checked
-# before the eslint binary, so an out-of-scope edit stays silent without deps.
+# Lint the src/ and scripts/ subset of `npm run lint` at edit time; e2e/ and the
+# root configs are gated by `npm run lint` in CI. Checked before the eslint
+# binary, so an out-of-scope edit stays silent without deps.
 case "$fkey" in
   "$tkey"/web/src/* | "$tkey"/web/scripts/*) ;;
   *)

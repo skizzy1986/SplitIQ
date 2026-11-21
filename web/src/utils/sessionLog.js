@@ -1,5 +1,6 @@
 import { normType } from './formatting.js';
 import { isCompletedStatus, isCancelledStatus } from './sessionStatus.js';
+import { PLANNED_STATUS } from '../constants/sessionStatus.js';
 
 // One mapping/partition contract for both layouts. Input order is preserved;
 // callers already read sessions by training date, not insertion date.
@@ -32,7 +33,7 @@ export function selectSessionLog(rows = []) {
   const cancelledSessions = [];
   const plannedSessions = [];
   for (const entry of allSessions) {
-    if (entry.status === 'planned') {
+    if (entry.status === PLANNED_STATUS) {
       plannedSessions.push(entry);
       continue;
     }

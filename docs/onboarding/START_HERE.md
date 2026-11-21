@@ -82,7 +82,8 @@ there in your browser, or have Claude Code post for you.
 - **What you can do with it** is written down in [`PERMISSIONS.md`](../../PERMISSIONS.md).
   If Scott has named you there, you can reuse the code and assets in your own projects
   and publish them, as long as they're personal and non-commercial. Ask Scott before
-  making money from anything. If you're not named there, explore and prototype freely,
+  making money from anything or publishing something that competes with SplitIQ. What
+  you contribute stays yours; Scott gets a permanent licence to use it in SplitIQ. If you're not named there, explore and prototype freely,
   but ask before publishing.
 - The 3D anatomy data comes from BodyParts3D under a "share-alike" licence. If you
   publish it, or a 3D model made from it, credit BodyParts3D and use the same licence.

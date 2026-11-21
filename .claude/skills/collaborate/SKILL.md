@@ -64,8 +64,11 @@ architecture, the quality bar — still applies to any code you write.
   except where `PERMISSIONS.md` grants a named person more.
   - **If the collaborator is named there (e.g. Paul):** follow that grant. He may reuse,
     modify and **publish** the work in his own projects, publicly if he likes, for
-    personal, non-commercial purposes. Help him do that properly. Commercial use needs
-    Scott's OK first, so flag it if a project looks commercial.
+    personal, non-commercial purposes. Help him do that properly. Commercial use, or a
+    public product that competes with SplitIQ (paid or free), needs Scott's OK first, so
+    flag it if a project looks like either. What he contributes stays his; sharing it
+    with Scott grants Scott a permanent licence to use it in SplitIQ ("What Paul
+    contributes").
   - **If he isn't named there:** prototypes stay in his fork and are shared with Scott
     only. Don't publish or deploy them elsewhere.
   - **Always:** third-party terms in `NOTICE.md` still apply. When anything containing

@@ -9,7 +9,8 @@ named below. Anyone not named here is covered by `LICENSE` alone.
 
 ## Paul
 
-**Granted by:** Scott (copyright holder), 2026-11-04.
+**Granted by:** Scott (copyright holder), 2026-11-04. **Revised:** 2026-11-18 (competing
+products; what Paul contributes).
 **Granted to:** Paul, an invited collaborator on this repository. GitHub username:
 [`allstarfitnesswa-del`](https://github.com/allstarfitnesswa-del).
 
@@ -21,13 +22,33 @@ For **personal, non-commercial** purposes, Paul may:
 - **build on them** in his own projects, including new movements, tools and
   experiments;
 - **publish** his own projects that include or are based on this material, publicly or
-  privately, anywhere he likes (his own GitHub, a website, a demo). Scott attaches **no
-  conditions** to this. Credit is appreciated but not required.
+  privately, anywhere he likes (his own GitHub, a website, a demo). Apart from the two
+  items under "What needs Scott's OK first", Scott attaches **no conditions** to this.
+  Credit is appreciated but not required.
 
 ### What needs Scott's OK first
 - **Commercial use:** selling, charging for, or earning money from a project that uses
   this material (including subscriptions, paid apps, ads or client work). Ask Scott
   first; he may say yes.
+- **A competing product:** publishing a public product, app, site or service that
+  competes with SplitIQ, whether paid or free. Personal projects, experiments, private
+  sharing and building on the work for his own purposes stay fully open.
+
+### What Paul contributes
+Paul produces prototypes and ideas for SplitIQ; Scott decides what to build and runs it
+through his own pipeline.
+
+- **Paul keeps ownership** of what he writes and makes: code, designs, prototypes,
+  research and other content.
+- **By contributing it to this repository** — a pull request, a prototype or post in a
+  GitHub Discussion, or files handed to Scott for SplitIQ — Paul grants Scott a
+  **permanent, free, worldwide licence** to use, copy, modify, publish, sublicense and
+  commercialise it as part of SplitIQ or anything built from it. It can't be withdrawn
+  for anything already contributed.
+- **This is a licence, not a transfer.** Paul stays free to use his own work however he
+  likes. Where it includes Scott's material, the rest of this permission still applies.
+- **Scott keeps ownership** of his own code, content and assets, including what his
+  pipeline builds from Paul's contributions.
 
 ### What this permission doesn't change
 - **Third-party material keeps its own licence**, whatever Scott allows. When Paul

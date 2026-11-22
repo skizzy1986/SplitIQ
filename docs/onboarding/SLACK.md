@@ -15,7 +15,7 @@ record. Slack is for talk, so anything that has to last goes on GitHub.
 | `#bugs` | Quick bug reports. Each one becomes a GitHub issue, and the issue link goes back in the thread. |
 | `#github-feed` | Bot feed, no chat. The GitHub Slack app posts issues, pull requests, reviews and Discussions for `skizzy1986/SplitIQ`. Slack reserves the name `#github`. |
 | `#social` | Casual. |
-| `#vitals-feed` | Private, for health-sync alerts. |
+| `#vitals-feed` | Private. Pass/fail notices from the vitals sync job only; no health data is posted to Slack. |
 
 There is no Vercel channel, by Scott's choice.
 

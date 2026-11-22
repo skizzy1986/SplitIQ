@@ -7,13 +7,20 @@
 //
 // Required env (Edge Function secrets): GOOGLE_HEALTH_CLIENT_ID, GOOGLE_HEALTH_CLIENT_SECRET,
 //   GOOGLE_HEALTH_REFRESH_TOKEN, VITALS_USER_ID, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY,
-//   CRON_SECRET. Optional: SLACK_BUILD_WEBHOOK_URL.
+//   CRON_SECRET. Optional: SLACK_WEBHOOK_VITALS (one result line; unset skips silently).
 // Sleep additionally requires the googlehealth.sleep.readonly OAuth scope on the refresh token.
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { exchangeToken, listDataPoints } from "./client.ts";
 import { mapResponses } from "./mapper.ts";
 import { checkCronSecret } from "./cronGuard.ts";
 import { captureFunctionError } from "../_shared/sentry.ts";
+import {
+  failureLine,
+  importedMetricCount,
+  postVitalsSlack,
+  successLine,
+  VITALS_SLACK_SECRET,
+} from "./notify.ts";
 
 const FN = "vitals-import-api";
 
@@ -25,14 +32,9 @@ Deno.serve(async (req: Request) => {
   const json = (body: unknown, status = 200) =>
     new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 
-  // best-effort Slack post — never throws, never blocks the job
-  const webhookUrl = Deno.env.get("SLACK_BUILD_WEBHOOK_URL");
-  const slack = async (text: string): Promise<void> => {
-    if (!webhookUrl) return;
-    try {
-      await fetch(webhookUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }) });
-    } catch (_) { /* swallow — a Slack outage never fails the import */ }
-  };
+  // One line after the run. Unset secret: skip. Slack errors stay inside postVitalsSlack.
+  const notify = (text: string) =>
+    postVitalsSlack(Deno.env.get(VITALS_SLACK_SECRET), text);
 
   // 1. shared-secret guard (function is deployed with verify_jwt=false).
   // Fails closed: an unset/empty CRON_SECRET, or any header mismatch,
@@ -57,6 +59,7 @@ Deno.serve(async (req: Request) => {
     ["SUPABASE_SERVICE_ROLE_KEY", serviceKey],
   ].filter(([, v]) => !v).map(([k]) => k);
   if (missing.length) {
+    await notify(failureLine("missing env"));
     await captureFunctionError(
       FN,
       new Error(`missing env: ${missing.join(", ")}`),
@@ -70,7 +73,7 @@ Deno.serve(async (req: Request) => {
   try {
     accessToken = await exchangeToken(clientId!, clientSecret!, refreshToken!);
   } catch (e) {
-    await slack(`WO-005 FAIL · token exchange: ${String(e)}`);
+    await notify(failureLine("token exchange failed"));
     await captureFunctionError(FN, e, { stage: "token-exchange" });
     return json({ error: "token exchange failed" }, 502);
   }
@@ -102,9 +105,9 @@ Deno.serve(async (req: Request) => {
       byKey[specs[i].key] = s.value;
     } else {
       byKey[specs[i].key] = null;
-      await slack(`WO-005 FAIL · ${specs[i].dt}: ${String(s.reason)}`);
       // One metric failing is survivable — the record just carries a null —
-      // but it is still a real Google Health failure worth seeing.
+      // but it is still a real Google Health failure worth seeing. The reason
+      // string can carry a response body, so it stays in Sentry and out of Slack.
       await captureFunctionError(FN, s.reason, {
         stage: "dataPoints.list",
         dataType: specs[i].dt,
@@ -127,7 +130,7 @@ Deno.serve(async (req: Request) => {
     p_source: "google_health_api",
   });
   if (error) {
-    await slack(`WO-005 FAIL · upsert: ${error.message}`);
+    await notify(failureLine("upsert failed"));
     await captureFunctionError(FN, new Error(error.message), {
       stage: "upsert_vital",
       date,
@@ -135,15 +138,14 @@ Deno.serve(async (req: Request) => {
     return json({ error: "upsert failed", detail: error.message }, 502);
   }
 
-  // 8. best-effort Slack success post; list any null fields as a suffix
+  // 8. one Slack line: how many metrics landed. Values stay in the HTTP body.
   const nullFields = [
     ["hrv", rec.hrv_ms],
     ["rhr", rec.rhr_bpm],
     ["sleep", rec.sleep_hours],
     ["bodyweight", rec.bodyweight_kg],
   ].filter(([, v]) => v == null).map(([k]) => k as string);
-  const suffix = nullFields.length ? ` [${nullFields.map((k) => `${k}=null`).join(", ")}]` : "";
-  await slack(`WO-005 OK · vitals: 1 date(s) upserted (latest ${date})${suffix}`);
+  await notify(successLine(importedMetricCount(rec)));
 
   // 9. 200 if all four present, else 207 (partial)
   return json({ ok: nullFields.length === 0, date, record: rec, nullFields }, nullFields.length ? 207 : 200);

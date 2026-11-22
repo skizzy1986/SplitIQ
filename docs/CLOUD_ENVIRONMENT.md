@@ -93,7 +93,7 @@ Access level **Limited**, with the package-manager defaults, plus:
 Empty, or only `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`. Both are public client
 values; set them only if a session should run `npm run dev` against real data.
 
-**Never** set the Supabase service-role key, `SENTRY_AUTH_TOKEN`, or `VITE_SENTRY_DSN`.
+**Never** set the Supabase service-role key, `SENTRY_AUTH_TOKEN`, `VITE_SENTRY_DSN`, or a Slack incoming webhook. `SLACK_WEBHOOK_VITALS` is a Supabase Edge Function secret for the nightly vitals import result (counts and status only). It is set in the Supabase dashboard, not in this environment.
 
 - Privileged access goes through connectors, which are scoped and revocable. An env secret
   is readable by every process and can land in any log in the VM.

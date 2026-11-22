@@ -1,5 +1,12 @@
 import { extractHrv, extractRhr, extractSleepHours, extractWeightKg, mapResponses } from "./mapper.ts";
 import { checkCronSecret } from "./cronGuard.ts";
+import {
+  failureLine,
+  importedMetricCount,
+  postVitalsSlack,
+  successLine,
+  VITALS_SLACK_SECRET,
+} from "./notify.ts";
 
 let pass = 0, fail = 0;
 const check = (name: string, cond: boolean, actual?: unknown) => {
@@ -147,6 +154,59 @@ check("guard: 401 body is 'unauthorized'", body401.error === "unauthorized");
 // restore prior env state
 if (savedCronSecret === undefined) Deno.env.delete(CRON_ENV);
 else Deno.env.set(CRON_ENV, savedCronSecret);
+
+// ---------------------------------------------------------------------------
+// Slack result line: counts and status only. No health values.
+// ---------------------------------------------------------------------------
+
+const full = mapResponses("2026-06-25", hrvResp, rhrResp, sleepResp, weightResp);
+const fullLine = successLine(importedMetricCount(full));
+check("slack success: four of four", fullLine === "vitals-import-api OK · 1 date, 4 of 4 metrics", fullLine);
+check("slack success: omits HRV", !fullLine.includes("39"), fullLine);
+check("slack success: omits RHR", !fullLine.includes("56"), fullLine);
+check("slack success: omits sleep hours", !fullLine.includes("6.5"), fullLine);
+check("slack success: omits weight", !fullLine.includes("95.4"), fullLine);
+
+const partial = mapResponses("2026-06-25", null, rhrResp, null, weightResp);
+check(
+  "slack success: counts only the metrics that landed",
+  successLine(importedMetricCount(partial)) === "vitals-import-api OK · 1 date, 2 of 4 metrics",
+  successLine(importedMetricCount(partial)),
+);
+
+const deadToken = failureLine("token exchange failed");
+check("slack failure: token exchange class", deadToken.includes("token exchange failed"), deadToken);
+check("slack failure: names the grant script", deadToken.includes("scripts/google-health-oauth.ts"), deadToken);
+check("slack failure: no Google error body", !deadToken.includes("invalid_grant"), deadToken);
+check("slack failure: upsert is the class only", failureLine("upsert failed") === "vitals-import-api FAIL · upsert failed");
+check("slack secret name", VITALS_SLACK_SECRET === "SLACK_WEBHOOK_VITALS");
+
+const calls: Array<{ url: string; body: string }> = [];
+const okFetch = (url: string, init?: RequestInit) => {
+  calls.push({ url, body: String(init?.body ?? "") });
+  return Promise.resolve(new Response("ok", { status: 200 }));
+};
+await postVitalsSlack(undefined, fullLine, okFetch as typeof fetch);
+await postVitalsSlack("", fullLine, okFetch as typeof fetch);
+check("slack unset: no request", calls.length === 0, calls);
+
+await postVitalsSlack("https://hooks.example.test/vitals", fullLine, okFetch as typeof fetch);
+const posted = JSON.parse(calls[0].body) as { text: string };
+check("slack posts the one success line", posted.text === fullLine, posted);
+check("slack post body has no health values", !JSON.stringify(posted).includes("95.4"), posted);
+
+let threw = false;
+try {
+  await postVitalsSlack("https://hooks.example.test/vitals", fullLine, () => Promise.reject(new Error("network down")));
+  await postVitalsSlack(
+    "https://hooks.example.test/vitals",
+    failureLine("upsert failed"),
+    () => Promise.resolve(new Response("no", { status: 500 })),
+  );
+} catch {
+  threw = true;
+}
+check("slack failure never throws", threw === false);
 
 console.log("\nRESULT:", pass, "passed,", fail, "failed");
 if (fail) Deno.exit(1);

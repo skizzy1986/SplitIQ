@@ -11,6 +11,13 @@ vi.mock('../../components/StravaConnectPanel.jsx', () => ({
   },
 }));
 
+vi.mock('../../supabaseClient.js', () => ({
+  supabase: {
+    auth: { getUser: vi.fn() },
+    functions: { invoke: vi.fn() },
+  },
+}));
+
 import SettingsView from '../SettingsView.jsx';
 
 beforeEach(() => {
@@ -47,5 +54,13 @@ describe('SettingsView', () => {
   it('renders no notice region when there is nothing to say', () => {
     render(<SettingsView />);
     expect(screen.queryByRole('status')).toBeNull();
+  });
+
+  it('offers Report a problem under Help', () => {
+    render(<SettingsView />);
+    expect(screen.getByRole('heading', { name: 'Help' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Report a problem' })
+    ).toBeInTheDocument();
   });
 });

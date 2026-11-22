@@ -354,6 +354,12 @@ describe('Settings in Spanish', () => {
     expect(
       screen.getByRole('heading', { level: 2, name: 'Idioma' })
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Ayuda' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Informar un problema' })
+    ).toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'Idioma' })).toContainElement(
       screen.getByRole('group', { name: 'Idioma' })
     );

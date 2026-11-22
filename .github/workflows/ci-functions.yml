@@ -57,7 +57,7 @@ jobs:
       # have to resolve. Anyone turning it on should expect to fix both.
       - name: vitals-import parser + cron guard
         run: deno run --allow-env vitals-import/test.ts
-      - name: vitals-import-api client + mapper
+      - name: vitals-import-api client + mapper + slack notice
         run: deno run --allow-env vitals-import-api/test.ts
       # Not auto-discovered: the steps in this job are hardcoded, so a new
       # function's tests run only once a step is added for them by hand.

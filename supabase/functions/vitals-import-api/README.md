@@ -24,7 +24,9 @@ On each run the function:
    the others still upsert. (`dailyRollUp` is unsupported for the daily-* and sleep
    types; `list` is the correct method for all four.)
 5. Maps responses to a `VitalRecord` (`mapper.ts`) and calls `upsert_vital`.
-6. Posts a best-effort `#build` Slack notification.
+6. Posts one line to Slack (`SLACK_WEBHOOK_VITALS`) with the count imported,
+   or the error class if the run failed. Health values are not in that line.
+   An unset secret skips the post, and a Slack failure does not fail the import.
 
 Returns `200` when all four metrics are present, `207` on partial data.
 
@@ -48,7 +50,7 @@ Set in Supabase dashboard → Edge Functions → Secrets.
 | `CRON_SECRET` | Shared secret for the `x-cron-secret` header guard |
 | `SUPABASE_URL` | Auto-injected by the Edge Function runtime |
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role — bypasses RLS; required to write via `upsert_vital` |
-| `SLACK_BUILD_WEBHOOK_URL` | `#build` webhook for best-effort notifications |
+| `SLACK_WEBHOOK_VITALS` | Optional incoming webhook. One line after the nightly run: counts and status, never health values. Unset skips the post. `token exchange failed` means the refresh token is dead and `scripts/google-health-oauth.ts` must be re-run |
 
 > The service role bypasses RLS, so `auth.uid()` is null in this function. It sets
 > `user_id` explicitly to `VITALS_USER_ID` on every `upsert_vital` call, or rows
@@ -123,4 +125,5 @@ Filters used (yesterday Perth, half-open `[date, nextDate)`): daily-* types key 
 `{type}.date`; weight on `weight.sample_time.civil_time`; sleep on
 `sleep.interval.civil_end_time` (the wake date). The extractors fail safe — a missing
 shape yields `null`, not an exception, so a metric with no data for the day surfaces as
-a null field (visible in the `[..=null]` Slack suffix) rather than a crash.
+a null field rather than a crash. The Slack line reports how many of the four
+metrics arrived, not which values were missing.

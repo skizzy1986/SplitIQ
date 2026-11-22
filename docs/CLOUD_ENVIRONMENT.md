@@ -101,6 +101,9 @@ values; set them only if a session should run `npm run dev` against real data.
   inject fake Supabase values.
 - The Sentry DSN is runtime-only and set in Vercel. Without it Sentry is a no-op, which is
   what a dev session wants.
+- `SLACK_WEBHOOK_BUGS` is the incoming webhook for in-app problem reports. It is a
+  Supabase Edge Function secret, set in the Supabase dashboard. Do not set it here,
+  and do not give it a `VITE_` name: the webhook URL must not reach the client.
 
 No secret values appear in this document, and none should be added to it.
 

@@ -448,6 +448,7 @@ msgid "CALORIES"
 msgstr "CALORIES"
 
 #. Button
+#: src/components/ReportProblem.jsx
 #: src/components/StravaConnectPanel.jsx
 msgid "Cancel"
 msgstr "Cancel"
@@ -565,6 +566,10 @@ msgstr "Could not count the Strava data in your log. Try again."
 msgid "Could not read the Strava connection status"
 msgstr "Could not read the Strava connection status"
 
+#: src/components/ReportProblem.jsx
+msgid "Could not send the report. Try again shortly."
+msgstr "Could not send the report. Try again shortly."
+
 #. Error after pressing Connect Strava
 #: src/components/StravaConnectPanel.jsx
 msgid "Could not start the Strava connection. Try again."
@@ -624,6 +629,14 @@ msgstr "default"
 #: src/components/session/ProvenanceNote.jsx
 msgid "Derived here: {derivedText}."
 msgstr "Derived here: {derivedText}."
+
+#: src/components/ReportProblem.jsx
+msgid "Describe what happened before sending."
+msgstr "Describe what happened before sending."
+
+#: src/components/ReportProblem.jsx
+msgid "Describe what went wrong."
+msgstr "Describe what went wrong."
 
 #: src/components/session/SessionSummary.jsx
 msgid "Device"
@@ -885,6 +898,10 @@ msgstr "Heart rate across {over}, between {lo} and {hi} bpm; average {avg} bpm."
 #: src/components/session/SessionTrace.jsx
 msgid "Heart rate across {over}, between {lo} and {hi} bpm."
 msgstr "Heart rate across {over}, between {lo} and {hi} bpm."
+
+#: src/views/SettingsView.jsx
+msgid "Help"
+msgstr "Help"
 
 #. Training form (TSB) band
 #: src/utils/trainingLoad.js
@@ -1541,6 +1558,14 @@ msgstr "RECOVERY"
 msgid "ref"
 msgstr "ref"
 
+#: src/components/ReportProblem.jsx
+msgid "Report a problem"
+msgstr "Report a problem"
+
+#: src/components/ReportProblem.jsx
+msgid "Report sent. Thank you."
+msgstr "Report sent. Thank you."
+
 #. Injury resolved date
 #: src/views/RecoveryView.jsx
 msgid "resolved {date}"
@@ -1642,6 +1667,14 @@ msgstr "Sections"
 #: src/components/session/RangeSummary.jsx
 msgid "Selected range"
 msgstr "Selected range"
+
+#: src/components/ReportProblem.jsx
+msgid "Send report"
+msgstr "Send report"
+
+#: src/components/ReportProblem.jsx
+msgid "Sending…"
+msgstr "Sending…"
 
 #: src/views/SessionView.jsx
 msgid "Session"
@@ -1811,6 +1844,10 @@ msgstr "START SESSION"
 #: src/constants/srpeGuideMessages.js
 msgid "Steady (UT1)"
 msgstr "Steady (UT1)"
+
+#: src/components/ReportProblem.jsx
+msgid "Steps (optional)"
+msgstr "Steps (optional)"
 
 #: src/utils/stravaStatus.js
 msgid "Strava access was revoked. Reconnect to resume importing."
@@ -2142,6 +2179,10 @@ msgstr "Today"
 msgid "TODAY"
 msgstr "TODAY"
 
+#: src/components/ReportProblem.jsx
+msgid "Too many reports in a short time. Try again later."
+msgstr "Too many reports in a short time. Try again later."
+
 #: src/components/LogSessionForm.jsx
 msgid "Top weight"
 msgstr "Top weight"
@@ -2298,6 +2339,14 @@ msgstr "Weighted power divided by the average power, {avg} W. 1.00 is an even ou
 #: src/components/session/MoreDetail.jsx
 msgid "Weighted power divided by the average power. 1.00 is an even output throughout."
 msgstr "Weighted power divided by the average power. 1.00 is an even output throughout."
+
+#: src/components/ReportProblem.jsx
+msgid "What happened"
+msgstr "What happened"
+
+#: src/components/ReportProblem.jsx
+msgid "What you did just before, if you remember."
+msgstr "What you did just before, if you remember."
 
 #: src/components/session/ProvenanceNote.jsx
 msgid "Where this data comes from"

@@ -14,6 +14,7 @@ export const VIEWS_SOURCES = [
   'src/views/SettingsView.jsx',
   'src/views/mobile/MobileSettings.jsx',
   'src/components/StravaConnectPanel.jsx',
+  'src/components/ReportProblem.jsx',
   'src/components/ThemeControl.jsx',
   'src/views/OverviewView.jsx',
   'src/views/CalendarView.jsx',

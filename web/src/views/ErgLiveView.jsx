@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { Plural, Trans, useLingui } from '@lingui/react/macro';
 import { useSessionOwner } from '../hooks/useSessionOwner.js';
 import { privateSessionGeneration } from '../utils/privateSessionState.js';
@@ -9,6 +10,7 @@ import { supabase } from '../supabaseClient';
 import LiveMetric from '../components/LiveMetric';
 import WorkoutTarget from '../components/WorkoutTarget';
 import SessionExitBar from '../components/mobile/SessionExitBar.jsx';
+import PM5Picker from '../components/PM5Picker';
 import { parsePace, formatElapsed } from '../services/pm5Bluetooth';
 import { THEME } from '../constants/theme.js';
 import { toISODate, toLogDate } from '../utils/dateFormat.js';
@@ -113,13 +115,23 @@ function ConnectScreen({
           maxWidth: 300,
         }}
       >
-        <Trans comment="PM5 is the rowing machine's monitor: keep it. Connect is the button below. The tags are line breaks">
-          Power on your PM5.
-          <br />
-          Tap Connect — your browser will
-          <br />
-          ask you to select the device.
-        </Trans>
+        {Capacitor.isNativePlatform() ? (
+          <Trans comment="Android app. PM5 is the rowing machine's monitor: keep it. Connect is the button below. The tags are line breaks">
+            Power on your PM5.
+            <br />
+            Tap Connect, then choose your
+            <br />
+            monitor from the list.
+          </Trans>
+        ) : (
+          <Trans comment="PM5 is the rowing machine's monitor: keep it. Connect is the button below. The tags are line breaks">
+            Power on your PM5.
+            <br />
+            Tap Connect — your browser will
+            <br />
+            ask you to select the device.
+          </Trans>
+        )}
       </div>
 
       {error && (
@@ -664,6 +676,13 @@ export default function ErgLiveView({
     reset,
     finish,
     disconnect,
+    monitors,
+    scanPhase,
+    connectingId,
+    locationOff,
+    choose,
+    retryScan,
+    cancelScan,
   } = usePM5();
   const { t } = useLingui();
   const { addToQueue, pending } = useOfflineQueue();
@@ -793,6 +812,20 @@ export default function ErgLiveView({
         error={null}
         todaySession={todaySession}
         pending={pending}
+      />
+    );
+  } else if (status === 'choosing') {
+    // Android only: the list of PM5s in range.
+    screen = (
+      <PM5Picker
+        monitors={monitors}
+        phase={scanPhase}
+        connectingId={connectingId}
+        errorCode={errorCode}
+        locationOff={locationOff}
+        onChoose={choose}
+        onRetry={retryScan}
+        onCancel={cancelScan}
       />
     );
   } else if (status === 'finished' && summary) {

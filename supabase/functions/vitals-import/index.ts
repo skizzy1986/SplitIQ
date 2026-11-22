@@ -119,7 +119,7 @@ Deno.serve(async (req: Request) => {
   };
 
   // best-effort Slack post — never throws, never blocks the job
-  const webhookUrl = Deno.env.get("SLACK_BUILD_WEBHOOK_URL");
+  const webhookUrl = Deno.env.get("SLACK_VITALS_WEBHOOK_URL");
   if (webhookUrl) {
     const latest = records[records.length - 1]?.date ?? "?";
     const text = errors.length === 0

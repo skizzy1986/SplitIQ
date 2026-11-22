@@ -13,6 +13,7 @@ import { supabase as sb } from './supabaseClient.js';
 import { THEME } from './constants/theme.js';
 import { LAYER } from './constants/tokens.js';
 import { sessionDraftStore } from './utils/strengthDraft.js';
+import { muscleFilterTags } from './utils/muscleFilter.js';
 
 const CSS = `
 .slog{ --bg:var(--color-bg); --panel:var(--color-raised); --panel2:var(--color-surface-alt);
@@ -1140,7 +1141,7 @@ function mountStrengthLogger(root) {
       .order('name');
     if (pickFilter.q) q = q.ilike('name', '%' + pickFilter.q + '%');
     if (pickFilter.muscle)
-      q = q.contains('primary_muscles', [pickFilter.muscle]);
+      q = q.overlaps('primary_muscles', muscleFilterTags(pickFilter.muscle));
     const { data, error } = await q;
     const list = $('#pkList');
     if (!list) return;

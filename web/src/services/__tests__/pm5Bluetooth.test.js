@@ -661,6 +661,21 @@ describe('connectToPM5', () => {
     else delete navigator.bluetooth;
   });
 
+  // The PM5 advertises ce060000, not the rowing service: a scan filtered on
+  // ce060030 finds nothing.
+  it('scans for the advertised device UUID or the PM5 name, not the rowing service', async () => {
+    installBluetooth();
+    await connectToPM5();
+    const options = navigator.bluetooth.requestDevice.mock.calls[0][0];
+    expect(options.filters).toEqual([
+      { services: ['ce060000-43e5-11e4-916c-0800200c9a66'] },
+      { namePrefix: 'PM5' },
+    ]);
+    expect(options.optionalServices).toEqual([
+      'ce060030-43e5-11e4-916c-0800200c9a66',
+    ]);
+  });
+
   it('returns all four characteristics when present', async () => {
     const device = installBluetooth();
     const result = await connectToPM5();

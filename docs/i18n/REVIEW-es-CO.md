@@ -42,7 +42,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `hdxhKx` | We could not sign you in. Try again. | No pudimos iniciar sesión. Inténtalo de nuevo. | Login error for any unrecognised cause. Only shown in Spanish. · src/utils/authError.js |
 | `y1oEoC` | Wrong email or password. | Correo o contraseña incorrectos. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
 
-## Dashboard views (src/locales/views, 503 strings)
+## Dashboard views (src/locales/views, 512 strings)
 
 | Row | English | Español | Where / note |
 |---|---|---|---|
@@ -167,6 +167,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `-uLBTN` | Could do all day. Full conversation, nose-breathing. | Podrías seguir todo el día. Conversación completa, respirando por la nariz. | sRPE scale, effort 1-2: the talk test · src/constants/srpeGuideMessages.js |
 | `2xL2US` | Could not count the Strava data in your log. Try again. | No se pudieron contar los datos de Strava de tu registro. Inténtalo de nuevo. | Error when the disconnect preview could not be loaded · src/components/StravaConnectPanel.jsx |
 | `stSfoD` | Could not read the Strava connection status | No pudimos leer el estado de la conexión con Strava | Error state heading · src/components/StravaConnectPanel.jsx |
+| `Veal_a` | Could not send the report. Try again. | No se pudo enviar el informe. Inténtalo de nuevo. | src/components/ReportProblem.jsx |
 | `pSobqw` | Could not start the Strava connection. Try again. | No pudimos iniciar la conexión con Strava. Inténtalo de nuevo. | Error after pressing Connect Strava · src/components/StravaConnectPanel.jsx |
 | `NVdgu4` | Couldn't load {what}. | No se pudo cargar: {what}. | {what} is the card's title in lower case, e.g. blood pressure · src/components/HealthRecordCard.jsx |
 | `F_DqBO` | Couldn't refresh sessions — showing what loaded earlier. | No se pudieron actualizar las sesiones: se muestra lo que se cargó antes. | src/views/CalendarView.jsx |
@@ -180,6 +181,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `r2_GnS` | Decision limits: | Límites de decisión: | Followed by the names of the guideline sources · src/views/RecoveryView.jsx |
 | `Bn9-El` | default | predeterminado | Followed by a number: the population default baseline · src/views/RecoveryView.jsx |
 | `NsszZt` | Derived here: {derivedText}. | Calculado aquí: {derivedText}. | Session caption; the list is translated item by item · src/components/session/ProvenanceNote.jsx |
+| `DEFNmM` | Describe what happened. | Describe qué pasó. | src/components/ReportProblem.jsx |
 | `PEHQTf` | Device | Dispositivo | src/components/session/SessionSummary.jsx |
 | `g-iSJQ` | Device storage is full. Free some space, then tap SAVE SESSION again. | El almacenamiento del dispositivo está lleno. Libera espacio y vuelve a tocar GUARDAR SESIÓN. | SAVE SESSION is the button's label: match its translation · src/views/ErgLiveView.jsx |
 | `3gdwFS` | DISCARD | DESCARTAR | Button that throws the session away, all capitals · src/views/ErgLiveView.jsx |
@@ -233,6 +235,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `bcsF7s` | Heart rate | Frecuencia cardíaca | src/components/session/SplitsTable.jsx · src/components/session/TraceTooltip.jsx |
 | `8HLv9p` | Heart rate across {over}, between {lo} and {hi} bpm; average {avg} bpm. | Frecuencia cardíaca durante {over}, entre {lo} y {hi} bpm; promedio {avg} bpm. | src/components/session/SessionTrace.jsx |
 | `K7-s0i` | Heart rate across {over}, between {lo} and {hi} bpm. | Frecuencia cardíaca durante {over}, entre {lo} y {hi} bpm. | src/components/session/SessionTrace.jsx |
+| `c3XJ18` | Help | Ayuda | src/views/SettingsView.jsx |
 | `qGrPbG` | High fatigue — recent load well above fitness | Fatiga alta: la carga reciente supera de lejos tu estado físico | Training form (TSB) band · src/utils/trainingLoad.js |
 | `0caMy7` | History | Historial | Desktop Progress pane · Progress sub-tab: past sessions · src/App.jsx · src/views/LogView.jsx · src/views/mobile/MobileProgress.jsx |
 | `qsHYae` | HORMONE PANEL | PERFIL HORMONAL | Card title, all capitals · src/views/RecoveryView.jsx |
@@ -374,6 +377,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `P9wzG_` | Recovery | Recuperación | Rowing training zone · Training zone name · src/components/session/zoneLabels.js · src/constants/srpeGuideMessages.js |
 | `cwpus4` | RECOVERY | RECUPERACIÓN | Screen heading, all capitals · src/views/mobile/MobileRecovery.jsx |
 | `2t2fqH` | ref | ref. | Short for "reference range" before a lab range, e.g. "ref 0.5–1.0" · src/utils/healthRecords.js |
+| `hV3yAb` | Report a problem | Informar un problema | src/components/ReportProblem.jsx |
 | `9i9Bip` | resolved {date} | resuelta el {date} | Injury resolved date · src/views/RecoveryView.jsx |
 | `BPmK5_` | RESTING HR | FC EN REPOSO | All capitals · All capitals · src/views/mobile/MobileRecovery.jsx · src/views/RecoveryView.jsx |
 | `KqWf7J` | RESTING HR TREND | TENDENCIA DE FC EN REPOSO | Chart title, all capitals · src/views/RecoveryView.jsx |
@@ -395,6 +399,8 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `MC_dgX` | Scored on the readings that arrived — some were missing. | Se puntuó con las lecturas que llegaron; faltaron algunas. | src/views/mobile/MobileToday.jsx |
 | `R4OWFD` | Sections | Secciones | src/App.jsx |
 | `dWPDm3` | Selected range | Tramo seleccionado | src/components/session/RangeSummary.jsx |
+| `O9oQJS` | Send report | Enviar informe | src/components/ReportProblem.jsx |
+| `iEu7bZ` | Sent. Thank you. | Enviado. Gracias. | src/components/ReportProblem.jsx |
 | `CqO9qC` | Session | Sesión | src/views/SessionView.jsx |
 | `Mo7fYT` | Session · {duration} | Sesión · {duration} | src/components/LogEntry.jsx |
 | `UpQiCm` | SESSION COMPLETE | SESIÓN TERMINADA | Screen eyebrow after the row ends, all capitals · src/views/ErgLiveView.jsx |
@@ -429,6 +435,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `vjiwd1` | START A SESSION | INICIA UNA SESIÓN | Heading, all capitals · src/views/mobile/MobileTrain.jsx |
 | `Ul5Zpl` | START SESSION | INICIAR SESIÓN DE ENTRENAMIENTO | Button, all capitals · src/views/mobile/MobileToday.jsx |
 | `lqrTOx` | Steady (UT1) | Constante (UT1) | sRPE scale, effort 5-6 · src/constants/srpeGuideMessages.js |
+| `B42RaS` | Steps (optional) | Pasos (opcional) | src/components/ReportProblem.jsx |
 | `maUeij` | Strava access was revoked. Reconnect to resume importing. | Se revocó el acceso a Strava. Reconecta para seguir importando. | src/utils/stravaStatus.js |
 | `6GyMVL` | Strava connected. Activities import at the next scheduled sync, or press Sync now to start straight away. | Strava conectado. Las actividades se importan en la próxima sincronización programada, o pulsa Sincronizar ahora para empezar de una vez. | src/utils/stravaCallback.js |
 | `k4MTJt` | Strava connection | Conexión con Strava | Screen reader only: name of the Strava settings panel · src/components/StravaConnectPanel.jsx |
@@ -501,6 +508,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `0yO9ub` | Time in zone: {summary}. | Tiempo en zona: {summary}. | src/components/session/ZoneBar.jsx |
 | `ecUA8p` | Today | Hoy | src/views/mobile/MobileSettings.jsx · src/views/mobile/MobileToday.jsx · src/views/OverviewView.jsx |
 | `SOb7_c` | TODAY | HOY | Section heading, all capitals · src/views/mobile/MobileToday.jsx |
+| `nB4fWp` | Too many reports. Try again shortly. | Demasiados informes. Inténtalo de nuevo en un momento. | src/components/ReportProblem.jsx |
 | `gNLJjH` | Top weight | Peso máximo | src/components/LogSessionForm.jsx |
 | `vMc93p` | Top Wt | Peso máx. | Column: heaviest weight lifted, abbreviated · src/components/LogEntry.jsx |
 | `QJw1Lb` | Top wt (70kg) | Peso máx. (70kg) | Heaviest weight lifted, with an example · src/components/LogSessionForm.jsx |
@@ -534,6 +542,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `rjcD_9` | Weighted power | Potencia ponderada | src/components/session/MoreDetail.jsx |
 | `eWX1fY` | Weighted power divided by the average power, {avg} W. 1.00 is an even output throughout. | La potencia ponderada dividida entre la potencia promedio, {avg} W. 1.00 es un esfuerzo parejo de principio a fin. | src/components/session/MoreDetail.jsx |
 | `Who23M` | Weighted power divided by the average power. 1.00 is an even output throughout. | La potencia ponderada dividida entre la potencia promedio. 1.00 es un esfuerzo parejo de principio a fin. | src/components/session/MoreDetail.jsx |
+| `b5Qs6l` | What happened | Qué pasó | src/components/ReportProblem.jsx |
 | `HioAOv` | Where this data comes from | De dónde vienen estos datos | src/components/session/ProvenanceNote.jsx |
 | `LRklOm` | Words impossible. All-out. Race/test efforts only. | Imposible hablar. A tope. Solo en competencias o pruebas. | sRPE scale, effort 9-10: the talk test · src/constants/srpeGuideMessages.js |
 | `qRILxq` | Work | Trabajo | src/components/session/SessionSummary.jsx |

@@ -112,7 +112,11 @@ export default function StageControls({
         {/* Share is a third footer button, not a row of its own: at
             1280 × 720 the rail has 11 px to spare above the footer, and a
             row would push the footer below the fold. Its message and field
-            are laid over the rail above the footer (position: relative). */}
+            are positioned against this footer, beside the rail rather than
+            over the Show switches. The columns are unequal on purpose: at
+            the 260 px rail (761 × 720) equal thirds wrap "Metrics and
+            targets" to three lines and the card ends below the fold.
+            "Metrics and" is the widest line that has to fit. */}
         <div
           style={{
             position: 'relative',
@@ -120,7 +124,9 @@ export default function StageControls({
             paddingTop: SPACE.md,
             borderTop: `1px solid ${THEME.divider}`,
             display: 'grid',
-            gridTemplateColumns: `repeat(${share ? 3 : 2}, minmax(0, 1fr))`,
+            gridTemplateColumns: share
+              ? 'minmax(0, 1.08fr) minmax(0, 1.3fr) minmax(0, 1.08fr)'
+              : 'repeat(2, minmax(0, 1fr))',
             gap: SPACE.xs,
           }}
         >

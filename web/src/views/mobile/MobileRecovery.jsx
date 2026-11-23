@@ -55,8 +55,10 @@ export default function MobileRecovery({ onOpenSettings }) {
     month: 'short',
   });
 
-  const readinessColor =
-    readinessScore >= 80
+  const noReadiness = readinessScore == null;
+  const readinessColor = noReadiness
+    ? THEME.muted
+    : readinessScore >= 80
       ? THEME.positive
       : readinessScore >= 60
         ? THEME.caution
@@ -195,14 +197,14 @@ export default function MobileRecovery({ onOpenSettings }) {
           >
             <div
               style={{
-                fontSize: 52,
+                fontSize: noReadiness ? 22 : 52,
                 fontWeight: 700,
                 color: readinessColor,
-                fontFamily: FONT.mono,
-                lineHeight: 1,
+                fontFamily: noReadiness ? FONT.sans : FONT.mono,
+                lineHeight: noReadiness ? 1.2 : 1,
               }}
             >
-              {readinessScore}
+              {noReadiness ? t`No reading` : readinessScore}
             </div>
             <div
               style={{
@@ -214,16 +216,18 @@ export default function MobileRecovery({ onOpenSettings }) {
             >
               <Trans comment="All capitals">READINESS</Trans>
             </div>
-            <div
-              style={{
-                fontSize: 12,
-                color: readinessColor,
-                marginTop: 6,
-                fontWeight: 600,
-              }}
-            >
-              {coachingText}
-            </div>
+            {!noReadiness && (
+              <div
+                style={{
+                  fontSize: 12,
+                  color: readinessColor,
+                  marginTop: 6,
+                  fontWeight: 600,
+                }}
+              >
+                {coachingText}
+              </div>
+            )}
           </div>
 
           {/* Metric tiles */}
@@ -339,8 +343,10 @@ export default function MobileRecovery({ onOpenSettings }) {
             })()}
 
             {(() => {
-              const sleepColor =
-                latest.sleep >= 7
+              const sleepMissing = latest.sleep == null;
+              const sleepColor = sleepMissing
+                ? THEME.muted
+                : latest.sleep >= 7
                   ? THEME.positive
                   : latest.sleep >= 6.5
                     ? THEME.caution
@@ -368,11 +374,13 @@ export default function MobileRecovery({ onOpenSettings }) {
                   >
                     {latest.sleep != null ? `${latest.sleep}h` : t`No reading`}
                   </div>
-                  <div
-                    style={{ fontSize: 10, color: THEME.muted, marginTop: 4 }}
-                  >
-                    {latest.sleep >= 7 ? t`Target met` : t`Below 7h target`}
-                  </div>
+                  {!sleepMissing && (
+                    <div
+                      style={{ fontSize: 10, color: THEME.muted, marginTop: 4 }}
+                    >
+                      {latest.sleep >= 7 ? t`Target met` : t`Below 7h target`}
+                    </div>
+                  )}
                 </div>
               );
             })()}
@@ -625,7 +633,7 @@ export default function MobileRecovery({ onOpenSettings }) {
                   <Line
                     type="monotone"
                     dataKey="readinessScore"
-                    stroke={readinessColor}
+                    stroke={THEME.accent}
                     dot={false}
                     strokeWidth={2}
                     isAnimationActive={false}

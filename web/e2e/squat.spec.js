@@ -946,14 +946,20 @@ test('a copied view reopens exactly, with no query string (criterion 16a)', asyn
   await page.getByRole('slider', { name: 'Rep time' }).focus();
   for (let i = 0; i < 5; i++) await page.keyboard.press('ArrowRight');
   const before = await page.evaluate(() => window.history.length);
+  // The radius is the stage's home distance, so a stage-size change must not
+  // fail this for an unrelated reason (#492). Azimuth and polar are the Front preset.
+  const pose = await page.evaluate(() => window.__anatomyDebug.pose());
+  const dist = (Math.round(pose.radius * 100) / 100).toFixed(2);
   await page.getByRole('button', { name: COPY }).click();
   await expect(page.getByTestId('share-status')).toHaveText('Link copied.');
+  // The copied panel is on screen: axe has to see that state, not only the field.
+  expect(await axe(page)).toEqual([]);
   const link = await readClipboard(page);
   const url = new URL(link);
   expect(link).not.toContain('?');
   expect(url.pathname).toBe('/squat');
   expect(url.hash).toBe(
-    '#t=0.10&m=soleus&paused&cam=90,85,3.60&hide=skeleton&heat'
+    `#t=0.10&m=soleus&paused&cam=90,85,${dist}&hide=skeleton&heat`
   );
   // Copy adds no history entry.
   expect(await page.evaluate(() => window.history.length)).toBe(before);
@@ -1018,10 +1024,10 @@ for (const [label, viewport, scheme] of [
         await page.getByRole('button', { name: 'Share', exact: true }).click();
       // Idle: axe-clean, and nothing laid out for the status yet.
       expect(await axe(page)).toEqual([]);
-      const railTop = phone
-        ? null
-        : (await page.getByRole('region', { name: 'Controls' }).boundingBox())
-            .y;
+      const rail = page.getByRole('region', { name: 'Controls' });
+      const stage = page.getByRole('region', { name: '3D model' });
+      const railBefore = phone ? null : await rail.boundingBox();
+      const stageBefore = phone ? null : await stage.boundingBox();
       await page.getByRole('button', { name: COPY }).click();
       const field = page.getByRole('textbox', { name: 'Link to this view' });
       await expect(field).toBeVisible();
@@ -1034,21 +1040,18 @@ for (const [label, viewport, scheme] of [
       expect(
         await field.evaluate((el) => [el.selectionStart, el.selectionEnd])
       ).toEqual([0, value.length]);
-      // The desktop panel overlays the rail: the rail does not move and the
-      // page does not scroll.
+      // The panel sits over the stage. Opening it must not move the rail or
+      // the stage, and the page does not scroll.
       if (!phone) {
-        expect(
-          (await page.getByRole('region', { name: 'Controls' }).boundingBox()).y
-        ).toBe(railTop);
+        expect(await rail.boundingBox()).toEqual(railBefore);
+        expect(await stage.boundingBox()).toEqual(stageBefore);
         const panel = await page.getByTestId('share-panel').boundingBox();
-        const rail = await page
-          .getByRole('region', { name: 'Controls' })
-          .boundingBox();
+        const railBox = await rail.boundingBox();
         // Beside the rail, over the stage. It may sit in the rail's padding
         // and must not cross into a control (#490).
         expect(panel.x).toBeGreaterThanOrEqual(0);
-        expect(panel.x).toBeLessThan(rail.x);
-        expect(panel.x + panel.width).toBeLessThanOrEqual(rail.x + 16);
+        expect(panel.x).toBeLessThan(railBox.x);
+        expect(panel.x + panel.width).toBeLessThanOrEqual(railBox.x + 16);
         expect(panel.y).toBeGreaterThanOrEqual(0);
         expect(panel.y + panel.height).toBeLessThanOrEqual(viewport.height);
         const covered = await page.evaluate(() => {
@@ -1081,6 +1084,18 @@ for (const [label, viewport, scheme] of [
           return misses;
         });
         expect(covered).toEqual([]);
+      } else {
+        const view = page.viewportSize();
+        for (const locator of [
+          field,
+          page.getByRole('button', { name: 'Close' }),
+        ]) {
+          const box = await locator.boundingBox();
+          expect(box.x).toBeGreaterThanOrEqual(0);
+          expect(box.y).toBeGreaterThanOrEqual(0);
+          expect(box.x + box.width).toBeLessThanOrEqual(view.width + 0.5);
+          expect(box.y + box.height).toBeLessThanOrEqual(view.height + 0.5);
+        }
       }
       expect(await page.evaluate(() => window.scrollY)).toBe(0);
       expect(await smallTargets(page)).toEqual([]);

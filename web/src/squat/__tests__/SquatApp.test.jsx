@@ -283,6 +283,12 @@ describe('SquatApp', () => {
       expect(hero.style.gridTemplateColumns).toBe(
         'minmax(0px, 1fr) clamp(260px, 26vw, 320px)'
       );
+      // The header row uses the hero's max-width and horizontal padding, so
+      // the breadcrumb lines up with the stage on a wide window (#503).
+      const headerRow = document.querySelector('header > div');
+      expect(headerRow.style.maxWidth).toBe(hero.style.maxWidth);
+      expect(headerRow.style.paddingLeft).toBe(hero.style.paddingLeft);
+      expect(headerRow.style.paddingRight).toBe(hero.style.paddingRight);
       const [first, second] = hero.children;
       expect(first).toBe(screen.getByRole('region', { name: '3D model' }));
       expect(second).toBe(screen.getByRole('region', { name: 'Controls' }));

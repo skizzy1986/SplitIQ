@@ -213,6 +213,58 @@ describe('copying (criteria 2, 3, 4)', () => {
     window.history.replaceState(null, '', '/');
   });
 
+  it('a repeated build failure is announced again', async () => {
+    setup({
+      getLink: () => {
+        throw new Error('no view');
+      },
+    });
+    fireEvent.click(button());
+    await screen.findByText(SHARE_BLOCKED);
+    const seen = [];
+    const obs = new window.MutationObserver(() =>
+      seen.push(statusLine().textContent)
+    );
+    obs.observe(statusLine(), {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
+    fireEvent.click(button());
+    await act(async () => {});
+    obs.disconnect();
+    expect(seen[0]).toBe('');
+    expect(seen.at(-1)).toBe(SHARE_BLOCKED);
+    expect(captureError).toHaveBeenCalledTimes(2);
+  });
+
+  it('a superseded press that fails is reported and leaves the visible state', async () => {
+    setup();
+    let rejectStale;
+    vi.spyOn(window.navigator.clipboard, 'writeText')
+      .mockImplementationOnce(
+        () =>
+          new Promise((_, reject) => {
+            rejectStale = reject;
+          })
+      )
+      .mockResolvedValueOnce(undefined);
+    fireEvent.click(button());
+    fireEvent.click(button());
+    expect(await screen.findByText(SHARE_COPIED)).toBe(statusLine());
+    expect(field()).toBeNull();
+    await act(async () => {
+      rejectStale(new Error('stale write'));
+    });
+    expect(statusLine()).toHaveTextContent(SHARE_COPIED);
+    expect(field()).toBeNull();
+    expect(captureError).toHaveBeenCalledTimes(1);
+    expect(captureError).toHaveBeenCalledWith(expect.any(Error), {
+      where: 'ShareLink',
+      stage: 'write',
+    });
+  });
+
   it('two quick presses: one field, the last message, a blank between', async () => {
     setup();
     const seen = [];

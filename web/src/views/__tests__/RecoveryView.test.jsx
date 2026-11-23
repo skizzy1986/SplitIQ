@@ -39,6 +39,7 @@ const settled = (rows = []) => ({
 });
 
 import { LIPID_REF } from '../../constants/logs.js';
+import { THEME } from '../../constants/theme.js';
 import RecoveryView from '../RecoveryView.jsx';
 
 const day = (over = {}) => ({
@@ -154,6 +155,25 @@ describe('RecoveryView', () => {
     renderView();
     expect(screen.getByText('NO DATA')).toBeInTheDocument();
     expect(screen.getByText(/nothing to score/i)).toBeInTheDocument();
+  });
+
+  it('shows a missing resting HR as no reading, in the neutral colour', () => {
+    setRows([day({ rhr: null })]);
+    renderView();
+    const tile = screen.getByText('RESTING HR').parentElement;
+    const value = within(tile).getByText('No reading');
+    expect(value.style.color).toBe(THEME.textFaint);
+    expect(within(tile).getByText('needs overnight wear')).toBeInTheDocument();
+    expect(screen.queryByText(/null bpm/)).not.toBeInTheDocument();
+  });
+
+  it('colours a present resting HR from the baseline', () => {
+    setRows([day()]);
+    renderView();
+    const tile = screen.getByText('RESTING HR').parentElement;
+    expect(within(tile).getByText(`${RHR_BASELINE} bpm`).style.color).toBe(
+      THEME.positive
+    );
   });
 
   it('labels a defaulted baseline as default, not as the athlete average', () => {

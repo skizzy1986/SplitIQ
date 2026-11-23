@@ -176,7 +176,7 @@ export default function SquatHeader({ preference, onThemeChange, compact }) {
     >
       <div
         style={{
-          maxWidth: 1200,
+          maxWidth: 1600,
           margin: '0 auto',
           display: 'flex',
           alignItems: 'center',

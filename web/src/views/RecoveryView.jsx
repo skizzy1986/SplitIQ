@@ -423,13 +423,17 @@ export default function RecoveryView({ isWide, onOpenSettings }) {
                 [
                   'rhr',
                   t({ message: 'RESTING HR', comment: 'All capitals' }),
-                  `${today.rhr} bpm`,
-                  `${rhrNote} ${rhrBaseline}`,
-                  today.rhr <= rhrBaseline + 2
-                    ? THEME.positive
-                    : today.rhr <= rhrBaseline + 5
-                      ? THEME.caution
-                      : THEME.critical,
+                  today.rhr != null ? `${today.rhr} bpm` : t`No reading`,
+                  today.rhr != null
+                    ? `${rhrNote} ${rhrBaseline}`
+                    : t`needs overnight wear`,
+                  today.rhr == null
+                    ? THEME.textFaint
+                    : today.rhr <= rhrBaseline + 2
+                      ? THEME.positive
+                      : today.rhr <= rhrBaseline + 5
+                        ? THEME.caution
+                        : THEME.critical,
                 ],
                 [
                   'hrv',

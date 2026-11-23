@@ -28,6 +28,23 @@ export function missingEnv(get: (k: string) => string | undefined): string[] {
   return REQUIRED_ENV.filter((k) => !get(k));
 }
 
+// The refusal for a caller who is not VITALS_USER_ID, or null to let them through.
+// An unset owner passes so missingEnv reports the misconfiguration as a 500.
+export function ownerGate(
+  sub: string | null,
+  ownerId: string | undefined,
+): { status: 401 | 403; body: { error: "unauthorized" | "not_owner" } } | null {
+  if (!sub) return { status: 401, body: { error: "unauthorized" } };
+  // An unset owner passes so missingEnv returns its 500. A blank (whitespace-only)
+  // one refuses everyone, because missingEnv sees it as set and would not catch it.
+  if (!ownerId) return null;
+  // UUIDs are case-insensitive and a pasted secret can carry whitespace or a
+  // newline; neither should lock the owner out.
+  const owner = ownerId.trim().toLowerCase();
+  if (!owner || sub.toLowerCase() !== owner) return { status: 403, body: { error: "not_owner" } };
+  return null;
+}
+
 export function ymd(d: Date): string {
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
 }

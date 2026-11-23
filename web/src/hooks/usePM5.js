@@ -74,7 +74,7 @@ export function usePM5() {
   // `choosing` is the native PM5 list; the browser shows its own chooser.
   const [metrics, setMetrics] = useState(null);
   // 0035 keeps its own slot, not a field on a 0031 sample: a stroke arrives
-  // about every 3 s, so mergeStatus's 1.0 s freshness window would discard it
+  // about every 3 s, so mergeStatus's STALE_LIMIT_S 2.5 s freshness window would discard it
   // on most 0031 packets, and its output is what the summary is built from.
   const [stroke, setStroke] = useState(null);
   const [summary, setSummary] = useState(null);

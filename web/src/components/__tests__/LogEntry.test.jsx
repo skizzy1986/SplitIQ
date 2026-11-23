@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { act, render, screen, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import LogEntry from '../LogEntry.jsx';
+import { THEME } from '../../constants/theme.js';
 
 describe('LogEntry', () => {
   it('renders a completed erg session and expands to the metric grid', () => {
@@ -112,6 +114,35 @@ describe('LogEntry', () => {
     render(<LogEntry entry={entry} />);
     fireEvent.click(screen.getByText('Z2 spin'));
     expect(screen.getByText(/Session · 45min/)).toBeInTheDocument();
+  });
+
+  it('opens and closes from the keyboard', async () => {
+    const user = userEvent.setup();
+    render(
+      <LogEntry
+        entry={{
+          type: 'erg',
+          _isErg: true,
+          label: 'UT2 60min',
+          date: '6/19',
+          distance_m: 12000,
+          avg_watts: 150,
+        }}
+      />
+    );
+    const row = screen.getByRole('button', { name: /UT2 60min/ });
+    expect(row).toHaveAttribute('aria-expanded', 'false');
+    act(() => {
+      row.focus();
+    });
+    expect(row).toHaveFocus();
+    expect(row.style.boxShadow).toBe(`inset 0 0 0 2px ${THEME.accent}`);
+    await user.keyboard('{Enter}');
+    expect(row).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByText('AVG WATTS')).toBeInTheDocument();
+    await user.keyboard(' ');
+    expect(row).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByText('AVG WATTS')).not.toBeInTheDocument();
   });
 });
 

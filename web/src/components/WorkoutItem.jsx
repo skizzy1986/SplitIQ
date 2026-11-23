@@ -5,6 +5,26 @@ import { THEME } from '../constants/theme.js';
 import { TYPE } from '../constants/tokens.js';
 import { alpha } from '../utils/themeCss.js';
 
+// The card clips overflow, so an outside outline never shows. An inset ring
+// stays visible on the dark surface.
+function rowStyle(interactive, focused) {
+  return {
+    display: 'flex',
+    gap: 12,
+    alignItems: 'stretch',
+    width: interactive ? '100%' : undefined,
+    margin: 0,
+    padding: '10px 12px',
+    border: 'none',
+    background: 'transparent',
+    color: 'inherit',
+    font: 'inherit',
+    textAlign: 'left',
+    cursor: interactive ? 'pointer' : 'default',
+    boxShadow: focused ? `inset 0 0 0 2px ${THEME.accent}` : undefined,
+  };
+}
+
 export default function WorkoutItem({
   session,
   rail,
@@ -12,8 +32,10 @@ export default function WorkoutItem({
   showRail = true,
 }) {
   const [open, setOpen] = useState(false);
+  const [focused, setFocused] = useState(false);
   const color = session ? workoutAccent(session.label) : THEME.neutral;
   const hasDetail = session && (session.note || session.fuel || session.meal);
+  const Row = hasDetail ? 'button' : 'div';
   return (
     <div
       style={{
@@ -26,15 +48,17 @@ export default function WorkoutItem({
         overflow: 'hidden',
       }}
     >
-      <div
-        onClick={() => hasDetail && setOpen(!open)}
-        style={{
-          display: 'flex',
-          gap: 12,
-          alignItems: 'stretch',
-          padding: '10px 12px',
-          cursor: hasDetail ? 'pointer' : 'default',
-        }}
+      <Row
+        {...(hasDetail
+          ? {
+              type: 'button',
+              'aria-expanded': open,
+              onClick: () => setOpen(!open),
+              onFocus: () => setFocused(true),
+              onBlur: () => setFocused(false),
+            }
+          : {})}
+        style={rowStyle(hasDetail, hasDetail && focused)}
       >
         {rail && (
           <div
@@ -151,7 +175,7 @@ export default function WorkoutItem({
             {open ? '▲' : '▼'}
           </div>
         )}
-      </div>
+      </Row>
       {open && session && (
         <div style={{ padding: `0 12px 12px ${rail ? 64 : 14}px` }}>
           {session.note && (

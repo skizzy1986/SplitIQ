@@ -5,6 +5,7 @@ import { alpha } from '../utils/themeCss.js';
 
 export default function MobilityView() {
   const [mobOpen, setMobOpen] = useState(null);
+  const [focusedId, setFocusedId] = useState(null);
 
   return (
     <>
@@ -66,14 +67,33 @@ export default function MobilityView() {
                 overflow: 'hidden',
               }}
             >
-              <div
+              <button
+                type="button"
+                aria-expanded={isOpen}
                 onClick={() => setMobOpen(isOpen ? null : r.id)}
+                onFocus={() => setFocusedId(r.id)}
+                onBlur={() =>
+                  setFocusedId((current) => (current === r.id ? null : current))
+                }
                 style={{
+                  width: '100%',
+                  margin: 0,
                   padding: '12px 14px',
-                  cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
+                  border: 'none',
+                  background: 'transparent',
+                  color: 'inherit',
+                  font: 'inherit',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  // The card sets overflow:hidden, which clips an outside
+                  // outline. An inset ring stays visible on the dark surface.
+                  boxShadow:
+                    focusedId === r.id
+                      ? `inset 0 0 0 2px ${THEME.accent}`
+                      : undefined,
                 }}
               >
                 <div
@@ -108,7 +128,7 @@ export default function MobilityView() {
                 <span style={{ fontSize: 10, color: THEME.muted }}>
                   {isOpen ? '▲' : '▼'}
                 </span>
-              </div>
+              </button>
               {isOpen && (
                 <div style={{ padding: '0 14px 14px' }}>
                   <div

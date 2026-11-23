@@ -279,16 +279,35 @@ describe('placement (Gate 2, G2-1)', () => {
     await user.click(button());
     await screen.findByText(SHARE_BLOCKED);
     expect(screen.getByTestId('share-panel')).toBe(panel);
-    expect(panel.style.width).toBe('');
+    expect(panel.style.width).toBe('100%');
     expect(panel.style.position).toBe('absolute');
-    expect(panel.style.bottom).toBe('calc(100% + 8px)');
-    expect(panel.style.left).toBe('0px');
-    expect(panel.style.right).toBe('0px');
+    expect(panel.style.bottom).toBe('0px');
+    expect(panel.style.left).toBe('');
+    expect(panel.style.right).toBe('calc(100% + 12px)');
+    // The open field is a control. The status line, on its own, is not.
+    expect(panel.style.pointerEvents).toBe('auto');
     expect(panel).toContainElement(field());
     // The message reads before the field it says is "below".
     expect(
       statusLine().compareDocumentPosition(field()) & FOLLOWING
     ).toBeTruthy();
+  });
+
+  it('desktop: a status line on its own does not take pointer hits', async () => {
+    vi.useFakeTimers();
+    try {
+      render(<ShareLink getLink={() => LINK} ready wide />);
+      vi.spyOn(window.navigator, 'clipboard', 'get').mockReturnValue({
+        writeText: () => Promise.resolve(),
+      });
+      fireEvent.click(button());
+      await act(async () => {});
+      const panel = screen.getByTestId('share-panel');
+      expect(panel.style.pointerEvents).toBe('none');
+      expect(field()).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('phone: everything in flow, the message before the field', async () => {

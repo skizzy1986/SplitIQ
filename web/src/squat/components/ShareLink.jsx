@@ -23,9 +23,11 @@ const status = {
 /**
  * "Copy link" for the view on screen. Lives in StageControls' share slot: on
  * desktop a third button in the rail footer, with its message and fallback
- * field in a panel laid over the rail just above it (the rail has 11 px to
- * spare at 1280 × 720, so nothing may join its flow); on a phone, in flow in
- * the bar's Share tab.
+ * field in a panel set just to the left of that footer, over the stage. The
+ * rail has no empty band above the footer (#487), and a panel laid over the
+ * Show switches hides them from the pointer and from Shift+Tab (#490). The
+ * status line is not interactive, so it does not take hits. On a phone the
+ * same parts sit in flow in the bar's Share tab.
  *
  * The status line is one node, mounted from the first paint on both layouts,
  * so what is shown and what is announced cannot drift apart.
@@ -135,9 +137,15 @@ export default function ShareLink({ getLink, ready, wide }) {
             shown
               ? {
                   position: 'absolute',
-                  left: 0,
-                  right: 0,
-                  bottom: `calc(100% + ${SPACE.sm}px)`,
+                  // Beside the footer, not above it: above it the panel covers
+                  // the Show switches. The gutter matches the hero grid's gap.
+                  right: `calc(100% + ${SPACE.md}px)`,
+                  bottom: 0,
+                  width: '100%',
+                  zIndex: 2,
+                  // "Link copied." must not block a drag on the model under it.
+                  // The field is a control, so it keeps its hits.
+                  pointerEvents: fieldOpen ? 'auto' : 'none',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: SPACE.sm,

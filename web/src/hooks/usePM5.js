@@ -9,6 +9,9 @@ import {
   parseAdditionalStatus1,
   parseAdditionalStatus2,
   parseRowingSummary,
+  parseRowingStrokeData,
+  parseAdditionalStrokeData,
+  isNewerStroke,
   mergeStatus,
   buildPM5Summary,
   summaryReference,
@@ -70,6 +73,10 @@ export function usePM5() {
   // idle | choosing | connecting | connected | rowing | finished | error
   // `choosing` is the native PM5 list; the browser shows its own chooser.
   const [metrics, setMetrics] = useState(null);
+  // 0035 keeps its own slot, not a field on a 0031 sample: a stroke arrives
+  // about every 3 s, so mergeStatus's 1.0 s freshness window would discard it
+  // on most 0031 packets, and its output is what the summary is built from.
+  const [stroke, setStroke] = useState(null);
   const [summary, setSummary] = useState(null);
   const [error, setError] = useState(null);
   // Set only for errors pm5Bluetooth.js throws with a string code; a browser
@@ -267,6 +274,7 @@ export function usePM5() {
         deviceRef.current = null;
         setStatus('idle');
         setMetrics(null);
+        setStroke(null);
       }
       if (choosingRef.current) leaveList();
     });
@@ -299,6 +307,7 @@ export function usePM5() {
   const startPiece = useCallback(
     async ({ device, chars, errors = {} }, attempt) => {
       pieceRef.current = freshPiece();
+      setStroke(null);
       const current = (fn) => (value) => {
         if (attemptRef.current === attempt) fn(value);
       };
@@ -360,6 +369,13 @@ export function usePM5() {
         );
       });
 
+      // The functional updater reads the current value, so this callback needs
+      // neither a ref nor a closure over state to drop a duplicate or a late
+      // packet; rejecting one returns the same object and the tiles do not move.
+      const onStrokeData = current((next) => {
+        setStroke((prev) => (isNewerStroke(prev, next) ? next : prev));
+      });
+
       deviceRef.current = device;
 
       device.addEventListener(
@@ -367,6 +383,7 @@ export function usePM5() {
         current(() => {
           setStatus('idle');
           setMetrics(null);
+          setStroke(null);
         })
       );
 
@@ -396,6 +413,24 @@ export function usePM5() {
         onRowSummary,
         '0039'
       );
+      await subscribeOptional(
+        chars.strokeData,
+        errors.strokeData,
+        parseRowingStrokeData,
+        onStrokeData,
+        '0035'
+      );
+      await subscribeOptional(
+        chars.additionalStrokeData,
+        errors.additionalStrokeData,
+        parseAdditionalStrokeData,
+        // Subscribed and parsed, rendered nowhere: #651 (heart rate and stroke
+        // power) and #650 (persisting stroke data) are the slices that consume
+        // it. Showing its stroke power beside the 0031 watts figure would read
+        // as a bug, so the callback is deliberately empty rather than missing.
+        () => {},
+        '0036'
+      );
     },
     [finishPiece]
   );
@@ -406,6 +441,7 @@ export function usePM5() {
     setError(null);
     setErrorCode(null);
     setSummary(null);
+    setStroke(null);
     pieceRef.current = freshPiece();
     if (Capacitor.isNativePlatform()) {
       rowsRef.current = [];
@@ -544,6 +580,7 @@ export function usePM5() {
     deviceRef.current = null;
     setStatus('idle');
     setMetrics(null);
+    setStroke(null);
   }, []);
 
   function reset() {
@@ -556,6 +593,7 @@ export function usePM5() {
   return {
     status,
     metrics,
+    stroke,
     summary,
     error,
     errorCode,

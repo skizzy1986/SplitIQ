@@ -8,11 +8,25 @@ import { usePM5 } from '../hooks/usePM5';
 import { useOfflineQueue } from '../hooks/useOfflineQueue';
 import { supabase } from '../supabaseClient';
 import LiveMetric from '../components/LiveMetric';
+import SegmentedControl from '../components/SegmentedControl.jsx';
 import WorkoutTarget from '../components/WorkoutTarget';
 import SessionExitBar from '../components/mobile/SessionExitBar.jsx';
 import PM5Picker from '../components/PM5Picker';
-import { parsePace, formatElapsed } from '../services/pm5Bluetooth';
+import {
+  parsePace,
+  formatElapsed,
+  formatStrokeRatio,
+  formatDriveLength,
+} from '../services/pm5Bluetooth';
 import { THEME } from '../constants/theme.js';
+import { SPACE } from '../constants/tokens.js';
+import {
+  DEPTH_EXPERT,
+  DEPTH_SIMPLE,
+  readDepthPref,
+  writeDepthPref,
+} from '../utils/depthPreference.js';
+import { safeStorage } from '../utils/themePreference.js';
 import { toISODate, toLogDate } from '../utils/dateFormat.js';
 import { invalidateSessionQueries } from '../utils/invalidateSessionQueries.js';
 import { FONT } from '../constants/type.js';
@@ -192,7 +206,15 @@ function ConnectScreen({
 }
 
 // ── SCREEN B: Live Rowing ─────────────────────────────────────────
-function RowingScreen({ metrics, status, todaySession, onEnd }) {
+function RowingScreen({
+  metrics,
+  status,
+  todaySession,
+  onEnd,
+  stroke = null,
+  depth = DEPTH_SIMPLE,
+  onDepthChange = () => {},
+}) {
   const { t } = useLingui();
   const isRowing = status === 'rowing';
 
@@ -327,6 +349,49 @@ function RowingScreen({ metrics, status, todaySession, onEnd }) {
           />
         </div>
 
+        {/* Stroke shape: the expert depth adds this row, it replaces nothing */}
+        {depth === DEPTH_EXPERT && (
+          <div
+            style={{
+              display: 'grid',
+              // minmax(0, 1fr) rather than 1fr: a wide ratio such as
+              // "1 : 12.5" would otherwise widen its own track past the
+              // viewport and give the page a horizontal scrollbar.
+              gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+              gap: 24,
+              width: '100%',
+              maxWidth: 380,
+            }}
+          >
+            <LiveMetric
+              label={t({
+                message: 'RATIO',
+                comment:
+                  'Live metric label: the stroke ratio, drive time to recovery time, shown as 1 : x.x; all capitals',
+              })}
+              value={formatStrokeRatio(
+                stroke?.driveTime,
+                stroke?.strokeRecoveryTime
+              )}
+              accent={THEME.positive}
+              size="small"
+              dimmed={!isRowing}
+            />
+            <LiveMetric
+              label={t({
+                message: 'DRIVE',
+                comment:
+                  'Live metric label: the drive is the propulsive phase of the rowing stroke; this is its length in metres; all capitals',
+              })}
+              value={formatDriveLength(stroke?.driveLength)}
+              unit="m"
+              accent={THEME.accent}
+              size="small"
+              dimmed={!isRowing}
+            />
+          </div>
+        )}
+
         {/* Elapsed time */}
         <LiveMetric
           label={t({
@@ -337,6 +402,48 @@ function RowingScreen({ metrics, status, todaySession, onEnd }) {
           accent="#a0a0b8"
           size="normal"
           dimmed={!isRowing}
+        />
+      </div>
+
+      {/* The depth choice, below the glance path so it never moves the tiles.
+          The grid wrapper's minHeight is what lifts the effective tap target
+          past 44px: a stretched grid child takes the wrapper's height, and
+          SegmentedControl's own buttons are 40, which five other call sites
+          render unchanged. */}
+      <div
+        style={{
+          display: 'grid',
+          minHeight: 56,
+          width: '100%',
+          maxWidth: 380,
+          alignSelf: 'center',
+          marginTop: SPACE.lg,
+        }}
+      >
+        <SegmentedControl
+          label={t({
+            message: 'Detail',
+            comment:
+              'Group label on the control that switches how much detail the live screen shows',
+          })}
+          items={[
+            {
+              id: DEPTH_SIMPLE,
+              label: t({
+                message: 'Simple',
+                comment: 'The default, less-detailed depth',
+              }),
+            },
+            {
+              id: DEPTH_EXPERT,
+              label: t({
+                message: 'Expert',
+                comment: 'The more-detailed depth, which adds figures',
+              }),
+            },
+          ]}
+          value={depth}
+          onChange={onDepthChange}
         />
       </div>
 
@@ -683,6 +790,7 @@ export default function ErgLiveView({
   const {
     status,
     metrics,
+    stroke,
     summary,
     error,
     errorCode,
@@ -708,6 +816,12 @@ export default function ErgLiveView({
   // tapping Start still advances, so a piece is not missed.
   const [sessionStarted, setSessionStarted] = useState(false);
   const ownerId = useSessionOwner();
+  // Read once on mount, so the first paint is already the chosen depth.
+  const [depth, setDepth] = useState(() => readDepthPref(safeStorage(window)));
+  const changeDepth = (next) => {
+    setDepth(next);
+    writeDepthPref(safeStorage(window), next);
+  };
   const [producerGeneration] = useState(privateSessionGeneration);
   const isCurrentProducer = () =>
     producerGeneration === privateSessionGeneration();
@@ -897,6 +1011,9 @@ export default function ErgLiveView({
         status={status}
         todaySession={todaySession}
         onEnd={finish}
+        stroke={stroke}
+        depth={depth}
+        onDepthChange={changeDepth}
       />
     );
     screen = liveErgV10 ? (

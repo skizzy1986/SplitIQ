@@ -913,20 +913,51 @@ describe('share a view', () => {
   });
 
   it('copies the frame on screen during playback, and playback carries on', async () => {
-    const user = userEvent.setup();
     await openOn('#t=1.00&paused');
-    await user.click(screen.getByRole('button', { name: 'Play', exact: true }));
-    await act(() => new Promise((r) => setTimeout(r, 120)));
-    const shown = screen.getByRole('slider', { name: 'Rep time' }).value;
-    fireEvent.click(copyButton());
-    const link = await act(() => window.navigator.clipboard.readText());
-    expect(link).toBe(`${window.location.origin}/squat#t=${shown}&paused`);
-    expect(
-      screen.getByRole('button', { name: 'Pause', exact: true })
-    ).toBeInTheDocument();
-    await user.click(
-      screen.getByRole('button', { name: 'Pause', exact: true })
-    );
+    // The playhead advances by performance.now() inside a 20 ms interval. On a
+    // loaded machine that interval's first callback can see the whole 3.68 s
+    // rep and stop playback before a wall-clock wait looks for Pause (#607).
+    // The fake clock moves five frames and no further.
+    vi.useFakeTimers();
+    let clip;
+    try {
+      // jsdom's clipboard getter goes missing once the clock is faked, so the
+      // press is given the same stub the ShareLink tests use.
+      let written = '';
+      clip = vi.spyOn(window.navigator, 'clipboard', 'get').mockReturnValue({
+        writeText: (text) => {
+          written = text;
+          return Promise.resolve();
+        },
+        readText: () => Promise.resolve(written),
+      });
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Play', exact: true })
+      );
+      expect(
+        screen.getByRole('button', { name: 'Pause', exact: true })
+      ).toBeInTheDocument();
+      act(() => vi.advanceTimersByTime(100));
+      const shown = screen.getByRole('slider', { name: 'Rep time' }).value;
+      expect(Number(shown)).toBeGreaterThan(1);
+      expect(Number(shown)).toBeLessThan(3.68);
+      fireEvent.click(copyButton());
+      await act(async () => {});
+      const link = await act(() => window.navigator.clipboard.readText());
+      expect(link).toBe(`${window.location.origin}/squat#t=${shown}&paused`);
+      expect(
+        screen.getByRole('button', { name: 'Pause', exact: true })
+      ).toBeInTheDocument();
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Pause', exact: true })
+      );
+      expect(
+        screen.getByRole('button', { name: 'Play', exact: true })
+      ).toBeInTheDocument();
+    } finally {
+      clip?.mockRestore();
+      vi.useRealTimers();
+    }
   });
 });
 

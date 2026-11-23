@@ -7,6 +7,7 @@ import {
   readDepthPref,
   writeDepthPref,
   initialDepth,
+  storeDepth,
 } from '../depthPreference.js';
 
 function stubStorage(initial = {}) {
@@ -103,11 +104,31 @@ describe('initialDepth', () => {
     });
     expect(initialDepth(win)).toBe(DEPTH_SIMPLE);
   });
+});
 
-  it('round-trips a write through a real window', () => {
-    const storage = stubStorage();
-    const win = { localStorage: storage };
-    writeDepthPref(storage, DEPTH_EXPERT);
+describe('storeDepth', () => {
+  // Both window-level helpers resolve storage off the window themselves, so
+  // this round trip exercises that lookup rather than just the stub.
+  it('round-trips a depth through a window', () => {
+    const win = { localStorage: stubStorage() };
+    expect(initialDepth(win)).toBe(DEPTH_SIMPLE);
+    storeDepth(win, DEPTH_EXPERT);
     expect(initialDepth(win)).toBe(DEPTH_EXPERT);
+  });
+
+  it('ignores a value that is not a depth', () => {
+    const win = { localStorage: stubStorage() };
+    storeDepth(win, 'neon');
+    expect(win.localStorage.map.has(DEPTH_KEY)).toBe(false);
+  });
+
+  it('does not throw when the window cannot give up localStorage', () => {
+    const win = {};
+    Object.defineProperty(win, 'localStorage', {
+      get() {
+        throw new Error('storage disabled');
+      },
+    });
+    expect(() => storeDepth(win, DEPTH_EXPERT)).not.toThrow();
   });
 });

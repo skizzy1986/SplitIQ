@@ -273,8 +273,11 @@ describe('ErgLiveView depth and stroke tiles', () => {
   });
 
   it('offers the depth control on the live screen but not the connect screen', () => {
-    renderWithClient(<ErgLiveView />, makeClient());
+    // Unmount between the two renders: without it the second assertion would
+    // pass on either screen's markup.
+    const { unmount } = renderWithClient(<ErgLiveView />, makeClient());
     expect(screen.queryByText('Expert')).not.toBeInTheDocument();
+    unmount();
 
     rowing();
     renderWithClient(<ErgLiveView />, makeClient());

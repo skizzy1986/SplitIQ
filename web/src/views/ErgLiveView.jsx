@@ -23,10 +23,9 @@ import { SPACE } from '../constants/tokens.js';
 import {
   DEPTH_EXPERT,
   DEPTH_SIMPLE,
-  readDepthPref,
-  writeDepthPref,
+  initialDepth,
+  storeDepth,
 } from '../utils/depthPreference.js';
-import { safeStorage } from '../utils/themePreference.js';
 import { toISODate, toLogDate } from '../utils/dateFormat.js';
 import { invalidateSessionQueries } from '../utils/invalidateSessionQueries.js';
 import { FONT } from '../constants/type.js';
@@ -817,10 +816,10 @@ export default function ErgLiveView({
   const [sessionStarted, setSessionStarted] = useState(false);
   const ownerId = useSessionOwner();
   // Read once on mount, so the first paint is already the chosen depth.
-  const [depth, setDepth] = useState(() => readDepthPref(safeStorage(window)));
+  const [depth, setDepth] = useState(() => initialDepth(window));
   const changeDepth = (next) => {
     setDepth(next);
-    writeDepthPref(safeStorage(window), next);
+    storeDepth(window, next);
   };
   const [producerGeneration] = useState(privateSessionGeneration);
   const isCurrentProducer = () =>

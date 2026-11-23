@@ -32,6 +32,12 @@ export function writeDepthPref(storage, value) {
   }
 }
 
+// The two window-level helpers a caller uses; they keep the storage lookup in
+// this module, so a screen reading a depth imports nothing else.
 export function initialDepth(win = window) {
   return readDepthPref(safeStorage(win));
+}
+
+export function storeDepth(win, value) {
+  writeDepthPref(safeStorage(win), value);
 }

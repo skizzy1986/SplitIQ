@@ -143,7 +143,7 @@ describe('the share slot on desktop', () => {
       />
     );
     expect(footer.style.gridTemplateColumns).toBe(
-      'repeat(3, minmax(0px, 1fr))'
+      'minmax(0px, 1.08fr) minmax(0px, 1.3fr) minmax(0px, 1.08fr)'
     );
     expect(screen.getByTestId('share-slot').parentElement).toBe(footer);
     expect(footer.lastElementChild).toBe(screen.getByTestId('share-slot'));

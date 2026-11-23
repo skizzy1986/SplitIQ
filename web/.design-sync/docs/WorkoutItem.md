@@ -9,8 +9,9 @@ marker (`top` / `big` / `bottom` — e.g. `MON` / `1` / `wk4`), and the body sho
 the session label with its slot and completion tick.
 
 The accent colour is derived from the session label text by `workoutAccent`, so
-"Upper 1" reads purple, "Lower 2" green, threshold work gold, intervals orange,
-and anything restorative neutral grey. Erg aerobic is the cyan default.
+"Upper 1" reads `accentAlt`, "Lower 2" `positive`, threshold work `caution`,
+intervals `warning`, and anything restorative `neutral`. Erg aerobic is the
+`accent` default.
 
 The row is only expandable when the session actually has detail (`note`, `fuel`
 or `meal`); without it the cursor stays default and clicking does nothing. Pass

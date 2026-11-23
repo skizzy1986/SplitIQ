@@ -703,9 +703,11 @@ function heroTools(page) {
   ];
 }
 
-for (const [label, viewport, phone] of [
-  ['desktop 1280 × 720', { width: 1280, height: 720 }, false],
-  ['phone 390 × 844', { width: 390, height: 844 }, true],
+for (const [label, viewport, phone, reachOnly] of [
+  ['desktop 1280 × 720', { width: 1280, height: 720 }, false, false],
+  // #487: the narrowest desktop width. The other hero checks assume 1280.
+  ['desktop 761 × 720', { width: 761, height: 720 }, false, true],
+  ['phone 390 × 844', { width: 390, height: 844 }, true, false],
 ]) {
   test.describe(`hero stage — ${label}`, () => {
     test.use(
@@ -737,6 +739,14 @@ for (const [label, viewport, phone] of [
         );
         expect(await page.evaluate(() => window.scrollY), name).toBe(0);
       }
+      // The card's own padding sits below the last button. A control can be
+      // on screen while the rail still ends below the fold (#487).
+      if (!phone) {
+        const rail = await page
+          .getByRole('region', { name: 'Controls' })
+          .boundingBox();
+        expect(rail.y + rail.height).toBeLessThanOrEqual(innerHeight);
+      }
       expect(await noHorizontalScroll(page)).toBe(true);
       expect(await smallTargets(page)).toEqual([]);
       expect(await axe(page)).toEqual([]);
@@ -748,6 +758,7 @@ for (const [label, viewport, phone] of [
     test('with the heatmap on, the readout and every tool are on screen (criteria 12, 16)', async ({
       page,
     }) => {
+      test.skip(reachOnly, 'checked at 1280 and on a phone');
       const errors = await openReady(page, '/squat#heat');
       const innerHeight = await page.evaluate(() => window.innerHeight);
       const stage = page.getByRole('region', { name: '3D model' });
@@ -789,6 +800,7 @@ for (const [label, viewport, phone] of [
     test('without WebGL, the readout sits in the controls, clear of the notice (criterion 21)', async ({
       page,
     }) => {
+      test.skip(reachOnly, 'checked at 1280 and on a phone');
       await page.addInitScript(() => {
         const proto = window.HTMLCanvasElement.prototype;
         const original = proto.getContext;
@@ -840,6 +852,7 @@ for (const [label, viewport, phone] of [
     test('the stage is the hero, and the page below stays reachable (criteria 15, 18)', async ({
       page,
     }) => {
+      test.skip(reachOnly, 'checked at 1280 and on a phone');
       await openReady(page);
       await expectTitleInHeader(page);
       const stage = await page
@@ -979,6 +992,7 @@ test('a copied view reopens exactly, with no query string (criterion 16a)', asyn
 for (const [label, viewport, scheme] of [
   ['desktop, light', { width: 1280, height: 720 }, 'light'],
   ['desktop, dark', { width: 1280, height: 720 }, 'dark'],
+  ['desktop 761, light', { width: 761, height: 720 }, 'light'],
   ['phone 360, light', { width: 360, height: 800 }, 'light'],
   ['phone 390, dark', { width: 390, height: 844 }, 'dark'],
 ]) {
@@ -1030,9 +1044,43 @@ for (const [label, viewport, scheme] of [
         const rail = await page
           .getByRole('region', { name: 'Controls' })
           .boundingBox();
-        expect(panel.x).toBeGreaterThanOrEqual(rail.x);
-        expect(panel.x + panel.width).toBeLessThanOrEqual(rail.x + rail.width);
-        expect(panel.y + panel.height).toBeLessThanOrEqual(720);
+        // Beside the rail, over the stage. It may sit in the rail's padding
+        // and must not cross into a control (#490).
+        expect(panel.x).toBeGreaterThanOrEqual(0);
+        expect(panel.x).toBeLessThan(rail.x);
+        expect(panel.x + panel.width).toBeLessThanOrEqual(rail.x + 16);
+        expect(panel.y).toBeGreaterThanOrEqual(0);
+        expect(panel.y + panel.height).toBeLessThanOrEqual(viewport.height);
+        const covered = await page.evaluate(() => {
+          const root = document.querySelector(
+            '[aria-labelledby="controls-title"]'
+          );
+          const misses = [];
+          for (const el of root.querySelectorAll(
+            'a, button, input, select, textarea'
+          )) {
+            if (el.disabled || el.closest('[hidden]')) continue;
+            const r = el.getBoundingClientRect();
+            if (r.width < 2 || r.height < 2) continue;
+            const hit = document.elementFromPoint(
+              r.left + r.width / 2,
+              r.top + r.height / 2
+            );
+            const ok =
+              hit && (hit === el || el.contains(hit) || hit.contains(el));
+            if (!ok) {
+              misses.push(
+                (
+                  el.getAttribute('aria-label') ||
+                  el.textContent ||
+                  el.tagName
+                ).trim()
+              );
+            }
+          }
+          return misses;
+        });
+        expect(covered).toEqual([]);
       }
       expect(await page.evaluate(() => window.scrollY)).toBe(0);
       expect(await smallTargets(page)).toEqual([]);

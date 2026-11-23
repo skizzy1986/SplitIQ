@@ -10,7 +10,7 @@ label, date, duration and sRPE; clicking the row expands it to the detail body.
 The whole appearance is driven by `entry.type`, which is looked up in the `C`
 (colour) and `ICON` maps from the design system — `Z2 Aerobic`, `Threshold`,
 `VO₂ Intervals`, `Sharpener`, `Rest`, `Upper Strength`, `Lower Strength`,
-`Combined`, `Cycling`. An unknown type falls back to grey with a `•` icon.
+`Combined`, `Cycling`. An unknown type falls back to `neutralAccent` with a `•` icon.
 
 Two detail bodies exist and the entry picks one:
 

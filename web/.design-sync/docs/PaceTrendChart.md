@@ -9,8 +9,8 @@ with the training zones drawn behind it as translucent reference bands.
 
 The Y axis is **inverted** (faster pace is higher on the chart) and its domain is
 computed from the data plus the zone edges, so the bands and the line always
-share a frame. Points are drawn by `CustomDot`: a hollow cyan ring normally, a
-filled cyan disc when `hardPush` is set on that session. Hovering a point opens
+share a frame. Points are drawn by `CustomDot`: a hollow `accent` ring normally,
+a filled `accent` disc when `hardPush` is set on that session. Hovering a point opens
 `PaceTooltip`.
 
 `data` is a list of enriched sessions ordered newest-first — the component

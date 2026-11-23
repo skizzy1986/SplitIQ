@@ -4,7 +4,7 @@ category: Session
 
 # WorkoutTarget
 
-The collapsed prescription banner for today's planned session — a gold `TARGET`
+The collapsed prescription banner for today's planned session — a `caution` `TARGET`
 eyebrow, the session label, and a disclosure caret. Expanding it reveals the
 prescribed duration, the sRPE target, and the coach note.
 

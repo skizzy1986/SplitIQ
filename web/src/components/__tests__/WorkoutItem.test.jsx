@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { act, render, screen, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import WorkoutItem from '../WorkoutItem.jsx';
+import { THEME } from '../../constants/theme.js';
 
 const fullSession = {
   label: 'Upper 1',
@@ -48,5 +50,26 @@ describe('WorkoutItem', () => {
     expect(screen.queryByText('▼')).not.toBeInTheDocument();
     // showRail=false → rail content is not rendered.
     expect(screen.queryByText('MON')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+
+  it('opens and closes from the keyboard', async () => {
+    const user = userEvent.setup();
+    render(<WorkoutItem session={fullSession} rail={rail} />);
+    const row = screen.getByRole('button', { name: /Upper 1/ });
+    expect(row).toHaveAttribute('aria-expanded', 'false');
+    act(() => {
+      row.focus();
+    });
+    expect(row).toHaveFocus();
+    expect(row.style.boxShadow).toBe(`inset 0 0 0 2px ${THEME.accent}`);
+    await user.keyboard('{Enter}');
+    expect(row).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByText(/Bench \+ pull focus/)).toBeInTheDocument();
+    await user.keyboard(' ');
+    expect(row).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByText(/Bench \+ pull focus/)).not.toBeInTheDocument();
+    fireEvent.blur(row);
+    expect(row.style.boxShadow).toBe('');
   });
 });

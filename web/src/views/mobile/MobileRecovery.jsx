@@ -240,12 +240,17 @@ export default function MobileRecovery({ onOpenSettings }) {
             }}
           >
             {(() => {
-              const rhrDelta =
-                Math.round(
-                  ((latest.rhr ?? 0) - personalBaselines.rhrBaseline) * 10
-                ) / 10;
-              const rhrColor =
-                rhrDelta > 5
+              // Same rule as sleep and TSB: a missing reading is not zero, so
+              // it takes no delta and no status colour (#623).
+              const rhrMissing = latest.rhr == null;
+              const rhrDelta = rhrMissing
+                ? null
+                : Math.round(
+                    (latest.rhr - personalBaselines.rhrBaseline) * 10
+                  ) / 10;
+              const rhrColor = rhrMissing
+                ? THEME.muted
+                : rhrDelta > 5
                   ? THEME.critical
                   : rhrDelta > 2
                     ? THEME.caution
@@ -271,31 +276,37 @@ export default function MobileRecovery({ onOpenSettings }) {
                   <div
                     style={{ fontSize: 24, fontWeight: 700, color: rhrColor }}
                   >
-                    {latest.rhr != null ? `${latest.rhr} bpm` : t`No reading`}
+                    {rhrMissing ? t`No reading` : `${latest.rhr} bpm`}
                   </div>
-                  <div
-                    style={{ fontSize: 10, color: THEME.muted, marginTop: 4 }}
-                  >
-                    {rhrDelta > 0
-                      ? '↑ +' + rhrDelta
-                      : rhrDelta < 0
-                        ? '↓ ' + rhrDelta
-                        : '='}{' '}
-                    <Trans comment="Compared with, e.g. vs your avg">
-                      vs {baselineLabel}
-                    </Trans>
-                  </div>
+                  {!rhrMissing && (
+                    <div
+                      style={{ fontSize: 10, color: THEME.muted, marginTop: 4 }}
+                    >
+                      {rhrDelta > 0
+                        ? '↑ +' + rhrDelta
+                        : rhrDelta < 0
+                          ? '↓ ' + rhrDelta
+                          : '='}{' '}
+                      <Trans comment="Compared with, e.g. vs your avg">
+                        vs {baselineLabel}
+                      </Trans>
+                    </div>
+                  )}
                 </div>
               );
             })()}
 
             {(() => {
-              const deficit =
-                Math.round(
-                  (personalBaselines.hrvBaseline - (latest.hrv ?? 0)) * 10
-                ) / 10;
-              const hrvColor =
-                deficit < 3
+              const hrvMissing = latest.hrv == null;
+              const hrvDelta = hrvMissing
+                ? null
+                : Math.round(
+                    (latest.hrv - personalBaselines.hrvBaseline) * 10
+                  ) / 10;
+              const deficit = hrvDelta == null ? null : -hrvDelta;
+              const hrvColor = hrvMissing
+                ? THEME.muted
+                : deficit < 3
                   ? THEME.positive
                   : deficit < 8
                     ? THEME.caution
@@ -321,23 +332,18 @@ export default function MobileRecovery({ onOpenSettings }) {
                   <div
                     style={{ fontSize: 24, fontWeight: 700, color: hrvColor }}
                   >
-                    {latest.hrv != null ? `${latest.hrv} ms` : t`No reading`}
+                    {hrvMissing ? t`No reading` : `${latest.hrv} ms`}
                   </div>
-                  <div
-                    style={{ fontSize: 10, color: THEME.muted, marginTop: 4 }}
-                  >
-                    {(latest.hrv ?? 0) >= personalBaselines.hrvBaseline
-                      ? '↑ +' +
-                        Math.round(
-                          ((latest.hrv ?? 0) - personalBaselines.hrvBaseline) *
-                            10
-                        ) /
-                          10
-                      : '↓ ' + deficit}{' '}
-                    <Trans comment="Compared with, e.g. vs your avg">
-                      vs {baselineLabel}
-                    </Trans>
-                  </div>
+                  {!hrvMissing && (
+                    <div
+                      style={{ fontSize: 10, color: THEME.muted, marginTop: 4 }}
+                    >
+                      {hrvDelta >= 0 ? '↑ +' + hrvDelta : '↓ ' + deficit}{' '}
+                      <Trans comment="Compared with, e.g. vs your avg">
+                        vs {baselineLabel}
+                      </Trans>
+                    </div>
+                  )}
                 </div>
               );
             })()}

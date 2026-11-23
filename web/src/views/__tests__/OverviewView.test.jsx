@@ -120,6 +120,8 @@ describe('OverviewView', () => {
       latest: null,
       readiness: computeReadiness(null, {}, null),
       personalBaselines: computePersonalBaselines([]),
+      isPending: false,
+      isError: false,
     });
     render(<OverviewView {...baseProps} />);
     const card = within(screen.getByRole('region', { name: 'Readiness' }));
@@ -131,6 +133,54 @@ describe('OverviewView', () => {
     const openBody = screen.getAllByRole('button', { name: 'Open Body' });
     fireEvent.click(openBody[openBody.length - 1]);
     expect(onOpenBody).toHaveBeenCalledOnce();
+  });
+
+  it('shows a reading in progress while vitals are pending', () => {
+    useVitalsMock.mockReturnValue({
+      latest: null,
+      readiness: computeReadiness(null, {}, null),
+      isPending: true,
+      isError: false,
+    });
+    render(<OverviewView {...baseProps} />);
+    const card = within(screen.getByRole('region', { name: 'Readiness' }));
+    expect(card.getByText('Reading…')).toBeInTheDocument();
+    expect(card.queryByText(/No reading this morning/)).not.toBeInTheDocument();
+    expect(
+      card.queryByRole('button', { name: 'Open Body' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('says the reading is unavailable when the vitals read fails', () => {
+    useVitalsMock.mockReturnValue({
+      latest: null,
+      readiness: computeReadiness(null, {}, null),
+      isPending: false,
+      isError: true,
+    });
+    render(<OverviewView {...baseProps} />);
+    const card = within(screen.getByRole('region', { name: 'Readiness' }));
+    expect(card.getByText('VITALS UNAVAILABLE')).toBeInTheDocument();
+    expect(card.queryByText(/No reading this morning/)).not.toBeInTheDocument();
+    expect(
+      card.queryByRole('button', { name: 'Open Body' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('keeps a readiness score when a later vitals read fails', () => {
+    const personalBaselines = computePersonalBaselines([vitalsRow]);
+    const readiness = computeReadiness(vitalsRow, personalBaselines, -5);
+    useVitalsMock.mockReturnValue({
+      latest: vitalsRow,
+      readiness,
+      personalBaselines,
+      isPending: false,
+      isError: true,
+    });
+    render(<OverviewView {...baseProps} />);
+    const card = within(screen.getByRole('region', { name: 'Readiness' }));
+    expect(card.getByText(String(readiness.score))).toBeInTheDocument();
+    expect(card.queryByText('VITALS UNAVAILABLE')).not.toBeInTheDocument();
   });
 
   it('renders no roster text now that the today strip is gone', () => {

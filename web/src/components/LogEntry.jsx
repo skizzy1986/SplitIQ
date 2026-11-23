@@ -12,6 +12,7 @@ import { PLANNED_STATUS } from '../constants/sessionStatus.js';
 export default function LogEntry({ entry, done = false }) {
   const { t, i18n } = useLingui();
   const [open, setOpen] = useState(false);
+  const [focused, setFocused] = useState(false);
   const color = C[entry.type] || THEME.neutralAccent;
   const isErg = !!entry._isErg;
   const duration = entry.duration;
@@ -45,137 +46,154 @@ export default function LogEntry({ entry, done = false }) {
         opacity: done ? 0.5 : cancelled ? 0.8 : 1,
       }}
     >
-      <div
-        onClick={() => setOpen(!open)}
-        style={{
-          padding: '13px 14px',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 8,
-        }}
-      >
-        <div
+      <div style={{ display: 'flex', alignItems: 'stretch' }}>
+        <button
+          type="button"
+          aria-expanded={open}
+          onClick={() => setOpen(!open)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
           style={{
+            flex: 1,
+            minWidth: 0,
+            margin: 0,
+            padding: canOpen ? '13px 8px 13px 14px' : '13px 14px',
             display: 'flex',
             alignItems: 'center',
-            gap: 11,
-            minWidth: 0,
-            flex: 1,
+            justifyContent: 'space-between',
+            gap: 8,
+            border: 'none',
+            background: 'transparent',
+            color: 'inherit',
+            font: 'inherit',
+            textAlign: 'left',
+            cursor: 'pointer',
+            // The card sets overflow:hidden, which clips an outside outline.
+            // An inset ring stays visible on the dark surface.
+            boxShadow: focused ? `inset 0 0 0 2px ${THEME.accent}` : undefined,
           }}
         >
-          <div style={{ fontSize: 15, flexShrink: 0 }}>
-            {ICON[entry.type] || '•'}
-          </div>
-          <div style={{ minWidth: 0 }}>
-            <div
-              style={{
-                fontSize: 13,
-                fontWeight: 700,
-                color: THEME.textStrong,
-                lineHeight: 1.3,
-                textDecoration: cancelled ? 'line-through' : undefined,
-              }}
-            >
-              {entry.label}
-              {done && (
-                <span
-                  style={{
-                    marginLeft: 8,
-                    fontSize: 8,
-                    letterSpacing: 1.5,
-                    fontWeight: 700,
-                    color: THEME.positive,
-                    border:
-                      '1px solid color-mix(in srgb, var(--color-positive) 40%, transparent)',
-                    borderRadius: 3,
-                    padding: '1px 5px',
-                    verticalAlign: 'middle',
-                  }}
-                >
-                  <Trans comment="Badge, all capitals">✓ DONE</Trans>
-                </span>
-              )}
-              {planned && !done && (
-                <span
-                  style={{
-                    marginLeft: 8,
-                    fontSize: 8,
-                    letterSpacing: 1.5,
-                    fontWeight: 700,
-                    color,
-                    border: `1px solid ${alpha(color, '66')}`,
-                    borderRadius: 3,
-                    padding: '1px 5px',
-                    verticalAlign: 'middle',
-                  }}
-                >
-                  <Trans comment="Badge, all capitals">PLANNED</Trans>
-                </span>
-              )}
-              {cancelled && !done && (
-                <span
-                  style={{
-                    marginLeft: 8,
-                    fontSize: 8,
-                    letterSpacing: 1.5,
-                    fontWeight: 700,
-                    color: THEME.textSubtle,
-                    border:
-                      '1px solid color-mix(in srgb, var(--color-text-subtle) 60%, transparent)',
-                    borderRadius: 3,
-                    padding: '1px 5px',
-                    verticalAlign: 'middle',
-                  }}
-                >
-                  <Trans comment="Badge, all capitals">CANCELLED</Trans>
-                </span>
-              )}
-            </div>
-            <div style={{ fontSize: 11, color: THEME.muted }}>
-              {displayLogDate(i18n.locale, entry.date)}
-              {entry.duration ? ` · ${entry.duration}` : ''}
-              {entry.srpe != null && (
-                <span style={{ color: THEME.caution }}>
-                  {' '}
-                  · sRPE {entry.srpe}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-        {isErg && hasErgMetrics && (
-          <div style={{ textAlign: 'right', flexShrink: 0 }}>
-            {entry.avg_watts != null && (
-              <div style={{ fontSize: 12, fontWeight: 700, color }}>
-                {entry.avg_watts}W
-              </div>
-            )}
-            <div style={{ fontSize: 10, color: THEME.muted }}>
-              {fmtDist(entry.distance_m)}
-              {entry.avg_hr != null ? ` · ${entry.avg_hr}bpm` : ''}
-            </div>
-          </div>
-        )}
-        {!isErg && entry.prs > 0 && (
           <div
             style={{
-              background: alpha(color, '20'),
-              border: `1px solid ${alpha(color, '40')}`,
-              borderRadius: 4,
-              padding: '3px 7px',
-              flexShrink: 0,
-              fontSize: 10,
-              color,
-              fontWeight: 700,
-              letterSpacing: 1,
-              whiteSpace: 'nowrap',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 11,
+              minWidth: 0,
+              flex: 1,
             }}
           >
-            🏆 {entry.prs}
+            <div style={{ fontSize: 15, flexShrink: 0 }}>
+              {ICON[entry.type] || '•'}
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <div
+                style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: THEME.textStrong,
+                  lineHeight: 1.3,
+                  textDecoration: cancelled ? 'line-through' : undefined,
+                }}
+              >
+                {entry.label}
+                {done && (
+                  <span
+                    style={{
+                      marginLeft: 8,
+                      fontSize: 8,
+                      letterSpacing: 1.5,
+                      fontWeight: 700,
+                      color: THEME.positive,
+                      border:
+                        '1px solid color-mix(in srgb, var(--color-positive) 40%, transparent)',
+                      borderRadius: 3,
+                      padding: '1px 5px',
+                      verticalAlign: 'middle',
+                    }}
+                  >
+                    <Trans comment="Badge, all capitals">✓ DONE</Trans>
+                  </span>
+                )}
+                {planned && !done && (
+                  <span
+                    style={{
+                      marginLeft: 8,
+                      fontSize: 8,
+                      letterSpacing: 1.5,
+                      fontWeight: 700,
+                      color,
+                      border: `1px solid ${alpha(color, '66')}`,
+                      borderRadius: 3,
+                      padding: '1px 5px',
+                      verticalAlign: 'middle',
+                    }}
+                  >
+                    <Trans comment="Badge, all capitals">PLANNED</Trans>
+                  </span>
+                )}
+                {cancelled && !done && (
+                  <span
+                    style={{
+                      marginLeft: 8,
+                      fontSize: 8,
+                      letterSpacing: 1.5,
+                      fontWeight: 700,
+                      color: THEME.textSubtle,
+                      border:
+                        '1px solid color-mix(in srgb, var(--color-text-subtle) 60%, transparent)',
+                      borderRadius: 3,
+                      padding: '1px 5px',
+                      verticalAlign: 'middle',
+                    }}
+                  >
+                    <Trans comment="Badge, all capitals">CANCELLED</Trans>
+                  </span>
+                )}
+              </div>
+              <div style={{ fontSize: 11, color: THEME.muted }}>
+                {displayLogDate(i18n.locale, entry.date)}
+                {entry.duration ? ` · ${entry.duration}` : ''}
+                {entry.srpe != null && (
+                  <span style={{ color: THEME.caution }}>
+                    {' '}
+                    · sRPE {entry.srpe}
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
-        )}
+          {isErg && hasErgMetrics && (
+            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+              {entry.avg_watts != null && (
+                <div style={{ fontSize: 12, fontWeight: 700, color }}>
+                  {entry.avg_watts}W
+                </div>
+              )}
+              <div style={{ fontSize: 10, color: THEME.muted }}>
+                {fmtDist(entry.distance_m)}
+                {entry.avg_hr != null ? ` · ${entry.avg_hr}bpm` : ''}
+              </div>
+            </div>
+          )}
+          {!isErg && entry.prs > 0 && (
+            <div
+              style={{
+                background: alpha(color, '20'),
+                border: `1px solid ${alpha(color, '40')}`,
+                borderRadius: 4,
+                padding: '3px 7px',
+                flexShrink: 0,
+                fontSize: 10,
+                color,
+                fontWeight: 700,
+                letterSpacing: 1,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              🏆 {entry.prs}
+            </div>
+          )}
+        </button>
         {canOpen && (
           <a
             href={sessionHref(sessionId)}
@@ -186,8 +204,10 @@ export default function LogEntry({ entry, done = false }) {
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
+              alignSelf: 'center',
               minWidth: 44,
               minHeight: 44,
+              marginRight: 14,
               flexShrink: 0,
               borderRadius: RADIUS.sm,
               border: `1px solid ${THEME.border}`,

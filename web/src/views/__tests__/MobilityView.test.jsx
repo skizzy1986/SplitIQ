@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { act, render, screen, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import MobilityView from '../MobilityView.jsx';
+import { THEME } from '../../constants/theme.js';
 
 describe('MobilityView', () => {
   it('renders the routines library', () => {
@@ -27,5 +29,27 @@ describe('MobilityView', () => {
     // Clicking again collapses it (covers the toggle-to-null path).
     fireEvent.click(routine);
     expect(screen.queryByText(/Thoracic spine/i)).not.toBeInTheDocument();
+  });
+
+  it('opens and closes a routine from the keyboard', async () => {
+    const user = userEvent.setup();
+    render(<MobilityView />);
+    const row = screen.getByRole('button', {
+      name: /Foam Roll \/ Soft Tissue/,
+    });
+    expect(row).toHaveAttribute('aria-expanded', 'false');
+    act(() => {
+      row.focus();
+    });
+    expect(row).toHaveFocus();
+    expect(row.style.boxShadow).toBe(`inset 0 0 0 2px ${THEME.accent}`);
+    await user.keyboard('{Enter}');
+    expect(row).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByText(/Thoracic spine/i)).toBeInTheDocument();
+    await user.keyboard(' ');
+    expect(row).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByText(/Thoracic spine/i)).not.toBeInTheDocument();
+    fireEvent.blur(row);
+    expect(row.style.boxShadow).toBe('');
   });
 });

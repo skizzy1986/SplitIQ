@@ -82,32 +82,35 @@ describe('TimeControls', () => {
     expect(slider().getAttribute('aria-valuetext')).toBe(valueText(probe.view));
   });
 
-  it('AC3: there is no depth slider, and the drive never reads as lowering', async () => {
-    const user = userEvent.setup();
+  it('AC3: there is no depth slider, and the drive never reads as lowering', () => {
+    // One click per frame of the drive. userEvent's click sequence on every
+    // frame depends on the machine keeping up with the test timeout when the
+    // suite runs in parallel (#635). fireEvent still presses the button.
     render(<Harness />);
     expect(screen.queryByRole('slider', { name: 'Depth' })).toBeNull();
     act(() => probe.view.setFrame(REP.s.indexOf(Math.max(...REP.s))));
     let prev = probe.view.pct;
     const fwd = screen.getByRole('button', { name: 'Step forward' });
     while (probe.view.frame < LAST) {
-      await user.click(fwd);
+      fireEvent.click(fwd);
       expect(probe.view.pct).toBeLessThanOrEqual(prev);
       expect(readout()).not.toMatch(/lowering/);
       prev = probe.view.pct;
     }
     expect(readout()).toBe(END);
-    await user.click(screen.getByRole('button', { name: 'Step back' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Step back' }));
     expect(slider()).toHaveValue('3.66');
   });
 
-  it('AC4: the pressed chip always names the frame’s phase, and chips land on band starts', async () => {
-    const user = userEvent.setup();
+  it('AC4: the pressed chip always names the frame’s phase, and chips land on band starts', () => {
+    // getAllByRole rebuilds the accessibility tree. Once per frame, that
+    // times out under a parallel run (#635). The pressed chip is the same
+    // element either query returns.
     render(<Harness />);
+    const group = screen.getByRole('group', { name: 'Jump to phase' });
     for (let f = 0; f <= LAST; f++) {
       act(() => probe.view.setFrame(f));
-      const pressed = chips()
-        .getAllByRole('button')
-        .filter((b) => b.getAttribute('aria-pressed') === 'true');
+      const pressed = group.querySelectorAll('[aria-pressed="true"]');
       expect(pressed).toHaveLength(1);
       expect(slider().getAttribute('aria-valuetext')).toMatch(
         new RegExp(`^${pressed[0].textContent}, `)
@@ -115,7 +118,7 @@ describe('TimeControls', () => {
     }
     const starts = ['0.00', '0.58', '2.02', '2.32', '3.14'];
     for (const p of PHASES) {
-      await user.click(chips().getByRole('button', { name: p.name }));
+      fireEvent.click(chips().getByRole('button', { name: p.name }));
       expect(slider()).toHaveValue(starts[p.index]);
       expect(chips().getByRole('button', { name: p.name })).toHaveAttribute(
         'aria-pressed',

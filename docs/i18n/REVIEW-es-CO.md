@@ -523,7 +523,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `FeCf8C` | Variability | Variabilidad | src/components/session/MoreDetail.jsx |
 | `_lbR8k` | Very easy | Muy fácil | sRPE scale, effort 1-2 · src/constants/srpeGuideMessages.js |
 | `e9KqaD` | very easy · full conversation | muy fácil · conversación completa | src/components/LogSessionForm.jsx |
-| `L48ofA` | VITALS UNAVAILABLE | SIGNOS VITALES NO DISPONIBLES | All capitals · src/views/RecoveryView.jsx |
+| `L48ofA` | VITALS UNAVAILABLE | SIGNOS VITALES NO DISPONIBLES | All capitals · src/views/OverviewView.jsx · src/views/RecoveryView.jsx |
 | `1CfR4c` | VO2 max | VO2 máx | Cycling power level (Coggan Z5) · src/components/session/zoneLabels.js |
 | `Qu8S2o` | Vol | Vol. | Column: total volume lifted, abbreviated · src/components/LogEntry.jsx |
 | `WLqk2A` | Vol (2260kg) | Vol. (2260kg) | Total volume lifted, with an example · src/components/LogSessionForm.jsx |

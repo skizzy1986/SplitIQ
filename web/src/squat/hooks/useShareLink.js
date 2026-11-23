@@ -67,9 +67,11 @@ export function useShareLink({ getLink, fieldRef, buttonRef }) {
       link = getLink();
     } catch (error) {
       report(error, 'build');
+      setState((s) => (s.message ? { ...s, message: '' } : s));
       later(() => fallback('failed', here()));
       return;
     }
+    // Blank before writeText, in this turn: an await or flushSync here would make Safari refuse the copy.
     setState((s) => (s.message ? { ...s, message: '' } : s));
 
     const clipboard = window.navigator.clipboard;

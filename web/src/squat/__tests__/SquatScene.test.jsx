@@ -412,17 +412,20 @@ describe('SquatApp 3D stage', () => {
     render(<SquatApp loadScene={loadScene} />);
     await finishDownload();
     await waitFor(() => expect(status()).toHaveTextContent('3D model ready'));
-    // Loading, and a layer switch, leave the URL alone.
+    expect(window.location.hash).toBe('');
+    // A layer switch rewrites hide and does not invent a time.
     await user.click(screen.getByRole('switch', { name: 'Muscles' }));
     await new Promise((r) => setTimeout(r, 300));
-    expect(window.location.hash).toBe('');
+    expect(window.location.hash).toBe('#hide=muscles');
     fireEvent.change(screen.getByRole('slider', { name: 'Rep time' }), {
       target: { value: '1.00' },
     });
-    await waitFor(() => expect(window.location.hash).toBe('#t=1.00&paused'));
+    await waitFor(() =>
+      expect(window.location.hash).toBe('#t=1.00&paused&hide=muscles')
+    );
     await user.click(screen.getByRole('switch', { name: 'Skeleton' }));
     await new Promise((r) => setTimeout(r, 300));
-    expect(window.location.hash).toBe('#t=1.00&paused');
+    expect(window.location.hash).toBe('#t=1.00&paused&hide=muscles,skeleton');
   });
 
   it('opens a deep link on its frame and keeps the muscle through a scrub', async () => {
@@ -897,6 +900,17 @@ describe('share a view', () => {
     );
     expect(window.location.hash).toBe('#t=1.00&m=vastus-lateralis&paused');
     expect(push).not.toHaveBeenCalled();
+  });
+
+  it('keeps the other hidden layer when one is turned back on (#489)', async () => {
+    const user = userEvent.setup();
+    await openOn('#hide=muscles,skeleton');
+    expect(screen.getByRole('switch', { name: 'Muscles' })).not.toBeChecked();
+    expect(screen.getByRole('switch', { name: 'Skeleton' })).not.toBeChecked();
+    await user.click(screen.getByRole('switch', { name: 'Muscles' }));
+    expect(screen.getByRole('switch', { name: 'Muscles' })).toBeChecked();
+    expect(screen.getByRole('switch', { name: 'Skeleton' })).not.toBeChecked();
+    expect(window.location.hash).toBe('#hide=skeleton');
   });
 
   it('never puts the muscle filter text in a link (criterion 13)', async () => {

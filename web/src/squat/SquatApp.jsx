@@ -14,7 +14,12 @@ import { useAnatomyViewState } from './hooks/useAnatomyViewState.js';
 import { useAnatomyScene } from './hooks/useAnatomyScene.js';
 import { useMuscleSelection } from './hooks/useMuscleSelection.js';
 import { buildMuscleIndex, filterMuscles } from './utils/muscleIndex.js';
-import { camToPose, shareState, shareUrl } from './utils/squatHash.js';
+import {
+  camToPose,
+  LAYER_IDS,
+  shareState,
+  shareUrl,
+} from './utils/squatHash.js';
 import { activationOf, bandOf, peakBandOf } from './utils/activation.js';
 import { focusKey, regionMuscles, topActivated } from './utils/strainFocus.js';
 import { useStrainAnnouncement } from './hooks/useStrainAnnouncement.js';
@@ -333,7 +338,11 @@ export default function SquatApp({ loadScene = loadSceneModule } = {}) {
       ...view,
       setLayer: (name, on) => {
         view.setLayer(name, on);
-        setHash({ hide: null });
+        // Keep every layer that is still off. Dropping the whole key made a
+        // reload show a layer the screen still had hidden (#489).
+        const next = { ...view.layers, [name]: on };
+        const hide = LAYER_IDS.filter((id) => !next[id]);
+        setHash({ hide: hide.length ? hide : null });
       },
       setHeatmap: (on) => {
         view.setHeatmap(on);

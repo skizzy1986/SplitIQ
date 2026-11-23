@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { cleanup, render, screen, within } from '@testing-library/react';
 import MobileRecovery from '../MobileRecovery.jsx';
+import { THEME } from '../../../constants/theme.js';
 
 const mockUseVitals = vi.fn();
 const mockUseVitalsSync = vi.fn();
@@ -15,6 +16,18 @@ vi.mock('../../../hooks/useVitalsSync.js', () => ({
 vi.mock('../../../hooks/useTSSHistory.js', () => ({
   useTSSHistory: () => mockUseTSSHistory(),
 }));
+
+vi.mock('recharts', async () => {
+  const actual = await vi.importActual('recharts');
+  return {
+    ...actual,
+    ResponsiveContainer: ({ children }) => <div>{children}</div>,
+    LineChart: ({ children }) => <div>{children}</div>,
+    Line: ({ dataKey, stroke }) => (
+      <div data-testid={`series-${dataKey}`} data-stroke={stroke} />
+    ),
+  };
+});
 
 beforeEach(() => {
   mockUseVitals.mockReset();
@@ -56,5 +69,66 @@ describe('MobileRecovery', () => {
     // the rendered TSB value is a finite one-decimal number
     const value = tsbTile.parentElement.querySelector('div:last-child');
     expect(Number.isNaN(parseFloat(value.textContent))).toBe(false);
+  });
+
+  function renderSettled(over = {}) {
+    mockUseVitals.mockReturnValue({
+      isLoading: false,
+      latest: { rhr: 50, hrv: 60, sleep: 7.5, sleep_score: null },
+      readinessScore: 82,
+      readinessLabel: 'READY',
+      personalBaselines: { rhrBaseline: 50, hrvBaseline: 60 },
+      vitalsHistory: [],
+      history: [{ date: '2026-06-20', readinessScore: 80 }],
+      hasPersonalBaselines: false,
+      ...over,
+    });
+    mockUseVitalsSync.mockReturnValue({
+      mutate: vi.fn(),
+      isPending: false,
+      isError: false,
+    });
+    mockUseTSSHistory.mockReturnValue({ data: [] });
+    render(<MobileRecovery />);
+  }
+
+  it('shows a missing sleep reading with no status line', () => {
+    renderSettled({
+      latest: { rhr: 50, hrv: 60, sleep: null, sleep_score: null },
+    });
+    const tile = screen.getByText('SLEEP').parentElement;
+    expect(within(tile).getByText('No reading').style.color).toBe(THEME.muted);
+    expect(within(tile).queryByText('Below 7h target')).not.toBeInTheDocument();
+    expect(within(tile).queryByText('Target met')).not.toBeInTheDocument();
+  });
+
+  it('keeps a present sleep reading’s status', () => {
+    renderSettled();
+    const met = screen.getByText('SLEEP').parentElement;
+    expect(within(met).getByText('7.5h').style.color).toBe(THEME.positive);
+    expect(within(met).getByText('Target met')).toBeInTheDocument();
+
+    cleanup();
+    renderSettled({
+      latest: { rhr: 50, hrv: 60, sleep: 6, sleep_score: null },
+    });
+    const low = screen.getByText('SLEEP').parentElement;
+    expect(within(low).getByText('6h').style.color).toBe(THEME.critical);
+    expect(within(low).getByText('Below 7h target')).toBeInTheDocument();
+  });
+
+  it('shows a null readiness score as no reading, and a fixed chart colour', () => {
+    renderSettled({ readinessScore: null, readinessLabel: 'NO DATA' });
+    const score = screen.getByText('READINESS').previousElementSibling;
+    expect(score).toHaveTextContent('No reading');
+    expect(score.style.color).toBe(THEME.muted);
+    expect(
+      screen.queryByText('Prioritise recovery today')
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('Train as planned')).not.toBeInTheDocument();
+    expect(screen.getByTestId('series-readinessScore')).toHaveAttribute(
+      'data-stroke',
+      THEME.accent
+    );
   });
 });

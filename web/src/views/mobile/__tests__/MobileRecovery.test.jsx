@@ -92,6 +92,34 @@ describe('MobileRecovery', () => {
     render(<MobileRecovery />);
   }
 
+  it('does not derive a delta or a status colour from a missing RHR or HRV', () => {
+    renderSettled({
+      latest: { rhr: null, hrv: null, sleep: 7.5, sleep_score: null },
+      personalBaselines: { rhrBaseline: 50, hrvBaseline: 60 },
+    });
+    for (const label of ['RESTING HR', 'HRV']) {
+      const tile = screen.getByText(label).parentElement;
+      expect(within(tile).getByText('No reading').style.color).toBe(
+        THEME.muted
+      );
+      expect(within(tile).queryByText(/[↑↓=]/)).not.toBeInTheDocument();
+      expect(within(tile).queryByText(/vs /)).not.toBeInTheDocument();
+    }
+  });
+
+  it('still colours a present RHR and HRV against the baseline', () => {
+    renderSettled({
+      latest: { rhr: 58, hrv: 50, sleep: 7.5, sleep_score: null },
+      personalBaselines: { rhrBaseline: 50, hrvBaseline: 60 },
+    });
+    const rhr = screen.getByText('RESTING HR').parentElement;
+    expect(within(rhr).getByText('58 bpm').style.color).toBe(THEME.critical);
+    expect(within(rhr).getByText(/↑ \+8/)).toBeInTheDocument();
+    const hrv = screen.getByText('HRV').parentElement;
+    expect(within(hrv).getByText('50 ms').style.color).toBe(THEME.critical);
+    expect(within(hrv).getByText(/↓ 10/)).toBeInTheDocument();
+  });
+
   it('shows a missing sleep reading with no status line', () => {
     renderSettled({
       latest: { rhr: 50, hrv: 60, sleep: null, sleep_score: null },

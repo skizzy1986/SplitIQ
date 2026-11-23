@@ -73,6 +73,8 @@ jobs:
         run: deno run --allow-read=vitals-sync/index.ts vitals-sync/test.ts
       - name: strava-activity request flow + cache + normaliser (#647)
         run: deno run --allow-env strava-activity/test.ts
+      - name: report-problem auth + rate limit + slack body
+        run: deno run report-problem/test.ts
       # Last, so a lint finding never hides a test result.
       # Lint, not format. `deno fmt --check` fails on most files here (they
       # were never formatted by it); turning it on means one reformat-only PR

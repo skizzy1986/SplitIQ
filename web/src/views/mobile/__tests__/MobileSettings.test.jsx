@@ -2,6 +2,7 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const backHandlers = [];
 vi.mock('@capacitor/core', () => ({
@@ -42,8 +43,17 @@ import MobileSettings from '../MobileSettings.jsx';
 import { DESTINATIONS } from '../../../constants/destinations.js';
 import { THEME } from '../../../constants/theme.js';
 
+function renderMobile(ui) {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  return render(
+    <QueryClientProvider client={client}>{ui}</QueryClientProvider>
+  );
+}
+
 const openSettings = async (user) => {
-  render(<MobileApp />);
+  renderMobile(<MobileApp />);
   await user.click(screen.getByRole('button', { name: 'Settings' }));
 };
 // Tabs are named by their visible label; "Back to Today" also matches /Today/,
@@ -143,7 +153,7 @@ describe('mobile Settings', () => {
 
   it('deep-links from #/settings', () => {
     window.location.hash = '#/settings';
-    render(<MobileApp />);
+    renderMobile(<MobileApp />);
     expect(
       screen.getByRole('heading', { name: 'Settings' })
     ).toBeInTheDocument();
@@ -162,7 +172,7 @@ describe('the Strava OAuth return on mobile', () => {
     'lands on Settings with the notice from %s, then cleans the URL',
     (_label, url) => {
       setUrl(url);
-      render(<MobileApp />);
+      renderMobile(<MobileApp />);
       expect(
         screen.getByRole('heading', { name: 'Settings' })
       ).toBeInTheDocument();
@@ -175,7 +185,7 @@ describe('the Strava OAuth return on mobile', () => {
 
   it('reports a cancellation in the same place', () => {
     setUrl('/?strava=error&reason=denied');
-    render(<MobileApp />);
+    renderMobile(<MobileApp />);
     expect(screen.getByRole('status')).toHaveTextContent(
       'Strava connection cancelled.'
     );
@@ -185,7 +195,7 @@ describe('the Strava OAuth return on mobile', () => {
   it('shows the notice once: Back then Settings does not replay it', async () => {
     const user = userEvent.setup();
     setUrl('/?strava=connected');
-    render(<MobileApp />);
+    renderMobile(<MobileApp />);
     expect(screen.getByRole('status')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Back to Today' }));
     await user.click(screen.getByRole('button', { name: 'Settings' }));
@@ -234,7 +244,7 @@ describe('Back returns to where Settings was opened', () => {
     'from %s: names it, returns to it and focuses its Settings button',
     async (label, text, hash) => {
       const user = userEvent.setup();
-      render(<MobileApp />);
+      renderMobile(<MobileApp />);
       await user.click(tab(label));
       await user.click(screen.getByRole('button', { name: 'Settings' }));
       await user.click(
@@ -248,7 +258,7 @@ describe('Back returns to where Settings was opened', () => {
 
   it('the hardware back button returns to the origin too', async () => {
     const user = userEvent.setup();
-    render(<MobileApp />);
+    renderMobile(<MobileApp />);
     await user.click(tab('Body'));
     await user.click(screen.getByRole('button', { name: 'Settings' }));
     act(() => backHandlers.at(-1)?.());
@@ -259,7 +269,7 @@ describe('Back returns to where Settings was opened', () => {
   it('a #/settings reload returns to Today', async () => {
     const user = userEvent.setup();
     window.location.hash = '#/settings';
-    render(<MobileApp />);
+    renderMobile(<MobileApp />);
     await user.click(screen.getByRole('button', { name: 'Back to Today' }));
     expect(screen.getByText('TODAY')).toBeInTheDocument();
   });
@@ -281,7 +291,7 @@ describe('in Spanish', () => {
     i18n.load('es', { ...en, ...viewsEn, ...es, ...viewsEs });
     i18n.activate('es');
     const user = userEvent.setup();
-    render(<MobileApp />);
+    renderMobile(<MobileApp />);
     await user.click(tab('Progreso'));
     await user.click(screen.getByRole('button', { name: 'Configuración' }));
     expect(
@@ -293,7 +303,7 @@ describe('in Spanish', () => {
     i18n.load('es', { ...en, ...viewsEn, ...es, ...viewsEs });
     i18n.activate('es');
     window.location.hash = '#/settings';
-    render(<MobileApp />);
+    renderMobile(<MobileApp />);
     expect(
       screen.getByRole('heading', { name: 'Configuración' })
     ).toBeInTheDocument();
@@ -308,7 +318,7 @@ describe('in Spanish', () => {
 
 describe('without a returnLabel', () => {
   it('names Back after Today', () => {
-    render(<MobileSettings onBack={() => {}} />);
+    renderMobile(<MobileSettings onBack={() => {}} />);
     expect(
       screen.getByRole('button', { name: 'Back to Today' })
     ).toBeInTheDocument();

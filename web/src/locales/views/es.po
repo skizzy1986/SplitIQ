@@ -448,6 +448,7 @@ msgid "CALORIES"
 msgstr "CALORÍAS"
 
 #. Button
+#: src/components/ReportProblem.jsx
 #: src/components/StravaConnectPanel.jsx
 msgid "Cancel"
 msgstr "Cancelar"
@@ -565,6 +566,10 @@ msgstr "No se pudieron contar los datos de Strava de tu registro. Inténtalo de 
 msgid "Could not read the Strava connection status"
 msgstr "No pudimos leer el estado de la conexión con Strava"
 
+#: src/components/ReportProblem.jsx
+msgid "Could not send the report. Try again shortly."
+msgstr "No se pudo enviar el informe. Inténtalo de nuevo en un momento."
+
 #. Error after pressing Connect Strava
 #: src/components/StravaConnectPanel.jsx
 msgid "Could not start the Strava connection. Try again."
@@ -624,6 +629,14 @@ msgstr "predeterminado"
 #: src/components/session/ProvenanceNote.jsx
 msgid "Derived here: {derivedText}."
 msgstr "Calculado aquí: {derivedText}."
+
+#: src/components/ReportProblem.jsx
+msgid "Describe what happened before sending."
+msgstr "Describe qué ocurrió antes de enviar."
+
+#: src/components/ReportProblem.jsx
+msgid "Describe what went wrong."
+msgstr "Describe qué salió mal."
 
 #: src/components/session/SessionSummary.jsx
 msgid "Device"
@@ -885,6 +898,10 @@ msgstr "Frecuencia cardíaca durante {over}, entre {lo} y {hi} bpm; promedio {av
 #: src/components/session/SessionTrace.jsx
 msgid "Heart rate across {over}, between {lo} and {hi} bpm."
 msgstr "Frecuencia cardíaca durante {over}, entre {lo} y {hi} bpm."
+
+#: src/views/SettingsView.jsx
+msgid "Help"
+msgstr "Ayuda"
 
 #. Training form (TSB) band
 #: src/utils/trainingLoad.js
@@ -1541,6 +1558,14 @@ msgstr "RECUPERACIÓN"
 msgid "ref"
 msgstr "ref."
 
+#: src/components/ReportProblem.jsx
+msgid "Report a problem"
+msgstr "Informar un problema"
+
+#: src/components/ReportProblem.jsx
+msgid "Report sent. Thank you."
+msgstr "Informe enviado. Gracias."
+
 #. Injury resolved date
 #: src/views/RecoveryView.jsx
 msgid "resolved {date}"
@@ -1642,6 +1667,14 @@ msgstr "Secciones"
 #: src/components/session/RangeSummary.jsx
 msgid "Selected range"
 msgstr "Tramo seleccionado"
+
+#: src/components/ReportProblem.jsx
+msgid "Send report"
+msgstr "Enviar informe"
+
+#: src/components/ReportProblem.jsx
+msgid "Sending…"
+msgstr "Enviando…"
 
 #: src/views/SessionView.jsx
 msgid "Session"
@@ -1811,6 +1844,10 @@ msgstr "INICIAR SESIÓN DE ENTRENAMIENTO"
 #: src/constants/srpeGuideMessages.js
 msgid "Steady (UT1)"
 msgstr "Constante (UT1)"
+
+#: src/components/ReportProblem.jsx
+msgid "Steps (optional)"
+msgstr "Pasos (opcional)"
 
 #: src/utils/stravaStatus.js
 msgid "Strava access was revoked. Reconnect to resume importing."
@@ -2142,6 +2179,10 @@ msgstr "Hoy"
 msgid "TODAY"
 msgstr "HOY"
 
+#: src/components/ReportProblem.jsx
+msgid "Too many reports in a short time. Try again later."
+msgstr "Demasiados informes en poco tiempo. Inténtalo más tarde."
+
 #: src/components/LogSessionForm.jsx
 msgid "Top weight"
 msgstr "Peso máximo"
@@ -2299,6 +2340,14 @@ msgstr "La potencia ponderada dividida entre la potencia promedio, {avg} W. 1.00
 #: src/components/session/MoreDetail.jsx
 msgid "Weighted power divided by the average power. 1.00 is an even output throughout."
 msgstr "La potencia ponderada dividida entre la potencia promedio. 1.00 es un esfuerzo parejo de principio a fin."
+
+#: src/components/ReportProblem.jsx
+msgid "What happened"
+msgstr "Qué ocurrió"
+
+#: src/components/ReportProblem.jsx
+msgid "What you did just before, if you remember."
+msgstr "Qué hiciste justo antes, si lo recuerdas."
 
 #: src/components/session/ProvenanceNote.jsx
 msgid "Where this data comes from"

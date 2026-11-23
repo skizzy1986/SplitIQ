@@ -1,4 +1,5 @@
 import React from 'react';
+import ReportProblem from '../components/ReportProblem.jsx';
 import StravaConnectPanel from '../components/StravaConnectPanel.jsx';
 import LanguageToggle from '../components/LanguageToggle.jsx';
 import ThemeControl from '../components/ThemeControl.jsx';
@@ -92,6 +93,12 @@ export default function SettingsView({ onSynced, notice, heading = true }) {
           </Trans>
         </h2>
         <StravaConnectPanel onSynced={onSynced} />
+      </section>
+      <section aria-labelledby="settings-help" style={sectionStyle}>
+        <h2 id="settings-help" style={headingStyle}>
+          <Trans>Help</Trans>
+        </h2>
+        <ReportProblem />
       </section>
     </div>
   );

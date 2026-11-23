@@ -1,4 +1,5 @@
 import { render, screen, act, fireEvent, within } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { i18n } from '@lingui/core';
 import { messages as en } from '../../locales/en.po';
 import { messages as es } from '../../locales/es.po';
@@ -336,10 +337,18 @@ describe('Shell in Spanish', () => {
 describe('Settings in Spanish', () => {
   async function mountSettings() {
     inSpanish();
+    const client = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
     await settle(
-      <LanguageProvider product="dashboard">
-        <SettingsView />
-      </LanguageProvider>
+      <QueryClientProvider client={client}>
+        <LanguageProvider product="dashboard">
+          <SettingsView />
+        </LanguageProvider>
+      </QueryClientProvider>
     );
   }
 
@@ -357,6 +366,10 @@ describe('Settings in Spanish', () => {
     expect(screen.getByRole('region', { name: 'Idioma' })).toContainElement(
       screen.getByRole('group', { name: 'Idioma' })
     );
+    expect(screen.getByRole('heading', { name: 'Ayuda' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Informar un problema' })
+    ).toBeInTheDocument();
     expect(screen.getByRole('group', { name: 'Idioma' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Español' })).toHaveAttribute(
       'aria-pressed',

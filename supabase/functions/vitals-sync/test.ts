@@ -1,12 +1,15 @@
 // Assertion script for vitals-sync's pure logic (sync.ts) and the activity half
-// of the shared mapper it depends on. Run with `deno run vitals-sync/test.ts`
-// from supabase/functions — no network, no env, no Supabase client.
+// of the shared mapper it depends on. Run with
+// `deno run --allow-read=vitals-sync/index.ts vitals-sync/test.ts` from
+// supabase/functions — no network, no env, no Supabase client. The read is the
+// ordering check, which inspects index.ts as text.
 import {
   buildSpecs,
   CORS,
   coreComplete,
   missingEnv,
   nullFields,
+  ownerGate,
   perthYesterday,
   REQUIRED_ENV,
   resultStatus,
@@ -20,6 +23,7 @@ import {
   extractSteps,
   mapResponses,
 } from "../vitals-import-api/mapper.ts";
+import { subjectFromAuthHeader } from "../_shared/jwtSubject.ts";
 
 let pass = 0, fail = 0;
 const check = (name: string, cond: boolean, actual?: unknown) => {
@@ -129,6 +133,67 @@ check("result: failed fetches reported", JSON.stringify(pn) === JSON.stringify([
 check("result: partial -> 207", resultStatus(pn) === 207);
 const pa = upsertParams("user-1", "2026-03-09", partial);
 check("upsert: failed fetch sends null, not undefined", pa.p_steps === null && pa.p_calories === null, pa);
+
+// --- owner gate (#715) ------------------------------------------------------
+const OWNER = "11111111-1111-4111-8111-111111111111";
+const OTHER = "22222222-2222-4222-8222-222222222222";
+const g0 = ownerGate(null, OWNER);
+check("gate: no sub -> 401 unauthorized", g0?.status === 401 && g0.body.error === "unauthorized", g0);
+const g1 = ownerGate("", OWNER);
+check("gate: empty sub -> 401 unauthorized", g1?.status === 401 && g1.body.error === "unauthorized", g1);
+const g2 = ownerGate(OTHER, OWNER);
+check("gate: other user -> 403 not_owner", g2?.status === 403 && g2.body.error === "not_owner", g2);
+check(
+  "gate: refusal body carries only `error` (no date, skipped or record)",
+  g2 !== null && JSON.stringify(Object.keys(g2.body)) === '["error"]',
+  g2,
+);
+check("gate: owner -> through", ownerGate(OWNER, OWNER) === null, ownerGate(OWNER, OWNER));
+check("gate: owner unset -> through to the missing-env 500", ownerGate(OWNER, undefined) === null, ownerGate(OWNER, undefined));
+const ownerLower = "abcdef12-3456-4789-8abc-def123456789";
+const OWNER_UP = ownerLower.toUpperCase();
+check("gate: upper-case owner id, lower-case sub -> through", ownerGate(ownerLower, OWNER_UP) === null, ownerGate(ownerLower, OWNER_UP));
+check("gate: upper-case sub, lower-case owner id -> through", ownerGate(OWNER_UP, ownerLower) === null, ownerGate(OWNER_UP, ownerLower));
+check("gate: padded owner id with trailing newline -> through", ownerGate(OWNER, `  ${OWNER} \n`) === null, ownerGate(OWNER, `  ${OWNER} \n`));
+check("gate: other user vs padded owner id -> 403", ownerGate(OTHER, `  ${OWNER} \n`)?.status === 403, ownerGate(OTHER, `  ${OWNER} \n`));
+check("gate: other user vs upper-case owner id -> 403", ownerGate(OTHER, OWNER_UP)?.status === 403, ownerGate(OTHER, OWNER_UP));
+const g3 = ownerGate(OTHER, " \t\n ");
+check("gate: whitespace-only owner id -> 403 not_owner for a user", g3?.status === 403 && g3.body.error === "not_owner", g3);
+const g4 = ownerGate(OWNER, ` \t\n `);
+check("gate: whitespace-only owner id -> 403 even for the would-be owner", g4?.status === 403 && g4.body.error === "not_owner", g4);
+check("gate: empty-string owner id -> through to the missing-env 500", ownerGate(OWNER, "") === null, ownerGate(OWNER, ""));
+// Why the gate must refuse a blank owner itself: missingEnv treats it as set.
+const blankUser: Record<string, string> = { ...full, VITALS_USER_ID: "   " };
+const m2 = missingEnv((k) => blankUser[k]);
+check("env: whitespace-only VITALS_USER_ID is not reported missing", !m2.includes("VITALS_USER_ID"), m2);
+
+// A fake bearer: the gateway has already verified the signature, so only the payload matters here.
+const b64url = (o: unknown) => btoa(JSON.stringify(o)).replace(/=+$/, "").replace(/\+/g, "-").replace(/\//g, "_");
+const bearer = (payload: unknown) =>
+  new Request("http://x", { headers: { authorization: `Bearer ${b64url({ alg: "HS256", typ: "JWT" })}.${b64url(payload)}.sig` } });
+const noAuth = subjectFromAuthHeader(new Request("http://x"));
+check("jwt: no Authorization header -> null", noAuth === null, noAuth);
+const anon = subjectFromAuthHeader(bearer({ role: "anon" }));
+check("jwt: anon token (no sub) -> null", anon === null, anon);
+const userSub = subjectFromAuthHeader(bearer({ sub: OWNER, role: "authenticated" }));
+check("jwt: user token -> its sub", userSub === OWNER, userSub);
+
+// --- ordering: the gate runs before any env, database or Google call --------
+// `//` line comments are stripped first so a comment naming a searched string cannot skew the order.
+const src = (await Deno.readTextFile(new URL("./index.ts", import.meta.url))).replace(/(^|\s)\/\/.*$/gm, "$1");
+const gateAt = src.indexOf("ownerGate(");
+check("order: index.ts calls ownerGate", gateAt >= 0, gateAt);
+const refusalAt = src.search(/if\s*\(\s*refusal\s*\)\s*return\s+json\(\s*refusal\.body\s*,\s*refusal\.status\s*\)/);
+check(
+  "order: the refusal is returned after ownerGate and before missingEnv(",
+  refusalAt > gateAt && gateAt >= 0 && refusalAt < src.indexOf("missingEnv("),
+  { gateAt, refusalAt, missingEnvAt: src.indexOf("missingEnv(") },
+);
+for (const later of ["missingEnv(", "createClient(", '.from("vitals")', "exchangeToken("]) {
+  const at = src.indexOf(later);
+  check(`order: ownerGate before ${later}`, gateAt >= 0 && at > gateAt, { gateAt, at });
+}
+check("order: upsertParams(userId, still called once", src.split("upsertParams(userId,").length === 2, src.split("upsertParams(userId,").length - 1);
 
 console.log("\nRESULT:", pass, "passed,", fail, "failed");
 if (fail) Deno.exit(1);

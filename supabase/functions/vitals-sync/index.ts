@@ -1,6 +1,10 @@
 // vitals-sync — on-demand Google Health → vitals upsert, user-triggered from the UI.
 // Deployed with JWT verification ON (default; do NOT use --no-verify-jwt).
-// The Supabase gateway validates the caller's session JWT before this handler runs.
+// The gateway verifies the token but admits any genuine project token, including
+// one with no user in it. So the handler reads the caller from the verified token
+// (_shared/jwtSubject.ts) and serves only VITALS_USER_ID, because the Google Health
+// credentials are the owner's only set; everyone else gets 401 or 403 until
+// per-user credentials exist (#561).
 // Uses the same Google Health credentials as vitals-import-api (no new secrets needed).
 //
 // Required env (shared with vitals-import-api): GOOGLE_HEALTH_CLIENT_ID,
@@ -13,12 +17,14 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 import { exchangeToken, listDataPoints } from "../vitals-import-api/client.ts";
 import { mapResponses } from "../vitals-import-api/mapper.ts";
 import { captureFunctionError } from "../_shared/sentry.ts";
+import { subjectFromAuthHeader } from "../_shared/jwtSubject.ts";
 import {
   buildSpecs,
   CORS,
   coreComplete,
   missingEnv,
   nullFields,
+  ownerGate,
   perthYesterday,
   resultStatus,
   upsertParams,
@@ -34,6 +40,9 @@ Deno.serve(async (req: Request) => {
       status,
       headers: { ...CORS, "Content-Type": "application/json" },
     });
+
+  const refusal = ownerGate(subjectFromAuthHeader(req), Deno.env.get("VITALS_USER_ID"));
+  if (refusal) return json(refusal.body, refusal.status);
 
   const missing = missingEnv((k) => Deno.env.get(k));
   if (missing.length) {

@@ -120,6 +120,31 @@ describe('AuthGate boot behaviour', () => {
     expect(splashes()).toBe(0);
   });
 
+  it('keeps the shell and the install button inert while the splash shows', async () => {
+    mocks.isMobile = false;
+    mocks.pwa = {
+      canInstall: true,
+      installed: false,
+      installPrompt: vi.fn(),
+    };
+    const d = deferred();
+    mocks.getSession = d.promise;
+    render(<AuthGate />);
+    await act(async () => {
+      d.resolve({ data: { session: SESSION } });
+    });
+    expect(splashes()).toBe(1);
+    const cover = screen.getByTestId('under-splash');
+    // jsdom leaves inert as a TODO in focusing.js, so the attribute is what
+    // this test can pin. The smoke e2e checks that Tab cannot enter it.
+    expect(cover).toHaveAttribute('inert');
+    expect(cover).toContainElement(screen.getByText('App-stub'));
+    expect(cover).toContainElement(screen.getByText(/ADD TO HOME SCREEN/));
+    advance(SPLASH_MAX_MS);
+    expect(splashes()).toBe(0);
+    expect(cover).not.toHaveAttribute('inert');
+  });
+
   it('holds the splash past the floor while an authed boot is still fetching', async () => {
     const d = deferred();
     mocks.getSession = d.promise;

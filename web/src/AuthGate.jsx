@@ -421,12 +421,17 @@ function Gate() {
   // so the splash landed on a different slot and replayed its whole entrance
   // mid-animation. It also overlays rather than replaces once signed in: the
   // tabs' fetches only start when MobileApp mounts, so it has to be mounted
-  // and fetching underneath.
+  // and fetching underneath. `inert` on that wrapper takes the shell and the
+  // install button out of the tab order and the accessibility tree while the
+  // splash covers them. The splash stays a sibling: `inert` cannot be undone
+  // on a descendant, so it cannot sit inside the wrapper.
   return (
     <>
-      {body}
+      <div data-testid="under-splash" inert={showSplash}>
+        {body}
+        <InstallButton />
+      </div>
       {showSplash && <SplashScreen />}
-      <InstallButton />
     </>
   );
 }

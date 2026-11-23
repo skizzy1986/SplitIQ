@@ -37,6 +37,45 @@ const TABS = [
 // view crashes on render. Its absence is the "mounted without error" signal.
 const ERROR_BOUNDARY_TEXT = 'hit a render error';
 
+test('the splash keeps the shell out of the tab order', async ({
+  page,
+  context,
+}) => {
+  await installAppFixtures(context);
+  await page.goto('/');
+  const splash = page.locator('.siq-splash');
+  await expect(splash).toHaveCount(1);
+  const cover = page.getByTestId('under-splash');
+  await expect(cover).toHaveAttribute('inert', '');
+  // A control injected under the splash is the case the shell's own buttons
+  // are in once the chunk arrives: Tab must not land on it.
+  await cover.evaluate((el) => {
+    const probe = document.createElement('button');
+    probe.id = 'splash-probe';
+    probe.textContent = 'Hidden control';
+    el.prepend(probe);
+  });
+  await page.keyboard.press('Tab');
+  await expect(page.locator('#splash-probe')).not.toBeFocused();
+  expect(
+    await page.evaluate(() =>
+      document
+        .querySelector('[data-testid="under-splash"]')
+        .contains(document.activeElement)
+    )
+  ).toBe(false);
+  await expect(splash).toHaveCount(0, { timeout: 10_000 });
+  await expect(cover).not.toHaveAttribute('inert', '');
+  await page.keyboard.press('Tab');
+  expect(
+    await page.evaluate(() =>
+      document
+        .querySelector('[data-testid="under-splash"]')
+        .contains(document.activeElement)
+    )
+  ).toBe(true);
+});
+
 test.describe('dashboard smoke', () => {
   let consoleErrors;
 

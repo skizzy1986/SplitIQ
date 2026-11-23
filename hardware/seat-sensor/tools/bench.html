@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seat Sensor Bench</title>
+<!--
+  Bench-test page for the SplitIQ seat sensor. Open this file in Chrome or Edge
+  (double-click it). It talks to the board over USB serial (Web Serial) and, on
+  Windows/Android Chrome, over Bluetooth (Web Bluetooth). Self-contained: no
+  network needed. Every button types a console command into the panel on the
+  right, so the same test can be run by hand. Procedure: ../docs/bench-test.md.
+-->
+<style>
+:root {
+  --bg: #f6f7f9; --panel: #ffffff; --ink: #1c2330; --muted: #5d6879; --line: #d9dee6;
+  --accent: #1f6feb; --accent-ink: #ffffff; --ok: #1a7f37; --bad: #c62828; --warn: #b26a00;
+  --code-bg: #eef1f5; --term-bg: #10141b; --term-ink: #d7dde8; --term-sent: #7cc4ff; --term-dim: #6b7687;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1319; --panel: #171c24; --ink: #e3e8ef; --muted: #98a3b3; --line: #2a3240;
+    --accent: #4c8dff; --accent-ink: #0b0f14; --ok: #3fb950; --bad: #ff6b6b; --warn: #e3a33b;
+    --code-bg: #222a36; --term-bg: #0a0d12;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+header { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); background: var(--panel); position: sticky; top: 0; z-index: 2; }
+header h1 { font-size: 17px; margin: 0 12px 0 0; }
+.pill { font-size: 13px; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.pill.on { color: var(--ok); border-color: var(--ok); }
+main { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; padding: 16px; }
+@media (max-width: 900px) { main { grid-template-columns: 1fr; } #termCol { position: static; height: 60vh; } }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; }
+.card h2 { font-size: 15px; margin: 0 0 8px; display: flex; gap: 8px; align-items: center; }
+.card p { margin: 6px 0; color: var(--muted); }
+.badge { font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 6px; border: 1px solid currentColor; }
+.badge.pass { color: var(--ok); } .badge.fail { color: var(--bad); } .badge.todo { color: var(--muted); }
+button { font: inherit; border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 8px; padding: 6px 10px; cursor: pointer; display: inline-flex; flex-direction: column; align-items: flex-start; gap: 1px; margin: 3px 4px 3px 0; }
+button:hover { border-color: var(--accent); }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+button:disabled { opacity: .45; cursor: not-allowed; }
+button code { font-size: 11.5px; background: var(--code-bg); color: var(--ink); padding: 0 5px; border-radius: 4px; }
+button.primary code { background: rgba(255,255,255,.2); color: inherit; }
+code, .mono { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; }
+.live { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+.metric .k { font-size: 12px; color: var(--muted); }
+.metric .v { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.metric .v.big { font-size: 34px; }
+canvas { width: 100%; height: 150px; display: block; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+.bar { height: 8px; background: var(--code-bg); border-radius: 4px; overflow: hidden; margin-top: 4px; }
+.bar > i { display: block; height: 100%; width: 0; background: var(--ok); }
+input[type=number], input[type=text] { font: inherit; padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--ink); }
+input[type=number] { width: 90px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+td, th { border-bottom: 1px solid var(--line); padding: 5px 6px; text-align: left; vertical-align: top; }
+.try { border-left: 3px solid var(--accent); padding: 4px 10px; margin: 8px 0 2px; color: var(--ink); background: var(--code-bg); border-radius: 0 6px 6px 0; font-size: 14px; }
+label.chk { display: block; margin: 4px 0; }
+#termCol { position: sticky; top: 70px; height: calc(100vh - 90px); display: flex; flex-direction: column; }
+#term { flex: 1; overflow-y: auto; background: var(--term-bg); color: var(--term-ink); border-radius: 10px 10px 0 0; padding: 10px 12px; font: 13px/1.4 ui-monospace, "Cascadia Mono", Consolas, monospace; white-space: pre-wrap; word-break: break-word; }
+#term .sent { color: var(--term-sent); }
+#term .dim { color: var(--term-dim); }
+#term .note { color: var(--term-dim); font-style: italic; }
+#termForm { display: flex; gap: 6px; background: var(--term-bg); padding: 8px; border-radius: 0 0 10px 10px; border-top: 1px solid #222a36; }
+#termForm input { flex: 1; background: #0b0f14; color: var(--term-ink); border-color: #2a3240; font-family: ui-monospace, Consolas, monospace; }
+.termHead { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; gap: 8px; flex-wrap: wrap; }
+.termHead h2 { font-size: 15px; margin: 0; }
+.small { font-size: 13px; color: var(--muted); }
+.warnbox { color: var(--warn); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Seat sensor bench</h1>
+  <button id="btnSerial" class="primary">Connect board (USB)</button>
+  <span id="pillSerial" class="pill">USB: not connected</span>
+  <button id="btnBle">Connect Bluetooth</button>
+  <span id="pillBle" class="pill">BLE: not connected</span>
+  <span id="pillFw" class="pill">firmware: ?</span>
+</header>
+
+<main>
+<div id="leftCol">
+
+  <div id="noSerial" class="card warnbox" hidden>This browser has no Web Serial. Open the file in Chrome or Edge on the desktop.</div>
+
+  <div class="card">
+    <h2>Live</h2>
+    <div class="live">
+      <div class="metric"><div class="k">Position (mm)</div><div class="v big mono" id="mPos">–</div><div class="k" id="mHomed">–</div></div>
+      <div class="metric"><div class="k">Counts</div><div class="v mono" id="mCounts">–</div><div class="k">25 counts = 1 mm</div></div>
+      <div class="metric"><div class="k">Speed (m/s)</div><div class="v mono" id="mSpeed">–</div></div>
+      <div class="metric"><div class="k">Peak channel A, last 1 s</div><div class="v mono" id="mPeak">–</div><div class="bar"><i id="mPeakBar"></i></div><div class="k" id="mPeakMax">max seen –</div></div>
+      <div class="metric"><div class="k">Reed</div><div class="v" id="mReed">–</div><div class="k" id="mReidx">re-index error –</div></div>
+    </div>
+    <canvas id="trace" width="1200" height="300" aria-label="Position over the last 10 seconds"></canvas>
+    <p class="small">Trace: position over the last 10 s. The bar on peak frequency is full at 20 kHz, the encoder's quoted limit.</p>
+  </div>
+
+  <div class="card" id="s1">
+    <h2>1. Board check <span class="badge todo" id="b1">to do</span></h2>
+    <p>Connect the board. The page turns on the board's telemetry (<code>tele on</code>) and reads its settings.</p>
+    <div id="cfgOut" class="small mono">–</div>
+    <button data-cmd="info">Show info <code>info</code></button>
+    <button data-cmd="help">List commands <code>help</code></button>
+    <div class="try">Try typing it: click the box under the console, type <code>info</code>, press Enter. Same result as the button.</div>
+  </div>
+
+  <div class="card" id="s2">
+    <h2>2. Counting both ways <span class="badge todo" id="b2">to do</span></h2>
+    <p>Turn the shaft slowly one way, then the other. This passes by itself once the count has moved at least 100 each way.</p>
+    <div class="small">Up so far: <b id="s2up">0</b> · down so far: <b id="s2down">0</b></div>
+    <button data-cmd="dir">Flip direction <code>dir</code></button>
+    <p class="small">Leave direction alone on the bench. Set it on the erg so moving away from the flywheel reads positive.</p>
+  </div>
+
+  <div class="card" id="s3">
+    <h2>3. Ten turns out and back <span class="badge todo" id="b3">to do</span></h2>
+    <p>Tape a flag on the shaft and line it up with a mark. Each button records the current count.</p>
+    <button data-rec="n0">At the mark</button>
+    <button data-rec="n1">After 10 turns out</button>
+    <button data-rec="n2">After 10 turns back</button>
+    <div class="small mono" id="s3out">N0 –, N1 –, N2 –</div>
+    <p class="small">Pass: N1 − N0 = 10 000 ± 3 (500 PPR × 2 edges × 10 turns), and N2 − N0 within ± 3.</p>
+    <div class="try">Try typing it: <code>pos</code> prints the same count the buttons record.</div>
+  </div>
+
+  <div class="card" id="s4">
+    <h2>4. Speed headroom (optional, drill) <span class="badge todo" id="b4">to do</span></h2>
+    <p>Spin the shaft with a drill, in line and with no side load. Watch "max seen" above. Then line the flag up again.</p>
+    <button data-rec="d0">At the mark, before</button>
+    <button data-rec="d1">At the mark, after</button>
+    <div class="small mono" id="s4out">–</div>
+    <p class="small">Pass: count back within ± 3. Fail at high rpm means the encoder can't keep up: fit a 40T encoder pulley.</p>
+    <button data-cmd="rate">Text log of peak rate <code>rate</code></button>
+  </div>
+
+  <div class="card" id="s5">
+    <h2>5. Span against the tape (optional, belt) <span class="badge todo" id="b5">to do</span></h2>
+    <p>Belt teeth-up along the tape, roll the pulley along it. Mark at 100 mm, roll to 600 mm, then save.</p>
+    <button data-cmd="mark">Mark here <code>mark</code></button>
+    distance <input type="number" id="spanMm" value="500" min="10" step="1"> mm
+    <button id="btnSpan">Calculate and save <code id="spanCode">span 500</code></button>
+    <button data-cmd="cal 40000">Back to nominal <code>cal 40000</code></button>
+    <table id="spanTable"><thead><tr><th>Run</th><th>Counts</th><th>nm/count</th><th>vs 40 000</th></tr></thead><tbody></tbody></table>
+    <p class="small">Pass: three runs, each within ± 0.5 % of 40 000, and agreeing with each other within 0.2 %. If they don't agree, go back to nominal.</p>
+  </div>
+
+  <div class="card" id="s6">
+    <h2>6. Homing logic <span class="badge todo" id="b6">to do</span></h2>
+    <p>Use a GND jumper tapped on GPIO 6, or the magnet past the reed. Reed state shows in Live.</p>
+    <button data-cmd="unhome">Clear home <code>unhome</code></button>
+    <button data-cmd="zero">Home here (manual) <code>zero</code></button>
+    <label class="chk"><input type="checkbox" data-chk="h1"> a) shaft turning + tap: becomes HOMED, position about 0</label>
+    <label class="chk"><input type="checkbox" data-chk="h2"> b) shaft still + tap: nothing changes</label>
+    <label class="chk"><input type="checkbox" data-chk="h3"> c) turning the other way + tap: re-index error unchanged</label>
+    <label class="chk"><input type="checkbox" data-chk="h4"> d) original direction again + tap: re-index error updates</label>
+  </div>
+
+  <div class="card" id="s7">
+    <h2>7. Bluetooth <span class="badge todo" id="b7">to do</span></h2>
+    <p>Click <b>Connect Bluetooth</b> at the top and pick "SplitIQ Seat". Chrome or Edge on Windows, or Chrome on Android. The page reads Info and Status, then subscribes to samples.</p>
+    <div class="small mono" id="bleOut">–</div>
+    <p class="small">Pass: Info bytes match, about 25 packets/s, every packet's time stamp steps by exactly 40 000 µs, and BLE position matches USB position.</p>
+  </div>
+
+  <div class="card" id="s8">
+    <h2>8. Sleep and wake <span class="badge todo" id="b8">to do</span></h2>
+    <p>The board stays awake while this page is connected. To test the 5-minute sleep, disconnect Bluetooth and click <b>Disconnect board</b>, leave the shaft still for 5 minutes, then turn it and reconnect. The wake cause shows in step 1.</p>
+    <button data-cmd="sleep">Sleep now <code>sleep</code></button>
+    <label class="chk"><input type="checkbox" data-chk="w1"> after 5 min idle, reconnect shows "woke on: encoder motion"</label>
+    <label class="chk"><input type="checkbox" data-chk="w2"> after <code>sleep</code> and pressing BOOT, wake cause shows "BOOT button"</label>
+    currents (mA): adv <input type="number" id="iAdv"> stream <input type="number" id="iStr"> sleep <input type="number" id="iSlp">
+  </div>
+
+  <div class="card">
+    <h2>Results</h2>
+    <table id="results"><tbody></tbody></table>
+    <button id="btnCopy">Copy results as a table</button>
+    <span class="small" id="copyMsg"></span>
+  </div>
+</div>
+
+<div id="termCol">
+  <div class="termHead">
+    <h2>Console</h2>
+    <label class="small"><input type="checkbox" id="showTele"> show telemetry lines</label>
+  </div>
+  <div id="term" aria-live="polite"><span class="note">Every button types its command here first (shown after "›"), then the board's reply follows. Type your own commands in the box below. Try "help".
+</span></div>
+  <form id="termForm" autocomplete="off">
+    <input type="text" id="termIn" placeholder="type a command, e.g. help" aria-label="Console command" disabled>
+    <button type="submit" class="primary" id="termSend" disabled>Send</button>
+  </form>
+</div>
+</main>
+
+<script>
+"use strict";
+const SVC = "36f90001-f6b6-4908-857c-004314d7acba";
+const CH = { samples: "36f90002-f6b6-4908-857c-004314d7acba", status: "36f90003-f6b6-4908-857c-004314d7acba", info: "36f90004-f6b6-4908-857c-004314d7acba" };
+const EXPECT_INFO = "01 00 01 00 88 13 08 00 40 9c 00 00 00 00";
+const F = { HOMED: 1, STREAMING: 2, MOVING: 4, SLIP: 8, BATT_LOW: 16, OVERRUN: 32 };
+const $ = (id) => document.getElementById(id);
+
+// ---- persisted results (per browser; fine if storage is unavailable) ----
+let R = {};
+try { R = JSON.parse(localStorage.getItem("seatBench") || "{}"); } catch (e) { R = {}; }
+function save() { try { localStorage.setItem("seatBench", JSON.stringify(R)); } catch (e) { /* private window: results live for this page only */ } renderResults(); }
+
+// ---- console panel ----
+const term = $("term");
+function termLine(text, cls) {
+  const s = document.createElement("span");
+  if (cls) s.className = cls;
+  s.textContent = text + "\n";
+  const stick = term.scrollTop + term.clientHeight >= term.scrollHeight - 30;
+  term.appendChild(s);
+  while (term.childNodes.length > 1500) term.removeChild(term.firstChild);
+  if (stick) term.scrollTop = term.scrollHeight;
+}
+
+// ---- serial ----
+let port = null, writer = null, reader = null, readLoopDone = null;
+const enc = new TextEncoder();
+async function send(cmd) {
+  if (!writer) { termLine("(not connected) " + cmd, "note"); return; }
+  termLine("› " + cmd, "sent");
+  await writer.write(enc.encode(cmd + "\n"));
+}
+async function connectSerial() {
+  if (port) { await disconnectSerial(); return; }
+  try {
+    port = await navigator.serial.requestPort();
+    await port.open({ baudRate: 115200 });
+    // Both lines released: on the board's auto-reset circuit that means run, not bootloader.
+    await port.setSignals({ dataTerminalReady: false, requestToSend: false });
+  } catch (e) { termLine("USB connect failed: " + e.message, "note"); port = null; return; }
+  writer = port.writable.getWriter();
+  readLoopDone = readLoop();
+  $("pillSerial").textContent = "USB: connected"; $("pillSerial").classList.add("on");
+  $("btnSerial").firstChild.textContent = "Disconnect board";
+  $("termIn").disabled = $("termSend").disabled = false;
+  termLine("USB connected at 115200 baud.", "note");
+  setTimeout(() => send("tele on"), 400);
+}
+async function disconnectSerial() {
+  try { await send("tele off"); } catch (e) { /* port may already be gone */ }
+  try { if (reader) await reader.cancel(); } catch (e) { /* closing */ }
+  try { await readLoopDone; } catch (e) { /* closing */ }
+  try { writer.releaseLock(); await port.close(); } catch (e) { /* already closed */ }
+  port = writer = reader = null;
+  $("pillSerial").textContent = "USB: not connected"; $("pillSerial").classList.remove("on");
+  $("btnSerial").firstChild.textContent = "Connect board (USB)";
+  $("termIn").disabled = $("termSend").disabled = true;
+  termLine("USB disconnected.", "note");
+}
+async function readLoop() {
+  const dec = new TextDecoder();
+  let buf = "";
+  reader = port.readable.getReader();
+  try {
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let i;
+      while ((i = buf.indexOf("\n")) >= 0) {
+        const line = buf.slice(0, i).replace(/\r$/, "");
+        buf = buf.slice(i + 1);
+        handleLine(line);
+      }
+    }
+  } catch (e) {
+    termLine("USB read stopped: " + e.message, "note");
+  } finally { reader.releaseLock(); }
+}
+
+// ---- parsing ----
+let live = null, cfg = null, lastT = null, speed = 0, maxHz = 0;
+const hist = [];
+const s2 = { up: 0, down: 0, last: null };
+function handleLine(line) {
+  const p = line.split(",");
+  if (p[0] === "T" && p.length >= 9) {
+    if ($("showTele").checked) termLine(line, "dim");
+    const t = { ms: +p[1], counts: +p[2], pos: +p[3] / 10, flags: +p[4], cps: +p[5], reidx: +p[6] / 10, dropped: +p[7], reed: p[8] === "1" };
+    if (lastT && t.ms > lastT.ms) {
+      const v = (t.pos - lastT.pos) / (t.ms - lastT.ms); // mm/ms = m/s
+      speed = speed * 0.6 + v * 0.4;
+    }
+    if (s2.last !== null) { const d = t.counts - s2.last; if (d > 0) s2.up += d; else s2.down -= d; }
+    s2.last = t.counts;
+    lastT = t; live = t;
+    hist.push([performance.now(), t.pos]);
+    while (hist.length && hist[0][0] < performance.now() - 10000) hist.shift();
+    return;
+  }
+  termLine(line);
+  if (p[0] === "C" && p.length >= 7) {
+    cfg = { fw: p[1], proto: +p[2], nm: +p[3], dir: +p[4], home: +p[5] / 10, wake: p.slice(6).join(",") };
+    $("pillFw").textContent = "firmware: " + cfg.fw; $("pillFw").classList.add("on");
+    $("cfgOut").textContent = `fw ${cfg.fw}, protocol ${cfg.proto}, scale ${cfg.nm} nm/count, direction ${cfg.dir > 0 ? "+1" : "-1"}, home position ${cfg.home} mm, woke on: ${cfg.wake}`;
+    R.s1 = { pass: cfg.proto === 1, text: `fw ${cfg.fw}, ${cfg.nm} nm/count, woke on ${cfg.wake}` };
+    if (/encoder motion/.test(cfg.wake)) { R.chk = R.chk || {}; }
+    save();
+  } else if (p[0] === "S" && p.length >= 5) {
+    const run = { counts: +p[1], mm: +p[2], nm: +p[3], ok: p[4] === "1" };
+    R.span = R.span || [];
+    R.span.push(run);
+    save(); renderSpan();
+  }
+}
+
+// ---- buttons that send commands ----
+document.querySelectorAll("button[data-cmd]").forEach((b) => b.addEventListener("click", () => send(b.dataset.cmd)));
+$("spanMm").addEventListener("input", () => { $("spanCode").textContent = "span " + $("spanMm").value; });
+$("btnSpan").addEventListener("click", () => send("span " + $("spanMm").value));
+$("termForm").addEventListener("submit", (e) => { e.preventDefault(); const v = $("termIn").value.trim(); if (v) send(v); $("termIn").value = ""; });
+$("btnSerial").addEventListener("click", connectSerial);
+
+// ---- record buttons (steps 3 and 4): they also send `pos`, so the console shows the reading ----
+document.querySelectorAll("button[data-rec]").forEach((b) => b.addEventListener("click", () => {
+  if (!live) { termLine("(no telemetry yet: connect the board first)", "note"); return; }
+  R.rec = R.rec || {};
+  R.rec[b.dataset.rec] = live.counts;
+  send("pos");
+  save(); renderRec();
+}));
+function renderRec() {
+  const r = R.rec || {}, f = (x) => (x === undefined ? "–" : x);
+  $("s3out").textContent = `N0 ${f(r.n0)}, N1 ${f(r.n1)}, N2 ${f(r.n2)}` +
+    (r.n0 !== undefined && r.n1 !== undefined ? `   out: ${r.n1 - r.n0}` : "") +
+    (r.n0 !== undefined && r.n2 !== undefined ? `   back error: ${r.n2 - r.n0}` : "");
+  if (r.n0 !== undefined && r.n1 !== undefined && r.n2 !== undefined) {
+    R.s3 = { pass: Math.abs(Math.abs(r.n1 - r.n0) - 10000) <= 3 && Math.abs(r.n2 - r.n0) <= 3, text: `N1−N0 = ${r.n1 - r.n0}, N2−N0 = ${r.n2 - r.n0}` };
+  }
+  if (r.d0 !== undefined && r.d1 !== undefined) {
+    $("s4out").textContent = `count error after the drill: ${r.d1 - r.d0}`;
+    R.s4 = { pass: Math.abs(r.d1 - r.d0) <= 3, text: `max ${Math.round(maxHz)} Hz (${(R.maxMps || 0).toFixed(2)} m/s), error ${r.d1 - r.d0} counts` };
+  }
+}
+function renderSpan() {
+  const tb = $("spanTable").querySelector("tbody");
+  tb.textContent = "";
+  const runs = (R.span || []).slice(-3);
+  runs.forEach((r, i) => {
+    const tr = document.createElement("tr");
+    [i + 1, r.counts, r.nm, ((r.nm / 40000 - 1) * 100).toFixed(2) + " %"].forEach((c) => { const td = document.createElement("td"); td.textContent = c; tr.appendChild(td); });
+    tb.appendChild(tr);
+  });
+  if (runs.length === 3) {
+    const nms = runs.map((r) => r.nm), spread = (Math.max(...nms) - Math.min(...nms)) / 40000 * 100;
+    R.s5 = { pass: nms.every((n) => Math.abs(n / 40000 - 1) <= 0.005) && spread <= 0.2, text: nms.join(" / ") + " nm/count" };
+  }
+}
+
+// ---- checkboxes ----
+R.chk = R.chk || {};
+document.querySelectorAll("input[data-chk]").forEach((c) => {
+  c.checked = !!R.chk[c.dataset.chk];
+  c.addEventListener("change", () => { R.chk[c.dataset.chk] = c.checked; save(); });
+});
+["iAdv", "iStr", "iSlp"].forEach((id) => { $(id).value = (R.cur || {})[id] || ""; $(id).addEventListener("input", () => { R.cur = R.cur || {}; R.cur[id] = $(id).value; save(); }); });
+
+// ---- Bluetooth ----
+let bleDev = null;
+const ble = { pkts: 0, good: 0, bad: 0, lastT0: null, rateWin: [], pos: null };
+async function connectBle() {
+  if (bleDev) { bleDev.gatt.disconnect(); return; }
+  if (!navigator.bluetooth) { termLine("This browser has no Web Bluetooth. Use Chrome or Edge on Windows, or Chrome on Android.", "note"); return; }
+  try {
+    bleDev = await navigator.bluetooth.requestDevice({ filters: [{ services: [SVC] }] });
+    bleDev.addEventListener("gattserverdisconnected", () => { $("pillBle").textContent = "BLE: not connected"; $("pillBle").classList.remove("on"); $("btnBle").textContent = "Connect Bluetooth"; bleDev = null; termLine("BLE disconnected.", "note"); });
+    const gatt = await bleDev.gatt.connect();
+    const svc = await gatt.getPrimaryService(SVC);
+    const info = await (await svc.getCharacteristic(CH.info)).readValue();
+    const hex = [...new Uint8Array(info.buffer)].map((x) => x.toString(16).padStart(2, "0")).join(" ");
+    ble.infoOk = hex === EXPECT_INFO;
+    ble.infoHex = hex;
+    const stC = await svc.getCharacteristic(CH.status);
+    const st = await stC.readValue();
+    ble.status = st.getUint8(0);
+    await stC.startNotifications();
+    stC.addEventListener("characteristicvaluechanged", (e) => { ble.status = e.target.value.getUint8(0); });
+    const sm = await svc.getCharacteristic(CH.samples);
+    sm.addEventListener("characteristicvaluechanged", onSamples);
+    await sm.startNotifications();
+    $("pillBle").textContent = "BLE: connected"; $("pillBle").classList.add("on"); $("btnBle").textContent = "Disconnect Bluetooth";
+    termLine("BLE connected. Info bytes: " + hex + (ble.infoOk ? " (as expected)" : " (EXPECTED " + EXPECT_INFO + ")"), "note");
+  } catch (e) { termLine("BLE connect failed: " + e.message, "note"); bleDev = null; }
+}
+function onSamples(e) {
+  const dv = e.target.value;
+  const t0 = dv.getUint32(0, true);
+  if (ble.lastT0 !== null) { if (((t0 - ble.lastT0) >>> 0) === 40000) ble.good++; else ble.bad++; }
+  ble.lastT0 = t0; ble.pkts++;
+  ble.rateWin.push(performance.now());
+  ble.pos = dv.getInt16(18, true) / 10;
+}
+$("btnBle").addEventListener("click", connectBle);
+
+// ---- render loop ----
+function fmt(x, d) { return x === null || x === undefined || Number.isNaN(x) ? "–" : x.toFixed(d); }
+function setBadge(id, r) { const b = $(id); if (!r) { b.className = "badge todo"; b.textContent = "to do"; } else { b.className = "badge " + (r.pass ? "pass" : "fail"); b.textContent = r.pass ? "pass" : "check"; } }
+function draw() {
+  const c = $("trace"), g = c.getContext("2d"), W = c.width, H = c.height;
+  const css = getComputedStyle(document.documentElement);
+  g.clearRect(0, 0, W, H);
+  if (hist.length > 1) {
+    let lo = Math.min(...hist.map((h) => h[1])), hi = Math.max(...hist.map((h) => h[1]));
+    if (hi - lo < 10) { const m = (hi + lo) / 2; lo = m - 5; hi = m + 5; }
+    const now = performance.now();
+    g.strokeStyle = css.getPropertyValue("--accent"); g.lineWidth = 3; g.beginPath();
+    hist.forEach(([t, v], i) => { const x = W - (now - t) / 10000 * W, y = H - 10 - (v - lo) / (hi - lo) * (H - 20); i ? g.lineTo(x, y) : g.moveTo(x, y); });
+    g.stroke();
+    g.fillStyle = css.getPropertyValue("--muted"); g.font = "22px system-ui";
+    g.fillText(hi.toFixed(1) + " mm", 8, 26); g.fillText(lo.toFixed(1) + " mm", 8, H - 10);
+  }
+}
+function tick() {
+  if (live) {
+    $("mPos").textContent = fmt(live.pos, 1);
+    $("mHomed").textContent = live.flags & F.HOMED ? "HOMED" : "not homed: relative to power-on";
+    $("mHomed").style.color = live.flags & F.HOMED ? "var(--ok)" : "var(--warn)";
+    $("mCounts").textContent = live.counts;
+    $("mSpeed").textContent = fmt(speed, 2);
+    const hz = live.cps / 2;
+    if (hz > maxHz) { maxHz = hz; R.maxMps = live.cps * (cfg ? cfg.nm : 40000) / 1e9; }
+    $("mPeak").textContent = Math.round(hz) + " Hz";
+    $("mPeakBar").style.width = Math.min(100, hz / 200) + "%";
+    $("mPeakBar").style.background = hz > 20000 ? "var(--bad)" : hz > 15000 ? "var(--warn)" : "var(--ok)";
+    $("mPeakMax").textContent = `max seen ${Math.round(maxHz)} Hz = ${(R.maxMps || 0).toFixed(2)} m/s`;
+    $("mReed").textContent = live.reed ? "CLOSED" : "open";
+    $("mReidx").textContent = `re-index error ${live.reidx.toFixed(1)} mm` + (live.flags & F.SLIP ? " · SLIP" : "");
+    $("s2up").textContent = s2.up; $("s2down").textContent = s2.down;
+    if (s2.up >= 100 && s2.down >= 100 && !(R.s2 && R.s2.pass)) { R.s2 = { pass: true, text: "counts both ways" }; save(); }
+  }
+  const ch = R.chk || {};
+  if (ch.h1 && ch.h2 && ch.h3 && ch.h4) R.s6 = { pass: true, text: "a–d ticked" };
+  if (ch.w1 && ch.w2) { const cur = R.cur || {}; R.s8 = { pass: true, text: `adv ${cur.iAdv || "?"} mA, stream ${cur.iStr || "?"} mA, sleep ${cur.iSlp || "?"} mA` }; }
+  if (bleDev) {
+    const now = performance.now();
+    while (ble.rateWin.length && ble.rateWin[0] < now - 1000) ble.rateWin.shift();
+    const rate = ble.rateWin.length;
+    const usb = live ? live.pos : null;
+    $("bleOut").textContent = `info ${ble.infoOk ? "OK" : "MISMATCH " + ble.infoHex} · ${rate} packets/s · time-stamp steps ${ble.good} good, ${ble.bad} off · BLE position ${fmt(ble.pos, 1)} mm (USB ${fmt(usb, 1)}) · status ${ble.status & F.HOMED ? "HOMED" : "not homed"}`;
+    if (ble.pkts > 250) R.s7 = { pass: ble.infoOk && ble.bad === 0 && rate >= 22 && rate <= 28, text: `${rate}/s, steps ${ble.good} good / ${ble.bad} off, info ${ble.infoOk ? "OK" : "mismatch"}` };
+  }
+  ["s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8"].forEach((k, i) => setBadge("b" + (i + 1), R[k]));
+  draw();
+  requestAnimationFrame(tick);
+}
+
+const NAMES = ["1 Board check", "2 Counting both ways", "3 Ten turns out and back", "4 Speed headroom", "5 Span against the tape", "6 Homing logic", "7 Bluetooth", "8 Sleep and wake"];
+function renderResults() {
+  const tb = $("results").querySelector("tbody");
+  tb.textContent = "";
+  NAMES.forEach((n, i) => {
+    const r = R["s" + (i + 1)];
+    const tr = document.createElement("tr");
+    [n, r ? r.text : "", r ? (r.pass ? "pass" : "check") : "to do"].forEach((c) => { const td = document.createElement("td"); td.textContent = c; tr.appendChild(td); });
+    tb.appendChild(tr);
+  });
+}
+$("btnCopy").addEventListener("click", async () => {
+  const md = "| Step | Result | Pass? |\n|---|---|---|\n" + NAMES.map((n, i) => { const r = R["s" + (i + 1)]; return `| ${n} | ${r ? r.text : ""} | ${r ? (r.pass ? "pass" : "check") : "to do"} |`; }).join("\n");
+  try { await navigator.clipboard.writeText(md); $("copyMsg").textContent = "Copied."; } catch (e) { $("copyMsg").textContent = "Couldn't copy: " + e.message; }
+});
+
+if (!("serial" in navigator)) { $("noSerial").hidden = false; $("btnSerial").disabled = true; }
+renderRec(); renderSpan(); renderResults();
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>

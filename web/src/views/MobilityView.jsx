@@ -72,9 +72,7 @@ export default function MobilityView() {
                 aria-expanded={isOpen}
                 onClick={() => setMobOpen(isOpen ? null : r.id)}
                 onFocus={() => setFocusedId(r.id)}
-                onBlur={() =>
-                  setFocusedId((current) => (current === r.id ? null : current))
-                }
+                onBlur={() => setFocusedId(null)}
                 style={{
                   width: '100%',
                   margin: 0,

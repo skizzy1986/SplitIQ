@@ -69,5 +69,7 @@ describe('WorkoutItem', () => {
     await user.keyboard(' ');
     expect(row).toHaveAttribute('aria-expanded', 'false');
     expect(screen.queryByText(/Bench \+ pull focus/)).not.toBeInTheDocument();
+    fireEvent.blur(row);
+    expect(row.style.boxShadow).toBe('');
   });
 });

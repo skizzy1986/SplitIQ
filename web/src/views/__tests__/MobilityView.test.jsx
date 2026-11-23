@@ -49,5 +49,7 @@ describe('MobilityView', () => {
     await user.keyboard(' ');
     expect(row).toHaveAttribute('aria-expanded', 'false');
     expect(screen.queryByText(/Thoracic spine/i)).not.toBeInTheDocument();
+    fireEvent.blur(row);
+    expect(row.style.boxShadow).toBe('');
   });
 });

@@ -143,6 +143,8 @@ describe('LogEntry', () => {
     await user.keyboard(' ');
     expect(row).toHaveAttribute('aria-expanded', 'false');
     expect(screen.queryByText('AVG WATTS')).not.toBeInTheDocument();
+    fireEvent.blur(row);
+    expect(row.style.boxShadow).toBe('');
   });
 });
 

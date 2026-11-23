@@ -1,7 +1,10 @@
 // Concept2 PM5 BLE GATT service and characteristic UUIDs and packet layouts.
-// Source: ergometerjs (github.com/tijmenvangulik/ergometerjs),
-// api/typescript/ergometer/ble/typedefinitions.ts. All multi-byte fields are
-// little-endian.
+// Every offset below is from Concept2's own "PM CSAFE Communication
+// Definition", Revision 0.34 (7/17/2025), table "C2 PM BTS Peripheral :
+// Attribute Table", cross-checked against ergometerjs
+// (github.com/tijmenvangulik/ergometerjs,
+// api/typescript/ergometer/ble/typedefinitions.ts), which agrees field for
+// field. All multi-byte fields are little-endian.
 import { pace500ToWatts } from '../utils/pace.js';
 import { captureError } from '../utils/sentry.js';
 
@@ -87,7 +90,10 @@ function tooShort(dv, minBytes) {
   return !dv || dv.byteLength < minBytes;
 }
 
-// 0031 general status
+// 0031 general status, 19 bytes (CSAFE rev 0.34): elapsed time 0-2 (0.01 s),
+// distance 3-5 (0.1 m), workout type 6, interval type 7, workout state 8,
+// rowing state 9, stroke state 10, total work distance 11-13, workout
+// duration 14-16, duration type 17, drag factor 18.
 export function parseGeneralStatus(dv) {
   if (tooShort(dv, 10)) return null;
   return {
@@ -99,7 +105,10 @@ export function parseGeneralStatus(dv) {
   };
 }
 
-// 0032 additional status 1 (byte 6 heart rate is deliberately ignored, #651)
+// 0032 additional status 1, 17 bytes (CSAFE rev 0.34): elapsed time 0-2,
+// speed 3-4 (0.001 m/s), stroke rate 5 (spm), heart rate 6, current pace 7-8
+// (0.01 s), average pace 9-10 (0.01 s), rest distance 11-12, rest time 13-15,
+// erg machine type 16. Byte 6 heart rate is deliberately ignored (#651).
 export function parseAdditionalStatus1(dv) {
   if (tooShort(dv, 11)) return null;
   return {
@@ -110,7 +119,10 @@ export function parseAdditionalStatus1(dv) {
   };
 }
 
-// 0033 additional status 2
+// 0033 additional status 2, 20 bytes (CSAFE rev 0.34): elapsed time 0-2,
+// interval count 3, average power 4-5 (W), total calories 6-7 (cal),
+// split/interval average pace 8-9, average power 10-11, average calories
+// 12-13, last split time 14-16, last split distance 17-19.
 export function parseAdditionalStatus2(dv) {
   if (tooShort(dv, 8)) return null;
   return {
@@ -120,8 +132,12 @@ export function parseAdditionalStatus2(dv) {
   };
 }
 
-// 0039 rowing summary. Bytes 18-19 carry average pace in 0.1s units, not the
-// 0.01s used everywhere else, so they are not read.
+// 0039 end-of-workout summary, 20 bytes (CSAFE rev 0.34): log entry date 0-1,
+// log entry time 2-3, elapsed time 4-6 (0.01 s), distance 7-9 (0.1 m), average
+// stroke rate 10, ending/average/min/max heart rate 11-14, average drag factor
+// 15, recovery heart rate 16, workout type 17, average pace 18-19. Those last
+// two bytes are in 0.1 s units, not the 0.01 s used everywhere else, so they
+// are not read.
 export function parseRowingSummary(dv) {
   if (tooShort(dv, 11)) return null;
   return {

@@ -53,7 +53,11 @@ export default function OverviewView({
   // Vitals were read from the static `recoveryLog` constant here, so the home
   // screen scored readiness off June data. Same hook, same single readiness
   // definition, as RecoveryView and mobile.
-  const { readiness } = useVitals();
+  const {
+    readiness,
+    isPending: vitalsPending,
+    isError: vitalsFailed,
+  } = useVitals();
   // Was a hardcoded 190 threaded down from App.jsx. Load is measured against
   // the live rowing CP and bike FTP anchors, so a fixed 190 both drifted from
   // the real value and misdescribed the calculation.
@@ -102,14 +106,25 @@ export default function OverviewView({
         >
           <Trans comment="Card heading, all capitals">READINESS</Trans>
         </div>
+        {/* Pending, failed and empty are three states (#616), the same split
+            the training-load card already makes. A refetch that still has a
+            score keeps it: isPending is only true before the first result. */}
         <div style={{ fontSize: 22, fontWeight: 700, color: THEME.text }}>
-          {readiness?.score != null ? (
+          {vitalsPending ? (
+            <span style={{ color: THEME.muted }}>
+              <Trans>Reading…</Trans>
+            </span>
+          ) : vitalsFailed && readiness?.score == null ? (
+            <span style={{ color: THEME.muted }}>
+              <Trans>VITALS UNAVAILABLE</Trans>
+            </span>
+          ) : readiness?.score != null ? (
             readiness.score
           ) : (
             <Trans>No reading this morning</Trans>
           )}
         </div>
-        {readiness?.score == null && (
+        {!vitalsPending && !vitalsFailed && readiness?.score == null && (
           <Button onClick={() => onOpenBody?.()}>
             <Trans>Open Body</Trans>
           </Button>

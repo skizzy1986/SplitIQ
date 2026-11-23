@@ -2248,6 +2248,7 @@ msgid "very easy · full conversation"
 msgstr "very easy · full conversation"
 
 #. All capitals
+#: src/views/OverviewView.jsx
 #: src/views/RecoveryView.jsx
 msgid "VITALS UNAVAILABLE"
 msgstr "VITALS UNAVAILABLE"

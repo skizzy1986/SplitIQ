@@ -163,6 +163,10 @@
     {
       "version": "20261117155248",
       "name": "020_strava_activity_cache"
+    },
+    {
+      "version": "20261124171307",
+      "name": "021_sessions_duration_min"
     }
   ]
 }

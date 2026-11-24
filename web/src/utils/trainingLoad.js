@@ -1,6 +1,6 @@
 import { msg } from '@lingui/core/macro';
 import { toISODate } from './dateFormat.js';
-import { parseDurationMinutes } from './duration.js';
+import { resolveSessionMinutes } from './duration.js';
 
 // Which calibration anchor a session's watts should be measured against.
 // Rowing watts against rowing CP, bike watts against bike FTP — comparing bike
@@ -36,8 +36,11 @@ function thresholdFor(type, cp, ftp) {
 // watts is a fatigue signal, not a unit error, and tuning a factor to close the
 // gap would erase that signal rather than measure it.
 export function sessionLoad(session, { cp, ftp } = {}) {
-  const minutes = parseDurationMinutes(session?.duration);
-  if (!(minutes > 0)) return 0;
+  const minutes = resolveSessionMinutes(session);
+  // Unknown duration is not a scored 0. A rated session with no duration
+  // returns null so the UI can show it as untimed, and CTL does not treat
+  // it as a completed zero. Do not invent a duration here.
+  if (!(minutes > 0)) return null;
   const hours = minutes / 60;
 
   if (session.srpe > 0) return Math.round(hours * session.srpe * 10);
@@ -62,7 +65,7 @@ export function calcTrainingLoad(tssData, endDate) {
     const existing = tssMap[key];
     if (existing) {
       tssMap[key] = {
-        tss: existing.tss + d.tss,
+        tss: existing.tss + (d.tss ?? 0),
         note: d.note
           ? existing.note
             ? `${existing.note}; ${d.note}`
@@ -70,7 +73,7 @@ export function calcTrainingLoad(tssData, endDate) {
           : existing.note,
       };
     } else {
-      tssMap[key] = { tss: d.tss, note: d.note };
+      tssMap[key] = { tss: d.tss ?? 0, note: d.note };
     }
   });
 
@@ -179,15 +182,26 @@ export function tsbBand(tsb) {
 // why). Appended here, not folded into sessionLoad, so that function stays
 // exactly as the doctrine cites it; a parity test pins the two together.
 export function sessionLoadBasis(session, { cp, ftp } = {}) {
-  const none = (reason, threshold = null) => ({
-    load: 0,
+  const none = (reason, threshold = null, load = 0) => ({
+    load,
     basis: 'none',
     reason,
     threshold,
     intensity: null,
   });
-  const minutes = parseDurationMinutes(session?.duration);
-  if (!(minutes > 0)) return none('no_duration');
+  const minutes = resolveSessionMinutes(session);
+  if (!(minutes > 0)) {
+    if (session?.srpe > 0) {
+      return {
+        load: null,
+        basis: 'srpe_no_duration',
+        reason: 'srpe_no_duration',
+        threshold: null,
+        intensity: null,
+      };
+    }
+    return none('no_duration', null, null);
+  }
   const hours = minutes / 60;
 
   if (session.srpe > 0) {

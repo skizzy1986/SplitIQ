@@ -112,12 +112,36 @@ describe('sessionLoad', () => {
     ).toBe(0);
   });
 
-  it('returns zero for an unparseable or absent duration', () => {
+  it('returns null for an unparseable or absent duration, including with sRPE', () => {
     expect(
       sessionLoad({ duration: 'garbage', srpe: 7, type: 'erg' }, ANCHORS)
-    ).toBe(0);
-    expect(sessionLoad({ srpe: 7 }, ANCHORS)).toBe(0);
-    expect(sessionLoad(undefined, ANCHORS)).toBe(0);
+    ).toBeNull();
+    expect(sessionLoad({ srpe: 7 }, ANCHORS)).toBeNull();
+    expect(sessionLoad(undefined, ANCHORS)).toBeNull();
+    expect(
+      sessionLoad({ duration: null, srpe: 5, type: 'strength' }, ANCHORS)
+    ).toBeNull();
+  });
+
+  it('prefers duration_min when the key is present, including null', () => {
+    expect(
+      sessionLoad(
+        { duration: 'garbage', duration_min: 60, srpe: 7, type: 'erg' },
+        ANCHORS
+      )
+    ).toBe(70);
+    expect(
+      sessionLoad(
+        { duration: '60:00', duration_min: null, srpe: 7, type: 'erg' },
+        ANCHORS
+      )
+    ).toBeNull();
+  });
+
+  it('scores hh:mm:ss the same as the equivalent minutes', () => {
+    expect(sessionLoad({ duration: '1:02:03', srpe: 5 }, ANCHORS)).toBe(
+      Math.round(((62 + 3 / 60) / 60) * 5 * 10)
+    );
   });
 });
 
@@ -146,8 +170,12 @@ const LOAD_FIXTURES = [
   [{ duration: '45:00', srpe: null, type: 'erg' }, ANCHORS],
   [{ duration: '45:00', srpe: null, type: 'erg', avg_watts: 0 }, ANCHORS],
   [{ duration: 'garbage', srpe: 7, type: 'erg' }, ANCHORS],
+  [{ duration: null, srpe: 5, type: 'strength' }, ANCHORS],
   [{ srpe: 7 }, ANCHORS],
   [undefined, ANCHORS],
+  [{ duration: '60:00', duration_min: 30, srpe: 8 }, ANCHORS],
+  [{ duration: '60:00', duration_min: null, srpe: 7 }, ANCHORS],
+  [{ duration: '1:02:03', srpe: 5 }, ANCHORS],
 ];
 
 describe('sessionLoadBasis', () => {
@@ -187,14 +215,33 @@ describe('sessionLoadBasis', () => {
   });
 
   it.each([
-    [{ duration: 'garbage', srpe: 7, type: 'erg' }, 'no_duration'],
-    [{ duration: '50:00', srpe: null, type: 'strength' }, 'no_power_model'],
-    [{ duration: '60:00', srpe: null, type: 'erg', avg_watts: 0 }, 'no_watts'],
-  ])('gives zero and the reason for %o', (session, reason) => {
+    [
+      { duration: '50:00', srpe: null, type: 'strength' },
+      { load: 0, basis: 'none', reason: 'no_power_model' },
+    ],
+    [
+      { duration: '60:00', srpe: null, type: 'erg', avg_watts: 0 },
+      { load: 0, basis: 'none', reason: 'no_watts' },
+    ],
+    [
+      { duration: 'garbage', srpe: null, type: 'erg' },
+      { load: null, basis: 'none', reason: 'no_duration' },
+    ],
+    [
+      { duration: 'garbage', srpe: 7, type: 'erg' },
+      { load: null, basis: 'srpe_no_duration', reason: 'srpe_no_duration' },
+    ],
+    [
+      { duration: null, srpe: 5, type: 'strength' },
+      { load: null, basis: 'srpe_no_duration', reason: 'srpe_no_duration' },
+    ],
+    [
+      { duration: '60:00', duration_min: null, srpe: 5 },
+      { load: null, basis: 'srpe_no_duration', reason: 'srpe_no_duration' },
+    ],
+  ])('gives the load and the reason for %o', (session, expected) => {
     expect(sessionLoadBasis(session, ANCHORS)).toMatchObject({
-      load: 0,
-      basis: 'none',
-      reason,
+      ...expected,
       intensity: null,
     });
   });

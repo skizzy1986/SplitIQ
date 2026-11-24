@@ -112,6 +112,28 @@ describe('MobileAnalytics', () => {
     expect(screen.getByText('55 TSS')).toBeInTheDocument();
   });
 
+  it('shows an untimed rated session as not scored, not as zero', () => {
+    mockUseTSSHistory.mockReturnValue({ data: [], isLoading: false });
+    mockUseSessions.mockReturnValue({
+      data: [
+        {
+          id: 10,
+          date: '8/28/26',
+          type: 'strength',
+          label: 'Rated strength',
+          duration: null,
+          srpe: 5,
+          status: 'completed',
+        },
+      ],
+    });
+    render(<MobileAnalytics />);
+    expect(screen.getByText('Rated strength')).toBeInTheDocument();
+    expect(screen.queryByText('0 TSS')).not.toBeInTheDocument();
+    expect(screen.queryByText('null TSS')).not.toBeInTheDocument();
+    expect(screen.getByText('—')).toBeInTheDocument();
+  });
+
   it('renders live recent sessions when useSessions returns completed rows', () => {
     mockUseTSSHistory.mockReturnValue({ data: [] });
     mockUseSessions.mockReturnValue({

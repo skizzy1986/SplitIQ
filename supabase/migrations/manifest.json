@@ -247,6 +247,18 @@
       ],
       "note": "Applied 2026-11-17 (#647) after two rolled-back trials, by the #628 method (CLI db query --linked --file, inside one begin/commit, as postgres) rather than apply_migration; the recorded statement's md5 matches the file. strava_activity_cache (the session page's 7-day Strava cache, policy-less, cascading from strava_session_links), backup_snapshot() exclusion, hourly sweep cron job strava-activity-cache-sweep. Its self-test passed at apply.",
       "issue": 647
+    },
+    {
+      "file": "021_sessions_duration_min.sql",
+      "status": "applied",
+      "live": [
+        {
+          "version": "20261124171307",
+          "name": "021_sessions_duration_min"
+        }
+      ],
+      "note": "Applied 2026-11-25 1:13 am AWST (Australia/Perth) to production swdrueaserjzhuxnzmeu only, via Supabase MCP apply_migration with name 021_sessions_duration_min, as postgres. Not applied to SplitIQ dev. Generated sessions.duration_min plus sessions_no_strava extension (#216). PostgREST schema cache reloaded with NOTIFY pgrst, 'reload schema'.",
+      "issue": 216
     }
   ],
   "liveOnly": [

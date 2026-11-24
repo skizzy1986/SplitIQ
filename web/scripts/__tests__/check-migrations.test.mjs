@@ -590,8 +590,8 @@ describe('the real manifest', () => {
     // fail until you do; do not add a tolerance here to get it green — the
     // last one (for 014 while it was pending) was removed when 014 was applied.
     expect(drift).toEqual([]);
-    expect(counts.live).toBe(41);
-    expect(counts.byFile).toBe(18);
+    expect(counts.live).toBe(42);
+    expect(counts.byFile).toBe(19);
     expect(counts.liveOnly).toBe(23);
   });
 });

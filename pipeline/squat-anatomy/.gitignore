@@ -9,4 +9,7 @@ page/template.html
 pipeline/ext/stl/*.stl
 # dist/squat.html is rebuilt by python -m squat build
 dist/*.html
+# rowing spike (#754) data: python -m row fetch rowing | skin (not committed; untrusted, never executed)
+pipeline/ext/rowing/
+pipeline/ext/skin/
 .pytest_cache/

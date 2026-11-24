@@ -81,6 +81,24 @@ node evalpage.js ../dist/squat.html "(() => { __squat.set({time:2.55}); __step(2
 
 `window.__squat.set({...})` drives the page for tests: `depth` (0–1), `time` (s), `view` (`side|front|back|three`), `cam {th,ph,r}`, `tgt [x,y,z]`, `heat`, `skel`, `mus`, `tab` (`angles|moments|force|act|len`), `guide`/`pane`, `form`, `measText`/`measName` (load a measured file from a string). `__squat.tip(name)` returns a muscle's tooltip text for the current moment.
 
+## Rowing spike (#754)
+
+`row/` is the feasibility spike for re-rigging this model to a Concept2 rowing stroke: a joint model fitted to the squat's frames (Q1), the muscle-path curves as blends over bone frames (Q2), top-4 upper-body weights and five key rowing poses with penetration and volume checks (Q3), and the BodyParts3D 4.0 skin as a skin source (Q4). It imports `squat/` read-only and changes nothing the squat ships.
+
+```bash
+pip install -r requirements-spike.txt      # adds matplotlib for the PNG renders (CI does not install it)
+python -m row fetch rowing                 # Engstrom et al. 2023 joint curves, pinned commit + sha256 -> pipeline/ext/rowing/
+python -m row fetch skin                   # BodyParts3D 4.0 OBJ archive (65 MB), sha256-pinned -> pipeline/ext/skin/
+python -m row spike all                    # -> out/spike/: fk/rig/upper/poses/skin json, metrics.json, report.md, renders, GLBs
+python -m row spike report                 # regenerate report.md from the step json files only
+```
+
+Steps run singly too (`python -m row spike fk|rig|upper|poses|skin|render|report`); `poses` runs the arm IK and takes several minutes. `--from-dir` copies the data from a local mirror with the same sha checks. The downloads are untrusted data: parsed as text or OBJ only, never executed, never committed. Tests: the default selection needs nothing fetched; `-m rowing_data` and `-m skin` need the data and skip without it (`ROW_STRICT_DATA=1` / `ROW_STRICT_SKIN=1` make a missing set fail); `-m slow` runs the poses and the whole spike.
+
+Data licences: the joint curves are Engstrom, Anderson, Bez, Agresta & Telfer (2023), PLOS ONE 18(5): e0285676, data at github.com/Telfer/Rowing_Biomechanics under the MIT licence (kept beside the data and verbatim in `row/inputs.py`). The skin archive is BodyParts3D 4.0: the database licence page says CC BY 4.0 (updated 2025-02-27), while every OBJ file's header grants CC BY-SA 2.1 JP ("BodyParts3D, (c) The Database Center for Life Science licensed under CC Attribution-Share Alike 2.1 Japan"). By Scott's decision of 2026-11-24 the skin and anything derived from it are treated as CC BY-SA 2.1 JP; both statements are recorded in `row/inputs.py`. The spike redistributes nothing derived from either.
+
+The arm IK's "converged" label is a penalty level, not an optimiser status: the spec's penetration limit of 1e-3 is stricter than the squat's own accepted hand (0.0067), so the limit is 0.01 (`row/spike/thresholds.py`).
+
 ## Licences and attribution
 
 Anatomy: BodyParts3D © The Database Center for Life Science, CC BY-SA 2.1 JP. The derived geometry in this repo and the page is shared under the same terms. Musculoskeletal paths: Rajagopal et al. 2016, Lai et al. 2017 and Uhlrich et al. 2022 models via opensim-models. Published values used as reference ranges are listed with citations in `docs/REFERENCES.md`.

@@ -1,5 +1,12 @@
 apply plugin: 'com.android.application'
 
+// CI passes the run number and the testing key (#763). A machine without them
+// still builds: versionCode 1, plain versionName, and the default debug key.
+def ciVersionCode = System.getenv('SPLITIQ_VERSION_CODE')
+def appVersion = new groovy.json.JsonSlurper().parse(file('../../package.json')).version
+def testingKeystore = System.getenv('ANDROID_KEYSTORE_PATH')
+def hasTestingKey = testingKeystore && file(testingKeystore).exists()
+
 android {
     namespace "io.github.skizzy1986.splitiq"
     compileSdk rootProject.ext.compileSdkVersion
@@ -7,8 +14,8 @@ android {
         applicationId "io.github.skizzy1986.splitiq"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName new groovy.json.JsonSlurper().parse(file('../../package.json')).version
+        versionCode ciVersionCode ? ciVersionCode.toInteger() : 1
+        versionName ciVersionCode ? "${appVersion}+${ciVersionCode}" : appVersion
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,10 +23,35 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        // The testing key only: it signs the public android-latest APK and CI
+        // debug APKs so they update one install. Never the Play Store key.
+        if (hasTestingKey) {
+            testing {
+                storeFile file(testingKeystore)
+                storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('ANDROID_KEY_ALIAS')
+                keyPassword System.getenv('ANDROID_KEY_PASSWORD')
+            }
+        }
+    }
     buildTypes {
+        debug {
+            if (hasTestingKey) {
+                signingConfig signingConfigs.testing
+            }
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        // Non-debuggable build for the public testing channel; `release` stays
+        // free for a future Play Store key. AGP rejects build types named test*.
+        preview {
+            initWith release
+            debuggable false
+            matchingFallbacks = ['release']
+            signingConfig hasTestingKey ? signingConfigs.testing : null
         }
     }
 }

@@ -176,7 +176,7 @@ export function IntervalBuilder({ workout, onChange, termsMode = 'rowing' }) {
                   flex: 1,
                   fontFamily: FONT.sans,
                   fontSize: 16,
-                  fontWeight: 800,
+                  fontWeight: 700,
                   color: THEME.text,
                 }}
               >

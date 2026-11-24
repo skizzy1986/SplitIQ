@@ -24,8 +24,9 @@ Meter the encoder outputs first. Supply 5 V with nothing else connected:
 - If A and B float or only pull low, the outputs are **open collector**, which is
   expected for the LPD3806. Fit the 2.2 kΩ pull-ups below.
 - If A and B swing to about 5 V, the outputs are **push-pull**. Don't wire them
-  straight to the ESP32. Use a 10 kΩ series and 18 kΩ to 0 V divider on each
-  channel instead.
+  straight to the ESP32. Use a 10 kΩ series and 20 kΩ to 0 V divider on each
+  channel instead (5 V in gives 3.33 V at the pin, under the 3.6 V limit; both
+  values are in your resistor kit).
 
 | Field wire | Terminal | Also on that terminal |
 |---|---|---|

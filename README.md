@@ -202,6 +202,9 @@ report too, and the required set is the `main` branch ruleset.
 
 Builds web assets, syncs via `npx cap sync android`, assembles a debug APK
 with Gradle. The APK is uploaded as a build artifact (retained 14 days).
+On a push to `main` it also publishes a non-debuggable testing APK to the
+`android-latest` prerelease, at a fixed public link. Phone install and Obtainium
+setup: [`docs/android-testing-install.md`](docs/android-testing-install.md).
 
 ### Other automation
 

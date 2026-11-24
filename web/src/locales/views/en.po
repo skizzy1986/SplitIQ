@@ -374,6 +374,11 @@ msgstr "Back"
 msgid "Back to {destination}"
 msgstr "Back to {destination}"
 
+#. Leave a live session for the Train start screen
+#: src/components/mobile/SessionExitBar.jsx
+msgid "Back to Train"
+msgstr "Back to Train"
+
 #. After "vs": compared with the baseline
 #. Chart reference line label
 #: src/views/mobile/MobileRecovery.jsx
@@ -973,6 +978,23 @@ msgstr "LATEST WATTS"
 #: src/utils/healthRecords.js
 msgid "LDL Cholesterol"
 msgstr "LDL Cholesterol"
+
+#. Confirm leaving a live session
+#: src/components/mobile/SessionExitBar.jsx
+msgid "Leave"
+msgstr "Leave"
+
+#: src/views/ErgLiveView.jsx
+msgid "Leave now? The PM5 disconnects and this piece is not saved."
+msgstr "Leave now? The PM5 disconnects and this piece is not saved."
+
+#: src/components/mobile/SessionExitBar.jsx
+msgid "Leave this session?"
+msgstr "Leave this session?"
+
+#: src/views/ErgLiveView.jsx
+msgid "Leave without saving this piece?"
+msgstr "Leave without saving this piece?"
 
 #: src/components/ThemeControl.jsx
 msgid "Light"
@@ -1807,6 +1829,11 @@ msgstr "START A SESSION"
 msgid "START SESSION"
 msgstr "START SESSION"
 
+#. Cancel leaving a live session
+#: src/components/mobile/SessionExitBar.jsx
+msgid "Stay"
+msgstr "Stay"
+
 #. sRPE scale, effort 5-6
 #: src/constants/srpeGuideMessages.js
 msgid "Steady (UT1)"
@@ -2165,6 +2192,11 @@ msgstr "Total Cholesterol"
 #: src/components/session/zoneLabels.js
 msgid "TR"
 msgstr "TR"
+
+#. Back button label on a live session
+#: src/components/mobile/SessionExitBar.jsx
+msgid "Train"
+msgstr "Train"
 
 #: src/views/mobile/MobileRecovery.jsx
 #: src/views/RecoveryView.jsx

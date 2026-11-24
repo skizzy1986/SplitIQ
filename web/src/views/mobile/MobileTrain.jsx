@@ -4,6 +4,7 @@ import { msg } from '@lingui/core/macro';
 import ErgLiveView from '../ErgLiveView.jsx';
 import StrengthLogger from '../../StrengthLogger.jsx';
 import { THEME } from '../../constants/theme.js';
+import SessionExitBar from '../../components/mobile/SessionExitBar.jsx';
 import ScreenHeader from '../../components/ScreenHeader.jsx';
 import { FONT } from '../../constants/type.js';
 import { RADIUS, SPACE, TYPE } from '../../constants/tokens.js';
@@ -48,9 +49,18 @@ export { ENTRIES };
 
 export default function MobileTrain({ mode, onMode }) {
   const { i18n } = useLingui();
-  // A live session owns the screen — no tab bar, no chrome (HANDOFF.md §4).
-  if (mode === 'erg') return <ErgLiveView />;
-  if (mode === 'strength') return <StrengthLogger />;
+  // A live session owns the screen — no tab bar, no chrome (HANDOFF.md §4) —
+  // but always with a way back to this screen. Erg asks first when leaving
+  // would drop a connection or an unsaved piece; strength keeps its own draft,
+  // so leaving it loses nothing.
+  if (mode === 'erg') return <ErgLiveView onExit={() => onMode(null)} />;
+  if (mode === 'strength')
+    return (
+      <>
+        <SessionExitBar onExit={() => onMode(null)} />
+        <StrengthLogger />
+      </>
+    );
 
   return (
     <div

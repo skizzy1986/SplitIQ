@@ -8,6 +8,7 @@ import { useOfflineQueue } from '../hooks/useOfflineQueue';
 import { supabase } from '../supabaseClient';
 import LiveMetric from '../components/LiveMetric';
 import WorkoutTarget from '../components/WorkoutTarget';
+import SessionExitBar from '../components/mobile/SessionExitBar.jsx';
 import { parsePace, formatElapsed } from '../services/pm5Bluetooth';
 import { THEME } from '../constants/theme.js';
 import { toISODate, toLogDate } from '../utils/dateFormat.js';
@@ -646,9 +647,23 @@ function isDuplicate(dbError) {
   );
 }
 
-export default function ErgLiveView({ plannedSessions = [], onSessionSaved }) {
-  const { status, metrics, summary, error, errorCode, connect, reset, finish } =
-    usePM5();
+export default function ErgLiveView({
+  plannedSessions = [],
+  onSessionSaved,
+  onExit,
+}) {
+  const {
+    status,
+    metrics,
+    summary,
+    error,
+    errorCode,
+    connect,
+    reset,
+    finish,
+    disconnect,
+  } = usePM5();
+  const { t } = useLingui();
   const { addToQueue, pending } = useOfflineQueue();
   const queryClient = useQueryClient();
   const [saveState, setSaveState] = useState('idle');
@@ -756,8 +771,9 @@ export default function ErgLiveView({ plannedSessions = [], onSessionSaved }) {
     if (onSessionSaved) onSessionSaved();
   }
 
+  let screen;
   if (status === 'idle' || status === 'error') {
-    return (
+    screen = (
       <ConnectScreen
         onConnect={connect}
         connecting={false}
@@ -767,10 +783,8 @@ export default function ErgLiveView({ plannedSessions = [], onSessionSaved }) {
         pending={pending}
       />
     );
-  }
-
-  if (status === 'connecting') {
-    return (
+  } else if (status === 'connecting') {
+    screen = (
       <ConnectScreen
         onConnect={() => {}}
         connecting={true}
@@ -779,10 +793,8 @@ export default function ErgLiveView({ plannedSessions = [], onSessionSaved }) {
         pending={pending}
       />
     );
-  }
-
-  if (status === 'finished' && summary) {
-    return (
+  } else if (status === 'finished' && summary) {
+    screen = (
       <SummaryScreen
         summary={summary}
         onSave={saveSession}
@@ -794,14 +806,38 @@ export default function ErgLiveView({ plannedSessions = [], onSessionSaved }) {
         saveState={saveState}
       />
     );
+  } else {
+    screen = (
+      <RowingScreen
+        metrics={metrics}
+        status={status}
+        todaySession={todaySession}
+        onEnd={finish}
+      />
+    );
   }
 
+  if (!onExit) return screen;
+
+  // What leaving would cost, if anything. Leaving unmounts this view, so a
+  // connected PM5 and an unsaved summary would both be gone.
+  const unsaved =
+    status === 'finished' && saveState !== 'saved' && saveState !== 'queued';
+  let confirm = null;
+  if (status === 'connected' || status === 'rowing')
+    confirm = t`Leave now? The PM5 disconnects and this piece is not saved.`;
+  else if (unsaved) confirm = t`Leave without saving this piece?`;
+
   return (
-    <RowingScreen
-      metrics={metrics}
-      status={status}
-      todaySession={todaySession}
-      onEnd={finish}
-    />
+    <>
+      <SessionExitBar
+        confirm={confirm}
+        onExit={() => {
+          disconnect();
+          onExit();
+        }}
+      />
+      {screen}
+    </>
   );
 }

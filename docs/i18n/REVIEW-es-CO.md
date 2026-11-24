@@ -42,7 +42,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `hdxhKx` | We could not sign you in. Try again. | No pudimos iniciar sesión. Inténtalo de nuevo. | Login error for any unrecognised cause. Only shown in Spanish. · src/utils/authError.js |
 | `y1oEoC` | Wrong email or password. | Correo o contraseña incorrectos. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
 
-## Dashboard views (src/locales/views, 503 strings)
+## Dashboard views (src/locales/views, 510 strings)
 
 | Row | English | Español | Where / note |
 |---|---|---|---|
@@ -127,6 +127,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `pZomf-` | AVG WATTS | VATIOS PROM. | Average power, all capitals · src/components/LogEntry.jsx |
 | `iH8pgl` | Back | Volver | src/App.jsx · src/views/SessionView.jsx |
 | `m8KGUx` | Back to {destination} | Volver a {destination} | Settings back button; destination is a mobile tab name · src/views/mobile/MobileSettings.jsx |
+| `jYK-BY` | Back to Train | Volver a Entrenar | Leave a live session for the Train start screen · src/components/mobile/SessionExitBar.jsx |
 | `moKkl9` | baseline | línea base | After "vs": compared with the baseline · Chart reference line label · src/views/mobile/MobileRecovery.jsx · src/views/RecoveryView.jsx |
 | `LxO1i3` | Baselines are your own rolling 28-day trimmed mean. | Las líneas base son tu propio promedio recortado de los últimos 28 días. | src/views/RecoveryView.jsx |
 | `qFXVm_` | Below 7h target | Por debajo de la meta de 7h | src/views/mobile/MobileRecovery.jsx |
@@ -251,6 +252,10 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `O5l7Qq` | Last sync did not finish cleanly | La última sincronización no terminó correctamente | src/utils/stravaStatus.js |
 | `Cagxat` | LATEST WATTS | ÚLTIMOS VATIOS | Stat tile, all capitals · src/views/OverviewView.jsx |
 | `7fmJyT` | LDL Cholesterol | Colesterol LDL | Blood lipid marker · src/utils/healthRecords.js |
+| `Mv8CyJ` | Leave | Salir | Confirm leaving a live session · src/components/mobile/SessionExitBar.jsx |
+| `D5PiUW` | Leave now? The PM5 disconnects and this piece is not saved. | ¿Salir ahora? El PM5 se desconecta y esta sesión no se guarda. | src/views/ErgLiveView.jsx |
+| `fOYoa7` | Leave this session? | ¿Salir de esta sesión? | src/components/mobile/SessionExitBar.jsx |
+| `4z9-xv` | Leave without saving this piece? | ¿Salir sin guardar esta sesión? | src/views/ErgLiveView.jsx |
 | `1njn7W` | Light | Claro | src/components/ThemeControl.jsx |
 | `U6e-ld` | limit {target} {unit} | límite {target} {unit} | Lipid decision limit, e.g. limit 3.0 mmol/L · src/views/RecoveryView.jsx |
 | `dF6vP6` | Live | En vivo | Desktop live erg pane · src/App.jsx |
@@ -428,6 +433,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `cEmihp` | sRPE target: | sRPE objetivo: | Followed by a number or the word easy; sRPE stays as is · src/components/WorkoutTarget.jsx |
 | `vjiwd1` | START A SESSION | INICIA UNA SESIÓN | Heading, all capitals · src/views/mobile/MobileTrain.jsx |
 | `Ul5Zpl` | START SESSION | INICIAR SESIÓN DE ENTRENAMIENTO | Button, all capitals · src/views/mobile/MobileToday.jsx |
+| `GCJTE0` | Stay | Quedarse | Cancel leaving a live session · src/components/mobile/SessionExitBar.jsx |
 | `lqrTOx` | Steady (UT1) | Constante (UT1) | sRPE scale, effort 5-6 · src/constants/srpeGuideMessages.js |
 | `maUeij` | Strava access was revoked. Reconnect to resume importing. | Se revocó el acceso a Strava. Reconecta para seguir importando. | src/utils/stravaStatus.js |
 | `6GyMVL` | Strava connected. Activities import at the next scheduled sync, or press Sync now to start straight away. | Strava conectado. Las actividades se importan en la próxima sincronización programada, o pulsa Sincronizar ahora para empezar de una vez. | src/utils/stravaCallback.js |
@@ -506,6 +512,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `QJw1Lb` | Top wt (70kg) | Peso máx. (70kg) | Heaviest weight lifted, with an example · src/components/LogSessionForm.jsx |
 | `tI3ozh` | Total Cholesterol | Colesterol total | Blood lipid marker · src/utils/healthRecords.js |
 | `EuJKqB` | TR | TR | Rowing zone; keep as is · src/components/session/zoneLabels.js |
+| `-0cOZb` | Train | Entrenar | Back button label on a live session · src/components/mobile/SessionExitBar.jsx |
 | `V2Ca9q` | Train as planned | Entrena según lo planeado | src/views/mobile/MobileRecovery.jsx · src/views/RecoveryView.jsx |
 | `83DQKX` | Train but monitor — consider easing intensity | Entrena, pero vigílate: considera bajar la intensidad | src/views/RecoveryView.jsx |
 | `elbm-V` | Train but monitor closely | Entrena, pero vigílate de cerca | src/views/mobile/MobileRecovery.jsx |

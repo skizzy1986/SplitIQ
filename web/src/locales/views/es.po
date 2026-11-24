@@ -988,10 +988,6 @@ msgstr "Salir"
 msgid "Leave now? The PM5 disconnects and this piece is not saved."
 msgstr "¿Salir ahora? El PM5 se desconecta y esta sesión no se guarda."
 
-#: src/components/mobile/SessionExitBar.jsx
-msgid "Leave this session?"
-msgstr "¿Salir de esta sesión?"
-
 #: src/views/ErgLiveView.jsx
 msgid "Leave without saving this piece?"
 msgstr "¿Salir sin guardar esta sesión?"
@@ -2192,11 +2188,6 @@ msgstr "Colesterol total"
 #: src/components/session/zoneLabels.js
 msgid "TR"
 msgstr "TR"
-
-#. Back button label on a live session
-#: src/components/mobile/SessionExitBar.jsx
-msgid "Train"
-msgstr "Entrenar"
 
 #: src/views/mobile/MobileRecovery.jsx
 #: src/views/RecoveryView.jsx

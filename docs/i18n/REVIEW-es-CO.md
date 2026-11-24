@@ -42,7 +42,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `hdxhKx` | We could not sign you in. Try again. | No pudimos iniciar sesión. Inténtalo de nuevo. | Login error for any unrecognised cause. Only shown in Spanish. · src/utils/authError.js |
 | `y1oEoC` | Wrong email or password. | Correo o contraseña incorrectos. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
 
-## Dashboard views (src/locales/views, 510 strings)
+## Dashboard views (src/locales/views, 508 strings)
 
 | Row | English | Español | Where / note |
 |---|---|---|---|
@@ -254,7 +254,6 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `7fmJyT` | LDL Cholesterol | Colesterol LDL | Blood lipid marker · src/utils/healthRecords.js |
 | `Mv8CyJ` | Leave | Salir | Confirm leaving a live session · src/components/mobile/SessionExitBar.jsx |
 | `D5PiUW` | Leave now? The PM5 disconnects and this piece is not saved. | ¿Salir ahora? El PM5 se desconecta y esta sesión no se guarda. | src/views/ErgLiveView.jsx |
-| `fOYoa7` | Leave this session? | ¿Salir de esta sesión? | src/components/mobile/SessionExitBar.jsx |
 | `4z9-xv` | Leave without saving this piece? | ¿Salir sin guardar esta sesión? | src/views/ErgLiveView.jsx |
 | `1njn7W` | Light | Claro | src/components/ThemeControl.jsx |
 | `U6e-ld` | limit {target} {unit} | límite {target} {unit} | Lipid decision limit, e.g. limit 3.0 mmol/L · src/views/RecoveryView.jsx |
@@ -512,7 +511,6 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `QJw1Lb` | Top wt (70kg) | Peso máx. (70kg) | Heaviest weight lifted, with an example · src/components/LogSessionForm.jsx |
 | `tI3ozh` | Total Cholesterol | Colesterol total | Blood lipid marker · src/utils/healthRecords.js |
 | `EuJKqB` | TR | TR | Rowing zone; keep as is · src/components/session/zoneLabels.js |
-| `-0cOZb` | Train | Entrenar | Back button label on a live session · src/components/mobile/SessionExitBar.jsx |
 | `V2Ca9q` | Train as planned | Entrena según lo planeado | src/views/mobile/MobileRecovery.jsx · src/views/RecoveryView.jsx |
 | `83DQKX` | Train but monitor — consider easing intensity | Entrena, pero vigílate: considera bajar la intensidad | src/views/RecoveryView.jsx |
 | `elbm-V` | Train but monitor closely | Entrena, pero vigílate de cerca | src/views/mobile/MobileRecovery.jsx |

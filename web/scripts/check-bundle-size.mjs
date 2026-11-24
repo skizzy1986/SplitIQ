@@ -125,8 +125,16 @@ import { parsePo } from './i18n-review-sheet.mjs';
 // summary, the drag selection and the peak, weighted-power and drift maths),
 // all still lazy and none of it on first paint. Rule: 416.7 + 2 = 418.7, to
 // the nearest whole KB: 419.
+//
+// TOTAL raised 419 -> 421 on 2026-11-24 (pending Scott at Gate 2, #742: a way
+// out of a live session on phone). Measured 418.4 -> 419.1 KB with ENTRY
+// unchanged at 204.2: the shared SessionExitBar (back control plus the
+// Stay/Leave question) in the MobileApp chunk, ErgLiveView's per-state
+// confirm, and five views-catalog strings. Worth it: without it the phone's
+// live erg screen is a dead end in a browser tab. Rule: 419.1 + 2 = 421.1, to
+// the nearest whole KB: 421.
 const MAX_ENTRY_GZIP_KB = 208;
-const MAX_TOTAL_GZIP_KB = 419;
+const MAX_TOTAL_GZIP_KB = 421;
 
 // Squat tool, measured 2026-11-04 on PR1 (no three.js yet): SQUAT_ENTRY
 // 107.2 KB, SQUAT_TOTAL 18.8 KB. Entry gets the approved +10 KB (117), total

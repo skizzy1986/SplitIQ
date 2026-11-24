@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trans, useLingui } from '@lingui/react/macro';
+import { Trans } from '@lingui/react/macro';
 import { THEME } from '../../constants/theme.js';
 import { RADIUS, SPACE, TYPE } from '../../constants/tokens.js';
 import { FONT } from '../../constants/type.js';
@@ -10,7 +10,6 @@ import Button from '../Button.jsx';
 // which a browser tab does not route to the app. `confirm`, when set, is the
 // sentence shown before leaving: something on screen would be lost.
 export default function SessionExitBar({ onExit, confirm = null }) {
-  const { t } = useLingui();
   const [asking, setAsking] = useState(false);
   // The risk can pass while the question is open (a save settles); then the
   // question no longer applies and Back leaves directly again.
@@ -20,7 +19,7 @@ export default function SessionExitBar({ onExit, confirm = null }) {
     return (
       <div
         role="alertdialog"
-        aria-label={t`Leave this session?`}
+        aria-labelledby="session-exit-question"
         style={{
           margin: SPACE.md,
           padding: SPACE.md,
@@ -33,7 +32,10 @@ export default function SessionExitBar({ onExit, confirm = null }) {
           gap: SPACE.sm,
         }}
       >
-        <div style={{ fontSize: TYPE.body.size, color: THEME.text }}>
+        <div
+          id="session-exit-question"
+          style={{ fontSize: TYPE.body.size, color: THEME.text }}
+        >
           {confirm}
         </div>
         <div style={{ display: 'flex', gap: SPACE.sm }}>
@@ -53,10 +55,6 @@ export default function SessionExitBar({ onExit, confirm = null }) {
       <button
         type="button"
         onClick={() => (confirm ? setAsking(true) : onExit())}
-        aria-label={t({
-          message: 'Back to Train',
-          comment: 'Leave a live session for the Train start screen',
-        })}
         style={{
           minHeight: 44,
           display: 'flex',
@@ -85,7 +83,9 @@ export default function SessionExitBar({ onExit, confirm = null }) {
         >
           <path d="M15 5l-7 7 7 7" />
         </svg>
-        <Trans comment="Back button label on a live session">Train</Trans>
+        <Trans comment="Leave a live session for the Train start screen">
+          Back to Train
+        </Trans>
       </button>
     </div>
   );

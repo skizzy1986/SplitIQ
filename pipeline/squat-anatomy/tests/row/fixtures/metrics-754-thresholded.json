@@ -1,0 +1,145 @@
+{
+ "checks": [
+  [
+   "Q1 position, worst frame (mm)",
+   0.5918969000876091,
+   1.0,
+   false
+  ],
+  [
+   "Q1 rotation, worst frame (°)",
+   0.2482948764561408,
+   0.5,
+   false
+  ],
+  [
+   "Q2 point RMS (mm)",
+   1.7288628594541966,
+   1.5,
+   false
+  ],
+  [
+   "Q2 point max (mm)",
+   27.709081086578948,
+   5.0,
+   false
+  ],
+  [
+   "Q2 vertex p99 (mm, variant B)",
+   14.68428654341265,
+   3.0,
+   false
+  ],
+  [
+   "Q2 vertex max (mm, variant B)",
+   28.111508432560345,
+   8.0,
+   false
+  ],
+  [
+   "Q2 length max rel err (%)",
+   7.675870118173944,
+   0.5,
+   false
+  ],
+  [
+   "Q2 sig max err",
+   0.03419074670523292,
+   0.005,
+   false
+  ],
+  [
+   "Q3a st kept RMS (mm)",
+   0.014660968822762806,
+   1.0,
+   false
+  ],
+  [
+   "Q3a st kept max (mm)",
+   0.4995644482379955,
+   4.0,
+   false
+  ],
+  [
+   "Q3a lb RMS (mm)",
+   1.3441027913460025e-14,
+   1.0,
+   false
+  ],
+  [
+   "Q3a lb max (mm)",
+   2.482534153247273e-13,
+   4.0,
+   false
+  ],
+  [
+   "Q3b catch max penetration (mm)",
+   18.610448553205845,
+   3.0,
+   true
+  ],
+  [
+   "Q3b catch max |ΔV| (%), watertight muscles",
+   115.68204685806163,
+   10.0,
+   true
+  ],
+  [
+   "Q3b legs_flat max penetration (mm)",
+   15.620141965723048,
+   3.0,
+   false
+  ],
+  [
+   "Q3b legs_flat max |ΔV| (%), watertight muscles",
+   115.68204685806123,
+   10.0,
+   false
+  ],
+  [
+   "Q3b trunk_open max penetration (mm)",
+   15.481708597829854,
+   3.0,
+   false
+  ],
+  [
+   "Q3b trunk_open max |ΔV| (%), watertight muscles",
+   120.99832196372695,
+   10.0,
+   false
+  ],
+  [
+   "Q3b finish max penetration (mm)",
+   15.079719766788699,
+   3.0,
+   true
+  ],
+  [
+   "Q3b finish max |ΔV| (%), watertight muscles",
+   103.03520369751031,
+   10.0,
+   true
+  ],
+  [
+   "Q3b mid_recovery max penetration (mm)",
+   33.61394833413026,
+   3.0,
+   false
+  ],
+  [
+   "Q3b mid_recovery max |ΔV| (%), watertight muscles",
+   117.42912725711219,
+   10.0,
+   false
+  ]
+ ],
+ "nogo": {
+  "catch": 0.016937641490018522,
+  "finish": 0.0024463951647719097
+ },
+ "not_converged": [
+  "catch",
+  "finish"
+ ],
+ "source": "report.thresholded(out/spike/metrics.json) of the #754 run, 2026-11-24"
+}

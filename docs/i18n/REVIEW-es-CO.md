@@ -42,7 +42,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `hdxhKx` | We could not sign you in. Try again. | No pudimos iniciar sesión. Inténtalo de nuevo. | Login error for any unrecognised cause. Only shown in Spanish. · src/utils/authError.js |
 | `y1oEoC` | Wrong email or password. | Correo o contraseña incorrectos. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
 
-## Dashboard views (src/locales/views, 508 strings)
+## Dashboard views (src/locales/views, 509 strings)
 
 | Row | English | Español | Where / note |
 |---|---|---|---|
@@ -321,6 +321,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `8Kmmv4` | Not scored: no sRPE, and no bike FTP anchor to measure power against. | Sin puntuar: no hay sRPE ni una referencia de FTP de bici con la cual medir la potencia. | src/components/session/SessionSummary.jsx |
 | `-KHRA3` | Not scored: no sRPE, and no rowing CP anchor to measure power against. | Sin puntuar: no hay sRPE ni una referencia de CP de remo con la cual medir la potencia. | src/components/session/SessionSummary.jsx |
 | `P1LWZ9` | Not scored: no sRPE, and this session type has no power model. | Sin puntuar: no hay sRPE, y este tipo de sesión no tiene modelo de potencia. | src/components/session/SessionSummary.jsx |
+| `mI1GAI` | Not scored: rated, but no duration is recorded. | Sin puntuar: hay una valoración, pero no hay duración registrada. | src/components/session/SessionSummary.jsx |
 | `ypi6T8` | NOTES (optional) | NOTAS (opcional) | Field label; NOTES in capitals, optional in lower case · src/views/ErgLiveView.jsx |
 | `2YEfZW` | Nothing in your log came from Strava; nothing will be removed. | Nada de tu registro vino de Strava; no se quitará nada. | src/utils/stravaDisconnect.js |
 | `qhISLS` | Nothing in your log came from Strava. | Nada de tu registro vino de Strava. | src/utils/stravaDisconnect.js |

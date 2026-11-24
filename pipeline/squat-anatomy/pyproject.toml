@@ -7,4 +7,6 @@ addopts = ["-m", "not slow", "--strict-markers", "-ra"]
 markers = [
     "slow: >60 s, deselected by default (python -m pytest -m slow)",
     "stl: needs the BodyParts3D STLs (scripts/fetch_stl.sh)",
+    "rowing_data: needs the Engstrom rowing data (python -m row fetch rowing)",
+    "skin: needs the BodyParts3D 4.0 skin archive (python -m row fetch skin)",
 ]

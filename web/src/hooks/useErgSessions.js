@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../supabaseClient.js';
 import { wattsToPace500, formatPace, classifyZone } from '../utils/pace.js';
 import { toISODate } from '../utils/dateFormat.js';
+import { resolveSessionMinutes } from '../utils/duration.js';
 import { COMPLETED_STATUSES } from '../constants/sessionStatus.js';
 import { useAnchors } from './useAnchors.js';
 
@@ -10,9 +11,12 @@ export function enrich(s, cp) {
   let pace_500m = null;
   if (s.avg_watts) {
     pace_500m = wattsToPace500(s.avg_watts);
-  } else if (s.distance_m && s.duration) {
-    const secs = parseFloat(s.duration) * 60;
-    pace_500m = secs / (s.distance_m / 500);
+  } else if (s.distance_m) {
+    const minutes = resolveSessionMinutes(s);
+    if (minutes > 0) {
+      const secs = minutes * 60;
+      pace_500m = secs / (s.distance_m / 500);
+    }
   }
   const [, month, day] = toISODate(s.date).split('-');
   return {
@@ -34,7 +38,7 @@ export function useErgSessions() {
       const { data, error } = await supabase
         .from('sessions')
         .select(
-          'id, date, type, label, duration, srpe, status, distance_m, avg_watts, avg_hr'
+          'id, date, type, label, duration, duration_min, srpe, status, distance_m, avg_watts, avg_hr'
         )
         .eq('type', 'erg')
         // Every other consumer of "did this session happen?" reads

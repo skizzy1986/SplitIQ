@@ -1286,6 +1286,10 @@ msgstr "Not scored: no sRPE, and no rowing CP anchor to measure power against."
 msgid "Not scored: no sRPE, and this session type has no power model."
 msgstr "Not scored: no sRPE, and this session type has no power model."
 
+#: src/components/session/SessionSummary.jsx
+msgid "Not scored: rated, but no duration is recorded."
+msgstr "Not scored: rated, but no duration is recorded."
+
 #. Field label; NOTES in capitals, optional in lower case
 #: src/views/ErgLiveView.jsx
 msgid "NOTES (optional)"

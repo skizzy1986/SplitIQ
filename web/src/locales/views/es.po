@@ -374,6 +374,11 @@ msgstr "Volver"
 msgid "Back to {destination}"
 msgstr "Volver a {destination}"
 
+#. Leave a live session for the Train start screen
+#: src/components/mobile/SessionExitBar.jsx
+msgid "Back to Train"
+msgstr "Volver a Entrenar"
+
 #. After "vs": compared with the baseline
 #. Chart reference line label
 #: src/views/mobile/MobileRecovery.jsx
@@ -973,6 +978,19 @@ msgstr "ÚLTIMOS VATIOS"
 #: src/utils/healthRecords.js
 msgid "LDL Cholesterol"
 msgstr "Colesterol LDL"
+
+#. Confirm leaving a live session
+#: src/components/mobile/SessionExitBar.jsx
+msgid "Leave"
+msgstr "Salir"
+
+#: src/views/ErgLiveView.jsx
+msgid "Leave now? The PM5 disconnects and this piece is not saved."
+msgstr "¿Salir ahora? El PM5 se desconecta y esta sesión no se guarda."
+
+#: src/views/ErgLiveView.jsx
+msgid "Leave without saving this piece?"
+msgstr "¿Salir sin guardar esta sesión?"
 
 #: src/components/ThemeControl.jsx
 msgid "Light"
@@ -1806,6 +1824,11 @@ msgstr "INICIA UNA SESIÓN"
 #: src/views/mobile/MobileToday.jsx
 msgid "START SESSION"
 msgstr "INICIAR SESIÓN DE ENTRENAMIENTO"
+
+#. Cancel leaving a live session
+#: src/components/mobile/SessionExitBar.jsx
+msgid "Stay"
+msgstr "Quedarse"
 
 #. sRPE scale, effort 5-6
 #: src/constants/srpeGuideMessages.js

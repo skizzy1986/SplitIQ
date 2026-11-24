@@ -14,6 +14,7 @@ const getUserMock = vi.fn();
 const addToQueueMock = vi.fn();
 const resetMock = vi.fn();
 const finishMock = vi.fn();
+const disconnectMock = vi.fn();
 
 let pm5State;
 let queueState;
@@ -85,6 +86,7 @@ beforeEach(() => {
   addToQueueMock.mockReset();
   resetMock.mockReset();
   finishMock.mockReset();
+  disconnectMock.mockReset();
   getUserMock.mockResolvedValue({ data: { user: { id: 'user-123' } } });
   insertMock.mockResolvedValue({ error: null });
   Object.defineProperty(navigator, 'onLine', {
@@ -99,6 +101,7 @@ beforeEach(() => {
     connect: vi.fn(),
     reset: resetMock,
     finish: finishMock,
+    disconnect: disconnectMock,
   };
   queueState = { addToQueue: addToQueueMock, pending: 0 };
 });
@@ -547,5 +550,81 @@ describe('live save account isolation', () => {
     );
     expect(insertMock).not.toHaveBeenCalled();
     expect(addToQueueMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('ErgLiveView way out (phone)', () => {
+  const backButton = () =>
+    screen.getByRole('button', { name: 'Back to Train' });
+
+  it('shows no way out where the host gives none (desktop)', () => {
+    renderWithClient(<ErgLiveView />, makeClient());
+    expect(screen.queryByRole('button', { name: 'Back to Train' })).toBeNull();
+  });
+
+  it('leaves the connect screen at once', () => {
+    const onExit = vi.fn();
+    renderWithClient(<ErgLiveView onExit={onExit} />, makeClient());
+    expect(screen.getByText('C2 CONNECT')).toBeInTheDocument();
+    fireEvent.click(backButton());
+    expect(onExit).toHaveBeenCalledTimes(1);
+    expect(disconnectMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('asks before leaving mid-piece, and Stay keeps the piece', () => {
+    pm5State = {
+      ...pm5State,
+      status: 'rowing',
+      metrics: {
+        watts: 180,
+        strokeRate: 24,
+        distance: 900,
+        elapsedStr: '4:00',
+      },
+    };
+    const onExit = vi.fn();
+    renderWithClient(<ErgLiveView onExit={onExit} />, makeClient());
+    fireEvent.click(backButton());
+    expect(onExit).not.toHaveBeenCalled();
+    expect(screen.getByRole('alertdialog')).toHaveTextContent(
+      'The PM5 disconnects and this piece is not saved.'
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Stay' }));
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(onExit).not.toHaveBeenCalled();
+    expect(disconnectMock).not.toHaveBeenCalled();
+    expect(screen.getByText('END')).toBeInTheDocument();
+  });
+
+  it('disconnects and leaves when Leave is confirmed', () => {
+    pm5State = { ...pm5State, status: 'connected' };
+    const onExit = vi.fn();
+    renderWithClient(<ErgLiveView onExit={onExit} />, makeClient());
+    fireEvent.click(backButton());
+    fireEvent.click(screen.getByRole('button', { name: 'Leave' }));
+    expect(disconnectMock).toHaveBeenCalledTimes(1);
+    expect(onExit).toHaveBeenCalledTimes(1);
+  });
+
+  it('asks before leaving an unsaved summary', () => {
+    finished();
+    const onExit = vi.fn();
+    renderWithClient(<ErgLiveView onExit={onExit} />, makeClient());
+    fireEvent.click(backButton());
+    expect(screen.getByRole('alertdialog')).toHaveTextContent(
+      'Leave without saving this piece?'
+    );
+    expect(onExit).not.toHaveBeenCalled();
+  });
+
+  it('leaves a saved summary without asking', async () => {
+    finished();
+    const onExit = vi.fn();
+    renderWithClient(<ErgLiveView onExit={onExit} />, makeClient());
+    await save();
+    await screen.findByText(/DONE/);
+    fireEvent.click(backButton());
+    expect(onExit).toHaveBeenCalledTimes(1);
   });
 });

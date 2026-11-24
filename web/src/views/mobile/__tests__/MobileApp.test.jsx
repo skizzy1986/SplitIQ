@@ -59,7 +59,16 @@ vi.mock('../../SessionView.jsx', () => ({
   ),
 }));
 vi.mock('../MobileRecovery.jsx', () => ({ default: () => <p>BODY</p> }));
-vi.mock('../../ErgLiveView.jsx', () => ({ default: () => <p>ERG LIVE</p> }));
+vi.mock('../../ErgLiveView.jsx', () => ({
+  default: ({ onExit }) => (
+    <div>
+      <p>ERG LIVE</p>
+      <button type="button" onClick={onExit}>
+        Erg exit
+      </button>
+    </div>
+  ),
+}));
 vi.mock('../MobileSettings.jsx', () => ({ default: () => <p>SETTINGS</p> }));
 vi.mock('../../../StrengthLogger.jsx', () => ({
   default: () => <p>STRENGTH LOGGER</p>,
@@ -188,6 +197,34 @@ describe('a live session owns the screen', () => {
 
     back();
     expect(await screen.findByRole('button', { name: /Body/ })).toBeVisible();
+  });
+
+  it('leaves an erg session from the screen itself, without the back button', async () => {
+    const user = userEvent.setup();
+    render(<MobileApp />);
+    await user.click(tab('Train'));
+    await user.click(screen.getByRole('button', { name: /Erg session/ }));
+    expect(screen.queryByRole('button', { name: /Body/ })).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: 'Erg exit' }));
+    expect(screen.queryByText('ERG LIVE')).toBeNull();
+    expect(
+      screen.getByRole('button', { name: /Strength session/ })
+    ).toBeVisible();
+    expect(screen.getByRole('button', { name: /Body/ })).toBeVisible();
+  });
+
+  it('leaves a strength session by its Back to Train button', async () => {
+    const user = userEvent.setup();
+    render(<MobileApp />);
+    await user.click(tab('Train'));
+    await user.click(screen.getByRole('button', { name: /Strength session/ }));
+    expect(screen.getByText('STRENGTH LOGGER')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Back to Train' }));
+    expect(screen.queryByText('STRENGTH LOGGER')).toBeNull();
+    expect(screen.getByRole('button', { name: /Erg session/ })).toBeVisible();
+    expect(screen.getByRole('button', { name: /Body/ })).toBeVisible();
   });
 
   it('keeps the session when you step away and come back', async () => {

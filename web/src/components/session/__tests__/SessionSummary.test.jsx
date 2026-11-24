@@ -53,6 +53,15 @@ describe('SessionSummary', () => {
     ).toBeInTheDocument();
   });
 
+  it('shows an untimed rated session as not scored, not as zero', () => {
+    renderSummary(ergRow({ duration: null, srpe: 5, avg_watts: null }));
+    expect(tile('load')).toHaveTextContent('—');
+    expect(tile('load')).not.toHaveTextContent('0');
+    expect(
+      screen.getByText('Not scored: rated, but no duration is recorded.')
+    ).toBeInTheDocument();
+  });
+
   it.each([
     [
       'no_duration',

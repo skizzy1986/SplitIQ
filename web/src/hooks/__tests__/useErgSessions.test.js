@@ -170,7 +170,28 @@ describe('useErgSessions', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     const s = result.current.data[0];
     expect(s.pace_500m).not.toBe(null);
+    expect(s.pace_500m).toBeCloseTo((45 * 60) / (10000 / 500));
     expect(s.zone).toBe(null);
+  });
+
+  it('parses hours+minutes duration for pace, not a leading parseFloat', async () => {
+    mockQuery([
+      {
+        id: 21,
+        date: '2026-06-13',
+        type: 'erg',
+        avg_watts: null,
+        distance_m: 10000,
+        duration: '1h4m',
+      },
+    ]);
+    const { result } = renderHook(() => useErgSessions(), {
+      wrapper: makeWrapper(),
+    });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data[0].pace_500m).toBeCloseTo(
+      (64 * 60) / (10000 / 500)
+    );
   });
 
   it('yields null pace and zone with no watts and no distance', async () => {

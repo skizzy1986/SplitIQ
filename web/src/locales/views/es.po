@@ -1286,6 +1286,10 @@ msgstr "Sin puntuar: no hay sRPE ni una referencia de CP de remo con la cual med
 msgid "Not scored: no sRPE, and this session type has no power model."
 msgstr "Sin puntuar: no hay sRPE, y este tipo de sesión no tiene modelo de potencia."
 
+#: src/components/session/SessionSummary.jsx
+msgid "Not scored: rated, but no duration is recorded."
+msgstr "Sin puntuar: hay una valoración, pero no hay duración registrada."
+
 #. Field label; NOTES in capitals, optional in lower case
 #: src/views/ErgLiveView.jsx
 msgid "NOTES (optional)"

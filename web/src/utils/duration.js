@@ -2,15 +2,25 @@
 // Real formats seen in production: "45:00" (mm:ss), "57m"/"9min"/"60min"
 // (minutes with suffix), "1h4m"/"2h00m" (hours+minutes), bare numeric
 // strings like "45", and already-numeric values from callers/tests that
-// pass a JS number directly. Never throws — unparseable input degrades to 0.
+// pass a JS number directly. hh:mm:ss ("1:02:03") is supported and is
+// matched before mm:ss so that "120:00" (PM5 formatElapsed) stays 120
+// minutes. Never throws — unparseable input degrades to 0.
 export function parseDurationMinutes(value) {
   if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
   if (value == null) return 0;
   const s = String(value).trim().toLowerCase();
   if (!s) return 0;
 
-  // mm:ss — "45:00", "60:00"
-  let m = s.match(/^(\d+):(\d{2})$/);
+  // hh:mm:ss — "1:02:03" is 62 + 3/60, not a failed mm:ss.
+  let m = s.match(/^(\d+):(\d{2}):(\d{2})$/);
+  if (m) {
+    return (
+      parseInt(m[1], 10) * 60 + parseInt(m[2], 10) + parseInt(m[3], 10) / 60
+    );
+  }
+
+  // mm:ss — "45:00", "60:00", "120:00"
+  m = s.match(/^(\d+):(\d{2})$/);
   if (m) return parseInt(m[1], 10) + parseInt(m[2], 10) / 60;
 
   // hours + optional minutes — "1h4m", "2h00m", "1h"
@@ -25,6 +35,27 @@ export function parseDurationMinutes(value) {
   if (/^\d+(?:\.\d+)?$/.test(s)) return parseFloat(s);
 
   return 0;
+}
+
+// Minutes for load and pace. Prefer duration_min when the key is present
+// (including when its value is null). Fall back to parseDurationMinutes
+// only when the key is absent (migrate-then-deploy window, or a rollback).
+export function resolveSessionMinutes(session) {
+  if (
+    session &&
+    Object.prototype.hasOwnProperty.call(session, 'duration_min')
+  ) {
+    const raw = session.duration_min;
+    if (raw == null || raw === '') return null;
+    const n = typeof raw === 'number' ? raw : Number(raw);
+    return Number.isFinite(n) ? n : null;
+  }
+  if (session == null) return null;
+  const n = parseDurationMinutes(session.duration);
+  // The helper returns 0 for unparseable input; treat a non-positive
+  // result as unknown so sessionLoad can return null instead of a silent 0.
+  if (!(typeof n === 'number') || !Number.isFinite(n) || n <= 0) return null;
+  return n;
 }
 
 // How to show the same free-text column. A clock ("26:00", "1:02:03") is

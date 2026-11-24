@@ -13,7 +13,7 @@ export function useTSSHistory() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('sessions')
-        .select('date, duration, srpe, type, avg_watts')
+        .select('date, duration, duration_min, srpe, type, avg_watts')
         .in('status', COMPLETED_STATUSES)
         // Not .gt('srpe', 0): that dropped every session without a hand-entered
         // sRPE before it ever reached the client, which is all of the
@@ -35,10 +35,13 @@ export function useTSSHistory() {
   // whole series without a refetch.
   const data = useMemo(
     () =>
-      (query.data ?? []).map((s) => ({
-        date: s.date,
-        tss: sessionLoad(s, { cp, ftp }),
-      })),
+      (query.data ?? [])
+        .map((s) => {
+          const tss = sessionLoad(s, { cp, ftp });
+          if (tss == null) return null;
+          return { date: s.date, tss };
+        })
+        .filter(Boolean),
     [query.data, cp, ftp]
   );
 

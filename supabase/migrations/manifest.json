@@ -247,6 +247,13 @@
       ],
       "note": "Applied 2026-11-17 (#647) after two rolled-back trials, by the #628 method (CLI db query --linked --file, inside one begin/commit, as postgres) rather than apply_migration; the recorded statement's md5 matches the file. strava_activity_cache (the session page's 7-day Strava cache, policy-less, cascading from strava_session_links), backup_snapshot() exclusion, hourly sweep cron job strava-activity-cache-sweep. Its self-test passed at apply.",
       "issue": 647
+    },
+    {
+      "file": "021_sessions_duration_min.sql",
+      "status": "unapplied",
+      "issue": 216,
+      "reason": "Waiting on Scott's explicit yes before this is applied to any database (not dev, not production). Not a forgotten merge: the draft PR ships the SQL and the client together, and the migration must not run until he says so. After it is applied, flip this entry to applied with the live version, reload the PostgREST schema cache, then deploy the client that selects duration_min.",
+      "note": "Generated sessions.duration_min plus sessions_no_strava extension (#216)."
     }
   ],
   "liveOnly": [

@@ -76,7 +76,6 @@ export function usePM5() {
         const { BluetoothLowEnergy } =
           await import('@capgo/capacitor-bluetooth-low-energy');
         await BluetoothLowEnergy.requestPermissions();
-        BluetoothLowEnergy.shimWebBluetooth();
       } catch (err) {
         setError(err.message);
       }

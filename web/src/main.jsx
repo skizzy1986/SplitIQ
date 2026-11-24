@@ -8,9 +8,9 @@ import {
   QueryClientProvider,
 } from '@tanstack/react-query';
 import { Capacitor } from '@capacitor/core';
-import { BluetoothLowEnergy } from '@capgo/capacitor-bluetooth-low-energy';
 import RouteRoot from './RouteRoot.jsx';
 import { createNotificationChannels } from './utils/notifications.js';
+import { installNativeBluetooth } from './utils/nativeBluetooth.js';
 import { initSentry } from './utils/sentry.js';
 import {
   handleQueryError,
@@ -36,7 +36,7 @@ themeStyle.textContent = [
 document.head.appendChild(themeStyle);
 
 if (Capacitor.isNativePlatform()) {
-  BluetoothLowEnergy.shimWebBluetooth();
+  installNativeBluetooth();
   createNotificationChannels();
 }
 

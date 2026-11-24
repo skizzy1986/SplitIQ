@@ -148,14 +148,13 @@ describe('useTSSHistory', () => {
     expect(result.current.data[0].tss).toBe(107);
   });
 
-  it('degrades unparseable duration to tss 0 without NaN', async () => {
+  it('omits a rated session with no usable duration from the series', async () => {
     mockQuery([{ date: '2026-06-20', duration: 'garbage', srpe: 8 }]);
     const { result } = renderHook(() => useTSSHistory(), {
       wrapper: makeWrapper(),
     });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(result.current.data[0].tss).toBe(0);
-    expect(Number.isNaN(result.current.data[0].tss)).toBe(false);
+    expect(result.current.data).toEqual([]);
   });
 
   // Ordering happens in Postgres, so a mock cannot demonstrate it — asserting

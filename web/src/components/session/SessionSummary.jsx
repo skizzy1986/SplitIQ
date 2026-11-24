@@ -19,7 +19,7 @@ const positive = (v) => typeof v === 'number' && v > 0;
 
 // The stored summary, the load and how it was scored, and the numbers the
 // series adds. A value that is absent renders no tile: never a zero, never a
-// blank. The one zero shown on purpose is a load of 0, beside the reason.
+// blank. A scored-zero load (duration present, but no sRPE or power) is shown as 0, beside the reason. An unknown load is shown as an em dash, not a 0.
 //   summary: storedSummary(session, sport) · load: sessionLoadBasis(...)
 //   extras: seriesExtras(series) or null · info: series.info or null
 //   elapsedS: elapsed seconds from the series, or null
@@ -74,6 +74,8 @@ export default function SessionSummary({
       sport === 'cycling'
         ? t`Scored from average power ${watts} W against your bike FTP ${threshold} W (intensity ${factor}).`
         : t`Scored from average power ${watts} W against your rowing CP ${threshold} W (intensity ${factor}).`;
+  } else if (load.reason === 'srpe_no_duration') {
+    basis = t`Not scored: rated, but no duration is recorded.`;
   } else if (load.reason === 'no_duration') {
     basis = t`Not scored: no duration is recorded.`;
   } else if (load.reason === 'no_watts') {
@@ -86,7 +88,7 @@ export default function SessionSummary({
   } else {
     basis = t`Not scored: no sRPE, and this session type has no power model.`;
   }
-  add('load', t`Load`, String(load.load), basis);
+  add('load', t`Load`, load.load == null ? '—' : String(load.load), basis);
 
   if (extras) {
     if (positive(extras.workKj)) {

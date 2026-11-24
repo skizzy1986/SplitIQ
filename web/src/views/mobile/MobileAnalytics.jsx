@@ -356,7 +356,7 @@ export default function MobileAnalytics({
               <div
                 style={{ fontSize: 12, fontWeight: 700, color: THEME.positive }}
               >
-                {s.tss} TSS
+                {s.tss == null ? '—' : `${s.tss} TSS`}
               </div>
             </div>
           </div>

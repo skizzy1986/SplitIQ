@@ -5,7 +5,7 @@ import { useSessionOwner } from './useSessionOwner.js';
 // useSessions' fields, plus where the row came from and the Strava activity it
 // is linked to (the series picker reads it; the page never shows it).
 const FIELDS =
-  'id, user_id, date, date_iso, type, label, duration, srpe, prs, exercises, coach_note, status, distance_m, avg_watts, avg_hr, source, strava_activity_id';
+  'id, user_id, date, date_iso, type, label, duration, duration_min, srpe, prs, exercises, coach_note, status, distance_m, avg_watts, avg_hr, source, strava_activity_id';
 
 // One session row. Keyed under ['sessions', …] so invalidateSessionQueries
 // refreshes it with every other sessions read. RLS turns another user's id

@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { parseDurationMinutes, durationDisplay } from '../duration.js';
+import {
+  parseDurationMinutes,
+  durationDisplay,
+  resolveSessionMinutes,
+} from '../duration.js';
 
 describe('parseDurationMinutes', () => {
   it('parses mm:ss "45:00" as 45', () => {
@@ -48,6 +52,21 @@ describe('parseDurationMinutes', () => {
     expect(parseDurationMinutes(NaN)).toBe(0);
   });
 
+  it('parses hh:mm:ss "1:02:03" as 62 + 3/60', () => {
+    expect(parseDurationMinutes('1:02:03')).toBe(62 + 3 / 60);
+  });
+  it('parses hh:mm:ss "12:00:00" as 720', () => {
+    expect(parseDurationMinutes('12:00:00')).toBe(720);
+  });
+  it('keeps two-part "120:00" as mm:ss = 120, not 2 hours', () => {
+    expect(parseDurationMinutes('120:00')).toBe(120);
+  });
+  it('returns 0 for leftover shapes that stay unparseable', () => {
+    // Invented examples of the leftover categories; not live values.
+    expect(parseDurationMinutes('~15m')).toBe(0);
+    expect(parseDurationMinutes('20-30min')).toBe(0);
+  });
+
   it('never throws and never produces NaN for malformed input', () => {
     const malformed = [null, undefined, '', 'garbage', NaN, {}, [], 'h', ':'];
     malformed.forEach((v) => {
@@ -83,5 +102,27 @@ describe('durationDisplay', () => {
 
   it.each([null, undefined, '', '   ', NaN])('%j renders nothing', (input) => {
     expect(durationDisplay(input)).toBeNull();
+  });
+});
+
+describe('resolveSessionMinutes', () => {
+  it('prefers duration_min when the key is present, including null', () => {
+    expect(resolveSessionMinutes({ duration: '60:00', duration_min: 53 })).toBe(
+      53
+    );
+    expect(
+      resolveSessionMinutes({ duration: '60:00', duration_min: null })
+    ).toBeNull();
+    expect(
+      resolveSessionMinutes({ duration: 'garbage', duration_min: 64 })
+    ).toBe(64);
+  });
+
+  it('falls back to parseDurationMinutes only when the key is absent', () => {
+    expect(resolveSessionMinutes({ duration: '1h4m' })).toBe(64);
+    expect(resolveSessionMinutes({ duration: '1:02:03' })).toBe(62 + 3 / 60);
+    expect(resolveSessionMinutes({ duration: 'garbage' })).toBeNull();
+    expect(resolveSessionMinutes({ duration: null })).toBeNull();
+    expect(resolveSessionMinutes(undefined)).toBeNull();
   });
 });

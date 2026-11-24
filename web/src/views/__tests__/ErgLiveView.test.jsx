@@ -43,7 +43,7 @@ const SUMMARY = {
   elapsedTime: 1200,
   elapsedStr: '20:00',
   avgWatts: 180,
-  avgPace: 120,
+  avgPace: 12000,
   avgSpm: 24,
   maxWatts: 220,
   calories: 250,
@@ -134,6 +134,17 @@ describe('ErgLiveView', () => {
     queueState = { addToQueue: addToQueueMock };
     renderWithClient(<ErgLiveView />, makeClient());
     expect(screen.queryByText(/PENDING SYNC/)).not.toBeInTheDocument();
+  });
+
+  it('rounds the live distance, which the PM5 reports to 0.1 m', () => {
+    pm5State = {
+      ...pm5State,
+      status: 'rowing',
+      metrics: { distance: 2500.6, elapsedStr: '10:00' },
+    };
+    renderWithClient(<ErgLiveView />, makeClient());
+    expect(screen.getByText('2501')).toBeInTheDocument();
+    expect(screen.queryByText('2500.6')).not.toBeInTheDocument();
   });
 });
 

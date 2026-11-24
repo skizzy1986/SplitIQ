@@ -1,0 +1,13 @@
+# The rowing spike (#754) renders PNGs with matplotlib; CI does not install this file.
+-r requirements.txt
+matplotlib==3.11.2
+# matplotlib 3.11.2 dependencies (uv pip compile resolves this set; python-dateutil 4.0.0 is on PyPI, 2026-11-01)
+contourpy==1.4.0
+cycler==0.12.1
+fonttools==4.68.0
+kiwisolver==1.5.1
+pillow==13.0.0
+pyparsing==3.3.3
+python-dateutil==4.0.0
+packaging==26.4
+tzdata==2026.6

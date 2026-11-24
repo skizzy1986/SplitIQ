@@ -899,27 +899,19 @@ describe('usePM5 on the Capacitor path', () => {
 
   const workingBle = () => ({
     requestPermissions: vi.fn().mockResolvedValue(undefined),
-    shimWebBluetooth: vi.fn(),
   });
 
-  it('requests BLE permissions and then installs the Web Bluetooth shim', async () => {
-    const order = [];
-    await mountNative({
-      requestPermissions: vi.fn(async () => {
-        order.push('requestPermissions');
-      }),
-      shimWebBluetooth: vi.fn(() => {
-        order.push('shimWebBluetooth');
-      }),
-    });
-
-    expect(order).toEqual(['requestPermissions', 'shimWebBluetooth']);
+  // The Web Bluetooth shim is installed at app start by installNativeBluetooth()
+  // (#767), not from this hook. The hook only requests permissions on native.
+  it('requests BLE permissions on native', async () => {
+    const requestPermissions = vi.fn().mockResolvedValue(undefined);
+    await mountNative({ requestPermissions });
+    expect(requestPermissions).toHaveBeenCalledTimes(1);
   });
 
   it('surfaces a permission failure as the hook error instead of throwing', async () => {
     const { rendered } = await mountNative({
       requestPermissions: vi.fn().mockRejectedValue(new Error('denied')),
-      shimWebBluetooth: vi.fn(),
     });
 
     expect(rendered.result.current.error).toBe('denied');

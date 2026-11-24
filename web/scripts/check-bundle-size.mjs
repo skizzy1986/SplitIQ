@@ -126,7 +126,7 @@ import { parsePo } from './i18n-review-sheet.mjs';
 // all still lazy and none of it on first paint. Rule: 416.7 + 2 = 418.7, to
 // the nearest whole KB: 419.
 //
-// TOTAL raised 419 -> 421 on 2026-11-24 (pending Scott at Gate 2, #742: a way
+// TOTAL raised 419 -> 421 on 2026-11-24 (Scott, at Gate 2, #742: a way
 // out of a live session on phone). Measured 418.4 -> 419.1 KB with ENTRY
 // unchanged at 204.2: the shared SessionExitBar (back control plus the
 // Stay/Leave question) in the MobileApp chunk, ErgLiveView's per-state

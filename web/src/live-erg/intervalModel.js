@@ -516,6 +516,14 @@ export function splitColumnLabels(units = 'watts', mode = 'rowing') {
   }));
 }
 
+// The PM5 path leaves heart rate unread (#651), so a missing figure shows a
+// dash rather than a 0 that reads as measured.
+function roundOrDash(value) {
+  return value == null || !Number.isFinite(value)
+    ? '\u2014'
+    : Math.round(value);
+}
+
 export function splitRowCells(row, kind, prev) {
   const cells = {
     '#': row.n,
@@ -526,10 +534,13 @@ export function splitRowCells(row, kind, prev) {
         ? null
         : row.pace
     ),
-    W: Math.round(row.w),
-    SPM: Math.round(row.spm),
-    HR: Math.round(row.hr),
-    '\u0394W': prev ? formatDeltaW(Math.round(row.w - prev.w)) : '\u2014',
+    W: roundOrDash(row.w),
+    SPM: roundOrDash(row.spm),
+    HR: roundOrDash(row.hr),
+    '\u0394W':
+      prev && Number.isFinite(row.w) && Number.isFinite(prev.w)
+        ? formatDeltaW(Math.round(row.w - prev.w))
+        : '\u2014',
   };
   if (kind === 'sum') {
     cells['#'] = 'All';

@@ -42,7 +42,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `hdxhKx` | We could not sign you in. Try again. | No pudimos iniciar sesión. Inténtalo de nuevo. | Login error for any unrecognised cause. Only shown in Spanish. · src/utils/authError.js |
 | `y1oEoC` | Wrong email or password. | Correo o contraseña incorrectos. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
 
-## Dashboard views (src/locales/views, 528 strings)
+## Dashboard views (src/locales/views, 535 strings)
 
 | Row | English | Español | Where / note |
 |---|---|---|---|
@@ -251,10 +251,12 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `FLn-wp` | INJURY WATCH | SEGUIMIENTO DE LESIONES | Card title, all capitals · src/views/RecoveryView.jsx |
 | `nbfdhU` | Integrations | Integraciones | Settings section heading above the Strava panel · src/views/SettingsView.jsx |
 | `xOTzt5` | just now | justo ahora | src/utils/stravaStatus.js |
+| `9Fzwzd` | Just row | Solo remar | src/views/mobile/MobileToday.jsx |
 | `8QgJZb` | Labs | Funciones en prueba | Settings section heading for features still being tested · src/views/mobile/MobileSettings.jsx |
 | `vXIe7J` | Language | Idioma | Settings section heading above the language control · src/views/SettingsView.jsx |
 | `HEIQ5F` | Lap | Vuelta | src/components/session/SplitsTable.jsx |
 | `SfZTx1` | LAST 3 DAYS · TODAY · NEXT 13 · | ÚLTIMOS 3 DÍAS · HOY · PRÓXIMOS 13 · | Calendar legend: the window shown, all capitals · src/views/CalendarView.jsx |
+| `sQdkCx` | LAST ROW | ÚLTIMA REMADA | Section heading, all capitals · src/views/mobile/MobileToday.jsx |
 | `h0yf70` | Last sync {when} | Última sincronización {when} | src/utils/stravaStatus.js |
 | `O5l7Qq` | Last sync did not finish cleanly | La última sincronización no terminó correctamente | src/utils/stravaStatus.js |
 | `Cagxat` | LATEST WATTS | ÚLTIMOS VATIOS | Stat tile, all capitals · src/views/OverviewView.jsx |
@@ -312,6 +314,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `tMD4eT` | No PM5 found nearby. Wake your monitor and try again. | No encontramos ningún PM5 cerca. Activa tu monitor e inténtalo de nuevo. | The search found no PM5 rowing monitor in range · src/components/PM5Picker.jsx |
 | `A1dE6j` | No power or speed was recorded, so there is no pace trace. | No se registró potencia ni velocidad, así que no hay trazado de ritmo. | src/components/session/SessionTrace.jsx |
 | `T_V4Zy` | No power was recorded on this ride, so there is no power trace and no zones. | No se registró potencia en esta salida, así que no hay trazado de potencia ni zonas. | src/components/session/SessionTrace.jsx |
+| `8dOSwu` | No previous erg piece to repeat. | No hay una pieza de erg anterior para repetir. | src/views/mobile/MobileToday.jsx |
 | `xAr6uG` | No reading | Sin lectura | src/views/mobile/MobileAnalytics.jsx · src/views/mobile/MobileRecovery.jsx · src/views/mobile/MobileToday.jsx · src/views/RecoveryView.jsx |
 | `Wt7fuF` | No reading at this moment | Sin lectura en este momento | Trace tooltip over a gap · src/components/session/TraceTooltip.jsx |
 | `_f3NT2` | No reading this morning | Sin lectura esta mañana | src/views/mobile/MobileToday.jsx · src/views/OverviewView.jsx |
@@ -334,7 +337,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `ypi6T8` | NOTES (optional) | NOTAS (opcional) | Field label; NOTES in capitals, optional in lower case · src/views/ErgLiveView.jsx |
 | `2YEfZW` | Nothing in your log came from Strava; nothing will be removed. | Nada de tu registro vino de Strava; no se quitará nada. | src/utils/stravaDisconnect.js |
 | `qhISLS` | Nothing in your log came from Strava. | Nada de tu registro vino de Strava. | src/utils/stravaDisconnect.js |
-| `CiVpeY` | Nothing prescribed today. | Nada programado para hoy. | src/views/mobile/MobileToday.jsx |
+| `_VOfIb` | NOTHING PLANNED TODAY | NADA PLANIFICADO HOY | Card eyebrow, all capitals · Card eyebrow, all capitals · src/views/mobile/MobileToday.jsx |
 | `m7A34A` | Nothing was overwritten. Resolve the duplicates in the log, then sync again. | No se sobrescribió nada. Resuelve los duplicados en el registro y vuelve a sincronizar. | src/utils/stravaStatus.js |
 | `n0LeU6` | Offline: no saved data yet. | Sin conexión: todavía no hay datos guardados. | src/components/HealthRecordCard.jsx |
 | `ZGyogo` | Older activities are fetched a page at a time to stay inside Strava rate limits. | Las actividades más antiguas se traen una página a la vez para no superar los límites de uso de Strava. | src/utils/stravaStatus.js |
@@ -358,6 +361,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `8olOJA` | pace from distance and time | ritmo a partir de la distancia y el tiempo | Session caption list item · src/components/session/ProvenanceNote.jsx |
 | `NXnuca` | pace from power | ritmo a partir de la potencia | Session caption list item · src/components/session/ProvenanceNote.jsx |
 | `5SchA7` | Peak power, {window} min | Potencia pico, {window} min | src/components/session/MoreDetail.jsx |
+| `LEwweY` | Pick a workout | Elegir un entrenamiento | src/views/mobile/MobileToday.jsx |
 | `GdgCoi` | Plan | Plan | Desktop Train pane · src/App.jsx · src/views/PlanView.jsx |
 | `iQ1n2D` | PLANNED | PLANIFICADA | Badge, all capitals · Day badge, all capitals · src/components/LogEntry.jsx · src/views/CalendarView.jsx |
 | `7F65H5` | Post: | Después: | Meal after the session · src/components/WorkoutItem.jsx |
@@ -396,6 +400,8 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `KqWf7J` | RESTING HR TREND | TENDENCIA DE FC EN REPOSO | Chart title, all capitals · src/views/RecoveryView.jsx |
 | `RTFfQq` | RESTING HR TREND — 14 DAYS | TENDENCIA DE FC EN REPOSO — 14 DÍAS | Chart title, all capitals · src/views/mobile/MobileRecovery.jsx |
 | `6gRgw8` | Retry | Reintentar | Button in the error state · Button in the error state · Button: load again · src/components/session/SessionState.jsx · src/components/StravaConnectPanel.jsx |
+| `b-1bjs` | Row it again | Remarla de nuevo | src/views/mobile/MobileToday.jsx |
+| `c1IkzP` | Row your last piece again? | ¿Remar de nuevo tu última pieza? | src/views/mobile/MobileToday.jsx |
 | `9iZxB0` | ROWING | REMANDO | Live status, all capitals · src/views/ErgLiveView.jsx |
 | `cJp6m0` | Rowing CP {cp}W | CP de remo {cp}W | src/views/OverviewView.jsx |
 | `kBKd0c` | Rowing CP {cp}W · bike FTP {ftp}W | CP de remo {cp}W · FTP de bici {ftp}W | src/views/OverviewView.jsx |
@@ -446,7 +452,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `ZbsEjC` | sRPE SCALE · TALK-TEST ANCHORED (asked every session) | ESCALA sRPE · SEGÚN LA PRUEBA DEL HABLA (se pregunta en cada sesión) | sRPE stays as is; the rest is in capitals except the parenthesis · src/views/LogView.jsx |
 | `cEmihp` | sRPE target: | sRPE objetivo: | Followed by a number or the word easy; sRPE stays as is · src/components/WorkoutTarget.jsx |
 | `vjiwd1` | START A SESSION | INICIA UNA SESIÓN | Heading, all capitals · src/views/mobile/MobileTrain.jsx |
-| `Ul5Zpl` | START SESSION | INICIAR SESIÓN DE ENTRENAMIENTO | Button, all capitals · src/views/mobile/MobileToday.jsx |
+| `hLItl9` | Start on PM5 | Empezar en el PM5 | src/views/mobile/MobileToday.jsx |
 | `GCJTE0` | Stay | Quedarse | Cancel leaving a live session · src/components/mobile/SessionExitBar.jsx |
 | `lqrTOx` | Steady (UT1) | Constante (UT1) | sRPE scale, effort 5-6 · src/constants/srpeGuideMessages.js |
 | `maUeij` | Strava access was revoked. Reconnect to resume importing. | Se revocó el acceso a Strava. Reconecta para seguir importando. | src/utils/stravaStatus.js |
@@ -522,7 +528,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `va00KW` | Time in zone | Tiempo en zona | src/views/SessionView.jsx |
 | `0yO9ub` | Time in zone: {summary}. | Tiempo en zona: {summary}. | src/components/session/ZoneBar.jsx |
 | `ecUA8p` | Today | Hoy | src/views/mobile/MobileSettings.jsx · src/views/mobile/MobileToday.jsx · src/views/OverviewView.jsx |
-| `SOb7_c` | TODAY | HOY | Section heading, all capitals · src/views/mobile/MobileToday.jsx |
+| `UsgZ88` | TODAY'S SESSION · PLANNED | SESIÓN DE HOY · PLANIFICADA | Card eyebrow, all capitals · src/views/mobile/MobileToday.jsx |
 | `gNLJjH` | Top weight | Peso máximo | src/components/LogSessionForm.jsx |
 | `vMc93p` | Top Wt | Peso máx. | Column: heaviest weight lifted, abbreviated · src/components/LogEntry.jsx |
 | `QJw1Lb` | Top wt (70kg) | Peso máx. (70kg) | Heaviest weight lifted, with an example · src/components/LogSessionForm.jsx |
@@ -538,6 +544,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `KDw4GX` | Try again | Volver a intentar | Button that searches for PM5 monitors again · src/components/PM5Picker.jsx |
 | `u62wQ4` | Try again in a moment. | Inténtalo de nuevo en un momento. | Error state detail · src/components/StravaConnectPanel.jsx |
 | `sLqPhy` | TSS LOGGED | TSS REGISTRADO | Stat label, all capitals; TSS stays as is · src/views/mobile/MobileToday.jsx |
+| `3lLYyO` | Tweak | Ajustar | src/views/mobile/MobileToday.jsx |
 | `p8iK-C` | Unnamed PM5 | PM5 sin nombre | A rowing monitor in the list that broadcast no name; PM5 is the monitor: keep it · src/components/PM5Picker.jsx |
 | `1ikfyP` | unvalidated | sin validar | Anchor status · src/components/session/ZoneBar.jsx |
 | `zSzBX4` | UPCOMING | PRÓXIMAS | Section heading, all capitals · src/views/mobile/MobileAnalytics.jsx |

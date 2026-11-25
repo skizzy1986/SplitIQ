@@ -988,7 +988,6 @@ msgstr "Just row"
 msgid "Labs"
 msgstr "Labs"
 
-
 #. Settings section heading above the language control
 #: src/views/SettingsView.jsx
 msgid "Language"

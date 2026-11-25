@@ -988,7 +988,6 @@ msgstr "Solo remar"
 msgid "Labs"
 msgstr "Funciones en prueba"
 
-
 #. Settings section heading above the language control
 #: src/views/SettingsView.jsx
 msgid "Language"

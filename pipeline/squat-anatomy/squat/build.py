@@ -10,7 +10,7 @@ from pathlib import Path
 
 import numpy as np
 
-from squat.geom import tpts
+from core.geom import tpts
 from squat.model.activation import NOLEN, activation_tables3
 from squat.model.curves import fixed_alpha
 from squat.model.kinetics import BW, MBAR

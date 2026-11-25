@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from _compare import compare
 
-from squat.geom import BONE_FID
+from core.geom import BONE_FID
 from squat.stages import ik3, ik4, regcur
 from squat.stages._io import quiet
 

@@ -11,7 +11,7 @@ import numpy as np
 from scipy.interpolate import CubicSpline
 from scipy.spatial.transform import Rotation as Rot
 
-from squat.geom import inv
+from core.geom import inv
 from row.spike.squatdata import TRUNK, mat
 
 LEG = ('femur_r', 'patella_r', 'tibia_r', 'talus_r')

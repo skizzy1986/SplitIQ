@@ -4,8 +4,8 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from core.geom import qR
 from squat import repack
-from squat.geom import qR
 
 
 @dataclass(frozen=True, eq=False)

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from squat.geom import rot_about, tpts
+from core.geom import rot_about, tpts
 
 
 @dataclass(frozen=True, eq=False)

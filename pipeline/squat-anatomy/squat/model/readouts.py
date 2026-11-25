@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import numpy as np
 from numpy.linalg import norm
 
-from squat.geom import tpts
+from core.geom import tpts
 
 
 def disc_normal(P):

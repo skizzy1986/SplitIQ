@@ -10,7 +10,7 @@ import numpy as np
 from numpy.linalg import norm
 from scipy.spatial.transform import Rotation as Rot
 
-from squat.geom import Rof, inv, rot_about, screw, tpts
+from core.geom import Rof, inv, rot_about, screw, tpts
 from squat.model.skin import group_of_pid
 
 GRIP_Z=0.40

@@ -12,7 +12,7 @@ import numpy as np
 from scipy.optimize import minimize
 
 from row.spike.thresholds import GRIP_WEIGHT, GRIP_Z, IK_ELBOW_OK, IK_PEN_OK
-from squat.geom import inv, tpts
+from core.geom import inv, tpts
 
 LIMITS = dict(er=(-20, 60), elev=(0, 120), plane=(-100, 110), elbow=(0, 145))
 BODY_CLEAR = 0.025

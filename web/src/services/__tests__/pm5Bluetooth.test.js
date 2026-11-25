@@ -337,6 +337,32 @@ describe('mergeStatus', () => {
     expect(sample.calories).toBeNull();
   });
 
+  // #739: at the PM5's default 500 ms rate, each 0032 arriving just after its
+  // 0031 and one 0032 lost on the link must not blank the pace on any sample.
+  // The 0032 stamp sits a clock tick (0.01 s) before its 0031's, as two
+  // packets built a moment apart do; at the old 1.0 s window that tick alone
+  // decided whether the sample after a lost 0032 had a pace.
+  it('keeps pace on every sample when 0032 trails 0031 and one is lost', () => {
+    const period = 0.5;
+    let add1 = null;
+    const paces = [];
+    for (let i = 0; i < 8; i++) {
+      const t = 600 + i * period;
+      paces.push(
+        mergeStatus({ ...general, elapsedTime: t }, add1, null).paceStr
+      );
+      if (i !== 3) {
+        add1 = {
+          elapsedTime: t - 0.01,
+          strokeRate: 18,
+          currentPace: 16080,
+          averagePace: 0,
+        };
+      }
+    }
+    expect(paces.slice(1)).not.toContain('--:--');
+  });
+
   it('nulls fields when 0032/0033 have never arrived', () => {
     const sample = mergeStatus(general, null, null);
     expect(sample.strokeRate).toBeNull();

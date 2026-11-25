@@ -64,6 +64,24 @@ describe('submitInviteSignup', () => {
     expect(mocks.signIn).not.toHaveBeenCalled();
   });
 
+  // Retro Gate 3 round 2 (#808, Should-fix): pin the client limit at the
+  // 7/8-character boundary, so changing MIN_PASSWORD to 7 or 10 fails here.
+  it('refuses a 7-character password and accepts an 8-character one', async () => {
+    const seven = 'abcdefg';
+    const eight = 'abcdefgh';
+    expect(
+      await submitInviteSignup({ ...FORM, password: seven, confirm: seven })
+    ).toEqual({ ok: false, cause: 'weak_password' });
+    expect(mocks.invoke).not.toHaveBeenCalled();
+
+    expect(
+      await submitInviteSignup({ ...FORM, password: eight, confirm: eight })
+    ).toEqual({ ok: true, signedIn: true });
+    expect(mocks.invoke).toHaveBeenCalledWith('invite-signup', {
+      body: expect.objectContaining({ password: eight }),
+    });
+  });
+
   it('passes the function’s cause through, and does not sign in', async () => {
     for (const cause of [
       'invalid',

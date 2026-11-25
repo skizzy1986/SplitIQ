@@ -2,10 +2,10 @@
 
 How Claude Code, Scott and the Grok bots stay out of each other's way. Read this
 before starting work. The official decision log is the private ops repo's
-`docs/ROADMAP.md` (D30, D31). `VISION.md` still wins where docs disagree;
+`docs/ROADMAP.md` (D30, D31, D32). `VISION.md` still wins where docs disagree;
 see the VISION.md rule below.
 
-Last updated: 25 November 2026, 11:09 Perth (UTC+8). Re-query GitHub
+Last updated: 25 November 2026, 12:48 Perth (UTC+8). Re-query GitHub
 before treating the status section as live.
 
 ## Roadmap order (D31)
@@ -48,6 +48,28 @@ owns input on it: proposed changes go through Product and need Scott's
 yes. Claude should flag any `VISION.md` assumptions it relies on, or
 needs changed, as a comment on the relevant issue. Do not edit
 `VISION.md` outside that path.
+
+## Backends (D32)
+
+Recorded 25 November 2026, 12:32 Perth, in the private ops `docs/ROADMAP.md`
+([ops #10](https://github.com/skizzy1986/SplitIQ-ops/pull/10), merged).
+
+- **Production** is Scott's private database. Licensing gates such as R2 do
+  not restrict his own use of it.
+- **SplitIQ dev** is the public-facing database for invited testers, previews
+  and development.
+- Testers never get a production account. Do not copy personal rows from
+  production into dev (schema and the repo exercise catalogue only).
+- Do not point `android-latest` or the production website at dev. Testers get
+  a separate URL and a separate app.
+- Closed testing is tracked by
+  [#788](https://github.com/skizzy1986/SplitIQ/issues/788) and runs alongside
+  [#747](https://github.com/skizzy1986/SplitIQ/issues/747).
+
+The PM5-lane rule below still applies: no tester slice may edit
+`web/src/views/ErgLiveView.jsx` while
+[#786](https://github.com/skizzy1986/SplitIQ/pull/786) or
+[#730](https://github.com/skizzy1986/SplitIQ/pull/730) is open.
 
 ## Handoff rules
 

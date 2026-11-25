@@ -49,7 +49,9 @@ jobs:
               - 'web/android/**'
               - 'web/capacitor.config.json'
               - 'web/package.json'
+              - 'web/scripts/**'
               - 'web/src/**'
+              - 'web/vite.config.js'
               - 'supabase/**'
               - '.github/workflows/ci-android.yml'
 

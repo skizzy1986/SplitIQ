@@ -127,4 +127,19 @@ describe('strip-tool-assets', () => {
     expect(job).toMatch(/if \[ "\$count" -lt 2 \]/);
     expect(yml).not.toMatch(/squat-\*/);
   });
+
+  // The strip's rule lives in scripts/ and the tool chunks' names in
+  // vite.config.js, so a change to either alone must still build the APK.
+  it("ci-android.yml's path filter watches the strip's script and the build config", () => {
+    const yml = readFileSync(WORKFLOW, 'utf8');
+    const start = yml.indexOf('\n  changes:');
+    const end = yml.indexOf('\n  build-web:');
+    expect(start).toBeGreaterThan(-1);
+    expect(end).toBeGreaterThan(start);
+    const filter = yml.slice(start, end);
+    expect(filter).toContain('filters: |');
+    for (const path of ['web/scripts/**', 'web/vite.config.js']) {
+      expect(filter).toContain(`- '${path}'`);
+    }
+  });
 });

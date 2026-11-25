@@ -510,10 +510,25 @@ msgstr "Cancelada: esta sesión no se completó."
 msgid "CAUTION"
 msgstr "PRECAUCIÓN"
 
+#. Change-password button
+#: src/components/ChangePasswordPanel.jsx
+msgid "Change password"
+msgstr "Cambiar contraseña"
+
+#. Change-password button while the request is out
+#: src/components/ChangePasswordPanel.jsx
+msgid "Changing…"
+msgstr "Cambiando…"
+
 #. Loading state
 #: src/components/StravaConnectPanel.jsx
 msgid "Checking Strava connection…"
 msgstr "Verificando la conexión con Strava…"
+
+#. Change-password error.
+#: src/components/ChangePasswordPanel.jsx
+msgid "Choose a longer new password: at least 8 characters."
+msgstr "Elige una contraseña nueva más larga: mínimo 8 caracteres."
 
 #. Title of the list of nearby rowing monitors; PM5 is the monitor: keep it
 #: src/components/PM5Picker.jsx
@@ -624,6 +639,11 @@ msgstr "Podrías seguir todo el día. Conversación completa, respirando por la 
 msgid "Could not count the Strava data in your log. Try again."
 msgstr "No se pudieron contar los datos de Strava de tu registro. Inténtalo de nuevo."
 
+#. Change-password error when the device is offline.
+#: src/components/ChangePasswordPanel.jsx
+msgid "Could not reach the server. Check your connection and try again."
+msgstr "No pudimos conectarnos con el servidor. Revisa tu conexión e inténtalo de nuevo."
+
 #. Error state heading
 #: src/components/StravaConnectPanel.jsx
 msgid "Could not read the Strava connection status"
@@ -669,6 +689,11 @@ msgstr "CP no disponible"
 #: src/views/OverviewView.jsx
 msgid "CTL builds over 42 days — values will be underestimated until ~6 weeks of data."
 msgstr "La CTL se construye en 42 días: los valores quedarán subestimados hasta tener ~6 semanas de datos."
+
+#. Change-password field label, all capitals
+#: src/components/ChangePasswordPanel.jsx
+msgid "CURRENT PASSWORD"
+msgstr "CONTRASEÑA ACTUAL"
 
 #: src/components/ThemeControl.jsx
 msgid "Dark"
@@ -885,6 +910,11 @@ msgstr "Fatigado: la carga reciente supera tu estado físico"
 #: src/views/RecoveryView.jsx
 msgid "Fewer than 14 days of vitals, so population defaults are standing in for your baselines — treat the score as directional."
 msgstr "Hay menos de 14 días de signos vitales, así que se usan valores poblacionales en lugar de tus líneas base: toma el puntaje como orientativo."
+
+#. Change-password error.
+#: src/components/ChangePasswordPanel.jsx
+msgid "Fill in all three fields."
+msgstr "Completa los tres campos."
 
 #. Subtitle of CTL
 #: src/views/OverviewView.jsx
@@ -1250,6 +1280,11 @@ msgstr "Neutral: en equilibrio"
 msgid "New live screen (beta)"
 msgstr "Nueva pantalla en vivo (beta)"
 
+#. Change-password field label, all capitals
+#: src/components/ChangePasswordPanel.jsx
+msgid "NEW PASSWORD"
+msgstr "CONTRASEÑA NUEVA"
+
 #: src/views/RecoveryView.jsx
 msgid "No blood pressure readings yet."
 msgstr "Todavía no hay mediciones de presión arterial."
@@ -1512,6 +1547,16 @@ msgstr "ritmo a partir de la distancia y el tiempo"
 msgid "pace from power"
 msgstr "ritmo a partir de la potencia"
 
+#. Settings section heading above the change-password form
+#: src/views/SettingsView.jsx
+msgid "Password"
+msgstr "Contraseña"
+
+#. Change-password success message
+#: src/components/ChangePasswordPanel.jsx
+msgid "Password changed."
+msgstr "Contraseña cambiada."
+
 #: src/components/session/MoreDetail.jsx
 msgid "Peak power, {window} min"
 msgstr "Potencia pico, {window} min"
@@ -1723,6 +1768,11 @@ msgstr "RECUPERACIÓN"
 msgid "ref"
 msgstr "ref."
 
+#. Change-password field label, all capitals
+#: src/components/ChangePasswordPanel.jsx
+msgid "REPEAT THE NEW PASSWORD"
+msgstr "REPITE LA CONTRASEÑA NUEVA"
+
 #. Injury resolved date
 #: src/views/RecoveryView.jsx
 msgid "resolved {date}"
@@ -1910,6 +1960,11 @@ msgstr "Comparte enlaces de Concept2 o capturas de pantalla de Fitbod para agreg
 #: src/constants/srpeGuideMessages.js
 msgid "Short phrases only. Genuinely taxing. Threshold/AT."
 msgstr "Solo frases cortas. Realmente exigente. Umbral/AT."
+
+#. Change-password error when there is no session.
+#: src/components/ChangePasswordPanel.jsx
+msgid "Sign in again, then try once more."
+msgstr "Inicia sesión de nuevo e inténtalo otra vez."
 
 #: src/views/mobile/MobileSettings.jsx
 msgid "Sign out"
@@ -2240,6 +2295,11 @@ msgstr "El enlace de conexión se abrió de forma incorrecta. Vuelve a iniciar l
 msgid "The connection was missing permission to read your activities. Connect again and approve activity access."
 msgstr "A la conexión le faltaba el permiso para leer tus actividades. Vuelve a conectar y aprueba el acceso a las actividades."
 
+#. Change-password error.
+#: src/components/ChangePasswordPanel.jsx
+msgid "The current password is not right."
+msgstr "La contraseña actual no es correcta."
+
 #: src/components/ThemeControl.jsx
 msgid "The dashboard stays dark. Light and Auto apply to the squat tool."
 msgstr "El panel permanece oscuro. Claro y Automático se aplican a la herramienta de sentadilla."
@@ -2256,10 +2316,20 @@ msgstr "La última sincronización falló por un motivo desconocido. Inténtalo 
 msgid "The limit has reset — you can sync again now."
 msgstr "El límite se restableció: ya puedes volver a sincronizar."
 
+#. Change-password error.
+#: src/components/ChangePasswordPanel.jsx
+msgid "The new password must be different from the current one."
+msgstr "La contraseña nueva debe ser distinta de la actual."
+
 #. Under the title of the list of nearby rowing monitors. Connect is the name of a menu screen on the PM5 monitor itself, not a button in the app
 #: src/components/PM5Picker.jsx
 msgid "The number in each name is the serial on your monitor's Connect screen."
 msgstr "El número de cada nombre es el número de serie que aparece en la pantalla Connect de tu monitor."
+
+#. Change-password error for any other cause.
+#: src/components/ChangePasswordPanel.jsx
+msgid "The password could not be changed. Try again."
+msgstr "No se pudo cambiar la contraseña. Inténtalo de nuevo."
 
 #. Banner lead-in, all capitals
 #: src/views/PlanView.jsx
@@ -2288,6 +2358,11 @@ msgstr "No se pudo cargar el trazado."
 #: src/components/session/sourceCopy.js
 msgid "The trace for this session is not available."
 msgstr "El trazado de esta sesión no está disponible."
+
+#. Change-password error.
+#: src/components/ChangePasswordPanel.jsx
+msgid "The two new passwords don't match."
+msgstr "Las dos contraseñas nuevas no coinciden."
 
 #: src/components/ThemeControl.jsx
 #: src/views/SettingsView.jsx

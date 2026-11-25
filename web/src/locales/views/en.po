@@ -510,10 +510,25 @@ msgstr "Cancelled — this session was not completed."
 msgid "CAUTION"
 msgstr "CAUTION"
 
+#. Change-password button
+#: src/components/ChangePasswordPanel.jsx
+msgid "Change password"
+msgstr "Change password"
+
+#. Change-password button while the request is out
+#: src/components/ChangePasswordPanel.jsx
+msgid "Changing…"
+msgstr "Changing…"
+
 #. Loading state
 #: src/components/StravaConnectPanel.jsx
 msgid "Checking Strava connection…"
 msgstr "Checking Strava connection…"
+
+#. Change-password error.
+#: src/components/ChangePasswordPanel.jsx
+msgid "Choose a longer new password: at least 8 characters."
+msgstr "Choose a longer new password: at least 8 characters."
 
 #. Title of the list of nearby rowing monitors; PM5 is the monitor: keep it
 #: src/components/PM5Picker.jsx
@@ -624,6 +639,11 @@ msgstr "Could do all day. Full conversation, nose-breathing."
 msgid "Could not count the Strava data in your log. Try again."
 msgstr "Could not count the Strava data in your log. Try again."
 
+#. Change-password error when the device is offline.
+#: src/components/ChangePasswordPanel.jsx
+msgid "Could not reach the server. Check your connection and try again."
+msgstr "Could not reach the server. Check your connection and try again."
+
 #. Error state heading
 #: src/components/StravaConnectPanel.jsx
 msgid "Could not read the Strava connection status"
@@ -669,6 +689,11 @@ msgstr "CP unavailable"
 #: src/views/OverviewView.jsx
 msgid "CTL builds over 42 days — values will be underestimated until ~6 weeks of data."
 msgstr "CTL builds over 42 days — values will be underestimated until ~6 weeks of data."
+
+#. Change-password field label, all capitals
+#: src/components/ChangePasswordPanel.jsx
+msgid "CURRENT PASSWORD"
+msgstr "CURRENT PASSWORD"
 
 #: src/components/ThemeControl.jsx
 msgid "Dark"
@@ -885,6 +910,11 @@ msgstr "Fatigued — recent load above fitness"
 #: src/views/RecoveryView.jsx
 msgid "Fewer than 14 days of vitals, so population defaults are standing in for your baselines — treat the score as directional."
 msgstr "Fewer than 14 days of vitals, so population defaults are standing in for your baselines — treat the score as directional."
+
+#. Change-password error.
+#: src/components/ChangePasswordPanel.jsx
+msgid "Fill in all three fields."
+msgstr "Fill in all three fields."
 
 #. Subtitle of CTL
 #: src/views/OverviewView.jsx
@@ -1250,6 +1280,11 @@ msgstr "Neutral — balanced"
 msgid "New live screen (beta)"
 msgstr "New live screen (beta)"
 
+#. Change-password field label, all capitals
+#: src/components/ChangePasswordPanel.jsx
+msgid "NEW PASSWORD"
+msgstr "NEW PASSWORD"
+
 #: src/views/RecoveryView.jsx
 msgid "No blood pressure readings yet."
 msgstr "No blood pressure readings yet."
@@ -1512,6 +1547,16 @@ msgstr "pace from distance and time"
 msgid "pace from power"
 msgstr "pace from power"
 
+#. Settings section heading above the change-password form
+#: src/views/SettingsView.jsx
+msgid "Password"
+msgstr "Password"
+
+#. Change-password success message
+#: src/components/ChangePasswordPanel.jsx
+msgid "Password changed."
+msgstr "Password changed."
+
 #: src/components/session/MoreDetail.jsx
 msgid "Peak power, {window} min"
 msgstr "Peak power, {window} min"
@@ -1723,6 +1768,11 @@ msgstr "RECOVERY"
 msgid "ref"
 msgstr "ref"
 
+#. Change-password field label, all capitals
+#: src/components/ChangePasswordPanel.jsx
+msgid "REPEAT THE NEW PASSWORD"
+msgstr "REPEAT THE NEW PASSWORD"
+
 #. Injury resolved date
 #: src/views/RecoveryView.jsx
 msgid "resolved {date}"
@@ -1910,6 +1960,11 @@ msgstr "Share Concept2 links or Fitbod screenshots to add sessions. sRPE capture
 #: src/constants/srpeGuideMessages.js
 msgid "Short phrases only. Genuinely taxing. Threshold/AT."
 msgstr "Short phrases only. Genuinely taxing. Threshold/AT."
+
+#. Change-password error when there is no session.
+#: src/components/ChangePasswordPanel.jsx
+msgid "Sign in again, then try once more."
+msgstr "Sign in again, then try once more."
 
 #: src/views/mobile/MobileSettings.jsx
 msgid "Sign out"
@@ -2240,6 +2295,11 @@ msgstr "The connection link was opened incorrectly. Start the connection again."
 msgid "The connection was missing permission to read your activities. Connect again and approve activity access."
 msgstr "The connection was missing permission to read your activities. Connect again and approve activity access."
 
+#. Change-password error.
+#: src/components/ChangePasswordPanel.jsx
+msgid "The current password is not right."
+msgstr "The current password is not right."
+
 #: src/components/ThemeControl.jsx
 msgid "The dashboard stays dark. Light and Auto apply to the squat tool."
 msgstr "The dashboard stays dark. Light and Auto apply to the squat tool."
@@ -2256,10 +2316,20 @@ msgstr "The last sync failed for an unrecognised reason. Try again."
 msgid "The limit has reset — you can sync again now."
 msgstr "The limit has reset — you can sync again now."
 
+#. Change-password error.
+#: src/components/ChangePasswordPanel.jsx
+msgid "The new password must be different from the current one."
+msgstr "The new password must be different from the current one."
+
 #. Under the title of the list of nearby rowing monitors. Connect is the name of a menu screen on the PM5 monitor itself, not a button in the app
 #: src/components/PM5Picker.jsx
 msgid "The number in each name is the serial on your monitor's Connect screen."
 msgstr "The number in each name is the serial on your monitor's Connect screen."
+
+#. Change-password error for any other cause.
+#: src/components/ChangePasswordPanel.jsx
+msgid "The password could not be changed. Try again."
+msgstr "The password could not be changed. Try again."
 
 #. Banner lead-in, all capitals
 #: src/views/PlanView.jsx
@@ -2288,6 +2358,11 @@ msgstr "The trace could not be loaded."
 #: src/components/session/sourceCopy.js
 msgid "The trace for this session is not available."
 msgstr "The trace for this session is not available."
+
+#. Change-password error.
+#: src/components/ChangePasswordPanel.jsx
+msgid "The two new passwords don't match."
+msgstr "The two new passwords don't match."
 
 #: src/components/ThemeControl.jsx
 #: src/views/SettingsView.jsx

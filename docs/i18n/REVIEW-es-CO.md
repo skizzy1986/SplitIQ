@@ -43,7 +43,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `hdxhKx` | We could not sign you in. Try again. | No pudimos iniciar sesión. Inténtalo de nuevo. | Login error for any unrecognised cause. Only shown in Spanish. · src/utils/authError.js |
 | `y1oEoC` | Wrong email or password. | Correo o contraseña incorrectos. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
 
-## Dashboard views (src/locales/views, 555 strings)
+## Dashboard views (src/locales/views, 570 strings)
 
 | Row | English | Español | Where / note |
 |---|---|---|---|
@@ -156,7 +156,10 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `-6w-0_` | CANCELLED | CANCELADA | Badge, all capitals · src/components/LogEntry.jsx |
 | `wq6793` | Cancelled — this session was not completed. | Cancelada: esta sesión no se completó. | src/components/LogEntry.jsx |
 | `G5Xhju` | CAUTION | PRECAUCIÓN | Readiness status, all capitals · src/utils/recoveryAnalytics.js |
+| `GptGxg` | Change password | Cambiar contraseña | Change-password button · src/components/ChangePasswordPanel.jsx |
+| `JDjV6k` | Changing… | Cambiando… | Change-password button while the request is out · src/components/ChangePasswordPanel.jsx |
 | `LgcGHa` | Checking Strava connection… | Verificando la conexión con Strava… | Loading state · src/components/StravaConnectPanel.jsx |
+| `uXRvrX` | Choose a longer new password: at least 8 characters. | Elige una contraseña nueva más larga: mínimo 8 caracteres. | Change-password error. · src/components/ChangePasswordPanel.jsx |
 | `1td_sZ` | Choose your PM5 | Elige tu PM5 | Title of the list of nearby rowing monitors; PM5 is the monitor: keep it · src/components/PM5Picker.jsx |
 | `E9GkoQ` | Chrome / Edge · Android or Desktop | Chrome / Edge · Android o computador | Where live rowing works: browser names, then device kinds · src/views/ErgLiveView.jsx |
 | `tcceNK` | clean | en condiciones | Blood pressure reading taken under proper resting conditions · src/views/RecoveryView.jsx |
@@ -180,6 +183,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `OB-V_N` | CONNECTING… | CONECTANDO… | Button, busy, all capitals · src/views/ErgLiveView.jsx |
 | `-uLBTN` | Could do all day. Full conversation, nose-breathing. | Podrías seguir todo el día. Conversación completa, respirando por la nariz. | sRPE scale, effort 1-2: the talk test · src/constants/srpeGuideMessages.js |
 | `2xL2US` | Could not count the Strava data in your log. Try again. | No se pudieron contar los datos de Strava de tu registro. Inténtalo de nuevo. | Error when the disconnect preview could not be loaded · src/components/StravaConnectPanel.jsx |
+| `qGBulj` | Could not reach the server. Check your connection and try again. | No pudimos conectarnos con el servidor. Revisa tu conexión e inténtalo de nuevo. | Change-password error when the device is offline. · src/components/ChangePasswordPanel.jsx |
 | `stSfoD` | Could not read the Strava connection status | No pudimos leer el estado de la conexión con Strava | Error state heading · src/components/StravaConnectPanel.jsx |
 | `pSobqw` | Could not start the Strava connection. Try again. | No pudimos iniciar la conexión con Strava. Inténtalo de nuevo. | Error after pressing Connect Strava · src/components/StravaConnectPanel.jsx |
 | `hNVOGX` | Couldn't connect to that PM5. Check it's awake and not connected to another phone, then tap it again. | No pudimos conectarnos con ese PM5. Revisa que esté activo y que no esté conectado a otro teléfono, y vuelve a tocarlo. | Shown above the list of nearby PM5 monitors after the chosen one failed to connect; "it" is that monitor in the list · src/constants/pm5ErrorMessages.js |
@@ -190,6 +194,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `trK-Ln` | Counting the Strava data in your log… | Contando los datos de Strava de tu registro… | Loading state while counting Strava-sourced sessions before a disconnect · src/components/StravaConnectPanel.jsx |
 | `rQjZxs` | CP unavailable | CP no disponible | src/views/OverviewView.jsx |
 | `DUMjBi` | CTL builds over 42 days — values will be underestimated until ~6 weeks of data. | La CTL se construye en 42 días: los valores quedarán subestimados hasta tener ~6 semanas de datos. | src/views/OverviewView.jsx |
+| `Y-2Bh2` | CURRENT PASSWORD | CONTRASEÑA ACTUAL | Change-password field label, all capitals · src/components/ChangePasswordPanel.jsx |
 | `pvnfJD` | Dark | Oscuro | src/components/ThemeControl.jsx |
 | `mYGY3B` | Date | Fecha | src/components/session/SessionSummary.jsx |
 | `mMScjF` | DATE | FECHA (MES/DÍA/AÑO) | Field label, all capitals. The date is stored month/day/year; in Spanish say so, e.g. FECHA (MES/DÍA/AÑO) · context: log-form-date · src/components/LogSessionForm.jsx |
@@ -234,6 +239,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `n8OGsL` | FATIGUED | FATIGADO | Readiness status, all capitals · src/utils/recoveryAnalytics.js |
 | `8SEoxV` | Fatigued — recent load above fitness | Fatigado: la carga reciente supera tu estado físico | Training form (TSB) band · src/utils/trainingLoad.js |
 | `WZ5VQy` | Fewer than 14 days of vitals, so population defaults are standing in for your baselines — treat the score as directional. | Hay menos de 14 días de signos vitales, así que se usan valores poblacionales en lugar de tus líneas base: toma el puntaje como orientativo. | src/views/RecoveryView.jsx |
+| `EcsBcD` | Fill in all three fields. | Completa los tres campos. | Change-password error. · src/components/ChangePasswordPanel.jsx |
 | `J6rEPg` | Fitness | Estado físico | Subtitle of CTL · src/views/OverviewView.jsx |
 | `NEHtiw` | FITNESS / CTL | ESTADO FÍSICO / CTL | All capitals; CTL stays as is · src/views/mobile/MobileAnalytics.jsx |
 | `QRAWTO` | Form | Forma | Subtitle of TSB · src/views/OverviewView.jsx |
@@ -311,6 +317,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `ivLomN` | Neuromuscular power | Potencia neuromuscular | Cycling power level (Coggan Z7) · src/components/session/zoneLabels.js |
 | `IJ4SwP` | Neutral — balanced | Neutral: en equilibrio | Training form (TSB) band · src/utils/trainingLoad.js |
 | `Rws2or` | New live screen (beta) | Nueva pantalla en vivo (beta) | Settings switch. Turns on the new live rowing screen, still in testing · src/views/mobile/MobileSettings.jsx |
+| `4AeifW` | NEW PASSWORD | CONTRASEÑA NUEVA | Change-password field label, all capitals · src/components/ChangePasswordPanel.jsx |
 | `JAhfrY` | No blood pressure readings yet. | Todavía no hay mediciones de presión arterial. | src/views/RecoveryView.jsx |
 | `F-lAgi` | No cadence was recorded for this session. | No se registró cadencia en esta sesión. | src/components/session/SessionTrace.jsx |
 | `Kav4av` | NO DATA | SIN DATOS | Readiness status when there is no resting heart rate, all capitals · src/utils/recoveryAnalytics.js |
@@ -370,6 +377,8 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `0XMm_A` | Pace across {over}, between {fast} and {slow} per 500 m. | Ritmo durante {over}, entre {fast} y {slow} por 500 m. | src/components/session/SessionTrace.jsx |
 | `8olOJA` | pace from distance and time | ritmo a partir de la distancia y el tiempo | Session caption list item · src/components/session/ProvenanceNote.jsx |
 | `NXnuca` | pace from power | ritmo a partir de la potencia | Session caption list item · src/components/session/ProvenanceNote.jsx |
+| `8ZsakT` | Password | Contraseña | Settings section heading above the change-password form · src/views/SettingsView.jsx |
+| `7MZxzw` | Password changed. | Contraseña cambiada. | Change-password success message · src/components/ChangePasswordPanel.jsx |
 | `5SchA7` | Peak power, {window} min | Potencia pico, {window} min | src/components/session/MoreDetail.jsx |
 | `LEwweY` | Pick a workout | Elegir un entrenamiento | src/views/mobile/MobileToday.jsx |
 | `GdgCoi` | Plan | Plan | Desktop Train pane · src/App.jsx · src/views/PlanView.jsx |
@@ -414,6 +423,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `P9wzG_` | Recovery | Recuperación | Rowing training zone · Training zone name · src/components/session/zoneLabels.js · src/constants/srpeGuideMessages.js |
 | `cwpus4` | RECOVERY | RECUPERACIÓN | Screen heading, all capitals · src/views/mobile/MobileRecovery.jsx |
 | `2t2fqH` | ref | ref. | Short for "reference range" before a lab range, e.g. "ref 0.5–1.0" · src/utils/healthRecords.js |
+| `l0DqF2` | REPEAT THE NEW PASSWORD | REPITE LA CONTRASEÑA NUEVA | Change-password field label, all capitals · src/components/ChangePasswordPanel.jsx |
 | `9i9Bip` | resolved {date} | resuelta el {date} | Injury resolved date · src/views/RecoveryView.jsx |
 | `BPmK5_` | RESTING HR | FC EN REPOSO | All capitals · All capitals · src/views/mobile/MobileRecovery.jsx · src/views/RecoveryView.jsx |
 | `KqWf7J` | RESTING HR TREND | TENDENCIA DE FC EN REPOSO | Chart title, all capitals · src/views/RecoveryView.jsx |
@@ -452,6 +462,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `F28qJt` | SETTINGS | CONFIGURACIÓN | Section eyebrow, all capitals · src/views/SettingsView.jsx |
 | `FKcroQ` | Share Concept2 links or Fitbod screenshots to add sessions. sRPE captured every session. | Comparte enlaces de Concept2 o capturas de pantalla de Fitbod para agregar sesiones. El sRPE se registra en cada sesión. | Concept2 and Fitbod are brand names: keep them · src/views/LogView.jsx |
 | `UTQjd8` | Short phrases only. Genuinely taxing. Threshold/AT. | Solo frases cortas. Realmente exigente. Umbral/AT. | sRPE scale, effort 7-8: the talk test · src/constants/srpeGuideMessages.js |
+| `FFnAXK` | Sign in again, then try once more. | Inicia sesión de nuevo e inténtalo otra vez. | Change-password error when there is no session. · src/components/ChangePasswordPanel.jsx |
 | `fcWrnU` | Sign out | Cerrar sesión | src/views/mobile/MobileSettings.jsx |
 | `aHb3Mx` | since {date} | desde el {date} | Injury onset date · src/views/RecoveryView.jsx |
 | `Z4Vby7` | SLEEP | SUEÑO | All capitals · All capitals · src/views/mobile/MobileRecovery.jsx · src/views/RecoveryView.jsx |
@@ -523,17 +534,21 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `Ni__g1` | The connection link had expired or been used already. Start the connection again. | El enlace de conexión había caducado o ya se había usado. Vuelve a iniciar la conexión. | src/utils/stravaCallback.js |
 | `70UKmT` | The connection link was opened incorrectly. Start the connection again. | El enlace de conexión se abrió de forma incorrecta. Vuelve a iniciar la conexión. | src/utils/stravaCallback.js |
 | `b7aZ-4` | The connection was missing permission to read your activities. Connect again and approve activity access. | A la conexión le faltaba el permiso para leer tus actividades. Vuelve a conectar y aprueba el acceso a las actividades. | src/utils/stravaCallback.js |
+| `ePcbW7` | The current password is not right. | La contraseña actual no es correcta. | Change-password error. · src/components/ChangePasswordPanel.jsx |
 | `eZuAhY` | The dashboard stays dark. Light and Auto apply to the squat tool. | El panel permanece oscuro. Claro y Automático se aplican a la herramienta de sentadilla. | src/components/ThemeControl.jsx |
 | `TES7sz` | The highest average power over any {window} min of the elapsed time, a pause counting as 0 W. | La potencia promedio más alta en cualquier tramo de {window} min dentro del tiempo total; una pausa cuenta como 0 W. | src/components/session/MoreDetail.jsx |
 | `GNVWcN` | The last sync failed for an unrecognised reason. Try again. | La última sincronización falló por un motivo desconocido. Inténtalo de nuevo. | src/utils/stravaStatus.js |
 | `dOG-38` | The limit has reset — you can sync again now. | El límite se restableció: ya puedes volver a sincronizar. | src/utils/stravaStatus.js |
+| `afDuFS` | The new password must be different from the current one. | La contraseña nueva debe ser distinta de la actual. | Change-password error. · src/components/ChangePasswordPanel.jsx |
 | `VIO1J5` | The number in each name is the serial on your monitor's Connect screen. | El número de cada nombre es el número de serie que aparece en la pantalla Connect de tu monitor. | Under the title of the list of nearby rowing monitors. Connect is the name of a menu screen on the PM5 monitor itself, not a button in the app · src/components/PM5Picker.jsx |
+| `f-dNms` | The password could not be changed. Try again. | No se pudo cambiar la contraseña. Inténtalo de nuevo. | Change-password error for any other cause. · src/components/ChangePasswordPanel.jsx |
 | `yf6xVI` | THE PLAN. | EL PLAN. | Banner lead-in, all capitals · src/views/PlanView.jsx |
 | `-LCNXs` | The scheduled import has not run recently. Sync now to catch up. | La importación programada no se ha ejecutado últimamente. Sincroniza ahora para ponerte al día. | src/utils/stravaStatus.js |
 | `GauHsj` | The session could not be loaded. | No se pudo cargar la sesión. | Session page: the row failed to load · src/components/session/SessionState.jsx |
 | `UrS17K` | The Strava token could not be refreshed. Reconnect to resume importing. | No se pudo renovar el token de Strava. Reconecta para seguir importando. | src/utils/stravaStatus.js |
 | `OTLmjW` | The trace could not be loaded. | No se pudo cargar el trazado. | Session page: network or server error · src/components/session/SessionState.jsx |
 | `U2ohn5` | The trace for this session is not available. | El trazado de esta sesión no está disponible. | Session page: trace unavailable, unknown source · src/components/session/sourceCopy.js |
+| `WBdBgs` | The two new passwords don't match. | Las dos contraseñas nuevas no coinciden. | Change-password error. · src/components/ChangePasswordPanel.jsx |
 | `FEr96N` | Theme | Tema | src/components/ThemeControl.jsx · src/views/SettingsView.jsx |
 | `k7TAMw` | There is no session with this id in your log. | No hay ninguna sesión con este id en tu registro. | Session page: not found · src/components/session/SessionState.jsx |
 | `TDJakS` | This activity is no longer on Strava, so there is no trace. | Esta actividad ya no está en Strava, así que no hay trazado. | Session page: trace unavailable · src/components/session/sourceCopy.js |

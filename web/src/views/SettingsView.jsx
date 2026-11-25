@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import StravaConnectPanel from '../components/StravaConnectPanel.jsx';
 import LanguageToggle from '../components/LanguageToggle.jsx';
 import ThemeControl from '../components/ThemeControl.jsx';
@@ -8,6 +8,12 @@ import ScreenHeader from '../components/ScreenHeader.jsx';
 import { FONT } from '../constants/type.js';
 import { RADIUS, SPACE, TYPE } from '../constants/tokens.js';
 import { APP_BUILD } from '../utils/appBuild.js';
+import { isTestersBuild } from '../utils/testersBuild.js';
+
+// Testers only (#792), and its own chunk, so the owner's Settings never loads it.
+const ChangePasswordPanel = lazy(
+  () => import('../components/ChangePasswordPanel.jsx')
+);
 
 const sectionStyle = {
   display: 'flex',
@@ -87,6 +93,18 @@ export default function SettingsView({ onSynced, notice, heading = true }) {
           <LanguageToggle />
         </div>
       </section>
+      {isTestersBuild() && (
+        <section aria-labelledby="settings-password" style={sectionStyle}>
+          <h2 id="settings-password" style={headingStyle}>
+            <Trans comment="Settings section heading above the change-password form">
+              Password
+            </Trans>
+          </h2>
+          <Suspense fallback={null}>
+            <ChangePasswordPanel />
+          </Suspense>
+        </section>
+      )}
       <section aria-labelledby="settings-integrations" style={sectionStyle}>
         <h2 id="settings-integrations" style={headingStyle}>
           <Trans comment="Settings section heading above the Strava panel">

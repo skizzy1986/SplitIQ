@@ -140,7 +140,7 @@ def _gunzip(p):
 def read(manifest_path, bin_paths):
     """The parsed manifest (``b`` and ``bins`` kept) and its arrays, from the bins at ``bin_paths`` {bin id: path}.
     A locked manifest checks each bin's raw bytes and sha256; every entry gets the web viewer's checks
-    (web/src/anatomy/utils/arrays.js: o, n and t present, known dtype, no negative o or n, aligned offset, inside its bin)."""
+    (web/src/anatomy/utils/manifest.js: o, n and t present, known dtype, no negative o or n, aligned offset, inside its bin)."""
     mp = Path(manifest_path)
     if not mp.is_file():
         raise MissingInputError(mp, 'input')

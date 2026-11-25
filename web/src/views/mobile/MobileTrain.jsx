@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { msg } from '@lingui/core/macro';
 import ErgLiveView from '../ErgLiveView.jsx';
@@ -8,6 +8,8 @@ import SessionExitBar from '../../components/mobile/SessionExitBar.jsx';
 import ScreenHeader from '../../components/ScreenHeader.jsx';
 import { FONT } from '../../constants/type.js';
 import { RADIUS, SPACE, TYPE } from '../../constants/tokens.js';
+import { useSessions } from '../../hooks/useSessions.js';
+import { PLANNED_STATUS } from '../../constants/sessionStatus.js';
 
 // Train is the doing: the session in front of you. It absorbs what were the
 // separate "Live" and "Strength" tabs — DESIGN_BRIEF.md §2.2.
@@ -49,11 +51,30 @@ export { ENTRIES };
 
 export default function MobileTrain({ mode, onMode }) {
   const { i18n } = useLingui();
+  const { data: sessions } = useSessions({ mode: 'all' });
+  // Minimal shape for ErgLiveView — don't pull sessionLog.js into the
+  // MobileApp chunk just to pick today's planned erg.
+  const plannedSessions = useMemo(
+    () =>
+      (sessions ?? [])
+        .filter((row) => row.status === PLANNED_STATUS && row.type !== 'Test')
+        .map((row) => ({
+          ...row,
+          _isErg: (row.type || '').toLowerCase() === 'erg',
+        })),
+    [sessions]
+  );
   // A live session owns the screen — no tab bar, no chrome (HANDOFF.md §4) —
   // but always with a way back to this screen. Erg asks first when leaving
   // would drop a connection or an unsaved piece; strength keeps its own draft,
   // so leaving it loses nothing.
-  if (mode === 'erg') return <ErgLiveView onExit={() => onMode(null)} />;
+  if (mode === 'erg')
+    return (
+      <ErgLiveView
+        onExit={() => onMode(null)}
+        plannedSessions={plannedSessions}
+      />
+    );
   if (mode === 'strength')
     return (
       <>

@@ -183,8 +183,12 @@ export default function MobileApp() {
   if (route === 'today')
     content = (
       <MobileToday
-        onStartSession={() => {
+        onStartSession={(intent) => {
           navigate('train');
+          // planned / again / just-row go straight into the erg live flow.
+          // pick (Tweak, Pick a workout, Open Train) lands on the Train list.
+          if (intent && intent !== 'pick') setTrainMode('erg');
+          else setTrainMode(null);
         }}
         onOpenBody={() => navigate('body')}
       />

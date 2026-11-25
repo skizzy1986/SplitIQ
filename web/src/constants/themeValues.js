@@ -52,6 +52,13 @@ export const DARK = {
   // A muscle picked in the list, painted on the model with the heatmap off.
   // Cyan, as far from the muscle reds and the ramp as the palette goes.
   anatomyFocus: '#4cd4f5',
+  // Additive v10 live-session tokens (#771). onAccent is the ink on accent
+  // fills (white on #5cc8e8 is 1.9:1). bandAmber / bandCoral are for under-
+  // and over-band chart bars and arrow marks only — not caution, warning or
+  // modelled, which already mean other things.
+  onAccent: '#06222c',
+  bandAmber: '#e8b45c',
+  bandCoral: '#e87a5c',
 };
 
 // The light palette. Values are conventions.md's, which is design-owned and
@@ -108,6 +115,12 @@ export const LIGHT = {
   anatomyHeatHigh: '#cf3a2a',
   anatomyHeatPeak: '#ffd35c',
   anatomyFocus: '#48cdee',
+  // Companions for the v10 tokens. onAccent is white: the light accent is
+  // dark enough (5.6:1). Band colours are deeper than dark so marks hold
+  // on a white surface (chart/UI contrast, not body text).
+  onAccent: '#ffffff',
+  bandAmber: '#c08810',
+  bandCoral: '#c86838',
 };
 
 // The palette the document boots on. Dark is the signed-in dashboard's only

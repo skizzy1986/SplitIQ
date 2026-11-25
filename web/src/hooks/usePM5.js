@@ -26,6 +26,7 @@ import {
   PM5_CONNECT_FAILED,
 } from '../services/pm5Scan';
 import { upsertMonitor, expireMonitors } from '../utils/pm5Monitors';
+import { readLastPm5Id, writeLastPm5Id } from '../utils/pm5LastUsed.js';
 import { captureError } from '../utils/sentry.js';
 
 function freshPiece() {
@@ -92,6 +93,11 @@ export function usePM5() {
   const connectAbortRef = useRef(null);
   const connectingRef = useRef(null);
   const choosingRef = useRef(false);
+  // Last-used auto-choose (#771): one attempt per Start, never a loop.
+  const autoTriedRef = useRef(false);
+  const autoSkipRef = useRef(null);
+  const autoConnectingRef = useRef(false);
+  const chooseRef = useRef(null);
   // Bumped by every scan start, cancel, pause and unmount. An await that
   // returns to an older number belongs to a list that has gone.
   const genRef = useRef(0);
@@ -104,6 +110,20 @@ export function usePM5() {
   const publishRows = useCallback((list) => {
     rowsRef.current = list;
     setMonitors(list.map(({ id, name, stale }) => ({ id, name, stale })));
+  }, []);
+
+  // If the remembered PM5 is live in this scan, choose it once. Skipped when
+  // nothing is remembered, when that id failed earlier in this Start, or
+  // when a connect is already in flight.
+  const maybeAutoChoose = useCallback((list) => {
+    if (autoTriedRef.current || autoConnectingRef.current) return;
+    if (connectingRef.current || !choosingRef.current) return;
+    const want = readLastPm5Id();
+    if (!want || want === autoSkipRef.current) return;
+    if (!list.some((m) => m.id === want && !m.stale)) return;
+    autoTriedRef.current = true;
+    autoConnectingRef.current = true;
+    chooseRef.current?.(want);
   }, []);
 
   const stopScanning = useCallback(() => {
@@ -152,6 +172,8 @@ export function usePM5() {
     const gen = genRef.current;
     stopScanning();
     choosingRef.current = true;
+    autoTriedRef.current = false;
+    autoConnectingRef.current = false;
     setStatus('choosing');
     setScanPhase('searching');
 
@@ -181,6 +203,7 @@ export function usePM5() {
       );
       if (changed) publishRows(list);
       else rowsRef.current = list;
+      maybeAutoChoose(list);
     };
 
     let stop;
@@ -208,6 +231,7 @@ export function usePM5() {
         PM5_STALE_MS
       );
       if (changed) publishRows(list);
+      maybeAutoChoose(list);
       // "None found" counts only monitors still in range.
       if (hasLive(list)) {
         scan.emptySince = null;
@@ -218,7 +242,7 @@ export function usePM5() {
         setScanPhase('empty');
       }
     }, PM5_SWEEP_MS);
-  }, [stopScanning, failList, publishRows]);
+  }, [stopScanning, failList, publishRows, maybeAutoChoose]);
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
@@ -387,6 +411,7 @@ export function usePM5() {
       rowsRef.current = [];
       setMonitors([]);
       setConnectingId(null);
+      autoSkipRef.current = null;
       return beginScan();
     }
     setStatus('connecting');
@@ -398,6 +423,7 @@ export function usePM5() {
       const connected = await connectToPM5();
       device = connected.device;
       await startPiece(connected, attempt);
+      if (device?.id) writeLastPm5Id(device.id);
 
       // 0031 packets can land during the awaits above; don't clobber them.
       setStatus((prev) => (prev === 'connecting' ? 'connected' : prev));
@@ -441,6 +467,10 @@ export function usePM5() {
         connectAbortRef.current = null;
         connectingRef.current = null;
         setConnectingId(null);
+        if (autoConnectingRef.current) {
+          autoSkipRef.current = id;
+          autoConnectingRef.current = false;
+        }
         setError(err.message);
         setErrorCode(typeof err.code === 'string' ? err.code : null);
         beginScan();
@@ -480,14 +510,20 @@ export function usePM5() {
       connectAbortRef.current = null;
       connectingRef.current = null;
       choosingRef.current = false;
+      autoConnectingRef.current = false;
       rowsRef.current = [];
       setMonitors([]);
       setConnectingId(null);
+      writeLastPm5Id(id);
       // 0031 packets can land during the awaits above; don't clobber them.
       setStatus((prev) => (prev === 'choosing' ? 'connected' : prev));
     },
     [beginScan, startPiece, stopScanning]
   );
+
+  useEffect(() => {
+    chooseRef.current = choose;
+  }, [choose]);
 
   const retryScan = useCallback(() => {
     setError(null);

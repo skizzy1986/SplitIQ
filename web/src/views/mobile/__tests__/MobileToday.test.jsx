@@ -69,12 +69,15 @@ describe('readiness', () => {
 });
 
 describe("today's session", () => {
-  it('says nothing is prescribed when nothing is', () => {
+  it('says nothing is planned when nothing is', () => {
     render(<MobileToday />);
-    expect(screen.getByText(/Nothing prescribed today/)).toBeInTheDocument();
+    expect(screen.getByText(/Nothing planned today/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Just row' })
+    ).toBeInTheDocument();
   });
 
-  it('shows a planned session and starts it', async () => {
+  it('shows a planned session and starts it on the PM5', async () => {
     const user = userEvent.setup();
     mockSessions.mockReturnValue({
       data: [
@@ -83,6 +86,7 @@ describe("today's session", () => {
           date: mdy(today),
           status: 'planned',
           label: 'UT1 4 x 10min',
+          duration: 40,
           coach_note: 'Hold the easy end',
         },
       ],
@@ -91,17 +95,68 @@ describe("today's session", () => {
     render(<MobileToday onStartSession={onStart} />);
     expect(screen.getByText('UT1 4 x 10min')).toBeInTheDocument();
     expect(screen.getByText('Hold the easy end')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: /START SESSION/ }));
+    await user.click(screen.getByRole('button', { name: 'Start on PM5' }));
     expect(onStart).toHaveBeenCalledTimes(1);
+    expect(onStart).toHaveBeenCalledWith('planned');
   });
 
-  it('offers no start button for a session already completed', () => {
+  it('offers no Start on PM5 for a session already completed', () => {
     mockSessions.mockReturnValue({
       data: [{ id: 1, date: mdy(today), status: 'completed', label: 'Done' }],
     });
     render(<MobileToday />);
     expect(screen.getByText('Done')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /START SESSION/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Start on PM5' })).toBeNull();
+  });
+
+  it('falls back to Row it again using the last erg piece', async () => {
+    const user = userEvent.setup();
+    mockSessions.mockReturnValue({
+      data: [
+        {
+          id: 1,
+          date: mdy(daysAgo(2)),
+          status: 'completed',
+          type: 'Erg',
+          label: '30 min UT2',
+          duration: 30,
+          avg_watts: 129,
+        },
+        {
+          id: 2,
+          date: mdy(daysAgo(3)),
+          status: 'completed',
+          type: 'Strength',
+          label: 'Lower A',
+          duration: 55,
+        },
+      ],
+    });
+    const onStart = vi.fn();
+    render(<MobileToday onStartSession={onStart} />);
+    expect(screen.getByText(/Row your last piece again/)).toBeInTheDocument();
+    expect(screen.getAllByText(/30 min UT2/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/129 W/).length).toBeGreaterThan(0);
+    await user.click(screen.getByRole('button', { name: 'Row it again' }));
+    expect(onStart).toHaveBeenCalledWith('again');
+  });
+
+  it('Tweak and Pick a workout open the Train picker, not the erg', async () => {
+    const user = userEvent.setup();
+    mockSessions.mockReturnValue({
+      data: [
+        {
+          id: 1,
+          date: mdy(today),
+          status: 'planned',
+          label: 'UT1 4 x 10min',
+        },
+      ],
+    });
+    const onStart = vi.fn();
+    render(<MobileToday onStartSession={onStart} />);
+    await user.click(screen.getByRole('button', { name: 'Tweak' }));
+    expect(onStart).toHaveBeenCalledWith('pick');
   });
 });
 

@@ -10,13 +10,20 @@
 > training their athletes choose to share; a generic deterministic planner is in;
 > and every surface reads at a simple depth or an expert one. Nothing on the cull
 > list comes back. Amended passages carry the date.
+>
+> **Amended 2026-11-25** (#753). The second flagship movement is the rowing stroke at
+> `/row`, decided by Scott on 2026-11-24. The order of work stays in the roadmap
+> (private), not here. The wording rule is now stated for every figure the app shows
+> and for the output of the anatomy data, not only for load figures. Sending a
+> workout to the athlete's own PM5 is the log's own capture path; the "competes
+> with none of them" limit stays.
 
 ## The one sentence
 
 **A training app where the movements explain themselves.**
 
-A 3D anatomical runtime shows what a lift actually does — which muscles work, how
-hard, through the whole range — wrapped around a training log that models load
+A 3D anatomical runtime shows what a lift, or a rowing stroke, actually does — which
+muscles work, how hard, through the whole range — wrapped around a training log that models load
 honestly, plans deterministically, and reads as simply or as deeply as its user
 wants. Not a logger with a video link next to "Back Squat".
 
@@ -75,11 +82,17 @@ quietly reintroduce them.
   device ecosystems, social graphs and sensor partnerships that are not code
   problems, and their free tiers set a price floor a load dashboard cannot clear.
   SplitIQ imports from them where it is useful and competes with none of them.
+  Sending a workout to the athlete's own PM5 is the log's own capture path; the
+  "competes with none of them" limit stays.
   Coach access does not reopen this. It is not a coaching-business platform: no
   billing, no messaging, no client onboarding, no programme marketplace.
-- **Never present modelled values as measured.** The anatomy data is a model. It is
-  labelled as modelled everywhere it appears, activation is shown as a band and never
-  a number, and no reference range is published without a source. This rule predates
+- **Never present modelled values as measured, or a published measurement as the
+  user's own.** The anatomy data is a model. It is labelled as modelled everywhere it
+  appears, activation is shown as a band and never a number, and no reference range
+  is published without a source (where no study gives a number, it is labelled a
+  coaching standard). Where a movement's curves come from a published dataset, as the
+  `/row` joint curves do, the page names the study and says it is a reference stroke,
+  not the user's. This rule predates
   this document (`pipeline/squat-anatomy/CLAUDE.md`, golden rules 3 and 4) and is
   mechanically guarded by the prose scan in `web/src/squat/__tests__/content.test.js`.
 
@@ -89,9 +102,11 @@ quietly reintroduce them.
 
 `web/src/anatomy/` is a movement-neutral runtime: posing, skinning, colour and
 camera maths, fixture-tested against the source page. `web/src/squat/` is the first
-product built on it. The per-movement **data pipeline**
+product built on it, and `/row` is the second. The per-movement **data pipeline**
 (`pipeline/squat-anatomy/`) is therefore not housekeeping — it is the engine that
-decides whether this is one feature or a product. The package refactor and test
+decides whether this is one feature or a product. It serves every movement from one
+project, and the shipped squat data is pinned byte for byte, so work for another
+movement cannot change it unnoticed. The package refactor and test
 suite that landed in #402 / #406 are the most strategically important work in the
 repo for that reason.
 
@@ -102,8 +117,11 @@ pipeline run, and `exercises` holds 873 rows, so a dataset for each is never
 happening.
 
 The shape is **a handful of compound movements done properly** — the high-bar back
-squat ships today; deadlift, bench press, row and overhead press are the obvious
-candidates. The exercise library links to an anatomy dataset where one exists and
+squat ships today; the rowing stroke on a Concept2 RowErg, at `/row`, is the second
+flagship (decided 2026-11-24); deadlift, bench press and overhead press are the
+candidates after that. "Row" here means the erg stroke, not a barbell row. Done
+properly means a dataset, written content, a source for every range, prose-scan
+coverage and tests. The exercise library links to an anatomy dataset where one exists and
 stays plain text where it does not. Five done well beats eight hundred stubbed.
 
 ### Load stays, one-athlete prescription goes, generic planning is in
@@ -145,7 +163,26 @@ expert depth, and the user chooses which.
   not a second calculation.
 - **A metric says what it means before it says its number.** At the simple depth
   that is plain words that describe; at the expert depth it is the figure and how it
-  was derived. Neither depth turns a load figure into a verdict or an instruction.
+  was derived. Neither depth turns a figure into a verdict or an instruction. That
+  holds for load, readiness and form figures and for anything the movement tools
+  show. Wording describes and never grades: it says what a number is, what it is
+  compared with and where that came from. A comparison with the user's own plan or
+  with a cited guideline is a description, not a verdict.
+- **A model output describes the model, in two stages** (Scott, 2026-11-25).
+  - **Now:** a modelled activation, a reference or textbook stroke or rep, and a
+    form check describe the model against a cited range and are labelled as a
+    reference. They do not comment on the user's own movement. A figure shown
+    beside the user's workout, including the live rower figure, never reacts to
+    how they row.
+  - **Later, planned:** once the textbook-form models have been demonstrated,
+    technique feedback on the user's own movement may be added. That addition
+    needs its own decision and its own amendment to this file, and it still
+    describes and never grades. It is ordinary, tested code: not an AI coach
+    and not an in-app LLM. A textbook-form model is demonstrated when, for that
+    movement, its goldens and cited references hold within their stated
+    tolerance, Scott has seen it side by side with a real session and said yes,
+    data licensing is cleared, and he has explicitly decided. Demonstrating one
+    movement does not demonstrate another.
 - **Depth is a preference, not a tier.** Nothing is locked.
 - **The four destinations are the simple depth's structure on every screen size:**
   Today, Train, Progress, Body (`web/src/constants/destinations.js`). The desktop
@@ -205,7 +242,8 @@ Easy to undersell while culling. All of this serves any user as-is:
   and the Strava tables are all keyed on `user_id` with owner-only RLS. Strava is
   already properly multi-user — it takes the user from the verified JWT subject.
   Coach access (above) adds to this model and does not replace it.
-- `/squat` and `web/src/anatomy/` entire. No personal data, no Supabase import.
+- `/squat`, `/row` (when it ships) and `web/src/anatomy/` entire. No personal data, no
+  Supabase import, pinned by a test for each public tool.
 - The pure utilities: load maths, pace, duration, dates, formatting, stats.
 - The design system and its gates — the light/dark palettes, the token pointer
   table, and the colour, contrast and design-sync checks.
@@ -244,7 +282,9 @@ code written to the rule under *The shape*, not a revival of these files.
   Distributing the data requires attribution, a statement that changes were made,
   and the same licence on the derived data. Share-alike applies to the data files,
   not to the code that reads them. See `NOTICE.md` and
-  `web/src/squat/assets/LICENSE.md`.
+  `web/src/squat/assets/LICENSE.md`. Each further movement records its own sources and
+  licences there before it ships; `/row` adds a BodyParts3D 4.0 skin (CC BY 4.0) and a
+  published joint-curve dataset (MIT).
 - The OpenSim / SimTK model terms are recorded but **not yet read**
   (`NOTICE.md`). That is an open item before any wider distribution.
 - The code is proprietary (`LICENSE`), with named exceptions in `PERMISSIONS.md`.
@@ -268,7 +308,8 @@ amendment on 2026-11-13 as decisions D13–D18 and a second track for the log (L
 coach access is specified before the desktop IA and built after H2; coach grants
 are invite-based, while D25 separately approves open account registration. The
 self-serve planner ships before coach-set plans, and the privacy reading starts
-with a research note. This file still wins wherever the two disagree.
+with a research note. D30 (2026-11-25) records `/row` as the second flagship,
+superseding D2 and D5. This file still wins wherever the two disagree.
 
 Roadmap D4 ("not a business" is absolute) is unchanged and is relied on above.
 

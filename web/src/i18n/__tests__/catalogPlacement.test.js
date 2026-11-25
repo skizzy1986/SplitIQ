@@ -19,6 +19,8 @@ const BOOT_ALLOWLIST = [
   'src/components/SplashScreen.jsx',
   'src/constants/destinations.js', // mobile tab names
   'src/utils/authError.js',
+  // The testers' invite sign-up form, reached from the login screen (#791).
+  'src/components/InviteSignupForm.jsx',
   // Not first-paint screens: they are here only because they are not yet in
   // VIEWS_SOURCES (four short strings between them). Move them, don't add more.
   'src/views/ErgView.jsx',

@@ -9,36 +9,51 @@ proper names stay as they are (SplitIQ, Strava). Numbers use a decimal point.
 Placeholders in braces — `{count}`, `{0}` — must stay exactly as written; their order
 may change. To correct a line, reply with its **row** id and the new Spanish.
 
-## Dashboard (src/locales, 29 strings)
+## Dashboard (src/locales, 44 strings)
 
 | Row | English | Español | Where / note |
 |---|---|---|---|
 | `xszP8W` | ＋ ADD TO HOME SCREEN | ＋ AGREGAR A LA PANTALLA DE INICIO | Install-the-app button, all capitals · src/AuthGate.jsx |
+| `QeXxn3` | Back to sign in | Volver a iniciar sesión | Link back to the sign-in form from the invite form · src/components/InviteSignupForm.jsx |
 | `V3Mep1` | BIKE | BICI | Splash word cycle, one discipline, all capitals · src/components/SplashScreen.jsx |
 | `bGQplw` | Body | Cuerpo | Mobile tab bar: readiness, sleep, heart rate · src/constants/destinations.js |
 | `zHd2A6` | Build {APP_BUILD} | Versión {APP_BUILD} | Accessible label on the loading screen. The identifier matches the Obtainium version on Android (for example 1.3.0+1249), a short commit on the web, or dev locally. · src/components/SplashScreen.jsx |
+| `S5DJ2Q` | Check the email and the code and try again. | Revisa el correo y el código e inténtalo de nuevo. | Invite sign-up error, for a malformed email or code. · src/components/InviteSignupForm.jsx |
+| `wUQveH` | Choose a longer password: at least 8 characters. | Elige una contraseña más larga: mínimo 8 caracteres. | Invite sign-up error. · src/components/InviteSignupForm.jsx |
+| `OdJfGw` | CHOOSE A PASSWORD | ELIGE UNA CONTRASEÑA | Invite form field label, all capitals · src/components/InviteSignupForm.jsx |
 | `vlj0xi` | Confirm your email address before signing in. | Confirma tu correo electrónico antes de iniciar sesión. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
-| `qGBulj` | Could not reach the server. Check your connection and try again. | No pudimos conectarnos con el servidor. Revisa tu conexión e inténtalo de nuevo. | Login error when the device is offline. Only shown in Spanish. · src/utils/authError.js |
-| `2e0dGW` | EMAIL | CORREO ELECTRÓNICO | Login form field label, all capitals · src/AuthGate.jsx |
+| `qGBulj` | Could not reach the server. Check your connection and try again. | No pudimos conectarnos con el servidor. Revisa tu conexión e inténtalo de nuevo. | Invite sign-up error when the device is offline. · Login error when the device is offline. Only shown in Spanish. · src/components/InviteSignupForm.jsx · src/utils/authError.js |
+| `actlHq` | CREATE ACCOUNT | CREAR CUENTA | Invite sign-up button · src/components/InviteSignupForm.jsx |
+| `OPUNZa` | Create your test account | Crea tu cuenta de prueba | Heading on the invite sign-up form · src/components/InviteSignupForm.jsx |
+| `xEcs-v` | CREATING… | CREANDO… | Invite sign-up button while the request is in flight · src/components/InviteSignupForm.jsx |
+| `2e0dGW` | EMAIL | CORREO ELECTRÓNICO | Login form field label, all capitals · Login form field label, all capitals · src/AuthGate.jsx · src/components/InviteSignupForm.jsx |
 | `Md1Bvk` | Enter email and password. | Ingresa tu correo y tu contraseña. | Login form validation error. · src/AuthGate.jsx |
 | `cFg0mZ` | Erg | Ergómetro | src/views/ErgView.jsx |
 | `J0GPZK` | ERG | ERGÓMETRO | Splash word cycle, one discipline, all capitals · src/components/SplashScreen.jsx |
+| `avF2Gg` | Fill in every field. | Completa todos los campos. | Invite sign-up error. · src/components/InviteSignupForm.jsx |
+| `NCJbRz` | Have an invite code? | ¿Tienes un código de invitación? | Link on the testers sign-in form to the invite form · src/AuthGate.jsx |
+| `aT2Pbm` | INVITE CODE | CÓDIGO DE INVITACIÓN | Invite form field label, all capitals · src/components/InviteSignupForm.jsx |
 | `Pwqkdw` | Loading… | Cargando… | Shown while the session or the app is loading · src/AuthGate.jsx |
 | `9qsGwv` | Log a session | Registrar una sesión | src/views/ErgView.jsx · src/views/mobile/MobileStrength.jsx · src/views/StrengthView.jsx |
 | `xAr6uG` | No reading | Sin lectura | src/views/ErgView.jsx |
 | `h2NQfe` | PASSWORD | CONTRASEÑA | Login form field label, all capitals · src/AuthGate.jsx |
 | `CP3D8G` | Progress | Progreso | Mobile tab bar · src/constants/destinations.js |
+| `cl0RNf` | REPEAT THE PASSWORD | REPITE LA CONTRASEÑA | Invite form field label, all capitals · src/components/InviteSignupForm.jsx |
 | `zPC2tx` | SIGN IN | INICIAR SESIÓN | Login button · src/AuthGate.jsx |
 | `zAvS8w` | Sign in to continue | Inicia sesión para continuar | src/AuthGate.jsx |
 | `fcWrnU` | Sign out | Cerrar sesión | Tooltip on the sign-out button · Tooltip on the sign-out button · src/AuthGate.jsx |
+| `WG-1-f` | Sign-up isn't available right now. Message whoever invited you. | El registro no está disponible ahora mismo. Escríbele a quien te invitó. | Invite sign-up error for any other cause. · src/components/InviteSignupForm.jsx |
 | `CcNLeM` | SIGNING IN… | INICIANDO SESIÓN… | Login button while the request is in flight · src/AuthGate.jsx |
 | `JR0j-9` | Strength | Fuerza | src/views/StrengthView.jsx |
 | `bSUnKi` | STRENGTH | FUERZA | Splash word cycle, one discipline, all capitals · src/components/SplashScreen.jsx |
 | `eriCGy` | SYNCING TRAINING LOG | SINCRONIZANDO REGISTRO DE ENTRENAMIENTO | Splash-screen loading caption, all capitals · src/components/SplashScreen.jsx |
+| `cL49DG` | That code and email did not work. Check them, or ask whoever invited you for a new code. | Ese código y ese correo no funcionaron. Revísalos, o pídele un código nuevo a quien te invitó. | Invite sign-up error. Deliberately says nothing more specific. · src/components/InviteSignupForm.jsx |
 | `14ONxy` | The server took too long to answer. Try again. | El servidor tardó demasiado en responder. Inténtalo de nuevo. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
+| `9GoQzJ` | The two passwords don't match. | Las dos contraseñas no coinciden. | Invite sign-up error. · src/components/InviteSignupForm.jsx |
 | `6OobED` | This account cannot sign in. | Esta cuenta no puede iniciar sesión. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
+| `CKSvw7` | Tick the box to carry on. | Marca la casilla para continuar. | Invite sign-up error, when the consent tick is empty. · src/components/InviteSignupForm.jsx |
 | `ecUA8p` | Today | Hoy | Mobile tab bar · src/constants/destinations.js |
-| `GYZVve` | Too many attempts. Wait a few minutes and try again. | Demasiados intentos. Espera unos minutos e inténtalo de nuevo. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
+| `GYZVve` | Too many attempts. Wait a few minutes and try again. | Demasiados intentos. Espera unos minutos e inténtalo de nuevo. | Invite sign-up error. · Login error. Only shown in Spanish; English shows the server message. · src/components/InviteSignupForm.jsx · src/utils/authError.js |
 | `-0cOZb` | Train | Entrenar | Mobile tab bar · src/constants/destinations.js |
 | `hdxhKx` | We could not sign you in. Try again. | No pudimos iniciar sesión. Inténtalo de nuevo. | Login error for any unrecognised cause. Only shown in Spanish. · src/utils/authError.js |
 | `y1oEoC` | Wrong email or password. | Correo o contraseña incorrectos. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |

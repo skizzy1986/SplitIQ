@@ -15,7 +15,7 @@
 //   node scripts/strip-tool-assets.mjs --check dist/assets  assert none left
 //
 // Exit 0 when done, 1 when there was nothing to strip (or, with --check, when
-// any is left), 2 on a usage error.
+// any is left or the directory holds no JS at all), 2 on a usage error.
 import { readdirSync, rmSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -52,19 +52,34 @@ export function run(args) {
   }
   const files = webOnlyFiles(dir);
   if (check) {
-    return files.length
-      ? {
-          code: 1,
-          out: [],
-          err: [
-            `web-only movement-tool files are still in ${dir}: ${files.join(', ')}`,
-          ],
-        }
-      : {
-          code: 0,
-          out: [`no web-only movement-tool files in ${dir}`],
-          err: [],
-        };
+    if (files.length) {
+      return {
+        code: 1,
+        out: [],
+        err: [
+          `web-only movement-tool files are still in ${dir}: ${files.join(', ')}`,
+        ],
+      };
+    }
+    // A built dist/assets always holds the app's JS. An empty or wrong
+    // directory holds none, and finding no tool files there proves nothing.
+    const hasJs = readdirSync(dir, { withFileTypes: true }).some(
+      (e) => e.isFile() && e.name.endsWith('.js')
+    );
+    if (!hasJs) {
+      return {
+        code: 1,
+        out: [],
+        err: [
+          `found no .js files in ${dir} — it is empty, or not a web build's assets, so there is nothing to check`,
+        ],
+      };
+    }
+    return {
+      code: 0,
+      out: [`no web-only movement-tool files in ${dir}`],
+      err: [],
+    };
   }
   if (!files.some((f) => TOOL_JS.test(f))) {
     return {

@@ -15,6 +15,8 @@ export const VIEWS_SOURCES = [
   'src/views/mobile/MobileSettings.jsx',
   'src/components/StravaConnectPanel.jsx',
   'src/components/ThemeControl.jsx',
+  // Testers' change-password form, Settings > Password (#792).
+  'src/components/ChangePasswordPanel.jsx',
   'src/views/OverviewView.jsx',
   'src/views/CalendarView.jsx',
   'src/views/PlanView.jsx',

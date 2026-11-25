@@ -1,8 +1,9 @@
 import { render, screen } from '@testing-library/react';
 
-// What the test is for: /squat must never evaluate supabaseClient.js, whose
-// createClient() runs at import. The mock's factory only executes if
-// something imports the module, so the spy records exactly that.
+// What the test is for: /squat and /row must never evaluate
+// supabaseClient.js, whose createClient() runs at import. The mock's factory
+// only executes if something imports the module, so the spy records exactly
+// that.
 const mocks = vi.hoisted(() => ({
   native: false,
   supabaseImported: vi.fn(),
@@ -86,6 +87,59 @@ describe('RouteRoot', () => {
     }
   });
 
+  // Before any test that loads AuthGate: Vitest runs a mock's factory once
+  // per file, even across vi.resetModules(), so authGateImported records only
+  // the first import and would stay silent here afterwards.
+  it('renders the row tool at /row without importing supabaseClient', async () => {
+    await renderAt('/row');
+    expect(
+      await screen.findByRole(
+        'heading',
+        { level: 1, name: 'Rowing stroke' },
+        { timeout: 5000 }
+      )
+    ).toBeInTheDocument();
+    expect(mocks.authGateImported).not.toHaveBeenCalled();
+    expect(mocks.supabaseImported).not.toHaveBeenCalled();
+  });
+
+  it('treats /row/ the same and canonicalises it in place', async () => {
+    await renderAt('/row/?a=1#x');
+    expect(window.location.pathname).toBe('/row');
+    expect(window.location.search).toBe('?a=1');
+    expect(window.location.hash).toBe('#x');
+    expect(
+      await screen.findByRole(
+        'heading',
+        { level: 1, name: 'Rowing stroke' },
+        { timeout: 5000 }
+      )
+    ).toBeInTheDocument();
+    expect(mocks.authGateImported).not.toHaveBeenCalled();
+    expect(mocks.supabaseImported).not.toHaveBeenCalled();
+  });
+
+  // Light, which the dashboard would never paint: the ground follows the
+  // stored preference because /row is a movement tool.
+  it("paints /row's loading ground in the stored theme", async () => {
+    window.localStorage.setItem('splitiq.theme', 'light');
+    try {
+      await renderAt('/row');
+      const ground = screen.getByTestId('route-ground');
+      expect(ground).toHaveAttribute('data-theme', 'light');
+      expect(ground.style.colorScheme).toBe('light');
+      expect(screen.getByTestId('theme-root')).toHaveAttribute(
+        'data-theme',
+        'light'
+      );
+      expect(
+        await screen.findByTestId('row-root', {}, { timeout: 5000 })
+      ).toHaveAttribute('data-theme', 'light');
+    } finally {
+      window.localStorage.clear();
+    }
+  });
+
   it('renders AuthGate at / and starts loading it at module scope', async () => {
     await renderAt('/');
     expect(await screen.findByText('AuthGate-stub')).toBeInTheDocument();
@@ -114,4 +168,19 @@ describe('RouteRoot', () => {
       window.localStorage.clear();
     }
   });
+
+  it('always renders AuthGate in the native app, even at /row', async () => {
+    await renderAt('/row', { native: true });
+    expect(await screen.findByText('AuthGate-stub')).toBeInTheDocument();
+    expect(screen.queryByText('Rowing stroke')).toBeNull();
+  });
+
+  it.each(['/rows', '/row/extra', '/ROW'])(
+    'renders AuthGate at %s, which is not a tool path',
+    async (path) => {
+      await renderAt(path);
+      expect(await screen.findByText('AuthGate-stub')).toBeInTheDocument();
+      expect(window.location.pathname).toBe(path);
+    }
+  );
 });

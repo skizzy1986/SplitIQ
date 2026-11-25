@@ -75,8 +75,40 @@ describe('the Spanish dashboard catalog', () => {
     // Reachable from squat too, so it is no longer "only via" the catalog
     // root from the dashboard — but squat reaching it is the defect named.
     expect(i18nCatalogProblems(shared, ES, SQUAT, I18N_JS).join('\n')).toMatch(
-      /\/squat can reach the dashboard catalog: i18n-es-d\.js/
+      /src\/squat\/SquatApp\.jsx can reach the dashboard catalog: i18n-es-d\.js/
     );
+  });
+
+  // #756: a second tool root. Either one reaching the catalog is the defect,
+  // and the message names the root that does.
+  it('flags a dashboard catalog reachable from either tool root', () => {
+    const ROW = 'src/row/RowApp.jsx';
+    const TOOLS = [SQUAT, ROW];
+    const withRow = {
+      ...BUILD,
+      'index.html': {
+        ...BUILD['index.html'],
+        dynamicImports: [...BUILD['index.html'].dynamicImports, ROW],
+      },
+      [ROW]: {
+        file: 'assets/anatomy-RowApp-f.js',
+        isDynamicEntry: true,
+        imports: ['index.html'],
+      },
+    };
+    expect(i18nCatalogProblems(withRow, ES, TOOLS, I18N_JS)).toEqual([]);
+    expect(
+      firstPaintLeaks(withRow, ES, ['src/AuthGate.jsx', ...TOOLS], LABEL)
+    ).toEqual([]);
+    for (const tool of TOOLS) {
+      const reaching = {
+        ...withRow,
+        [tool]: { ...withRow[tool], dynamicImports: [ES] },
+      };
+      expect(i18nCatalogProblems(reaching, ES, TOOLS, I18N_JS), tool).toEqual([
+        `${tool} can reach the dashboard catalog: i18n-es-d.js.`,
+      ]);
+    }
   });
 });
 

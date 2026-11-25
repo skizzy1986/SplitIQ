@@ -1,7 +1,7 @@
 import { Component } from 'react';
 import { render, screen } from '@testing-library/react';
 
-// The first-visit offline fallback: RouteRoot's lazy import of the squat
+// The first-visit offline fallback: RouteRoot's lazy import of a tool's
 // chunk rejects. Offline, a message replaces the blank ground; online, the
 // rejection is rethrown for the error boundary to report.
 vi.mock('@capacitor/core', () => ({
@@ -9,6 +9,9 @@ vi.mock('@capacitor/core', () => ({
 }));
 vi.mock('../AuthGate.jsx', () => ({ default: () => null }));
 vi.mock('../squat/SquatApp.jsx', () => {
+  throw new Error('Failed to fetch dynamically imported module');
+});
+vi.mock('../row/RowApp.jsx', () => {
   throw new Error('Failed to fetch dynamically imported module');
 });
 
@@ -33,8 +36,8 @@ afterEach(() => {
   delete window.navigator.onLine;
 });
 
-async function renderSquat() {
-  window.history.replaceState(null, '', '/squat');
+async function renderAt(path) {
+  window.history.replaceState(null, '', path);
   vi.resetModules();
   const { default: RouteRoot } = await import('../RouteRoot.jsx');
   return render(
@@ -43,6 +46,7 @@ async function renderSquat() {
     </Boundary>
   );
 }
+const renderSquat = () => renderAt('/squat');
 
 describe('RouteRoot offline first visit', () => {
   it('says a connection is needed when the chunk fails offline', async () => {
@@ -58,6 +62,28 @@ describe('RouteRoot offline first visit', () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
     try {
       await renderSquat();
+      expect(await screen.findByText('boundary caught')).toBeInTheDocument();
+      expect(screen.queryByRole('alert')).toBeNull();
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it('says the rowing tool needs a connection when its chunk fails offline', async () => {
+    online = false;
+    await renderAt('/row');
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent(
+      'The rowing tool needs a connection the first time. Reconnect and reload.'
+    );
+    expect(alert).toHaveAttribute('lang', 'en');
+  });
+
+  it('rethrows the row chunk failure when online', async () => {
+    online = true;
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      await renderAt('/row');
       expect(await screen.findByText('boundary caught')).toBeInTheDocument();
       expect(screen.queryByRole('alert')).toBeNull();
     } finally {

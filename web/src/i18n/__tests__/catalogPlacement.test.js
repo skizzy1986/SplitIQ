@@ -2,7 +2,8 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { VIEWS_SOURCES } from '../../../lingui.config.js';
+import linguiConfig, { VIEWS_SOURCES } from '../../../lingui.config.js';
+import { TOOL_DIRS } from '../../../scripts/movementAssets.mjs';
 
 // A file whose messages are not in VIEWS_SOURCES is extracted into the boot
 // catalog (src/locales/en.po), which AuthGate loads on first paint, where the
@@ -25,8 +26,15 @@ const BOOT_ALLOWLIST = [
   'src/views/mobile/MobileStrength.jsx',
 ];
 
-// /squat and the anatomy runtime have their own catalog (src/squat/locales).
-const OWN_CATALOG = ['src/squat/', 'src/anatomy/'];
+// The movement tools and the anatomy runtime have their own catalogs
+// (src/squat/locales, src/row/locales), never the dashboard's.
+const OWN_CATALOG = [
+  'src/squat/',
+  'src/row/',
+  'src/tool/',
+  'src/anatomy/',
+  'src/movements/',
+];
 // Matches what extraction reads: a macro import. A commented-out import
 // false-positives loudly, which is the safe direction; do not loosen it.
 const MACRO_IMPORT = /from\s+['"]@lingui\/(?:core|react)\/macro['"]/;
@@ -105,6 +113,37 @@ describe('dashboard catalog placement', () => {
       'src/utils/durationLabel.js',
     ]) {
       expect(VIEWS_SOURCES).toContain(f);
+    }
+  });
+});
+
+describe("the movement tools' catalogs", () => {
+  const DASHBOARD_CATALOG = '<rootDir>/src/locales/{locale}';
+  const { catalogs } = linguiConfig;
+  const dashboard = catalogs.find((c) => c.path === DASHBOARD_CATALOG);
+
+  // The build names a chunk a tool's by these folders (TOOL_DIRS), so a
+  // folder Lingui treats as the dashboard's would put a tool's words in the
+  // dashboard's catalog, or the reverse.
+  it("OWN_CATALOG equals the registry's src tool dirs", () => {
+    expect(OWN_CATALOG).toEqual(
+      TOOL_DIRS.filter((d) => d.startsWith('/src/')).map((d) => d.slice(1))
+    );
+  });
+
+  it('every own-catalog dir is in a non-dashboard Lingui catalog and excluded from the dashboard catalog', () => {
+    expect(dashboard).toBeDefined();
+    for (const dir of OWN_CATALOG) {
+      const folder = `<rootDir>/${dir.replace(/\/$/, '')}`;
+      const owners = catalogs.filter(
+        (c) => c !== dashboard && c.include.includes(folder)
+      );
+      expect(
+        owners.map((c) => c.path),
+        dir
+      ).toHaveLength(1);
+      expect(owners[0].path, dir).not.toMatch(/^<rootDir>\/src\/locales\//);
+      expect(dashboard.exclude, dir).toContain(`${folder}/**`);
     }
   });
 });

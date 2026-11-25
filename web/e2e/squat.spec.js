@@ -2,6 +2,10 @@ import { readFileSync } from 'node:fs';
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { DARK } from '../src/constants/themeValues.js';
+import {
+  dataUrlPattern,
+  toolChunkUrlPattern,
+} from '../scripts/movementAssets.mjs';
 
 // The public /squat tool against the built preview — the real browser, a real
 // Worker and a real DecompressionStream, none of which jsdom has.
@@ -155,7 +159,9 @@ for (const scheme of ['light', 'dark']) {
         scheme
       );
       // The data really went through the worker: the stream was requested.
-      expect(urls.some((u) => /squat-anatomy-.*\.bin$/.test(u))).toBe(true);
+      expect(urls.some((u) => dataUrlPattern('squat-anatomy').test(u))).toBe(
+        true
+      );
       expect(supabaseHits(urls)).toEqual([]);
       // Stronger still, and what keeps CI hermetic: nothing leaves the origin.
       const origin = new URL(page.url()).origin;
@@ -464,7 +470,7 @@ test('a stored dark choice beats a light OS, from the first frame', async ({
   // Hold the tool's chunk so the Suspense fallback is what is on screen.
   let release;
   const held = new Promise((r) => (release = r));
-  await page.route(/\/assets\/squat-SquatApp-.*\.js$/, async (route) => {
+  await page.route(toolChunkUrlPattern('SquatApp'), async (route) => {
     await held;
     await route.continue();
   });
@@ -534,8 +540,8 @@ test.describe('phone 390 px layout', () => {
         await route.continue();
       });
     };
-    await hold(/\/assets\/squat-manifest-.*\.json$/, 'manifest');
-    await hold(/\/assets\/squat-createAnatomyScene-.*\.js$/, 'scene');
+    await hold(dataUrlPattern('squat-manifest'), 'manifest');
+    await hold(toolChunkUrlPattern('createAnatomyScene'), 'scene');
 
     // Page coordinates, so a scroll could not fake a stable position.
     const formCheckTop = () =>

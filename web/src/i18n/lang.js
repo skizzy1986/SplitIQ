@@ -30,10 +30,16 @@ export const LANG_UI = {
   },
 };
 
-// Shown before the squat tool's chunk exists (RouteRoot).
+// Shown before a movement tool's chunk exists (RouteRoot), one line per tool.
 export const OFFLINE_TEXT = {
-  en: 'The squat tool needs a connection the first time. Reconnect and reload.',
-  es: 'La herramienta de sentadilla necesita conexión la primera vez. Conéctate y vuelve a cargar.',
+  squat: {
+    en: 'The squat tool needs a connection the first time. Reconnect and reload.',
+    es: 'La herramienta de sentadilla necesita conexión la primera vez. Conéctate y vuelve a cargar.',
+  },
+  row: {
+    en: 'The rowing tool needs a connection the first time. Reconnect and reload.',
+    es: 'La herramienta de remo necesita conexión la primera vez. Conéctate y vuelve a cargar.',
+  },
 };
 
 // The root error fallback renders outside every provider, possibly before the

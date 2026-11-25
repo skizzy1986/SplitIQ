@@ -18,14 +18,33 @@ function sourceFiles(dir) {
 
 const SPECIFIER = /(?:\bfrom|\bimport)\s*\(?\s*['"]([^'"]+)['"]/g;
 
+const relativeToSrc = (target) => relative(SRC, target).split(sep).join('/');
+
 const forbidden = (target) => {
-  const rel = relative(SRC, target).split(sep).join('/');
+  const rel = relativeToSrc(target);
   return (
     rel.startsWith('squat/') ||
+    rel.startsWith('row/') ||
+    rel.startsWith('tool/') ||
     rel.startsWith('movements/') ||
-    /^utils\/squatRoute(\.|$)/.test(rel)
+    /^utils\/movementRoute(\.|$)/.test(rel)
   );
 };
+
+// Every relative import in `files` that resolves somewhere `isBad` refuses.
+function badImports(files, isBad) {
+  const bad = [];
+  for (const file of files) {
+    const src = readFileSync(file, 'utf8');
+    for (const [, spec] of src.matchAll(SPECIFIER)) {
+      if (!spec.startsWith('.')) continue;
+      if (isBad(resolve(dirname(file), spec))) {
+        bad.push(`${relative(SRC, file)} → ${spec}`);
+      }
+    }
+  }
+  return bad;
+}
 
 describe('src/anatomy layering', () => {
   const files = sourceFiles(ANATOMY);
@@ -34,24 +53,38 @@ describe('src/anatomy layering', () => {
     expect(files.length).toBeGreaterThan(10);
   });
 
-  it('never imports squat/, movements/ or utils/squatRoute', () => {
-    const bad = [];
-    for (const file of files) {
-      const src = readFileSync(file, 'utf8');
-      for (const [, spec] of src.matchAll(SPECIFIER)) {
-        if (!spec.startsWith('.')) continue;
-        const target = resolve(dirname(file), spec);
-        if (forbidden(target)) bad.push(`${relative(SRC, file)} → ${spec}`);
-      }
-    }
-    expect(bad).toEqual([]);
+  it('never imports squat/, row/, tool/, movements/ or utils/movementRoute', () => {
+    expect(badImports(files, forbidden)).toEqual([]);
   });
 
   it('would flag each forbidden destination', () => {
     expect(forbidden(join(SRC, 'squat/constants/barbell.js'))).toBe(true);
+    expect(forbidden(join(SRC, 'row/RowApp.jsx'))).toBe(true);
+    expect(forbidden(join(SRC, 'tool/ToolShell.jsx'))).toBe(true);
     expect(forbidden(join(SRC, 'movements/squat/movement.js'))).toBe(true);
-    expect(forbidden(join(SRC, 'utils/squatRoute.js'))).toBe(true);
+    expect(forbidden(join(SRC, 'utils/movementRoute.js'))).toBe(true);
     expect(forbidden(join(SRC, 'utils/squatTheme.js'))).toBe(false);
+    expect(forbidden(join(SRC, 'rowing/x.js'))).toBe(false);
     expect(forbidden(join(SRC, 'constants/themeValues.js'))).toBe(false);
+  });
+});
+
+// One tool never reaches into another's folder: shared code belongs in
+// anatomy/ (or, from #758, tool/), where both can import it.
+describe('src/row layering', () => {
+  const files = sourceFiles(join(SRC, 'row'));
+  const intoSquat = (target) => relativeToSrc(target).startsWith('squat/');
+
+  it('finds the tool it is guarding', () => {
+    expect(files.map((f) => relativeToSrc(f))).toContain('row/RowApp.jsx');
+  });
+
+  it('src/row never imports squat/', () => {
+    expect(badImports(files, intoSquat)).toEqual([]);
+  });
+
+  it('would flag an import of squat/', () => {
+    expect(intoSquat(join(SRC, 'squat/hooks/useSquatTheme.js'))).toBe(true);
+    expect(intoSquat(join(SRC, 'hooks/useTheme.js'))).toBe(false);
   });
 });

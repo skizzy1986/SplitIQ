@@ -3,11 +3,13 @@ import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 
 const NEUTRAL_MESSAGE =
-  'src/anatomy/ is movement-neutral: take movement data as an argument, never import squat/, movements/ or utils/squatRoute.';
+  'src/anatomy/ is movement-neutral: take movement data as an argument, never import squat/, row/, tool/, movements/ or utils/movementRoute.';
 const ANATOMY_NEUTRAL = [
   { group: ['**/squat/**'], message: NEUTRAL_MESSAGE },
+  { group: ['**/row/**'], message: NEUTRAL_MESSAGE },
+  { group: ['**/tool/**'], message: NEUTRAL_MESSAGE },
   { group: ['**/movements/**'], message: NEUTRAL_MESSAGE },
-  { group: ['**/utils/squatRoute*'], message: NEUTRAL_MESSAGE },
+  { group: ['**/utils/movementRoute*'], message: NEUTRAL_MESSAGE },
 ];
 
 export default [
@@ -93,8 +95,9 @@ export default [
   {
     // The public squat tool streams and gunzips its data in a worker, so it
     // touches browser APIs the dashboard never needed. Scoped to its subtree
-    // rather than widened for the whole app.
-    files: ['src/squat/**/*.{js,jsx}'],
+    // and the shared decode protocol (anatomy/workers) rather than widened
+    // for the whole app.
+    files: ['src/squat/**/*.{js,jsx}', 'src/anatomy/workers/**/*.{js,jsx}'],
     languageOptions: {
       globals: {
         self: 'readonly',
@@ -102,6 +105,7 @@ export default [
         Worker: 'readonly',
         Response: 'readonly',
         ReadableStream: 'readonly',
+        AbortController: 'readonly',
         DecompressionStream: 'readonly',
         CompressionStream: 'readonly',
         Int8Array: 'readonly',
@@ -185,6 +189,7 @@ export default [
     // tests read its doc.
     files: [
       'src/squat/__tests__/**/*.{js,jsx}',
+      'src/row/**/__tests__/**/*.{js,jsx}',
       'src/anatomy/**/__tests__/**/*.{js,jsx}',
       'src/movements/**/__tests__/**/*.{js,jsx}',
     ],

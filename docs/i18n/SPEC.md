@@ -146,7 +146,7 @@ I made no repo writes and ran no build. The one exception: an in-memory measurem
 - **Share links.** The hash is language-free already (`squatHash.js:118-130`).
 - **Pre-chunk offline message.** `RouteRoot.jsx:55-63` renders it with a `lang` attribute on the element.
 - **Hold-render** with `use(promise)` under RouteRoot's existing Suspense (`RouteRoot.jsx:67-75`).
-- **The `squat-` chunk rule.** `scripts/squatChunks.mjs:7-29`: every module of the chunk must be under `/src/squat/`.
+- **The tool chunk rule.** `scripts/movementAssets.mjs` (`isToolOnly` over `TOOL_DIRS`; `scripts/squatChunks.mjs` until #756): every module of the chunk must be under a movement-tool folder (`/src/squat/`, `/src/row/`, `/src/tool/`, `/src/anatomy/`, `/src/movements/`, or three.js), and the chunk is named `anatomy-*`.
 - **No `import()` of Spanish from RouteRoot.** `prefixMismatch`/`onlyReachableVia` walk `dynamicImports` from the entry (`scripts/entry-graph.mjs:115-123,186-196`).
 - **The 360 px compact-header risk**, plus the e2e suite at `e2e/squat.spec.js:575-590`.
 - **Translation rules** (es-CO, tú only, untranslated citations and licence, honesty wording) and **T-USTED**.
@@ -207,7 +207,7 @@ Source for the catalog `path`/`include`/`exclude` semantics, and the `<rootDir>`
 | `src/locales/en.po` | **static** import in `src/i18n/dashboard.js`, which `AuthGate` imports | in the dashboard entry | everyone on the dashboard (English source text moves here from the components; net ≈ neutral) |
 | `src/locales/es.po` | `import('../locales/es.po')` inside `ensureLocale('es','dashboard')` | `assets/i18n-es-[hash].js` (new rule, below) | Spanish users only; never precached; **kept in the APK** so Spanish works offline on Android |
 | `src/squat/locales/en.po` | static import in `src/squat/i18n/setup.js` | squat chunk | /squat |
-| `src/squat/locales/es.po` + `src/squat/i18n/prose.es.js` (overlay) | dynamic, inside `ensureLocale('es','squat')` | `squat-*` (module ids are under `/src/squat/`) | Spanish /squat users only; never precached; stripped from the APK |
+| `src/squat/locales/es.po` + `src/squat/i18n/prose.es.js` (overlay) | dynamic, inside `ensureLocale('es','squat')` | `anatomy-*` (module ids are under `/src/squat/`; `squat-*` until #756) | Spanish /squat users only; never precached; stripped from the APK |
 
 **Does English need its catalog?** Yes, in production, because descriptors are id-only (spike 2).
 
@@ -217,12 +217,12 @@ The alternative is `descriptorFields: "message"` plus `i18n.setMessagesCompiler(
 
 **Phase 2+ watch item.** As views are translated, `src/locales/en.po` grows, and its *static* import is in the entry. Each view's English strings would move from that view's lazy chunk into the entry. The Phase-2 rule is: when a #412 view is translated, give it its own catalog with `{name}`, `path: '<rootDir>/src/views/{name}/locales/{locale}'`, and import its `en` catalog statically from the view module, so it stays in the view's lazy chunk. Phase 1 does not need this: shell, auth and settings are already in, or next to, the entry.
 
-**New chunk rule** in `scripts/squatChunks.mjs`, or a sibling `i18nChunks.mjs` with the same shape and unit tests:
+**New chunk rule** in `scripts/i18nChunks.mjs`, a sibling of the tool rule (then `scripts/squatChunks.mjs`, since #756 `scripts/movementAssets.mjs`) with the same shape and unit tests:
 - A chunk whose `moduleIds` are all `/locales/es.po` (non-squat) is named `assets/i18n-es-[hash].js`.
 - Add `**/assets/i18n-*.js` to `globIgnores`.
-- Add a `CacheFirst` `i18n-code` runtime route copied from `SQUAT_CODE_ROUTE` (`squatChunks.mjs:41-52`).
+- Add a `CacheFirst` `i18n-code` runtime route copied from the tool code route (`TOOL_CODE_ROUTE` in `movementAssets.mjs`; `SQUAT_CODE_ROUTE` until #756).
 
-This is required because Workbox otherwise precaches every JS asset, and every English install would then download Spanish (AC). The squat Spanish chunk gets the existing `squat-` prefix, because the squat check runs first.
+This is required because Workbox otherwise precaches every JS asset, and every English install would then download Spanish (AC). The squat Spanish chunk gets the tools' `anatomy-` prefix (`squat-` until #756), because the tool check runs first.
 
 ### 3. Bundle placement (estimates)
 
@@ -245,7 +245,7 @@ Both are subtracted from their product's TOTAL, the way `SQUAT_3D` is. Each figu
 - `LANG_KEY = 'splitiq.lang'`. That name is already product-neutral, so no rename is needed, and it is the **one key shared by both products**.
 - `LANGS`, `LANG_TAG = { en: 'en', es: 'es-CO' }`.
 - `readLangPref(storage)` and `initialLang(win)`: `safeStorage` from `utils/squatTheme.js:39-46`, try/catch, default `en`, no detection.
-- `OFFLINE_TEXT {en, es}`.
+- `OFFLINE_TEXT`: one `{en, es}` line per movement, `{ squat, row }` since #756.
 - `LANG_UI = { label: {en:'Language', es:'Idioma'}, native: {en:'English', es:'Español'} }`.
 
 Why the toggle's few strings sit here rather than in a catalog: the toggle is shared by both products, and it would otherwise need a third catalog loaded by both.
@@ -389,8 +389,8 @@ Not display: `StrengthLogger.jsx:167` (`en-CA`) is an ISO generator and is not t
 | Dashboard Phase-1 surfaces render ES | `src/i18n/__tests__/dashboard.es.test.jsx` | Login (incl. validation and mapped errors), desktop nav (`App.jsx:349-362`), `BottomTabBar` labels (`constants/destinations.js:15-20` via `msg`), Settings, Strava panel states, shared error/empty/loading states |
 | Untranslated views stay whole-English | `dashboard.es.test.jsx` | In ES, an untranslated view (e.g. Overview) renders its English heading and **no** ES string inside it |
 | Dates follow language (per phase) | `src/utils/__tests__/displayLocale.test.js` | `dateLocale('en', x) === x` (incl. `undefined`); `dateLocale('es', x) === 'es-CO'` |
-| Catalogs not on first paint; product isolation | `scripts/check-bundle-size.mjs` + `scripts/__tests__/entry-graph.test.*` | `firstPaintLeaks` for both ES roots against both boot keys; `SQUAT_ES` files all `squat-*`; `DASH_ES` files all `i18n-*` and not reachable from `SQUAT_ROOT`; `precachedSquat` plus a new `precachedI18n` check that `sw.js` holds no `assets/i18n-` file |
-| APK | `.github/workflows/ci-android.yml` (add a step) | `dist/assets/i18n-es-*.js` **present**, `squat-*` absent; the toggle renders in the native shell (RTL test with `Capacitor.isNativePlatform` mocked true) |
+| Catalogs not on first paint; product isolation | `scripts/check-bundle-size.mjs` + `scripts/__tests__/entry-graph.test.*` | `firstPaintLeaks` for both ES roots against both boot keys; `SQUAT_ES` files all `anatomy-*` (`squat-*` until #756); `DASH_ES` files all `i18n-*` and not reachable from any tool root; `precachedTool` (`precachedSquat` until #756) plus a new `precachedI18n` check that `sw.js` holds no `assets/i18n-` file |
+| APK | `.github/workflows/ci-android.yml` (add a step) | `dist/assets/i18n-es-*.js` **present**, no movement-tool file left (`strip-tool-assets.mjs --check`; a `squat-*` glob until #756); the toggle renders in the native shell (RTL test with `Capacitor.isNativePlatform` mocked true) |
 | Reviewer record | `content.es.test.js` (sha stamp) + `i18n-review-sheet` freshness test | As in §9 |
 | Runtime failure | `LanguageProvider.test.jsx` | A rejected catalog import → English, one `captureError`, status shown, nothing persisted; the initial-load failure renders English with no error boundary |
 | 3D/hash unaffected | `squat/__tests__/SquatScene.test.jsx` (add) | A language switch creates no new scene and makes no `setHash` call |
@@ -456,7 +456,7 @@ Each of PR-1 to PR-3 gets a native-speaker review on its Vercel preview before m
 - `web/src/utils/displayLocale.js`
 - `web/src/test/rtl.js`
 - `web/scripts/i18n-review-sheet.mjs` and `docs/i18n/REVIEW-es-CO.md`
-- `web/scripts/i18nChunks.mjs` (or extend `squatChunks.mjs`)
+- `web/scripts/i18nChunks.mjs` (beside the tool rule: `squatChunks.mjs` then, `movementAssets.mjs` since #756)
 - `web/src/views/mobile/MobileSettings.jsx` (PR-M)
 - The tests named in §10
 

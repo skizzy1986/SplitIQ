@@ -10,6 +10,9 @@ vi.mock('../../AuthGate.jsx', () => ({ default: () => null }));
 vi.mock('../../squat/SquatApp.jsx', () => {
   throw new Error('Failed to fetch dynamically imported module');
 });
+vi.mock('../../row/RowApp.jsx', () => {
+  throw new Error('Failed to fetch dynamically imported module');
+});
 
 beforeEach(() => {
   Object.defineProperty(window.navigator, 'onLine', {
@@ -23,12 +26,13 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-async function renderSquat() {
-  window.history.replaceState(null, '', '/squat');
+async function renderAt(path) {
+  window.history.replaceState(null, '', path);
   vi.resetModules();
   const { default: RouteRoot } = await import('../../RouteRoot.jsx');
   return render(<RouteRoot />);
 }
+const renderSquat = () => renderAt('/squat');
 
 describe('RouteRoot offline message', () => {
   it('is Spanish, and tagged es-CO, for a visitor who chose Spanish', async () => {
@@ -54,5 +58,15 @@ describe('RouteRoot offline message', () => {
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent(/needs a connection the first time/);
     expect(alert).toHaveAttribute('lang', 'en');
+  });
+
+  it("the row's line is Spanish, tagged es-CO", async () => {
+    window.localStorage.setItem(LANG_KEY, 'es');
+    await renderAt('/row');
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent(
+      'La herramienta de remo necesita conexión la primera vez. Conéctate y vuelve a cargar.'
+    );
+    expect(alert).toHaveAttribute('lang', 'es-CO');
   });
 });

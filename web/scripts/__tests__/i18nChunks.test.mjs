@@ -7,7 +7,7 @@ import {
   I18N_JS,
   isTranslatedCatalog,
 } from '../i18nChunks.mjs';
-import { PLAIN_CHUNK_NAME, squatChunkFileNames } from '../squatChunks.mjs';
+import { PLAIN_CHUNK_NAME, chunkFileNames } from '../movementAssets.mjs';
 
 const ROOT = '/repo/web';
 
@@ -33,10 +33,13 @@ describe('isTranslatedCatalog', () => {
     );
   });
 
-  it('leaves /squat catalogs to the squat- rule', () => {
-    expect(isTranslatedCatalog([`${ROOT}/src/squat/locales/es.po`])).toBe(
-      false
-    );
+  it("leaves the movement tools' catalogs to the anatomy- rule", () => {
+    for (const catalog of [
+      'src/squat/locales/es.po',
+      'src/row/locales/es.po',
+    ]) {
+      expect(isTranslatedCatalog([`${ROOT}/${catalog}`]), catalog).toBe(false);
+    }
   });
 
   it('rejects a chunk that mixes in anything else, or nothing', () => {
@@ -50,9 +53,9 @@ describe('isTranslatedCatalog', () => {
 
 describe('chunk naming', () => {
   it('names the Spanish catalog i18n-es-*, which I18N_JS recognises', () => {
-    expect(
-      squatChunkFileNames({ moduleIds: [`${ROOT}/src/locales/es.po`] })
-    ).toBe(I18N_CHUNK_NAME);
+    expect(chunkFileNames({ moduleIds: [`${ROOT}/src/locales/es.po`] })).toBe(
+      I18N_CHUNK_NAME
+    );
     const built = I18N_CHUNK_NAME.replace('[name]', 'es')
       .replace('[hash]', 'Ab12')
       .replace('assets/', '');
@@ -63,16 +66,16 @@ describe('chunk naming', () => {
 
   it('names the views Spanish catalog i18n-es-* too', () => {
     expect(
-      squatChunkFileNames({ moduleIds: [`${ROOT}/src/locales/views/es.po`] })
+      chunkFileNames({ moduleIds: [`${ROOT}/src/locales/views/es.po`] })
     ).toBe(I18N_CHUNK_NAME);
   });
 
   it('leaves English and ordinary chunks plain', () => {
+    expect(chunkFileNames({ moduleIds: [`${ROOT}/src/locales/en.po`] })).toBe(
+      PLAIN_CHUNK_NAME
+    );
     expect(
-      squatChunkFileNames({ moduleIds: [`${ROOT}/src/locales/en.po`] })
-    ).toBe(PLAIN_CHUNK_NAME);
-    expect(
-      squatChunkFileNames({
+      chunkFileNames({
         moduleIds: [
           `${ROOT}/src/locales/views/en.po`,
           `${ROOT}/src/i18n/views.js`,
@@ -102,7 +105,7 @@ describe('Workbox pieces', () => {
   it('is what vite.config.js actually uses', () => {
     const src = readFileSync(join(process.cwd(), 'vite.config.js'), 'utf8');
     expect(src).toMatch(
-      /globIgnores:\s*SQUAT_GLOB_IGNORES\.concat\(I18N_GLOB_IGNORES\)/
+      /globIgnores:\s*TOOL_GLOB_IGNORES\.concat\(I18N_GLOB_IGNORES\)/
     );
     expect(src).toMatch(/runtimeCaching:\s*\[[\s\S]*I18N_CODE_ROUTE,/);
     expect(src).toMatch(/lingui\(\{\s*macroTransform:\s*true\s*\}\)/);

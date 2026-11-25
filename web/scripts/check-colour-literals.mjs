@@ -22,6 +22,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { TOOL_DIRS } from './movementAssets.mjs';
 
 const webRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const repoRoot = resolve(webRoot, '..');
@@ -153,14 +154,15 @@ const ALPHA_CONCAT = /\+ *['"][0-9a-fA-F]{2}['"]/g;
 const CAMEL_VAR = /var\(--color-[a-z0-9-]*[A-Z]/g;
 
 // three.js takes colours as 0xRRGGBB number literals, which the # pattern
-// above cannot see. The 3D scene (web/src/anatomy/) and the squat tool around
-// it are the only three.js surfaces, and their colours come from the anatomy*
-// tokens like everything else, so a hex number under either is rejected.
+// above cannot see. The 3D scene (web/src/anatomy/) and the movement tools
+// around it are the only three.js surfaces, and their colours come from the
+// anatomy* tokens like everything else, so a hex number under any tool
+// directory (scripts/movementAssets.mjs) is rejected.
 const HEX_NUMBER = /\b0x[0-9a-fA-F]{6}\b/g;
-const isSquat = (p) =>
-  p.startsWith('web/src/squat/') ||
-  p.startsWith('web/src/anatomy/') ||
-  p.startsWith('web/src/movements/');
+const TOOL_SRC = TOOL_DIRS.filter((d) => d.startsWith('/src/')).map(
+  (d) => `web${d}`
+);
+const isTool = (p) => TOOL_SRC.some((d) => p.startsWith(d));
 
 const failures = [];
 const seen = new Map();
@@ -190,7 +192,7 @@ for (const rel of scanned) {
           'no property, so the declaration is dropped'
       );
     }
-    if (isSquat(rel)) {
+    if (isTool(rel)) {
       for (const m of line.match(HEX_NUMBER) ?? []) {
         failures.push(
           `${rel}:${i + 1}  ${m} — a three.js colour literal is pinned to one ` +

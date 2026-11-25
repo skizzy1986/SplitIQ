@@ -142,8 +142,15 @@ import { parsePo } from './i18n-review-sheet.mjs';
 // the lazy erg chunk and none of it on first paint; the plugin it calls was
 // already in the entry for the Web Bluetooth shim. Measured + 2 would round
 // to 426; Scott set 425 explicitly, leaving 1.3 KB of headroom.
+//
+// TOTAL raised 425 -> 433 on 2026-11-25 (Scott, "Ok approved" at 09:42
+// Australia/Perth, #768 under #504: wiring the v10 live screen behind the
+// Labs beta switch). Measured 431.2 KB with ENTRY unchanged at 204.2. The
+// growth is the lazy LiveErgSession chunk (7.0 KB) plus a small ErgLiveView
+// seam, none of it on first paint. Measured + ~2 rounds to 433, leaving
+// 1.8 KB of headroom.
 const MAX_ENTRY_GZIP_KB = 208;
-const MAX_TOTAL_GZIP_KB = 425;
+const MAX_TOTAL_GZIP_KB = 433;
 
 // Squat tool, measured 2026-11-04 on PR1 (no three.js yet): SQUAT_ENTRY
 // 107.2 KB, SQUAT_TOTAL 18.8 KB. Entry gets the approved +10 KB (117), total

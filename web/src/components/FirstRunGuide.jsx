@@ -13,7 +13,8 @@ import {
   isSampleSession,
   onGuideOpenRequest,
 } from '../utils/firstRunGuide.js';
-import { clearSampleSessions } from '../utils/setRowingCp.js';
+import { clearSampleData } from '../utils/setRowingCp.js';
+import { invalidateSessionQueries } from '../utils/invalidateSessionQueries.js';
 import SetRowingCpForm from './SetRowingCpForm.jsx';
 
 // Testers-only walkthrough (#797). Copy lives in firstRunGuide.js, not the
@@ -59,14 +60,19 @@ export default function FirstRunGuide({ userId }) {
     if (!window.confirm(copy.welcomeCard.clearConfirm)) return;
     setClearing(true);
     setClearStatus(null);
-    const result = await clearSampleSessions();
+    const result = await clearSampleData();
     setClearing(false);
     if (!result.ok) {
       setClearStatus('error');
       return;
     }
     setClearStatus('cleared');
-    queryClient.invalidateQueries({ queryKey: ['sessions'] });
+    // Sessions, workouts and the placeholder CP all went, so every read of them
+    // refreshes.
+    invalidateSessionQueries(queryClient);
+    queryClient.invalidateQueries({ queryKey: ['anchors'] });
+    queryClient.invalidateQueries({ queryKey: ['strengthPRs'] });
+    queryClient.invalidateQueries({ queryKey: ['lift-history'] });
   };
 
   return (

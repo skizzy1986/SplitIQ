@@ -13,10 +13,10 @@ import {
 // into clips. Reuses the screen's band and its 2 W latch (classifyBand), so a
 // cue never disagrees with the badge the athlete is looking at.
 //
-// Every number below is a named constant so Scott can tune after a real row.
+// Every number below is a named constant so they can be tuned after a real row.
 
 // A split is a hit if its closed-split average is within this many watts of
-// the band target (Scott, 25 Nov 2026). classifyBand's 2 W latch still applies.
+// the band target (decided 25 Nov 2026, #785). classifyBand's 2 W latch still applies.
 export const HIT_TOLERANCE_W = 5;
 
 export const GO_DEBOUNCE_MS = 3000;
@@ -45,7 +45,7 @@ export const NEAR_END_S = 30;
 export const MISMATCH_M = 50;
 export const MISMATCH_S = 10;
 
-// Standard is the default (Scott, 25 Nov 2026): voice for intervals and
+// Standard is the default (decided 25 Nov 2026, #785): voice for intervals and
 // verdicts, tones for 500 m splits, a hit voiced one time in three.
 export const CHATTINESS = {
   quiet: { zone: false, rate: false, hitEvery: 0, splits500: false, budget: 3 },

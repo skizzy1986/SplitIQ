@@ -5,7 +5,7 @@ import json
 import numpy as np
 import pytest
 
-from squat import repack
+from core import repack
 from squat.build import build, decode_html
 from squat.cli import GOLDEN_RAW_BYTES, GOLDEN_RAW_SHA256
 from squat.page import assemble_template

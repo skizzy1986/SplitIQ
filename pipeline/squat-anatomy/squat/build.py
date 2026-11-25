@@ -11,10 +11,10 @@ from pathlib import Path
 import numpy as np
 
 from core.geom import tpts
+from core.repack import quant, save
 from squat.model.activation import NOLEN, activation_tables3
 from squat.model.curves import fixed_alpha
 from squat.model.kinetics import BW, MBAR
-from squat.repack import quant, save
 from squat.stages._io import cache, load_pickle
 
 

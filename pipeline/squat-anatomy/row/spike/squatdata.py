@@ -12,9 +12,9 @@ import numpy as np
 
 from core.geom import qR
 from core.paths import display
+from core.repack import TA
 from squat.cli import GOLDEN_RAW_BYTES, GOLDEN_RAW_SHA256
 from squat.model.curves import fixed_alpha
-from squat.repack import TA
 from squat.stages._io import cache, load_pickle
 
 TRUNK = ('pelvis_rest', 'L5', 'L4', 'L3', 'L2', 'L1', 'thorax')

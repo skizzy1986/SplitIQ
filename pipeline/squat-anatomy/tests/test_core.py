@@ -11,7 +11,7 @@ import sys
 from core import repack
 from squat.cli import GOLDEN_RAW_BYTES, GOLDEN_RAW_SHA256
 
-CORE_MODULES = ('core.geom', 'core.dqs', 'core.paths', 'core.skin', 'core.stl', 'core.repack', 'core.base', 'core.arm')
+CORE_MODULES = ('core.geom', 'core.dqs', 'core.paths', 'core.skin', 'core.stl', 'core.repack', 'core.base', 'core.arm', 'core.datafile')
 SKIP = {'node_modules', '.pytest_cache', '__pycache__'}
 # names whose only home is core/: importing them from their old module is refused even where it would still work
 ONE_HOME = {'squat.paths': {'MissingInputError', 'display', 'PROJECT'}, 'squat.model.arm': {'Arm'}}

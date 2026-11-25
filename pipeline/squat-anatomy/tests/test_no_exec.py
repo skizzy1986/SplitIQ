@@ -28,6 +28,7 @@ def _bad_calls(tree):
 def test_scans_the_package():
     names = {p.relative_to(PROJECT).as_posix() for p in _files()}
     assert 'squat/build.py' in names and 'page/assemble.py' in names
+    assert 'core/repack.py' in names and 'core/datafile.py' in names
 
 
 def test_no_exec_calls():

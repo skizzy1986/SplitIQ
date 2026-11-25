@@ -4,12 +4,13 @@ This repo builds one self-contained HTML page (`dist/squat.html`): a 3D, phase-r
 
 ## Golden rules
 
-1. **Never hand-edit the data blob.** The `<script id="squat-manifest">` JSON and the `<script id="squat-data">` base64 blob are written by `squat/repack.py:save()`. Change data in the pipeline, then rebuild.
+1. **Never hand-edit the data blob.** The `<script id="squat-manifest">` JSON and the `<script id="squat-data">` base64 blob are written by `core/repack.py:save()`. Change data in the pipeline, then rebuild.
 2. **Edit the page in `page/`, not in `dist/`.** Then `python -m squat build` (from `pipeline/squat-anatomy/`).
 3. **Modelled vs measured.** Anything computed by the model is labelled as modelled or estimated in the UI and docs. Never present estimated activation as EMG, or the reference rep as a recording.
 4. **Every reference range needs a source.** Add new targets to `docs/REFERENCES.md` with the citation, and cite them in the guide (`page/2-markup.html`, Sources pane) and in the form check or metrics table (`page/4-ui.js`). If no study gives a number, say "coaching standard".
 5. **Keep the rebuild deterministic.** `gzip(mtime=0)`, fixed seeds. If a change alters `dist/squat.html`, that should be the intended effect of the PR. `tests/test_golden.py` pins the data; a PR that moves it moves the golden sha, `web/src/squat/constants/dataAsset.js`, the `poseModel.test.js` pins, the re-extraction + `docs/squat/PROVENANCE.md` and `tests/test_numbers.py` together.
 6. **Verify before claiming done.** Render with the harness at 1440×900 (light), 1280×820 (`DARK=1`), and 390×844 (phone), look at the screenshots, and run `evalpage.js` to confirm zero page errors. Check the numbers you changed against `docs/REFERENCES.md`.
+7. **`core/` never imports `squat/` or `row/`** (`tests/test_core.py`); squat-only data reads stay in `squat/`.
 
 ## Conventions
 

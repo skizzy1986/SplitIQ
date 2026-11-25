@@ -15,12 +15,16 @@ page/                      page sources, concatenated into page/template.html
   3-core.js                data decode + three.js scene, bones, muscle skinning, bar, bar path
   4-ui.js                  rep timeline, readouts, charts, form check, guide, importer, framing, test hook
   assemble.py              writes page/template.html (optional: the build assembles in memory)
+core/                      movement-neutral code shared by squat/ and row/ (never imports either)
+  geom, dqs, skin, stl, base, arm    rigid-body helpers, DQS, skin groups, STLs, the v2 base body, the Arm model
+  paths.py, repack.py, datafile.py   MissingInputError/display; the HTML container (manifest + gzip/base64 blob); the manifest + .bin data-file writer/reader
 squat/                     the Python package: python -m squat build | stage <name> | list | verify
-  paths.py, inputs.py      every path (SQUAT_ROOT overrides pipeline/), the pinned fixed inputs and STLs
-  model/                   base page, girdle, skin, arm, readouts, curves, kinetics, activation, DQS
+  paths.py, inputs.py      Paths (SQUAT_ROOT overrides pipeline/), the pinned fixed inputs and STLs
+  model/                   girdle, arm (load_arm), readouts, curves, kinetics, activation
   stages/                  balance3, lengths3, phase3, upper3, ik3, ik4, regcur (see docs/ARCHITECTURE.md)
-  build.py, repack.py      assemble the page; read/write the manifest + gzip/base64 data blob
-tests/                     pytest: golden rebuild, per-stage byte pins, numbers, inputs, no-exec guard
+  build.py                 assemble the page (written by core/repack.py)
+row/                       the rowing spike (#754); see below
+tests/                     pytest: golden rebuild, per-stage byte pins, numbers, inputs, no-exec guard, core isolation, data-file writer
 pipeline/                  data only: fixed inputs and cached stage outputs (override with SQUAT_ROOT)
   T_global.npy             BodyParts3D (mm) -> model (m) transform
   ext/stl/                 the 14 BodyParts3D STLs the pipeline reads (scripts/fetch_stl.sh refetches)
@@ -52,7 +56,7 @@ python -m squat stage lengths3    # musculotendon path lengths -> mlen3.pkl
 python -m squat stage phase3      # timed rep, ground force, per-depth phase factors -> phase3.npz
 ```
 
-`regcur` (re-registers the rest bones to the posed arm, producing `Tcur.npy`) also needs the hand-bone STLs listed in `squat/geom.py:BONE_FID` and `T_arm_all.npy` from the preserve bundle; fetch the STLs with `scripts/fetch_stl.sh <ids>`.
+`regcur` (re-registers the rest bones to the posed arm, producing `Tcur.npy`) also needs the hand-bone STLs listed in `core/geom.py:BONE_FID` and `T_arm_all.npy` from the preserve bundle; fetch the STLs with `scripts/fetch_stl.sh <ids>`.
 
 Rebuild check: the build reproduces the data `/squat` ships byte for byte (decompressed data sha256 and parsed manifest; the gzip stream itself depends on the zlib build). `tests/test_golden.py` enforces it.
 
@@ -83,7 +87,7 @@ node evalpage.js ../dist/squat.html "(() => { __squat.set({time:2.55}); __step(2
 
 ## Rowing spike (#754)
 
-`row/` is the feasibility spike for re-rigging this model to a Concept2 rowing stroke: a joint model fitted to the squat's frames (Q1), the muscle-path curves as blends over bone frames (Q2), top-4 upper-body weights and five key rowing poses with penetration and volume checks (Q3), and the BodyParts3D 4.0 skin as a skin source (Q4). It imports `squat/` read-only and changes nothing the squat ships.
+`row/` is the feasibility spike for re-rigging this model to a Concept2 rowing stroke: a joint model fitted to the squat's frames (Q1), the muscle-path curves as blends over bone frames (Q2), top-4 upper-body weights and five key rowing poses with penetration and volume checks (Q3), and the BodyParts3D 4.0 skin as a skin source (Q4). It imports `core/` and `squat/` read-only and changes nothing the squat ships.
 
 ```bash
 pip install -r requirements-spike.txt      # adds matplotlib for the PNG renders (CI does not install it)

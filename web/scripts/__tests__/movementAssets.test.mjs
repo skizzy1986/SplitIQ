@@ -235,7 +235,8 @@ describe('the registry', () => {
   });
 
   // #504: a budget is set from a measured figure with Scott's yes, and the
-  // comment beside it records when, who and what was measured.
+  // comment beside it records when, who and what was measured. The yes is
+  // Gate 3's: Gate 2 approved the rule before anything was measured.
   it("the row's budgets carry a dated comment naming Scott", () => {
     const src = readFileSync(join(WEB, 'scripts', 'movementAssets.mjs'), 'utf8')
       .split('\n')
@@ -254,6 +255,7 @@ describe('the registry', () => {
       expect(text, key).toMatch(/\b20\d\d-\d\d-\d\d\b/);
       expect(text, key).toMatch(/\bScott\b/);
       expect(text, key).toMatch(/#504/);
+      expect(text, key).toMatch(/\bGate 3\b/);
       expect(text, key).toMatch(/Measured \d/);
     }
   });

@@ -155,17 +155,21 @@ export const MOVEMENTS = freeze([
     title: 'Row',
     route: '/row',
     root: 'src/row/RowApp.jsx',
-    // Set 2026-11-25 from the first measured build (Scott, Gate 2 of #756,
-    // "approve all"; #504 rule: measured + ~2 KB). Measured 139.9 KB
-    // (143,303 B): the shared main chunk plus the RowApp placeholder.
-    // 139.9 + 2 = 141.9, to the nearest whole KB: 142. #760 raises it with
-    // the real page.
-    entryBudgetKb: 142,
-    // Set 2026-11-25 from the same build (Scott, Gate 2 of #756, "approve
-    // all"; #504 rule: measured + ~2 KB). Measured 1.05 KB (1,075 B): the
-    // RowApp placeholder chunk, the only file only /row reaches.
-    // 1.05 + 2 = 3.05, to the nearest whole KB: 3. #760 raises it with the
+    // Set from the first measured build. Scott approved the #504 rule
+    // (measured + ~2 KB, rounded to the nearest whole KB) at Gate 2 of #756,
+    // and this measured figure and budget at Gate 3 of #756, both on
+    // 2026-11-25. Measured 143,303 B, 139.9 KB in the gate's KB of 1,024 B:
+    // the shared main chunk, the RowApp placeholder, the CSS and the tokens
+    // chunk. 139.9 + 2 = 141.9, to the nearest whole KB: 142. Gate 2's
+    // estimate, ~143 -> ~145, was in decimal kB. #760 raises it with the
     // real page.
+    entryBudgetKb: 142,
+    // Set from the same build. Scott approved the #504 rule at Gate 2 of
+    // #756, and this measured figure and budget at Gate 3 of #756, both on
+    // 2026-11-25. Measured 1,075 B, 1.05 KB: the RowApp placeholder chunk,
+    // the only file only /row reaches. That is 51 B past Gate 2's range of
+    // 0.5 to 1.0 KB, because of the placeholder's own markup. 1.05 + 2 =
+    // 3.05, to the nearest whole KB: 3. #760 raises it with the real page.
     totalBudgetKb: 3,
   },
 ]);

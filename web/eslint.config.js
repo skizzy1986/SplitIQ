@@ -95,8 +95,9 @@ export default [
   {
     // The public squat tool streams and gunzips its data in a worker, so it
     // touches browser APIs the dashboard never needed. Scoped to its subtree
-    // rather than widened for the whole app.
-    files: ['src/squat/**/*.{js,jsx}'],
+    // and the shared decode protocol (anatomy/workers) rather than widened
+    // for the whole app.
+    files: ['src/squat/**/*.{js,jsx}', 'src/anatomy/workers/**/*.{js,jsx}'],
     languageOptions: {
       globals: {
         self: 'readonly',
@@ -104,6 +105,7 @@ export default [
         Worker: 'readonly',
         Response: 'readonly',
         ReadableStream: 'readonly',
+        AbortController: 'readonly',
         DecompressionStream: 'readonly',
         CompressionStream: 'readonly',
         Int8Array: 'readonly',

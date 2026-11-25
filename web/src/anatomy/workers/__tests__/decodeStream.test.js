@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { gzipSync } from 'node:zlib';
-import { decodeStream } from '../workers/decodeStream.js';
+import { decodeStream } from '../decodeStream.js';
 
 const streamOf = (bytes, chunk = 7) =>
   new ReadableStream({

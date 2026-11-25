@@ -38,6 +38,7 @@ const MobileApp = lazy(() => import('./views/mobile/MobileApp.jsx'));
 const InviteSignupForm = lazy(
   () => import('./components/InviteSignupForm.jsx')
 );
+const FirstRunGuide = lazy(() => import('./components/FirstRunGuide.jsx'));
 
 const MISSING_FIELDS = msg({
   message: 'Enter email and password.',
@@ -447,6 +448,11 @@ function Gate() {
             <App sidebarFoot={showSplash ? null : <SignOutButton />} />
           )}
         </Suspense>
+        {session && !showSplash && isTestersBuild() && (
+          <Suspense fallback={null}>
+            <FirstRunGuide userId={session.user?.id} />
+          </Suspense>
+        )}
       </SessionOwnerContext.Provider>
     );
   }

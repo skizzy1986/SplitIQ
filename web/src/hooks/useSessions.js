@@ -4,7 +4,7 @@ import { toISODate } from '../utils/dateFormat.js';
 import { useSessionOwner } from './useSessionOwner.js';
 
 const FIELDS =
-  'id, user_id, date, date_iso, type, label, duration, duration_min, srpe, prs, exercises, coach_note, status, distance_m, avg_watts, avg_hr';
+  'id, user_id, date, date_iso, type, label, duration, duration_min, srpe, prs, exercises, coach_note, status, distance_m, avg_watts, avg_hr, source';
 const PAGE_SIZE = 500;
 
 export function useSessions({ mode = 'recent', subjectId } = {}) {

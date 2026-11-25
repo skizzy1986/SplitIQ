@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, lazy, Suspense } from 'react';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { useSessions } from '../../hooks/useSessions.js';
 import { useVitals } from '../../hooks/useVitals.js';
@@ -29,6 +29,11 @@ import SectionHeader from '../../components/SectionHeader.jsx';
 import { FONT } from '../../constants/type.js';
 import { RADIUS, SPACE, TYPE } from '../../constants/tokens.js';
 import { readLiveErgFlag } from '../../live-erg/liveErgFlag.js';
+import SampleDataBadge from '../../components/SampleDataBadge.jsx';
+
+const TestersWelcomeCard = lazy(
+  () => import('../../components/TestersWelcomeCard.jsx')
+);
 
 // Today answers one question: what am I doing right now, and am I in any
 // state to do it. Home A (#771): the planned session and Start on PM5 lead,
@@ -236,6 +241,12 @@ export default function MobileToday({ onStartSession, onOpenBody }) {
         }
       />
 
+      {isTestersBuild() && (
+        <Suspense fallback={null}>
+          <TestersWelcomeCard />
+        </Suspense>
+      )}
+
       <Card>
         {prescribed ? (
           <>
@@ -254,6 +265,7 @@ export default function MobileToday({ onStartSession, onOpenBody }) {
               }}
             >
               {prescribed.label ?? prescribed.type}
+              <SampleDataBadge session={prescribed} locale={i18n.locale} />
             </div>
             {sessionFacts(prescribed, i18n) && (
               <div
@@ -322,6 +334,7 @@ export default function MobileToday({ onStartSession, onOpenBody }) {
               }}
             >
               {lastErg.label ?? lastErg.type}
+              <SampleDataBadge session={lastErg} locale={i18n.locale} />
               {sessionFacts(lastErg, i18n)
                 ? ` · ${sessionFacts(lastErg, i18n)}`
                 : ''}
@@ -377,6 +390,7 @@ export default function MobileToday({ onStartSession, onOpenBody }) {
             }}
           >
             {s.label ?? s.type}
+            <SampleDataBadge session={s} locale={i18n.locale} />
           </div>
           {sessionFacts(s, i18n) && (
             <div
@@ -556,6 +570,7 @@ export default function MobileToday({ onStartSession, onOpenBody }) {
                 }}
               >
                 {lastErg.label ?? lastErg.type}
+                <SampleDataBadge session={lastErg} locale={i18n.locale} />
               </div>
               <div
                 style={{
@@ -605,7 +620,12 @@ export default function MobileToday({ onStartSession, onOpenBody }) {
           {recent.map((s) => (
             <ListRow
               key={s.id}
-              title={s.label ?? s.type}
+              title={
+                <>
+                  {s.label ?? s.type}
+                  <SampleDataBadge session={s} locale={i18n.locale} />
+                </>
+              }
               meta={`${durationLabel(s.duration, i18n)}${s.srpe ? ` · RPE ${s.srpe}` : ''}`}
             />
           ))}

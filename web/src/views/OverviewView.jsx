@@ -7,6 +7,7 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
+import { lazy, Suspense } from 'react';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { msg } from '@lingui/core/macro';
 import LogEntry from '../components/LogEntry.jsx';
@@ -22,6 +23,10 @@ import { THEME } from '../constants/theme.js';
 import { FONT } from '../constants/type.js';
 import { RADIUS } from '../constants/tokens.js';
 import { isTestersBuild } from '../utils/testersBuild.js';
+
+const TestersWelcomeCard = lazy(
+  () => import('../components/TestersWelcomeCard.jsx')
+);
 
 // Desktop says more than mobile about the same band, so the copy stays here
 // while the thresholds come from tsbBand(). Keyed off band.key so the two can
@@ -69,6 +74,11 @@ export default function OverviewView({
   return (
     <>
       <ScreenHeader title={<Trans>Today</Trans>} />
+      {isTestersBuild() && (
+        <Suspense fallback={null}>
+          <TestersWelcomeCard />
+        </Suspense>
+      )}
       {phase && (
         <div style={{ display: 'flex', marginBottom: 8 }}>
           <div

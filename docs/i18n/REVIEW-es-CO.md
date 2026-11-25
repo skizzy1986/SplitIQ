@@ -19,7 +19,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `bGQplw` | Body | Cuerpo | Mobile tab bar: readiness, sleep, heart rate · src/constants/destinations.js |
 | `zHd2A6` | Build {APP_BUILD} | Versión {APP_BUILD} | Accessible label on the loading screen. The identifier matches the Obtainium version on Android (for example 1.3.0+1249), a short commit on the web, or dev locally. · src/components/SplashScreen.jsx |
 | `S5DJ2Q` | Check the email and the code and try again. | Revisa el correo y el código e inténtalo de nuevo. | Invite sign-up error, for a malformed email or code. · src/components/InviteSignupForm.jsx |
-| `wUQveH` | Choose a longer password: at least 8 characters. | Elige una contraseña más larga: mínimo 8 caracteres. | Invite sign-up error. · src/components/InviteSignupForm.jsx |
+| `J6Bhcb` | Choose a longer password: at least {min} characters. | Elige una contraseña más larga: mínimo {min} caracteres. | Invite sign-up error. {min} is the minimum length. · src/components/InviteSignupForm.jsx |
 | `OdJfGw` | CHOOSE A PASSWORD | ELIGE UNA CONTRASEÑA | Invite form field label, all capitals · src/components/InviteSignupForm.jsx |
 | `vlj0xi` | Confirm your email address before signing in. | Confirma tu correo electrónico antes de iniciar sesión. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
 | `qGBulj` | Could not reach the server. Check your connection and try again. | No pudimos conectarnos con el servidor. Revisa tu conexión e inténtalo de nuevo. | Invite sign-up error when the device is offline. · Login error when the device is offline. Only shown in Spanish. · src/components/InviteSignupForm.jsx · src/utils/authError.js |

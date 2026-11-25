@@ -35,6 +35,12 @@ HMAC of their address, keyed with the service key.
 
 ## Deploying (Scott, dev only, after migration 023 is applied to dev)
 
+Deployed to SplitIQ dev (`niytwgtsclzuhyggvbhd`) as v1 on 25 Nov 2026 about
+6:30 PM Perth (AWST), after 023 was applied there on Scott's yes. That build
+came from #812's branch (this function plus the sample-data auto-load), not
+from this PR alone. Until `INVITE_SIGNUP_ENABLED=true` is set as a secret on
+dev, it answers `disabled`.
+
 ```
 supabase secrets set INVITE_SIGNUP_ENABLED=true --project-ref niytwgtsclzuhyggvbhd
 supabase functions deploy invite-signup --no-verify-jwt --project-ref niytwgtsclzuhyggvbhd

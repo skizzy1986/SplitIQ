@@ -17,8 +17,8 @@ const CAUSE_TEXT = {
     comment: 'Invite sign-up error. Deliberately says nothing more specific.',
   }),
   weak_password: msg({
-    message: 'Choose a longer password: at least 8 characters.',
-    comment: 'Invite sign-up error.',
+    message: 'Choose a longer password: at least {min} characters.',
+    comment: 'Invite sign-up error. {min} is the minimum length.',
   }),
   consent_required: msg({
     message: 'Tick the box to carry on.',
@@ -102,7 +102,12 @@ export default function InviteSignupForm({ onBack }) {
     if (!result.signedIn) onBack();
   };
 
-  const causeText = cause ? t(CAUSE_TEXT[cause] ?? CAUSE_TEXT.fallback) : null;
+  // No minLength on the password field: the browser would block a short one
+  // with its own tooltip, in its own language, before the app's reason shows
+  // (the #809 fix). The length check is submitInviteSignup's.
+  const causeText = cause
+    ? i18n._(CAUSE_TEXT[cause] ?? CAUSE_TEXT.fallback, { min: MIN_PASSWORD })
+    : null;
 
   return (
     <div
@@ -186,7 +191,6 @@ export default function InviteSignupForm({ onBack }) {
             style={inp}
             type="password"
             autoComplete="new-password"
-            minLength={MIN_PASSWORD}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />

@@ -37,10 +37,10 @@ msgstr "Build {APP_BUILD}"
 msgid "Check the email and the code and try again."
 msgstr "Check the email and the code and try again."
 
-#. Invite sign-up error.
+#. Invite sign-up error. {min} is the minimum length.
 #: src/components/InviteSignupForm.jsx
-msgid "Choose a longer password: at least 8 characters."
-msgstr "Choose a longer password: at least 8 characters."
+msgid "Choose a longer password: at least {min} characters."
+msgstr "Choose a longer password: at least {min} characters."
 
 #. Invite form field label, all capitals
 #: src/components/InviteSignupForm.jsx

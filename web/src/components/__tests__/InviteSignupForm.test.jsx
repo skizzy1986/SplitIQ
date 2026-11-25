@@ -1,13 +1,16 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { i18n } from '@lingui/core';
 import { messages as es } from '../../locales/es.po';
 import InviteSignupForm from '../InviteSignupForm.jsx';
 import { NOTICE, NOTICE_APPROVED } from '../../constants/testerNotice.js';
 
-const mocks = vi.hoisted(() => ({ submit: null }));
+const mocks = vi.hoisted(() => ({ submit: null, minPassword: 8 }));
 vi.mock('../../utils/inviteSignup.js', () => ({
-  MIN_PASSWORD: 8,
+  get MIN_PASSWORD() {
+    return mocks.minPassword;
+  },
   submitInviteSignup: (...a) => mocks.submit(...a),
 }));
 
@@ -24,6 +27,7 @@ const fill = (container, values) => {
 };
 
 beforeEach(() => {
+  mocks.minPassword = 8;
   mocks.submit = vi.fn().mockResolvedValue({ ok: true, signedIn: true });
 });
 afterEach(() => i18n.activate('en'));
@@ -131,5 +135,87 @@ describe('InviteSignupForm', () => {
       fireEvent.submit(container.querySelector('form'));
     });
     expect(onBack).toHaveBeenCalledTimes(2);
+  });
+
+  // Retro Gate 3 (#808, CR 1 / RC 1), the #809 pattern: a short password must
+  // reach the app's own check and its EN/ES reason, not the browser's tooltip.
+  it('shows the in-app weak-password reason for a short password, in English and in Spanish', async () => {
+    mocks.submit.mockResolvedValue({ ok: false, cause: 'weak_password' });
+    const short = 'abcdefg';
+    const cases = [
+      [
+        'en',
+        'CREATE ACCOUNT',
+        `Choose a longer password: at least ${mocks.minPassword} characters.`,
+      ],
+      [
+        'es',
+        'CREAR CUENTA',
+        `Elige una contraseña más larga: mínimo ${mocks.minPassword} caracteres.`,
+      ],
+    ];
+    for (const [lang, button, text] of cases) {
+      if (lang === 'es') {
+        i18n.load('es', es);
+        i18n.activate('es');
+      }
+      const user = userEvent.setup();
+      const { container, unmount } = render(
+        <InviteSignupForm onBack={() => {}} />
+      );
+      const pw = container.querySelector('#invite-password');
+      await user.type(container.querySelector('#invite-code'), 'ABCD-EFGH');
+      await user.type(container.querySelector('#invite-email'), 'a@b.co');
+      await user.type(pw, short);
+      await user.type(container.querySelector('#invite-confirm'), short);
+      await user.click(
+        screen.getByLabelText(
+          lang === 'es' ? NOTICE.es.consent : NOTICE.en.consent
+        )
+      );
+      // jsdom 31 stubs ValidityState.tooShort as always false, so minLength
+      // never fails a submit on its own. If the field has a minimum the value
+      // does not meet, setCustomValidity so the button click uses the same
+      // constraint-validation path a browser would for tooShort.
+      if (
+        pw.minLength >= 0 &&
+        pw.value.length > 0 &&
+        pw.value.length < pw.minLength
+      ) {
+        pw.setCustomValidity('too short');
+      }
+      await user.click(screen.getByRole('button', { name: button }));
+      expect(await screen.findByRole('alert')).toHaveTextContent(text);
+      unmount();
+    }
+  });
+
+  it('derives the weak-password reason from MIN_PASSWORD, in English and in Spanish', async () => {
+    mocks.minPassword = 12;
+    mocks.submit.mockResolvedValue({ ok: false, cause: 'weak_password' });
+    const cases = [
+      [
+        'en',
+        `Choose a longer password: at least ${mocks.minPassword} characters.`,
+      ],
+      [
+        'es',
+        `Elige una contraseña más larga: mínimo ${mocks.minPassword} caracteres.`,
+      ],
+    ];
+    for (const [lang, text] of cases) {
+      if (lang === 'es') {
+        i18n.load('es', es);
+        i18n.activate('es');
+      }
+      const { container, unmount } = render(
+        <InviteSignupForm onBack={() => {}} />
+      );
+      await act(async () => {
+        fireEvent.submit(container.querySelector('form'));
+      });
+      expect(screen.getByRole('alert')).toHaveTextContent(text);
+      unmount();
+    }
   });
 });

@@ -1,8 +1,9 @@
 -- 023_invite_codes.sql
--- DRAFT — not applied. Additive + reversible (#791). SplitIQ DEV ONLY.
--- Do not apply until Scott gives an explicit yes for this file, and never to
--- production: testers never get a production account (D32). The invite-signup
--- function that uses these tables must not be deployed to production either.
+-- Additive + reversible (#791). SplitIQ DEV ONLY.
+-- Applied to SplitIQ dev only, 25 Nov 2026 about 6:30 PM Perth (AWST), on
+-- Scott's yes at 6:28 PM. Never apply it to production: testers never get a
+-- production account (D32). The invite-signup function that uses these tables
+-- must not be deployed to production either.
 --
 -- WHAT THIS DOES: the server half of invite-code sign-up.
 --   public.invite_codes     one row per code, stored as a sha256 hash. The code

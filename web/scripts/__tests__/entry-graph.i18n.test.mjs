@@ -25,7 +25,7 @@ const BUILD = {
   '_dist-c.js': { file: 'assets/dist-c.js' },
   [ES]: { file: 'assets/i18n-es-d.js', isDynamicEntry: true },
   'src/squat/SquatApp.jsx': {
-    file: 'assets/squat-SquatApp-e.js',
+    file: 'assets/anatomy-SquatApp-e.js',
     isDynamicEntry: true,
     imports: ['index.html'],
   },

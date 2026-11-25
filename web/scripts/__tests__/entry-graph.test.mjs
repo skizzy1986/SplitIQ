@@ -256,19 +256,19 @@ const WITH_SCENE = {
     dynamicImports: ['src/anatomy/scene/createAnatomyScene.js'],
   },
   'src/anatomy/scene/createAnatomyScene.js': {
-    file: 'assets/squat-createAnatomyScene-z.js',
+    file: 'assets/anatomy-createAnatomyScene-z.js',
     isDynamicEntry: true,
     imports: ['src/squat/SquatApp.jsx', '_three-y.js'],
   },
-  '_three-y.js': { file: 'assets/squat-three-y.js' },
+  '_three-y.js': { file: 'assets/anatomy-three-y.js' },
 };
 const SCENE = 'src/anatomy/scene/createAnatomyScene.js';
 
 describe('onlyReachableVia (the 3D chunk)', () => {
   it('is the scene and three only — not the tool chunk it imports', () => {
     expect(onlyReachableVia(WITH_SCENE, SCENE).sort()).toEqual([
-      'assets/squat-createAnatomyScene-z.js',
-      'assets/squat-three-y.js',
+      'assets/anatomy-createAnatomyScene-z.js',
+      'assets/anatomy-three-y.js',
     ]);
   });
 
@@ -342,8 +342,8 @@ describe('tool split invariants, one tool', () => {
       const problems = firstPaintLeaks(leaky, SCENE, BOOTS);
       expect(problems).toHaveLength(1);
       expect(problems[0]).toMatch(/src\/squat\/SquatApp.jsx's first paint/);
-      expect(problems[0]).toMatch(/squat-createAnatomyScene-z\.js/);
-      expect(problems[0]).toMatch(/squat-three-y\.js/);
+      expect(problems[0]).toMatch(/anatomy-createAnatomyScene-z\.js/);
+      expect(problems[0]).toMatch(/anatomy-three-y\.js/);
     });
 
     it('fails when the entry statically imports the scene', () => {

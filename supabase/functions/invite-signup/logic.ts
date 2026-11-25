@@ -19,9 +19,9 @@
 
 export const PRODUCTION_REF = "swdrueaserjzhuxnzmeu";
 
-// The wording the tick refers to. It stays "draft-1" until Scott signs off the
-// notice (NOTICE-draft.md); the sign-off changes it to a dated version.
-export const CONSENT_VERSION = "draft-1";
+// The wording the tick refers to. Dated when Scott signed off the
+// notice on 25 Nov 2026.
+export const CONSENT_VERSION = "2026-11-25";
 
 export const MIN_PASSWORD = 8;
 // bcrypt, which GoTrue uses, ignores everything past 72 bytes.

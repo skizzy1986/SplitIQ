@@ -3,7 +3,7 @@ import { Trans, useLingui } from '@lingui/react/macro';
 import { msg } from '@lingui/core/macro';
 import { THEME } from '../constants/theme.js';
 import { FONT } from '../constants/type.js';
-import { NOTICE_APPROVED, noticeFor } from '../constants/testerNotice.js';
+import { noticeFor } from '../constants/testerNotice.js';
 import { submitInviteSignup, MIN_PASSWORD } from '../utils/inviteSignup.js';
 
 // The testers' way in (#791): an invite code, their email, a password they
@@ -221,18 +221,6 @@ export default function InviteSignupForm({ onBack }) {
             color: THEME.text,
           }}
         >
-          {!NOTICE_APPROVED && (
-            <div
-              role="note"
-              style={{
-                color: THEME.critical,
-                fontWeight: 700,
-                marginBottom: 8,
-              }}
-            >
-              {notice.draft}
-            </div>
-          )}
           <div style={{ fontWeight: 700, marginBottom: 6 }}>{notice.title}</div>
           {notice.paragraphs.map((p) => (
             <p key={p} style={{ margin: '0 0 8px' }}>

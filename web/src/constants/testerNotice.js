@@ -4,16 +4,12 @@
 // not in the message catalogs, which also keeps a long legal-ish text out of
 // the Spanish catalog budget.
 //
-// PLACEHOLDER. The wording is the owner's to approve, not ours: this is
-// NOTICE-draft.md as it stands (with the owner's name taken out, because
-// scripts/check-names.mjs keeps first-person names out of web/src), and it
-// stays marked as a draft on screen (the banner below) until the owner says yes. Sign-off is three edits, together:
-//   1. put his final wording in NOTICE below,
-//   2. set NOTICE_APPROVED to true,
-//   3. change CONSENT_VERSION in supabase/functions/invite-signup/logic.ts from
-//      "draft-1" to a dated version, so each account records which text it saw.
-// Not legal advice.
-export const NOTICE_APPROVED = false;
+// Approved by Scott on 25 Nov 2026, including the wording that says "the owner"
+// and "whoever invited you" (scripts/check-names.mjs keeps first-person names
+// out of web/src). CONSENT_VERSION in supabase/functions/invite-signup/logic.ts
+// is "2026-11-25", so each account records which text it saw. Not legal advice.
+export const NOTICE_APPROVED = true;
+export const NOTICE_VERSION = '2026-11-25';
 
 export const NOTICE = {
   en: {
@@ -26,8 +22,6 @@ export const NOTICE = {
       'Your choices: ask whoever invited you at any time and they will delete your account and data.',
     ],
     consent: "I'm 18 or over and I agree to this.",
-    draft:
-      "DRAFT WORDING: waiting for the owner's OK. Don't send this to a tester yet.",
   },
   es: {
     title: 'Acceso de prueba a SplitIQ',
@@ -39,8 +33,6 @@ export const NOTICE = {
       'Tus opciones: puedes pedirle en cualquier momento a quien te invitó que borre tu cuenta y tus datos.',
     ],
     consent: 'Tengo 18 años o más y acepto esto.',
-    draft:
-      'BORRADOR: falta el visto bueno del dueño. Todavía no lo envíes a ningún tester.',
   },
 };
 

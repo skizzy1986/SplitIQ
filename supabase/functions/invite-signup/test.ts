@@ -85,7 +85,7 @@ const good = { email: " Tester@Example.com ", password: "correct horse", code: "
   check("valid code: consent recorded in app_metadata, not user_metadata",
     meta.tester === true && meta.invite_id === "invite-1" && meta.consent_version === CONSENT_VERSION &&
       meta.consented_at === "2026-11-25T10:00:00.000Z" && meta.age_declared_18_plus === true, meta);
-  check("valid code: consent version is still the draft until Scott signs off", CONSENT_VERSION === "draft-1", CONSENT_VERSION);
+  check("valid code: consent version is the dated sign-off", CONSENT_VERSION === "2026-11-25", CONSENT_VERSION);
   check("valid code: nothing released", calls.release.length === 0, calls.release);
 }
 

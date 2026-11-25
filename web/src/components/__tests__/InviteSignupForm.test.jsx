@@ -29,21 +29,25 @@ beforeEach(() => {
 afterEach(() => i18n.activate('en'));
 
 describe('InviteSignupForm', () => {
-  it('shows the notice, marked as a draft until Scott approves it', () => {
+  it('shows the approved notice, with no draft banner', () => {
     render(<InviteSignupForm onBack={() => {}} />);
-    expect(NOTICE_APPROVED).toBe(false);
-    expect(screen.getByRole('note').textContent).toBe(NOTICE.en.draft);
+    expect(NOTICE_APPROVED).toBe(true);
+    expect(screen.queryByRole('note')).toBeNull();
     expect(screen.getByText(NOTICE.en.title)).toBeTruthy();
     for (const p of NOTICE.en.paragraphs) {
       expect(screen.getByText(p)).toBeTruthy();
     }
     expect(screen.getByLabelText(NOTICE.en.consent)).not.toBeChecked();
+    expect(screen.queryByText(/DRAFT WORDING/i)).toBeNull();
+    expect(screen.queryByText(/BORRADOR/i)).toBeNull();
   });
 
   it('has a Spanish notice of the same shape', () => {
     expect(NOTICE.es.paragraphs).toHaveLength(NOTICE.en.paragraphs.length);
-    expect(NOTICE.es.draft).toBeTruthy();
+    expect(NOTICE.es.title).toBeTruthy();
     expect(NOTICE.es.consent).toBeTruthy();
+    expect(NOTICE.es).not.toHaveProperty('draft');
+    expect(NOTICE.en).not.toHaveProperty('draft');
   });
 
   it('shows the Spanish notice and Spanish errors when Spanish is active', async () => {

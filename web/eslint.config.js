@@ -46,6 +46,8 @@ export default [
         setInterval: 'readonly',
         clearInterval: 'readonly',
         fetch: 'readonly',
+        Headers: 'readonly',
+        Response: 'readonly',
         URL: 'readonly',
         URLSearchParams: 'readonly',
         Blob: 'readonly',

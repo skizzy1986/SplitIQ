@@ -1,9 +1,15 @@
 """core/ is movement-neutral: it never imports squat/ or row/, and every moved name has one home (#755)."""
 import ast
+import gzip
+import hashlib
 import importlib.util
+import json
 import os
 import subprocess
 import sys
+
+from core import repack
+from squat.cli import GOLDEN_RAW_BYTES, GOLDEN_RAW_SHA256
 
 CORE_MODULES = ('core.geom', 'core.dqs', 'core.paths', 'core.skin', 'core.stl', 'core.repack', 'core.base', 'core.arm')
 SKIP = {'node_modules', '.pytest_cache', '__pycache__'}
@@ -42,6 +48,16 @@ def test_moved_modules_are_gone():
     import core.arm
     import squat.model.arm
     assert squat.model.arm.Arm is core.arm.Arm
+
+
+def test_pack_matches_golden(paths):
+    """The packing core that save() and the data-file writer share reproduces the shipped data from its own arrays."""
+    shipped = json.loads(paths.shipped_manifest.read_text(encoding='utf-8'))
+    arrs = repack.unpack(shipped, gzip.decompress((paths.shipped_manifest.parent / 'squat-anatomy.bin').read_bytes()))
+    assert len(arrs) == 71
+    man, raw = repack.pack(shipped, arrs)
+    assert (len(raw), hashlib.sha256(raw).hexdigest()) == (GOLDEN_RAW_BYTES, GOLDEN_RAW_SHA256)
+    assert man == shipped
 
 
 def test_moved_names_have_one_home(paths):

@@ -16,6 +16,8 @@ const PM5_ROW_SERVICE = 'ce060030-43e5-11e4-916c-0800200c9a66';
 const ROWING_GENERAL_STATUS = 'ce060031-43e5-11e4-916c-0800200c9a66';
 const ROWING_ADDITIONAL_STATUS_1 = 'ce060032-43e5-11e4-916c-0800200c9a66';
 const ROWING_ADDITIONAL_STATUS_2 = 'ce060033-43e5-11e4-916c-0800200c9a66';
+const ROWING_STROKE_DATA = 'ce060035-43e5-11e4-916c-0800200c9a66';
+const ROWING_ADDITIONAL_STROKE_DATA = 'ce060036-43e5-11e4-916c-0800200c9a66';
 const ROWING_SUMMARY = 'ce060039-43e5-11e4-916c-0800200c9a66';
 
 // Error codes this module throws, mapped to on-screen words in
@@ -67,6 +69,11 @@ export function isEndState(state) {
 // rides out four missed packets and is still under one stroke at 20 spm.
 export const STALE_LIMIT_S = 2.5;
 
+// The 0035 force fields are in 0.1 pounds-force; newtons are the unit the rest
+// of the app reports force in. Exported so a test asserts the conversion
+// without retyping the literal.
+export const LBF_TO_N = 4.4482216152605;
+
 // Convert 500m split time (raw 0.01s units) to "m:ss.t" string
 export function parsePace(rawValue) {
   if (!rawValue || rawValue === 0) return '--:--';
@@ -81,6 +88,23 @@ export function formatElapsed(totalSecs) {
   const m = Math.floor(totalSecs / 60);
   const s = Math.floor(totalSecs % 60);
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+// How the stroke divides in time, drive to recovery, as "1 : x.x". A part that
+// is missing, saturated, zero or negative has no ratio, so the tile reads "--"
+// rather than Infinity or NaN. No cap and no threshold: the figure is reported,
+// not judged.
+export function formatStrokeRatio(driveTime, recoveryTime) {
+  if (!(driveTime > 0) || !(recoveryTime > 0)) return '--';
+  return `1 : ${(recoveryTime / driveTime).toFixed(1)}`;
+}
+
+// Drive length in metres at the monitor's own 0.01 m resolution. 0 reads as
+// "--" on the same rule as the saved row: the PM5 reports 0 for a field it
+// never measured.
+export function formatDriveLength(metres) {
+  if (!(metres > 0)) return '--';
+  return metres.toFixed(2);
 }
 
 function uint24(dv, offset) {
@@ -137,6 +161,76 @@ export function parseAdditionalStatus2(dv) {
     averagePower: dv.getUint16(4, true),
     totalCalories: dv.getUint16(6, true),
   };
+}
+
+// 0035 rowing stroke data, 20 bytes. Every offset from the PM CSAFE
+// Communication Definition, Revision 0.34 (7/17/2025), table "C2 PM BTS
+// Peripheral : Attribute Table": elapsed time 0-2 (0.01 s), distance 3-5
+// (0.1 m), drive length 6 (0.01 m), drive time 7 (0.01 s), stroke recovery time
+// 8-9 (0.01 s), stroke distance 10-11 (0.01 m), peak drive force 12-13
+// (0.1 lbf), average drive force 14-15 (0.1 lbf), work per stroke 16-17
+// (0.1 J), stroke count 18-19.
+//
+// Saturation has to be detected here, not in a formatter: a raw 0xFF on drive
+// length or drive time divided by 100 gives 2.55, which is a legal measurement,
+// so after scaling "out of range" is indistinguishable from a long drive. Null,
+// never 0, on the same rule mergeStatus states below.
+export function parseRowingStrokeData(dv) {
+  if (tooShort(dv, 20)) return null;
+  const driveLengthRaw = dv.getUint8(6);
+  const driveTimeRaw = dv.getUint8(7);
+  const recoveryRaw = dv.getUint16(8, true);
+  return {
+    elapsedTime: uint24(dv, 0) / 100,
+    distance: uint24(dv, 3) / 10,
+    driveLength: driveLengthRaw === 0xff ? null : driveLengthRaw / 100,
+    driveTime: driveTimeRaw === 0xff ? null : driveTimeRaw / 100,
+    strokeRecoveryTime: recoveryRaw === 0xffff ? null : recoveryRaw / 100,
+    strokeDistance: dv.getUint16(10, true) / 100,
+    peakDriveForce: (dv.getUint16(12, true) / 10) * LBF_TO_N,
+    averageDriveForce: (dv.getUint16(14, true) / 10) * LBF_TO_N,
+    workPerStroke: dv.getUint16(16, true) / 10,
+    strokeCount: dv.getUint16(18, true),
+  };
+}
+
+// 0036 additional stroke data, 18 bytes. Offsets from the PM CSAFE
+// Communication Definition, Revision 0.34 (7/17/2025), table "C2 PM BTS
+// Peripheral : Attribute Table": elapsed time 0-2 (0.01 s), stroke power 3-4
+// (W), stroke calories 5-6 (cal/hr), stroke count 7-8, projected work time
+// 9-11 (s), projected work distance 12-14 (m), projected work other 15-17.
+//
+// That revision grew the characteristic from the 15 bytes of rev 0.25 to 18 by
+// appending projected work other. So the guard is 15 — a rev-0.25 monitor is
+// read rather than rejected — and only the appended trailing field is
+// length-gated, the way parseRowingSummary gates workout type.
+export function parseAdditionalStrokeData(dv) {
+  if (tooShort(dv, 15)) return null;
+  return {
+    elapsedTime: uint24(dv, 0) / 100,
+    strokePower: dv.getUint16(3, true),
+    strokeCalories: dv.getUint16(5, true),
+    strokeCount: dv.getUint16(7, true),
+    projectedWorkTime: uint24(dv, 9),
+    projectedWorkDistance: uint24(dv, 12),
+    projectedWorkOther: dv.byteLength >= 18 ? uint24(dv, 15) : null,
+  };
+}
+
+// Whether a freshly parsed 0035 replaces the one on screen. 0035 carries its
+// own clock and its own stroke count, so duplicates and late packets are judged
+// here rather than against 0031's freshness window.
+//
+// Known limit, left uncoded deliberately: strokeCount is a uint16 and wraps at
+// 65535 while the clock keeps advancing, which the final rule would then reject
+// for the rest of the connection — about 55 hours of unbroken rowing at 20 spm.
+export function isNewerStroke(prev, next) {
+  if (prev == null) return true;
+  if (next.strokeCount > prev.strokeCount) return true;
+  // The monitor's own clock went backwards, so a reset or a rearm restarted
+  // both counters and comparing stroke counts means nothing.
+  if (next.elapsedTime < prev.elapsedTime) return true;
+  return false;
 }
 
 // 0039 end-of-workout summary, 20 bytes (CSAFE rev 0.34): log entry date 0-1,
@@ -267,8 +361,9 @@ export function buildPM5Summary({
 }
 
 // Request connection to a PM5 device via Web Bluetooth.
-// 0031 is required; 0032, 0033 and 0039 are optional and come back null when
-// the characteristic cannot be fetched, with the rejection kept in `errors`.
+// 0031 is required; 0032, 0033, 0039, 0035 and 0036 are optional and come back
+// null when the characteristic cannot be fetched, with the rejection kept in
+// `errors`.
 export async function connectToPM5() {
   if (!navigator.bluetooth) {
     // The English message is for logs and Sentry; the screen reads `code`.
@@ -304,10 +399,12 @@ export async function openPM5(device, server) {
     disconnectPM5(device);
     throw err;
   }
-  const [add1, add2, summary] = await Promise.allSettled([
+  const [add1, add2, summary, stroke, addStroke] = await Promise.allSettled([
     service.getCharacteristic(ROWING_ADDITIONAL_STATUS_1),
     service.getCharacteristic(ROWING_ADDITIONAL_STATUS_2),
     service.getCharacteristic(ROWING_SUMMARY),
+    service.getCharacteristic(ROWING_STROKE_DATA),
+    service.getCharacteristic(ROWING_ADDITIONAL_STROKE_DATA),
   ]);
   const value = (r) => (r.status === 'fulfilled' ? r.value : null);
   const reason = (r) => (r.status === 'rejected' ? r.reason : null);
@@ -319,11 +416,15 @@ export async function openPM5(device, server) {
       additionalStatus1: value(add1),
       additionalStatus2: value(add2),
       workoutSummary: value(summary),
+      strokeData: value(stroke),
+      additionalStrokeData: value(addStroke),
     },
     errors: {
       additionalStatus1: reason(add1),
       additionalStatus2: reason(add2),
       workoutSummary: reason(summary),
+      strokeData: reason(stroke),
+      additionalStrokeData: reason(addStroke),
     },
   };
 }

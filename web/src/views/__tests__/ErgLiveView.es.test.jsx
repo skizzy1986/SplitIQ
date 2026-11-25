@@ -92,7 +92,13 @@ const ENGLISH = [
   'NOTES',
   'SAVE SESSION',
   'DISCARD',
+  'RATIO',
+  'DRIVE',
+  'Detail',
+  'Expert',
 ];
+// 'Simple' is absent on purpose: it is also the correct Spanish word, so it
+// cannot be read as an untranslated leak.
 const expectNoEnglish = (text) => {
   for (const word of ENGLISH) expect(text).not.toContain(word);
 };
@@ -108,9 +114,11 @@ beforeEach(() => {
     value: true,
     configurable: true,
   });
+  localStorage.clear();
   pm5State = {
     status: 'idle',
     metrics: null,
+    stroke: null,
     summary: null,
     error: null,
     errorCode: null,
@@ -175,15 +183,49 @@ describe('ErgLiveView in Spanish (AC-T1)', () => {
       'SPM',
       'DIST.',
       'TRANSCURRIDO',
+      'Simple',
+      'Avanzado',
     ]) {
       expect(container.textContent).toContain(text);
     }
+    // The depth group label is the nav's accessible name, not body text, so
+    // expectNoEnglish below cannot see it.
+    expect(
+      screen.getByRole('navigation', { name: 'Detalle' })
+    ).toBeInTheDocument();
     expectNoEnglish(container.textContent);
     unmount();
 
     pm5State = { ...pm5State, status: 'rowing' };
     renderView();
     expect(screen.getByText('REMANDO')).toBeInTheDocument();
+  });
+
+  it('live screen at the expert depth', () => {
+    pm5State = {
+      ...pm5State,
+      status: 'rowing',
+      metrics: {
+        watts: 180,
+        strokeRate: 24,
+        distance: 5000,
+        elapsedStr: '20:00',
+        paceStr: '2:00.0',
+      },
+      stroke: {
+        driveLength: 1.12,
+        driveTime: 0.8,
+        strokeRecoveryTime: 1.6,
+        strokeCount: 7,
+      },
+    };
+    inSpanish();
+    const { container } = renderView();
+    fireEvent.click(screen.getByText('Avanzado'));
+    for (const text of ['RELACIÓN', 'PASADA', '1 : 2.0', '1.12']) {
+      expect(container.textContent).toContain(text);
+    }
+    expectNoEnglish(container.textContent);
   });
 
   it('summary screen, sRPE buttons included', () => {

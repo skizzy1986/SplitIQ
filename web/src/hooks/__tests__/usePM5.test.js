@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 
 // Mock connect + subscribe so the real hook logic and the real parsers run
@@ -46,6 +46,8 @@ const ALL_CHARS = {
   additionalStatus1: { id: '0032' },
   additionalStatus2: { id: '0033' },
   workoutSummary: { id: '0039' },
+  strokeData: { id: '0035' },
+  additionalStrokeData: { id: '0036' },
 };
 
 // ---------------------------------------------------------------------------
@@ -91,6 +93,32 @@ function rowSummary({ t = 0, dist = 0, spm = 0 } = {}) {
   return v;
 }
 
+// 0035 rowing stroke data, in the units a caller thinks in.
+function stroke({
+  t = 0,
+  driveLen = 1.12,
+  driveTime = 0.8,
+  recovery = 1.6,
+  count = 1,
+} = {}) {
+  const v = new DataView(new ArrayBuffer(20));
+  set3ByteLE(v, 0, Math.round(t * 100));
+  v.setUint8(6, Math.round(driveLen * 100));
+  v.setUint8(7, Math.round(driveTime * 100));
+  v.setUint16(8, Math.round(recovery * 100), true);
+  v.setUint16(18, count, true);
+  return v;
+}
+
+// 0036 additional stroke data, 18 bytes.
+function addStroke({ t = 0, power = 240, count = 1 } = {}) {
+  const v = new DataView(new ArrayBuffer(18));
+  set3ByteLE(v, 0, Math.round(t * 100));
+  v.setUint16(3, power, true);
+  v.setUint16(7, count, true);
+  return v;
+}
+
 // Run the real parser the hook registered, then its callback.
 function emit(id, dv) {
   act(() => {
@@ -123,7 +151,16 @@ beforeEach(() => {
   connectToPM5Mock.mockReset();
   disconnectPM5Mock.mockReset();
   captureError.mockReset();
+  fakeDevice.addEventListener.mockReset();
 });
+
+// The gattserverdisconnected handler the hook registered on the device, so a
+// test can fire the drop the erg actually does (battery, out of range).
+function fireGattDisconnected() {
+  const [event, handler] = fakeDevice.addEventListener.mock.calls.at(-1);
+  expect(event).toBe('gattserverdisconnected');
+  act(() => handler());
+}
 
 describe('usePM5 live samples', () => {
   it('pushes a merged sample and reports rowing while working with the flywheel moving', async () => {
@@ -528,6 +565,257 @@ describe('usePM5 finish() — manual END rescue', () => {
   });
 });
 
+describe('usePM5 stroke data (0035)', () => {
+  it('subscribes to both stroke characteristics', async () => {
+    await connectedHook();
+    expect(subscriptions['0035']).toBeDefined();
+    expect(subscriptions['0036']).toBeDefined();
+  });
+
+  it('exposes the first stroke of a connection', async () => {
+    const { result } = await connectedHook();
+    expect(result.current.stroke).toBeNull();
+
+    emit('0035', stroke({ t: 10, count: 1 }));
+
+    expect(result.current.stroke).toEqual(
+      expect.objectContaining({
+        elapsedTime: 10,
+        driveTime: 0.8,
+        strokeRecoveryTime: 1.6,
+        strokeCount: 1,
+      })
+    );
+    expect(result.current.stroke.driveLength).toBeCloseTo(1.12);
+  });
+
+  // The central test of the slice: 0035 has its own slot, so it is not subject
+  // to mergeStatus's 1.0 s freshness window and does not blank between strokes.
+  it('does not expire while 0031 packets keep arriving', async () => {
+    const { result } = await connectedHook();
+    emit('0035', stroke({ t: 10, count: 7 }));
+    const shown = result.current.stroke;
+
+    emit('0031', general({ t: 13, dist: 50, state: 1, rowing: 1 }));
+    emit('0031', general({ t: 16, dist: 60, state: 1, rowing: 1 }));
+    emit('0031', general({ t: 19, dist: 70, state: 1, rowing: 1 }));
+
+    expect(result.current.stroke).toBe(shown);
+    expect(result.current.stroke.strokeCount).toBe(7);
+  });
+
+  it('is replaced by the next stroke', async () => {
+    const { result } = await connectedHook();
+    emit('0035', stroke({ t: 10, count: 7, driveTime: 0.8, recovery: 1.6 }));
+    emit('0035', stroke({ t: 13, count: 8, driveTime: 0.75, recovery: 1.8 }));
+    expect(result.current.stroke.strokeCount).toBe(8);
+    expect(result.current.stroke.driveTime).toBeCloseTo(0.75);
+  });
+
+  it('keeps the same object for a duplicate stroke count', async () => {
+    const { result } = await connectedHook();
+    emit('0035', stroke({ t: 10, count: 7 }));
+    const shown = result.current.stroke;
+    emit('0035', stroke({ t: 10, count: 7 }));
+    expect(result.current.stroke).toBe(shown);
+  });
+
+  it('drops an out-of-order stroke with a lower count', async () => {
+    const { result } = await connectedHook();
+    emit('0035', stroke({ t: 10, count: 9 }));
+    const shown = result.current.stroke;
+    emit('0035', stroke({ t: 11, count: 8 }));
+    expect(result.current.stroke).toBe(shown);
+  });
+
+  // A rearm restarts both counters, which is the only new-piece boundary the
+  // hook has; the clock going backwards is what lets the next piece in.
+  it('accepts a new piece whose counters restarted', async () => {
+    const { result } = await connectedHook();
+    emit('0035', stroke({ t: 300, count: 90 }));
+    emit('0031', general({ t: 301, dist: 1200, state: 13, rowing: 0 }));
+    emit('0035', stroke({ t: 2, count: 1 }));
+    expect(result.current.stroke.strokeCount).toBe(1);
+    expect(result.current.stroke.elapsedTime).toBe(2);
+  });
+
+  it('accepts a 0035 before any 0031 has arrived', async () => {
+    const { result } = await connectedHook();
+    emit('0035', stroke({ t: 3, count: 1 }));
+    expect(result.current.stroke).not.toBeNull();
+    expect(result.current.metrics).toBeNull();
+    expect(result.current.status).toBe('connected');
+  });
+
+  it('clears the stroke on disconnect and on reset', async () => {
+    const { result } = await connectedHook();
+    emit('0035', stroke({ t: 10, count: 2 }));
+    act(() => result.current.disconnect());
+    expect(result.current.stroke).toBeNull();
+
+    await act(async () => {
+      await result.current.connect();
+    });
+    emit('0035', stroke({ t: 10, count: 2 }));
+    act(() => result.current.reset());
+    expect(result.current.stroke).toBeNull();
+  });
+
+  it('clears the stroke when the GATT link drops on its own', async () => {
+    const { result } = await connectedHook();
+    emit('0031', general({ t: 10, dist: 50, state: 1, rowing: 1 }));
+    emit('0035', stroke({ t: 10, count: 5 }));
+    expect(result.current.stroke).not.toBeNull();
+    expect(result.current.metrics).not.toBeNull();
+    expect(result.current.status).toBe('rowing');
+
+    fireGattDisconnected();
+
+    expect(result.current.stroke).toBeNull();
+    expect(result.current.metrics).toBeNull();
+    expect(result.current.status).toBe('idle');
+  });
+
+  it('leaves no stale stroke across a disconnect and reconnect', async () => {
+    const { result } = await connectedHook();
+    emit('0035', stroke({ t: 10, count: 4 }));
+    act(() => result.current.disconnect());
+    await act(async () => {
+      await result.current.connect();
+    });
+    expect(result.current.stroke).toBeNull();
+  });
+
+  // Decision 3: 0036 is subscribed and parsed, and nothing is rendered from it.
+  it('parses 0036 without putting it on any state key', async () => {
+    const { result } = await connectedHook();
+    const parsed = subscriptions['0036'].parser(
+      addStroke({ t: 5, power: 240 })
+    );
+    expect(parsed.strokePower).toBe(240);
+    emit('0036', addStroke({ t: 5, power: 240 }));
+    expect(result.current.stroke).toBeNull();
+    expect(result.current.metrics).toBeNull();
+  });
+
+  it('a stroke never reaches the built summary', async () => {
+    const { result } = await connectedHook();
+    rowStroke({ t: 10, dist: 50 });
+    emit('0035', stroke({ t: 10, count: 3 }));
+    act(() => result.current.finish());
+    expect(result.current.summary).toEqual({
+      distance: 50,
+      elapsedTime: 10,
+      elapsedStr: '00:10',
+      avgWatts: 203,
+      avgPace: 12000,
+      avgSpm: 24,
+      maxWatts: 203,
+      calories: 0,
+    });
+  });
+});
+
+describe('usePM5 missing stroke characteristics', () => {
+  it('without 0035 the connection and the status tiles still work', async () => {
+    const { result } = await connectedHook({ ...ALL_CHARS, strokeData: null });
+    expect(result.current.status).toBe('connected');
+    // Exactly once: a short-packet flood or a double report would otherwise
+    // pass toHaveBeenCalledWith unnoticed.
+    expect(captureError).toHaveBeenCalledTimes(1);
+    expect(captureError).toHaveBeenCalledWith(expect.any(Error), {
+      source: 'pm5Bluetooth',
+      char: '0035',
+    });
+
+    emit('0031', general({ t: 10, dist: 50, state: 1, rowing: 1 }));
+    expect(result.current.status).toBe('rowing');
+    expect(result.current.metrics.distance).toBe(50);
+    expect(result.current.stroke).toBeNull();
+  });
+
+  it('without 0036 the connection still succeeds and the gap is reported', async () => {
+    const { result } = await connectedHook({
+      ...ALL_CHARS,
+      additionalStrokeData: null,
+    });
+    expect(result.current.status).toBe('connected');
+    expect(captureError).toHaveBeenCalledTimes(1);
+    expect(captureError).toHaveBeenCalledWith(expect.any(Error), {
+      source: 'pm5Bluetooth',
+      char: '0036',
+    });
+
+    // The status tiles are what this criterion is about, so drive them off a
+    // 0031; the 0035 path is proven separately.
+    emit('0031', general({ t: 10, dist: 50, state: 1, rowing: 1 }));
+    expect(result.current.status).toBe('rowing');
+    expect(result.current.metrics.distance).toBe(50);
+
+    emit('0035', stroke({ t: 10, count: 1 }));
+    expect(result.current.stroke).not.toBeNull();
+  });
+
+  it('a failed 0035 subscription is reported and connect carries on', async () => {
+    failSubscribe = new Set(['0035']);
+    const { result } = await connectedHook();
+    expect(result.current.status).toBe('connected');
+    expect(captureError).toHaveBeenCalledTimes(1);
+    expect(captureError).toHaveBeenCalledWith(expect.any(Error), {
+      source: 'pm5Bluetooth',
+      char: '0035',
+    });
+    expect(result.current.stroke).toBeNull();
+  });
+
+  it('a failed 0036 subscription is reported and connect carries on', async () => {
+    failSubscribe = new Set(['0036']);
+    const { result } = await connectedHook();
+    expect(result.current.status).toBe('connected');
+    expect(captureError).toHaveBeenCalledTimes(1);
+    expect(captureError).toHaveBeenCalledWith(expect.any(Error), {
+      source: 'pm5Bluetooth',
+      char: '0036',
+    });
+
+    // 0036 failing costs nothing else: 0035 still feeds the tiles.
+    emit('0035', stroke({ t: 10, count: 1 }));
+    expect(result.current.stroke).not.toBeNull();
+  });
+
+  it('reports the original fetch rejection for a missing 0035', async () => {
+    const original = new Error('NotFoundError: 0035');
+    await connectedHook(
+      { ...ALL_CHARS, strokeData: null },
+      {
+        additionalStatus1: null,
+        additionalStatus2: null,
+        workoutSummary: null,
+        strokeData: original,
+        additionalStrokeData: null,
+      }
+    );
+    expect(captureError).toHaveBeenCalledWith(original, {
+      source: 'pm5Bluetooth',
+      char: '0035',
+    });
+  });
+
+  it('a PM5 exposing neither stroke characteristic costs two reports', async () => {
+    const { result } = await connectedHook({
+      ...ALL_CHARS,
+      strokeData: null,
+      additionalStrokeData: null,
+    });
+    expect(result.current.status).toBe('connected');
+    expect(captureError).toHaveBeenCalledTimes(2);
+    expect(result.current.stroke).toBeNull();
+
+    emit('0031', general({ t: 10, dist: 50, state: 1, rowing: 1 }));
+    expect(result.current.metrics.distance).toBe(50);
+  });
+});
+
 describe('usePM5 connect errors (AC-T2)', () => {
   it('keeps a string code from pm5Bluetooth next to the message', async () => {
     const err = new Error('Web Bluetooth is not supported');
@@ -562,5 +850,130 @@ describe('usePM5 connect errors (AC-T2)', () => {
       'User cancelled the requestDevice() chooser.'
     );
     expect(result.current.errorCode).toBeNull();
+  });
+});
+
+// The Capacitor plugin shims navigator.bluetooth, so there is one BLE code path
+// and the thing worth pinning is the shim's contract. The file's module-level
+// Capacitor mock reports web, so this needs its own mocks and its own import.
+//
+// This block MUST stay last in the file. vi.resetModules() plus vi.doMock and a
+// dynamic import only leave the blocks above untouched because they have
+// already captured the statically-imported usePM5; running this earlier, or
+// with --sequence.shuffle, would hand them the native build.
+describe('usePM5 on the Capacitor path', () => {
+  afterEach(() => {
+    vi.doUnmock('@capacitor/core');
+    vi.doUnmock('@capacitor/app');
+    vi.doUnmock('@capgo/capacitor-bluetooth-low-energy');
+    vi.doUnmock('../../services/pm5Scan');
+    vi.resetModules();
+  });
+
+  // Mount the hook with Capacitor reporting native. `listeners` collects the
+  // App events the hook registers, so a test can fire one.
+  // After #697, native connect() opens the PM5 list; startPiece runs from
+  // choose(). The scan module is mocked here so this block can reach a
+  // connected piece without going through the real adapter.
+  async function mountNative(BluetoothLowEnergy) {
+    const listeners = {};
+    const scan = {
+      check: vi.fn().mockResolvedValue({ locationOff: false }),
+      start: vi.fn(),
+      connectChosen: vi.fn(),
+      onSighting: null,
+    };
+    scan.start.mockImplementation(async (fn) => {
+      scan.onSighting = fn;
+      return vi.fn();
+    });
+    vi.resetModules();
+    vi.doMock('@capacitor/core', () => ({
+      Capacitor: { isNativePlatform: () => true },
+    }));
+    vi.doMock('@capacitor/app', () => ({
+      App: {
+        addListener: vi.fn(async (event, cb) => {
+          listeners[event] = cb;
+          return { remove: vi.fn() };
+        }),
+      },
+    }));
+    vi.doMock('@capgo/capacitor-bluetooth-low-energy', () => ({
+      BluetoothLowEnergy,
+    }));
+    vi.doMock('../../services/pm5Scan', async () => {
+      const actual = await vi.importActual('../../services/pm5Scan');
+      return {
+        ...actual,
+        checkScanPrerequisites: (...args) => scan.check(...args),
+        startPM5Scan: (...args) => scan.start(...args),
+        connectToChosenPM5: (...args) => scan.connectChosen(...args),
+      };
+    });
+
+    const { usePM5: nativeUsePM5 } = await import('../usePM5');
+    let rendered;
+    await act(async () => {
+      rendered = renderHook(() => nativeUsePM5());
+    });
+    return { rendered, listeners, scan };
+  }
+
+  const workingBle = () => ({
+    requestPermissions: vi.fn().mockResolvedValue(undefined),
+  });
+
+  // The Web Bluetooth shim is installed at app start by installNativeBluetooth()
+  // (#767), not from this hook. The hook only requests permissions on native.
+  it('requests BLE permissions on native', async () => {
+    const requestPermissions = vi.fn().mockResolvedValue(undefined);
+    await mountNative({ requestPermissions });
+    expect(requestPermissions).toHaveBeenCalledTimes(1);
+  });
+
+  it('surfaces a permission failure as the hook error instead of throwing', async () => {
+    const { rendered } = await mountNative({
+      requestPermissions: vi.fn().mockRejectedValue(new Error('denied')),
+    });
+
+    expect(rendered.result.current.error).toBe('denied');
+  });
+
+  it('clears the live state and the stroke when the app is paused', async () => {
+    const { rendered, listeners, scan } = await mountNative(workingBle());
+    scan.connectChosen.mockResolvedValue({
+      device: fakeDevice,
+      chars: ALL_CHARS,
+    });
+    await act(async () => {
+      await rendered.result.current.connect();
+    });
+    act(() => scan.onSighting({ deviceId: 'AA', name: 'PM5 1 Row' }));
+    await act(async () => {
+      await rendered.result.current.choose('AA');
+    });
+
+    emit('0031', general({ t: 10, dist: 50, state: 1, rowing: 1 }));
+    emit('0035', stroke({ t: 10, count: 3 }));
+    expect(rendered.result.current.stroke).not.toBeNull();
+    expect(rendered.result.current.metrics).not.toBeNull();
+    expect(rendered.result.current.status).toBe('rowing');
+
+    act(() => listeners.pause());
+
+    expect(rendered.result.current.stroke).toBeNull();
+    expect(rendered.result.current.metrics).toBeNull();
+    expect(rendered.result.current.status).toBe('idle');
+    expect(disconnectPM5Mock).toHaveBeenCalledWith(fakeDevice);
+  });
+
+  it('ignores a pause with no monitor connected', async () => {
+    const { rendered, listeners } = await mountNative(workingBle());
+
+    act(() => listeners.pause());
+
+    expect(rendered.result.current.status).toBe('idle');
+    expect(disconnectPM5Mock).not.toHaveBeenCalled();
   });
 });

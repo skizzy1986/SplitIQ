@@ -43,7 +43,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `hdxhKx` | We could not sign you in. Try again. | No pudimos iniciar sesión. Inténtalo de nuevo. | Login error for any unrecognised cause. Only shown in Spanish. · src/utils/authError.js |
 | `y1oEoC` | Wrong email or password. | Correo o contraseña incorrectos. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
 
-## Dashboard views (src/locales/views, 555 strings)
+## Dashboard views (src/locales/views, 560 strings)
 
 | Row | English | Español | Where / note |
 |---|---|---|---|
@@ -196,6 +196,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `r2_GnS` | Decision limits: | Límites de decisión: | Followed by the names of the guideline sources · src/views/RecoveryView.jsx |
 | `Bn9-El` | default | predeterminado | Followed by a number: the population default baseline · src/views/RecoveryView.jsx |
 | `NsszZt` | Derived here: {derivedText}. | Calculado aquí: {derivedText}. | Session caption; the list is translated item by item · src/components/session/ProvenanceNote.jsx |
+| `rRDi3Y` | Detail | Detalle | Group label on the control that switches how much detail the live screen shows · src/views/ErgLiveView.jsx |
 | `PEHQTf` | Device | Dispositivo | src/components/session/SessionSummary.jsx |
 | `g-iSJQ` | Device storage is full. Free some space, then tap SAVE SESSION again. | El almacenamiento del dispositivo está lleno. Libera espacio y vuelve a tocar GUARDAR SESIÓN. | SAVE SESSION is the button's label: match its translation · src/views/ErgLiveView.jsx |
 | `3gdwFS` | DISCARD | DESCARTAR | Button that throws the session away, all capitals · src/views/ErgLiveView.jsx |
@@ -210,6 +211,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `0-AhBt` | DISTANCE | DISTANCIA | All capitals · Metric, all capitals · src/components/LogEntry.jsx · src/views/ErgLiveView.jsx |
 | `MI1emd` | DONE | LISTO | Button that closes the summary, all capitals · src/views/ErgLiveView.jsx |
 | `HtAyVo` | Drift | Deriva | src/components/session/MoreDetail.jsx |
+| `U5lvSo` | DRIVE | PASADA | Live metric label: the drive is the propulsive phase of the rowing stroke; this is its length in metres; all capitals · src/views/ErgLiveView.jsx |
 | `lkz6PL` | Duration | Duración | src/components/session/SessionSummary.jsx |
 | `n6udpp` | DURATION | DURACIÓN | Field label, all capitals · Metric, all capitals · src/components/LogEntry.jsx · src/components/LogSessionForm.jsx |
 | `qN2bsY` | e1RM | e1RM | src/components/LogSessionForm.jsx |
@@ -228,6 +230,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `50_FGa` | Exercise | Ejercicio | src/components/LogEntry.jsx |
 | `dlQJc0` | Exercise name | Nombre del ejercicio | src/components/LogSessionForm.jsx |
 | `X7zn7R` | EXERCISES | EJERCICIOS | Field label, all capitals · src/components/LogSessionForm.jsx |
+| `DjmziY` | Expert | Avanzado | The more-detailed depth, which adds figures · src/views/ErgLiveView.jsx |
 | `0UqCRZ` | Failed to load sessions | No se pudieron cargar las sesiones | src/views/mobile/MobileSessionLog.jsx |
 | `byKwh7` | Fatigue | Fatiga | Subtitle of ATL · src/views/OverviewView.jsx |
 | `fosSI8` | FATIGUE / ATL | FATIGA / ATL | All capitals; ATL stays as is · src/views/mobile/MobileAnalytics.jsx |
@@ -400,6 +403,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `5OpNRF` | Prioritise recovery today | Prioriza la recuperación hoy | src/views/mobile/MobileRecovery.jsx |
 | `CP3D8G` | Progress | Progreso | src/views/mobile/MobileProgress.jsx |
 | `jEZ6Lf` | provisional | provisional | Anchor status · src/components/session/ZoneBar.jsx |
+| `JsjDDu` | RATIO | RELACIÓN | Live metric label: the stroke ratio, drive time to recovery time, shown as 1 : x.x; all capitals · src/views/ErgLiveView.jsx |
 | `kRXcWA` | Readiness | Disposición | src/views/OverviewView.jsx |
 | `UaG2b4` | READINESS | DISPOSICIÓN | All capitals · Card heading, all capitals · Card heading, all capitals · src/views/mobile/MobileRecovery.jsx · src/views/mobile/MobileToday.jsx · src/views/OverviewView.jsx |
 | `LO2EaV` | READINESS — 7 DAYS | DISPOSICIÓN — 7 DÍAS | Chart title, all capitals · src/views/mobile/MobileRecovery.jsx |
@@ -453,6 +457,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `FKcroQ` | Share Concept2 links or Fitbod screenshots to add sessions. sRPE captured every session. | Comparte enlaces de Concept2 o capturas de pantalla de Fitbod para agregar sesiones. El sRPE se registra en cada sesión. | Concept2 and Fitbod are brand names: keep them · src/views/LogView.jsx |
 | `UTQjd8` | Short phrases only. Genuinely taxing. Threshold/AT. | Solo frases cortas. Realmente exigente. Umbral/AT. | sRPE scale, effort 7-8: the talk test · src/constants/srpeGuideMessages.js |
 | `fcWrnU` | Sign out | Cerrar sesión | src/views/mobile/MobileSettings.jsx |
+| `AQK14J` | Simple | Simple | The default, less-detailed depth · src/views/ErgLiveView.jsx |
 | `aHb3Mx` | since {date} | desde el {date} | Injury onset date · src/views/RecoveryView.jsx |
 | `Z4Vby7` | SLEEP | SUEÑO | All capitals · All capitals · src/views/mobile/MobileRecovery.jsx · src/views/RecoveryView.jsx |
 | `Jrane6` | SLEEP — 14 DAYS | SUEÑO — 14 DÍAS | Chart title, all capitals · src/views/mobile/MobileRecovery.jsx |

@@ -93,9 +93,11 @@ beforeEach(() => {
     value: true,
     configurable: true,
   });
+  localStorage.clear();
   pm5State = {
     status: 'idle',
     metrics: null,
+    stroke: null,
     summary: null,
     error: null,
     connect: vi.fn(),
@@ -145,6 +147,143 @@ describe('ErgLiveView', () => {
     renderWithClient(<ErgLiveView />, makeClient());
     expect(screen.getByText('2501')).toBeInTheDocument();
     expect(screen.queryByText('2500.6')).not.toBeInTheDocument();
+  });
+});
+
+describe('ErgLiveView depth and stroke tiles', () => {
+  const ROWING = {
+    status: 'rowing',
+    metrics: {
+      watts: 180,
+      strokeRate: 24,
+      distance: 5000,
+      elapsedStr: '20:00',
+      paceStr: '2:00.0',
+    },
+    stroke: {
+      driveLength: 1.12,
+      driveTime: 0.8,
+      strokeRecoveryTime: 1.6,
+      strokeCount: 7,
+    },
+  };
+
+  const rowing = (extra = {}) => {
+    pm5State = { ...pm5State, ...ROWING, ...extra };
+  };
+
+  it('defaults to the simple depth, which is the five existing tiles only', () => {
+    rowing();
+    renderWithClient(<ErgLiveView />, makeClient());
+
+    for (const label of ['500m PACE', 'WATTS', 'SPM', 'DIST', 'ELAPSED']) {
+      expect(screen.getByText(label)).toBeInTheDocument();
+    }
+    expect(screen.queryByText('RATIO')).not.toBeInTheDocument();
+    expect(screen.queryByText('DRIVE')).not.toBeInTheDocument();
+    expect(screen.queryByText('1 : 2.0')).not.toBeInTheDocument();
+  });
+
+  it('shows the ratio and the drive length at the expert depth', () => {
+    rowing();
+    renderWithClient(<ErgLiveView />, makeClient());
+
+    fireEvent.click(screen.getByText('Expert'));
+
+    expect(screen.getByText('RATIO')).toBeInTheDocument();
+    expect(screen.getByText('DRIVE')).toBeInTheDocument();
+    expect(screen.getByText('1 : 2.0')).toBeInTheDocument();
+    expect(screen.getByText('1.12')).toBeInTheDocument();
+  });
+
+  it('keeps the five existing tiles when the expert depth adds the new row', () => {
+    rowing();
+    renderWithClient(<ErgLiveView />, makeClient());
+    fireEvent.click(screen.getByText('Expert'));
+
+    for (const label of ['500m PACE', 'WATTS', 'SPM', 'DIST', 'ELAPSED']) {
+      expect(screen.getByText(label)).toBeInTheDocument();
+    }
+  });
+
+  it('reads both new tiles as -- before the first stroke', () => {
+    rowing({ stroke: null });
+    renderWithClient(<ErgLiveView />, makeClient());
+    fireEvent.click(screen.getByText('Expert'));
+
+    expect(screen.getAllByText('--')).toHaveLength(2);
+  });
+
+  it('persists the depth choice across a remount', () => {
+    rowing();
+    const { unmount } = renderWithClient(<ErgLiveView />, makeClient());
+    fireEvent.click(screen.getByText('Expert'));
+    expect(localStorage.getItem('splitiq.depth')).toBe('expert');
+    unmount();
+
+    renderWithClient(<ErgLiveView />, makeClient());
+    expect(screen.getByText('1 : 2.0')).toBeInTheDocument();
+  });
+
+  it('switches back to the simple depth and hides the row again', () => {
+    rowing();
+    renderWithClient(<ErgLiveView />, makeClient());
+    fireEvent.click(screen.getByText('Expert'));
+    fireEvent.click(screen.getByText('Simple'));
+
+    expect(screen.queryByText('RATIO')).not.toBeInTheDocument();
+    expect(localStorage.getItem('splitiq.depth')).toBe('simple');
+  });
+
+  it('renders the simple depth for a stored value that is not a depth', () => {
+    localStorage.setItem('splitiq.depth', 'neon');
+    rowing();
+    renderWithClient(<ErgLiveView />, makeClient());
+    expect(screen.queryByText('RATIO')).not.toBeInTheDocument();
+  });
+
+  // A wide ratio is reported, not capped: the figure is the point.
+  it('reports a long recovery without capping it', () => {
+    rowing({
+      stroke: {
+        driveLength: 1.12,
+        driveTime: 0.4,
+        strokeRecoveryTime: 5.0,
+        strokeCount: 7,
+      },
+    });
+    renderWithClient(<ErgLiveView />, makeClient());
+    fireEvent.click(screen.getByText('Expert'));
+    expect(screen.getByText('1 : 12.5')).toBeInTheDocument();
+  });
+
+  it('blanks the ratio when the monitor saturated the drive time', () => {
+    rowing({
+      stroke: {
+        driveLength: 1.12,
+        driveTime: null,
+        strokeRecoveryTime: 1.6,
+        strokeCount: 7,
+      },
+    });
+    renderWithClient(<ErgLiveView />, makeClient());
+    fireEvent.click(screen.getByText('Expert'));
+    expect(screen.getAllByText('--')).toHaveLength(1);
+    expect(screen.getByText('1.12')).toBeInTheDocument();
+  });
+
+  it('offers the depth control on the live screen but not the connect screen', () => {
+    // Unmount between the two renders: without it the second assertion would
+    // pass on either screen's markup.
+    const { unmount } = renderWithClient(<ErgLiveView />, makeClient());
+    expect(screen.queryByText('Expert')).not.toBeInTheDocument();
+    unmount();
+
+    rowing();
+    renderWithClient(<ErgLiveView />, makeClient());
+    expect(
+      screen.getByRole('navigation', { name: 'Detail' })
+    ).toBeInTheDocument();
   });
 });
 

@@ -699,6 +699,11 @@ msgstr "default"
 msgid "Derived here: {derivedText}."
 msgstr "Derived here: {derivedText}."
 
+#. Group label on the control that switches how much detail the live screen shows
+#: src/views/ErgLiveView.jsx
+msgid "Detail"
+msgstr "Detail"
+
 #: src/components/session/SessionSummary.jsx
 msgid "Device"
 msgstr "Device"
@@ -768,6 +773,11 @@ msgstr "DONE"
 #: src/components/session/MoreDetail.jsx
 msgid "Drift"
 msgstr "Drift"
+
+#. Live metric label: the drive is the propulsive phase of the rowing stroke; this is its length in metres; all capitals
+#: src/views/ErgLiveView.jsx
+msgid "DRIVE"
+msgstr "DRIVE"
 
 #: src/components/session/SessionSummary.jsx
 msgid "Duration"
@@ -857,6 +867,11 @@ msgstr "Exercise name"
 #: src/components/LogSessionForm.jsx
 msgid "EXERCISES"
 msgstr "EXERCISES"
+
+#. The more-detailed depth, which adds figures
+#: src/views/ErgLiveView.jsx
+msgid "Expert"
+msgstr "Expert"
 
 #: src/views/mobile/MobileSessionLog.jsx
 msgid "Failed to load sessions"
@@ -1646,6 +1661,11 @@ msgstr "Progress"
 msgid "provisional"
 msgstr "provisional"
 
+#. Live metric label: the stroke ratio, drive time to recovery time, shown as 1 : x.x; all capitals
+#: src/views/ErgLiveView.jsx
+msgid "RATIO"
+msgstr "RATIO"
+
 #: src/views/OverviewView.jsx
 msgid "Readiness"
 msgstr "Readiness"
@@ -1914,6 +1934,11 @@ msgstr "Short phrases only. Genuinely taxing. Threshold/AT."
 #: src/views/mobile/MobileSettings.jsx
 msgid "Sign out"
 msgstr "Sign out"
+
+#. The default, less-detailed depth
+#: src/views/ErgLiveView.jsx
+msgid "Simple"
+msgstr "Simple"
 
 #. Injury onset date
 #: src/views/RecoveryView.jsx

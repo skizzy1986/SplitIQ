@@ -15,6 +15,12 @@ import {
   parseAdditionalStatus1,
   parseAdditionalStatus2,
   parseRowingSummary,
+  parseRowingStrokeData,
+  parseAdditionalStrokeData,
+  isNewerStroke,
+  formatStrokeRatio,
+  formatDriveLength,
+  LBF_TO_N,
   mergeStatus,
   buildPM5Summary,
   summaryReference,
@@ -41,6 +47,59 @@ function set3ByteLE(view, n, value) {
 
 function setUint16LE(view, n, value) {
   view.setUint16(n, value, true);
+}
+
+// 0035 rowing stroke data. Raw units, so a test can plant a saturated 0xFF /
+// 0xFFFF as the monitor sends it.
+function strokePacket({
+  t = 0,
+  dist = 0,
+  driveLen = 0,
+  driveTime = 0,
+  recovery = 0,
+  strokeDist = 0,
+  peak = 0,
+  avg = 0,
+  work = 0,
+  count = 0,
+  size = 20,
+} = {}) {
+  const v = new DataView(new ArrayBuffer(size));
+  set3ByteLE(v, 0, t);
+  set3ByteLE(v, 3, dist);
+  v.setUint8(6, driveLen);
+  v.setUint8(7, driveTime);
+  setUint16LE(v, 8, recovery);
+  setUint16LE(v, 10, strokeDist);
+  setUint16LE(v, 12, peak);
+  setUint16LE(v, 14, avg);
+  setUint16LE(v, 16, work);
+  setUint16LE(v, 18, count);
+  return v;
+}
+
+// 0036 additional stroke data, at either size the two revisions use.
+function addStrokePacket(
+  {
+    t = 0,
+    power = 0,
+    cal = 0,
+    count = 0,
+    projTime = 0,
+    projDist = 0,
+    projOther = 0,
+  } = {},
+  size = 18
+) {
+  const v = new DataView(new ArrayBuffer(size));
+  set3ByteLE(v, 0, t);
+  setUint16LE(v, 3, power);
+  setUint16LE(v, 5, cal);
+  setUint16LE(v, 7, count);
+  set3ByteLE(v, 9, projTime);
+  set3ByteLE(v, 12, projDist);
+  if (size >= 18) set3ByteLE(v, 15, projOther);
+  return v;
 }
 
 // ---------------------------------------------------------------------------
@@ -249,6 +308,310 @@ describe('parseAdditionalStatus2 (0033)', () => {
   it('returns null for a packet shorter than 8 bytes', () => {
     expect(parseAdditionalStatus2(makePacket(7))).toBeNull();
     expect(parseAdditionalStatus2(makePacket(8))).not.toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 0035 rowing stroke data
+// ---------------------------------------------------------------------------
+describe('parseRowingStrokeData (0035)', () => {
+  const packet = strokePacket({
+    t: 1234, // 12.34 s
+    dist: 5037, // 503.7 m
+    driveLen: 112, // 1.12 m
+    driveTime: 80, // 0.80 s
+    recovery: 160, // 1.60 s
+    strokeDist: 980, // 9.80 m
+    peak: 2000, // 200.0 lbf
+    avg: 1100, // 110.0 lbf
+    work: 3456, // 345.6 J
+    count: 258,
+  });
+
+  it('reads elapsed time from 0-2 in 0.01 s', () => {
+    expect(parseRowingStrokeData(packet).elapsedTime).toBeCloseTo(12.34);
+  });
+
+  it('reads distance from 3-5 in 0.1 m', () => {
+    expect(parseRowingStrokeData(packet).distance).toBeCloseTo(503.7);
+  });
+
+  it('reads drive length from byte 6 in 0.01 m', () => {
+    expect(parseRowingStrokeData(packet).driveLength).toBeCloseTo(1.12);
+  });
+
+  it('reads drive time from byte 7 in 0.01 s', () => {
+    expect(parseRowingStrokeData(packet).driveTime).toBeCloseTo(0.8);
+  });
+
+  it('reads stroke recovery time from 8-9 in 0.01 s', () => {
+    expect(parseRowingStrokeData(packet).strokeRecoveryTime).toBeCloseTo(1.6);
+  });
+
+  it('reads stroke distance from 10-11 in 0.01 m', () => {
+    expect(parseRowingStrokeData(packet).strokeDistance).toBeCloseTo(9.8);
+  });
+
+  it('reads peak drive force from 12-13 and reports it in newtons', () => {
+    expect(parseRowingStrokeData(packet).peakDriveForce).toBeCloseTo(
+      200 * LBF_TO_N
+    );
+  });
+
+  it('reads average drive force from 14-15 and reports it in newtons', () => {
+    expect(parseRowingStrokeData(packet).averageDriveForce).toBeCloseTo(
+      110 * LBF_TO_N
+    );
+  });
+
+  it('reads work per stroke from 16-17 in 0.1 J', () => {
+    expect(parseRowingStrokeData(packet).workPerStroke).toBeCloseTo(345.6);
+  });
+
+  it('reads stroke count from 18-19', () => {
+    expect(parseRowingStrokeData(packet).strokeCount).toBe(258);
+  });
+
+  // 258 is 0x0102: a big-endian read would give 513.
+  it('reads the uint16 fields little-endian', () => {
+    const view = strokePacket({ count: 0x0102 });
+    expect(view.getUint8(18)).toBe(0x02);
+    expect(view.getUint8(19)).toBe(0x01);
+    expect(parseRowingStrokeData(view).strokeCount).toBe(258);
+  });
+
+  it('converts pounds-force to newtons at the documented factor', () => {
+    expect(LBF_TO_N).toBeCloseTo(4.4482216152605, 12);
+  });
+
+  it('returns null for a 19-byte packet rather than throwing', () => {
+    expect(() => parseRowingStrokeData(makePacket(19))).not.toThrow();
+    expect(parseRowingStrokeData(makePacket(19))).toBeNull();
+  });
+
+  it('returns null for an empty packet and for no packet at all', () => {
+    expect(parseRowingStrokeData(makePacket(0))).toBeNull();
+    expect(parseRowingStrokeData(null)).toBeNull();
+  });
+
+  // 0xFF / 0xFFFF is the monitor's "out of range". It has to become null here:
+  // 255 / 100 is 2.55, which is a legal drive length and a legal drive time.
+  it('nulls a saturated drive length and leaves the other fields alone', () => {
+    const parsed = parseRowingStrokeData(
+      strokePacket({ driveLen: 0xff, driveTime: 80, recovery: 160 })
+    );
+    expect(parsed.driveLength).toBeNull();
+    expect(parsed.driveTime).toBeCloseTo(0.8);
+    expect(parsed.strokeRecoveryTime).toBeCloseTo(1.6);
+  });
+
+  it('nulls a saturated drive time and leaves the other fields alone', () => {
+    const parsed = parseRowingStrokeData(
+      strokePacket({ driveLen: 112, driveTime: 0xff, recovery: 160 })
+    );
+    expect(parsed.driveTime).toBeNull();
+    expect(parsed.driveLength).toBeCloseTo(1.12);
+  });
+
+  it('nulls a saturated stroke recovery time', () => {
+    const parsed = parseRowingStrokeData(
+      strokePacket({ driveLen: 112, driveTime: 80, recovery: 0xffff })
+    );
+    expect(parsed.strokeRecoveryTime).toBeNull();
+    expect(parsed.driveTime).toBeCloseTo(0.8);
+  });
+
+  it('reads the highest unsaturated drive length, 2.54 m, as a measurement', () => {
+    expect(
+      parseRowingStrokeData(strokePacket({ driveLen: 254 })).driveLength
+    ).toBeCloseTo(2.54);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 0036 additional stroke data
+// ---------------------------------------------------------------------------
+describe('parseAdditionalStrokeData (0036)', () => {
+  const data = {
+    t: 2500, // 25.00 s
+    power: 243,
+    cal: 612,
+    count: 41,
+    projTime: 2400,
+    projDist: 7500,
+    projOther: 99,
+  };
+
+  it('reads elapsed time from 0-2 in 0.01 s', () => {
+    expect(parseAdditionalStrokeData(addStrokePacket(data)).elapsedTime).toBe(
+      25
+    );
+  });
+
+  it('reads stroke power from 3-4 in watts', () => {
+    expect(parseAdditionalStrokeData(addStrokePacket(data)).strokePower).toBe(
+      243
+    );
+  });
+
+  it('reads stroke calories from 5-6', () => {
+    expect(
+      parseAdditionalStrokeData(addStrokePacket(data)).strokeCalories
+    ).toBe(612);
+  });
+
+  it('reads stroke count from 7-8', () => {
+    expect(parseAdditionalStrokeData(addStrokePacket(data)).strokeCount).toBe(
+      41
+    );
+  });
+
+  it('reads the three projected-work fields from 9-11, 12-14 and 15-17', () => {
+    const parsed = parseAdditionalStrokeData(addStrokePacket(data));
+    expect(parsed.projectedWorkTime).toBe(2400);
+    expect(parsed.projectedWorkDistance).toBe(7500);
+    expect(parsed.projectedWorkOther).toBe(99);
+  });
+
+  // Revision 0.34 grew the characteristic from 15 bytes to 18 by appending
+  // projected work other, so a rev-0.25 monitor is read, not rejected, and
+  // only that trailing field is missing.
+  it('gives the same result at 15 bytes, with only the trailing field null', () => {
+    expect(parseAdditionalStrokeData(addStrokePacket(data, 15))).toEqual({
+      ...parseAdditionalStrokeData(addStrokePacket(data)),
+      projectedWorkOther: null,
+    });
+  });
+
+  it('returns null for a 14-byte packet', () => {
+    expect(parseAdditionalStrokeData(makePacket(14))).toBeNull();
+    expect(parseAdditionalStrokeData(null)).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// isNewerStroke
+// ---------------------------------------------------------------------------
+describe('isNewerStroke', () => {
+  it('accepts the first stroke of a connection', () => {
+    expect(isNewerStroke(null, { strokeCount: 1, elapsedTime: 3 })).toBe(true);
+  });
+
+  it('accepts a higher stroke count', () => {
+    expect(
+      isNewerStroke(
+        { strokeCount: 9, elapsedTime: 30 },
+        { strokeCount: 10, elapsedTime: 33 }
+      )
+    ).toBe(true);
+  });
+
+  it('rejects a duplicate stroke count', () => {
+    expect(
+      isNewerStroke(
+        { strokeCount: 9, elapsedTime: 30 },
+        { strokeCount: 9, elapsedTime: 30 }
+      )
+    ).toBe(false);
+  });
+
+  it('rejects an out-of-order packet, a lower count with the clock advancing', () => {
+    expect(
+      isNewerStroke(
+        { strokeCount: 9, elapsedTime: 30 },
+        { strokeCount: 8, elapsedTime: 31 }
+      )
+    ).toBe(false);
+  });
+
+  // A reset or a rearm restarts both counters, so the clock going backwards is
+  // what lets the next piece's first stroke land.
+  it('accepts a lower count when the monitor clock went backwards', () => {
+    expect(
+      isNewerStroke(
+        { strokeCount: 9, elapsedTime: 300 },
+        { strokeCount: 1, elapsedTime: 2 }
+      )
+    ).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// formatStrokeRatio / formatDriveLength
+// ---------------------------------------------------------------------------
+describe('formatStrokeRatio', () => {
+  it('formats a 0.80 s drive against a 1.60 s recovery as 1 : 2.0', () => {
+    expect(formatStrokeRatio(0.8, 1.6)).toBe('1 : 2.0');
+  });
+
+  it('keeps one decimal on an uneven ratio', () => {
+    expect(formatStrokeRatio(0.75, 1.8)).toBe('1 : 2.4');
+  });
+
+  it('reports a long recovery without capping it', () => {
+    expect(formatStrokeRatio(0.4, 5.0)).toBe('1 : 12.5');
+  });
+
+  // Never Infinity, never NaN.
+  it("returns '--' for a zero drive or recovery time", () => {
+    expect(formatStrokeRatio(0, 1.6)).toBe('--');
+    expect(formatStrokeRatio(0.8, 0)).toBe('--');
+  });
+
+  it("returns '--' for a saturated, missing or negative part", () => {
+    expect(formatStrokeRatio(null, 1.6)).toBe('--');
+    expect(formatStrokeRatio(0.8, null)).toBe('--');
+    expect(formatStrokeRatio(undefined, undefined)).toBe('--');
+    expect(formatStrokeRatio(NaN, 1.6)).toBe('--');
+    expect(formatStrokeRatio(-0.8, 1.6)).toBe('--');
+  });
+});
+
+describe('formatDriveLength', () => {
+  it('formats 1.12 m to two decimals', () => {
+    expect(formatDriveLength(1.12)).toBe('1.12');
+  });
+
+  it('pads a value that needs the second decimal', () => {
+    expect(formatDriveLength(1.3)).toBe('1.30');
+  });
+
+  // The PM5 reports 0 for a field it never measured, as the saved row's `||`
+  // already assumes.
+  it("returns '--' for 0, null, undefined and NaN", () => {
+    expect(formatDriveLength(0)).toBe('--');
+    expect(formatDriveLength(null)).toBe('--');
+    expect(formatDriveLength(undefined)).toBe('--');
+    expect(formatDriveLength(NaN)).toBe('--');
+  });
+
+  it('turns a saturated drive length into -- while the ratio is unaffected', () => {
+    const parsed = parseRowingStrokeData(
+      strokePacket({ driveLen: 0xff, driveTime: 80, recovery: 160 })
+    );
+    expect(formatDriveLength(parsed.driveLength)).toBe('--');
+    expect(formatStrokeRatio(parsed.driveTime, parsed.strokeRecoveryTime)).toBe(
+      '1 : 2.0'
+    );
+  });
+
+  it('a saturated drive time blanks the ratio as well as the drive time', () => {
+    const parsed = parseRowingStrokeData(
+      strokePacket({ driveLen: 112, driveTime: 0xff, recovery: 160 })
+    );
+    expect(formatStrokeRatio(parsed.driveTime, parsed.strokeRecoveryTime)).toBe(
+      '--'
+    );
+    expect(formatDriveLength(parsed.driveLength)).toBe('1.12');
+  });
+
+  it('a saturated recovery time blanks the ratio', () => {
+    const parsed = parseRowingStrokeData(
+      strokePacket({ driveLen: 112, driveTime: 80, recovery: 0xffff })
+    );
+    expect(formatStrokeRatio(parsed.driveTime, parsed.strokeRecoveryTime)).toBe(
+      '--'
+    );
   });
 });
 
@@ -702,7 +1065,7 @@ describe('connectToPM5', () => {
     ]);
   });
 
-  it('returns all four characteristics when present', async () => {
+  it('returns all six characteristics when present', async () => {
     const device = installBluetooth();
     const result = await connectToPM5();
     expect(result.device).toBe(device);
@@ -711,11 +1074,15 @@ describe('connectToPM5', () => {
       additionalStatus1: { uuid: UUID('32') },
       additionalStatus2: { uuid: UUID('33') },
       workoutSummary: { uuid: UUID('39') },
+      strokeData: { uuid: UUID('35') },
+      additionalStrokeData: { uuid: UUID('36') },
     });
     expect(result.errors).toEqual({
       additionalStatus1: null,
       additionalStatus2: null,
       workoutSummary: null,
+      strokeData: null,
+      additionalStrokeData: null,
     });
   });
 
@@ -726,12 +1093,36 @@ describe('connectToPM5', () => {
     expect(chars.additionalStatus1).toBeNull();
     expect(chars.additionalStatus2).toEqual({ uuid: UUID('33') });
     expect(chars.workoutSummary).toBeNull();
+    expect(chars.strokeData).toEqual({ uuid: UUID('35') });
+    expect(chars.additionalStrokeData).toEqual({ uuid: UUID('36') });
     expect(errors.additionalStatus1).toBeInstanceOf(Error);
     expect(errors.additionalStatus1.message).toBe(
       `NotFoundError ${UUID('32')}`
     );
     expect(errors.additionalStatus2).toBeNull();
     expect(errors.workoutSummary.message).toBe(`NotFoundError ${UUID('39')}`);
+    expect(errors.strokeData).toBeNull();
+    expect(errors.additionalStrokeData).toBeNull();
+  });
+
+  it('nulls a missing 0035 and keeps its rejection, with 0036 unaffected', async () => {
+    installBluetooth(['35']);
+    const { chars, errors } = await connectToPM5();
+    expect(chars.strokeData).toBeNull();
+    expect(errors.strokeData).toBeInstanceOf(Error);
+    expect(errors.strokeData.message).toBe(`NotFoundError ${UUID('35')}`);
+    expect(chars.additionalStrokeData).toEqual({ uuid: UUID('36') });
+    expect(errors.additionalStrokeData).toBeNull();
+  });
+
+  it('nulls a missing 0036 and keeps its rejection, with 0035 unaffected', async () => {
+    installBluetooth(['36']);
+    const { chars, errors } = await connectToPM5();
+    expect(chars.additionalStrokeData).toBeNull();
+    expect(errors.additionalStrokeData.message).toBe(
+      `NotFoundError ${UUID('36')}`
+    );
+    expect(chars.strokeData).toEqual({ uuid: UUID('35') });
   });
 
   it('rejects when the 0031 general status characteristic is missing', async () => {

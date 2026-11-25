@@ -57,7 +57,7 @@ def _check_args(manifest, manifest_name, bin_names):
             raise DataFileError(f'bin id {i!r} is not a non-empty str')
     names = [manifest_name, *bin_names.values()]
     for n in names:
-        if not isinstance(n, str) or not n or '/' in n or '\\' in n or '..' in n:
+        if not isinstance(n, str) or not n or n == '.' or '/' in n or '\\' in n or '..' in n:
             raise DataFileError(f'bad file name {n!r}')
     if len(set(names)) != len(names):
         raise DataFileError(f'file names repeat: {names}')
@@ -140,7 +140,7 @@ def _gunzip(p):
 def read(manifest_path, bin_paths):
     """The parsed manifest (``b`` and ``bins`` kept) and its arrays, from the bins at ``bin_paths`` {bin id: path}.
     A locked manifest checks each bin's raw bytes and sha256; every entry gets the web viewer's checks
-    (web/src/anatomy/utils/arrays.js: known dtype, aligned offset, inside its bin)."""
+    (web/src/anatomy/utils/arrays.js: o, n and t present, known dtype, no negative o or n, aligned offset, inside its bin)."""
     mp = Path(manifest_path)
     if not mp.is_file():
         raise MissingInputError(mp, 'input')
@@ -174,8 +174,16 @@ def read(manifest_path, bin_paths):
         src = {k: i for k in keys}
     for k in keys:
         e = man[k]
+        missing = [f for f in ('o', 'n', 't') if f not in e]
+        if missing:
+            raise DataFileError(f'{k}: entry has no {missing}')
         if e['t'] not in TA:
             raise DataFileError(f'{k}: unknown dtype {e["t"]}')
+        # np.frombuffer reads everything for count=-1 and raises a bare ValueError for a negative offset; the web's
+        # typed-array constructor throws on both, so refuse them here
+        for f in ('o', 'n'):
+            if e[f] < 0:
+                raise DataFileError(f'{k}: negative {f} {e[f]}')
         size = np.dtype(TA[e['t']]).itemsize
         if e['o'] % size:
             raise DataFileError(f'{k}: offset {e["o"]} is misaligned for {e["t"]}')

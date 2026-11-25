@@ -3,6 +3,7 @@ import gzip
 import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 
@@ -132,26 +133,35 @@ def _drop(d, k):
     del d[k]
 
 
+# case: (mutate the fixture, the message fragment that names the reason). The id cases declare body and motion as
+# well, so only the id check can refuse them.
 REFUSALS = {
-    'missing-array': lambda m, a, kw: _drop(a, 'a_u1'),
-    'extra-array': lambda m, a, kw: a.update(zz=np.zeros(2, np.uint8)),
-    'float64-array': lambda m, a, kw: a.update(c_f4=a['c_f4'].astype(np.float64)),
-    'big-endian-f4': lambda m, a, kw: a.update(c_f4=a['c_f4'].astype('>f4')),
-    'unknown-b': lambda m, a, kw: m['a_u1'].update(b='nope'),
-    'multi-bin-entry-without-b': lambda m, a, kw: _drop(m['a_u1'], 'b'),
-    'single-bin-entry-with-b': lambda m, a, kw: kw.update(bin_names={'data': 'd.bin'}),
-    'empty-declared-bin': lambda m, a, kw: kw['bin_names'].update(extra='extra.bin'),
-    'input-has-bins': lambda m, a, kw: m.update(bins=[]),
-    'no-array-entries': lambda m, a, kw: (m.clear(), m.update(meta={}), a.clear()),
-    'name-with-slash': lambda m, a, kw: kw['bin_names'].update(body='a/b.bin'),
-    'name-with-backslash': lambda m, a, kw: kw['bin_names'].update(body='a\\b.bin'),
-    'name-dotdot': lambda m, a, kw: kw['bin_names'].update(body='..'),
-    'empty-name': lambda m, a, kw: kw['bin_names'].update(body=''),
-    'duplicate-name': lambda m, a, kw: kw['bin_names'].update(motion=MULTI['body']),
-    'manifest-name-is-a-bin-name': lambda m, a, kw: kw.update(manifest_name=MULTI['motion']),
-    'empty-bin-names': lambda m, a, kw: kw.update(bin_names={}),
-    'non-str-id': lambda m, a, kw: kw.update(bin_names={1: 'x.bin', 'motion': 'y.bin'}),
-    'empty-id': lambda m, a, kw: kw.update(bin_names={'': 'x.bin', 'motion': 'y.bin'}),
+    'missing-array': (lambda m, a, kw: _drop(a, 'a_u1'), "no array for manifest entries ['a_u1']"),
+    'extra-array': (lambda m, a, kw: a.update(zz=np.zeros(2, np.uint8)), "arrays without a manifest entry ['zz']"),
+    'float64-array': (lambda m, a, kw: a.update(c_f4=a['c_f4'].astype(np.float64)), 'c_f4: dtype <f8 is not one of'),
+    'big-endian-f4': (lambda m, a, kw: a.update(c_f4=a['c_f4'].astype('>f4')), 'c_f4: dtype >f4 is not one of'),
+    'unknown-b': (lambda m, a, kw: m['a_u1'].update(b='nope'), "a_u1: b 'nope' is not a declared bin"),
+    'multi-bin-entry-without-b': (lambda m, a, kw: _drop(m['a_u1'], 'b'), 'a_u1: no b in a multi-bin write'),
+    'single-bin-entry-with-b': (lambda m, a, kw: kw.update(bin_names={'data': 'd.bin'}),
+                                'single-bin write, but entries carry b'),
+    'empty-declared-bin': (lambda m, a, kw: kw['bin_names'].update(extra='extra.bin'),
+                           "declared bins with no entries: ['extra']"),
+    'input-has-bins': (lambda m, a, kw: m.update(bins=[]), "the manifest already has 'bins'"),
+    'no-array-entries': (lambda m, a, kw: (m.clear(), m.update(meta={}), a.clear()), 'the manifest has no array entries'),
+    'name-with-slash': (lambda m, a, kw: kw['bin_names'].update(body='a/b.bin'), "bad file name 'a/b.bin'"),
+    'name-with-backslash': (lambda m, a, kw: kw['bin_names'].update(body='a\\b.bin'), "bad file name 'a\\\\b.bin'"),
+    'name-dotdot': (lambda m, a, kw: kw['bin_names'].update(body='..'), "bad file name '..'"),
+    'dot-name': (lambda m, a, kw: kw['bin_names'].update(body='.'), "bad file name '.'"),
+    'empty-name': (lambda m, a, kw: kw['bin_names'].update(body=''), "bad file name ''"),
+    'duplicate-name': (lambda m, a, kw: kw['bin_names'].update(motion=MULTI['body']),
+                       "file names repeat: ['row-manifest.json', 'anatomy-body.bin', 'anatomy-body.bin']"),
+    'manifest-name-is-a-bin-name': (lambda m, a, kw: kw.update(manifest_name=MULTI['motion']),
+                                    "file names repeat: ['row-motion.bin', 'anatomy-body.bin', 'row-motion.bin']"),
+    'empty-bin-names': (lambda m, a, kw: kw.update(bin_names={}), 'bin_names is empty'),
+    'non-str-id': (lambda m, a, kw: kw.update(bin_names={1: 'x.bin', 'body': 'b.bin', 'motion': 'y.bin'}),
+                   'bin id 1 is not a non-empty str'),
+    'empty-id': (lambda m, a, kw: kw.update(bin_names={'': 'x.bin', 'body': 'b.bin', 'motion': 'y.bin'}),
+                 "bin id '' is not a non-empty str"),
 }
 
 
@@ -159,9 +169,10 @@ REFUSALS = {
 def test_write_refuses(case, tmp_path):
     manifest, arrays = _fixture()
     kw = {'manifest_name': MAN, 'bin_names': dict(MULTI)}
-    REFUSALS[case](manifest, arrays, kw)
+    mutate, reason = REFUSALS[case]
+    mutate(manifest, arrays, kw)
     out = tmp_path / 'out'
-    with pytest.raises(DataFileError):
+    with pytest.raises(DataFileError, match=re.escape(reason)):
         write(manifest, arrays, out, **kw)
     assert not out.exists() or not any(out.iterdir())
 
@@ -212,4 +223,19 @@ def test_read_rejects_misaligned_or_out_of_bounds(tmp_path, edit, msg):
     man['c_f4'].update(edit)
     man_path.write_text(json.dumps(man), encoding='utf-8')
     with pytest.raises(DataFileError, match=msg):
+        read(man_path, bins)
+
+
+@pytest.mark.parametrize('edit, reason', [(lambda e: e.update(o=-8), 'c_f4: negative o -8'),
+                                          (lambda e: e.update(n=-1), 'c_f4: negative n -1'),
+                                          (lambda e: e.pop('n'), "c_f4: entry has no ['n']")],
+                         ids=['negative-o', 'negative-n', 'missing-n'])
+def test_read_rejects_negative_or_missing_fields(tmp_path, edit, reason):
+    """The web's typed-array constructor throws on these, so the reader refuses them too (np.frombuffer would read
+    everything for n=-1 and raise a bare ValueError for o<0)."""
+    man_path, bins = _written(tmp_path)
+    man = json.loads(man_path.read_text(encoding='utf-8'))
+    edit(man['c_f4'])
+    man_path.write_text(json.dumps(man), encoding='utf-8')
+    with pytest.raises(DataFileError, match=re.escape(reason)):
         read(man_path, bins)

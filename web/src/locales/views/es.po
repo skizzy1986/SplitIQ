@@ -234,6 +234,11 @@ msgstr "Una sesión de ciclismo."
 msgid "A rowing session."
 msgstr "Una sesión de remo."
 
+#. Settings section heading for the app version
+#: src/views/SettingsView.jsx
+msgid "About"
+msgstr "Acerca de"
+
 #: src/utils/stravaDisconnect.js
 msgid "Access at Strava revoked."
 msgstr "Se revocó el acceso en Strava."
@@ -418,6 +423,12 @@ msgstr "Cuerpo"
 #: src/views/mobile/MobileRecovery.jsx
 msgid "BODYWEIGHT — 14 DAYS (kg)"
 msgstr "PESO CORPORAL — 14 DÍAS (kg)"
+
+#. Accessible label for the build identifier in Settings. Same identifier as the loading screen.
+#. Settings About line. The identifier is the current app build.
+#: src/views/SettingsView.jsx
+msgid "Build {APP_BUILD}"
+msgstr "Versión {APP_BUILD}"
 
 #. Screen title, all capitals; C2 is Concept2, the rowing machine maker: keep it
 #: src/views/ErgLiveView.jsx

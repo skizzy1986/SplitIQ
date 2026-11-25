@@ -51,6 +51,13 @@ describe('SplashScreen', () => {
     expect(screen.getByText(/Split/)).toBeInTheDocument();
   });
 
+  it('shows the baked-in build identifier at the bottom, labelled for assistive tech', () => {
+    render(<SplashScreen />);
+    const label = screen.getByLabelText('Build dev');
+    expect(label).toHaveTextContent(/^dev$/);
+    expect(label).toHaveClass('siq-splash__build');
+  });
+
   it.each(LOCALES)(
     'shows the brand line for locale %j, marked with its own lang',
     (locale, text, lang, head) => {

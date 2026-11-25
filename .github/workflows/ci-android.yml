@@ -74,6 +74,9 @@ jobs:
         env:
           VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          # Same run number Gradle uses for versionCode / versionName, so the
+          # splash and Settings About label match Obtainium (#773, #763).
+          SPLITIQ_VERSION_CODE: ${{ github.run_number }}
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: web-dist

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { readFileSync, readdirSync } from 'node:fs';
+import { dirname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const fromMock = vi.fn();
@@ -14,128 +14,81 @@ vi.mock('../../supabaseClient.js', () => ({
 }));
 
 import { setRowingCp, clearSampleData } from '../setRowingCp.js';
+import { MIN_CP, MAX_CP } from '../firstRunGuide.js';
 
-// The statuses anchors_status_check accepts, read from the migration that
-// defines it (006), so the test fails if the client writes anything else.
 const here = dirname(fileURLToPath(import.meta.url));
-const ddl = readFileSync(
-  resolve(here, '../../../../supabase/migrations/006_context_store.sql'),
-  'utf8'
-);
-const ALLOWED_STATUSES = ddl
-  .match(/status\s+text check \(status in \(([^)]*)\)\)/)[1]
-  .split(',')
-  .map((v) => v.trim().replace(/'/g, ''));
-
-function chain(result, { maybeSingle, update, insert, del } = {}) {
-  const c = {
-    select: vi.fn(() => c),
-    eq: vi.fn(() => c),
-    is: vi.fn(() => c),
-    maybeSingle: vi.fn(async () => maybeSingle ?? result),
-    update: vi.fn(() => {
-      const next = chain(result, { maybeSingle, update, insert, del });
-      // update(...).eq(...) resolves
-      next.eq = vi.fn(async () => update ?? { error: null });
-      return next;
-    }),
-    insert: vi.fn(async () => insert ?? { error: null }),
-    delete: vi.fn(() => {
-      const next = chain(result, { maybeSingle, update, insert, del });
-      next.eq = vi.fn(() => next);
-      next.select = vi.fn(async () => del ?? { data: [], error: null });
-      return next;
-    }),
-  };
-  return c;
-}
+const srcDir = resolve(here, '../..');
 
 beforeEach(() => {
   fromMock.mockReset();
   rpcMock.mockReset();
 });
 
+// One-step save through migration 025's set_my_rowing_cp() (#797, Gate 1
+// criteria in the PR body). The database retires the old row and inserts the
+// new one in one statement, so the client never writes anchors itself.
 describe('setRowingCp', () => {
-  it('rejects an invalid wattage without writing', async () => {
-    const result = await setRowingCp('12');
-    expect(result).toEqual({ ok: false, cause: 'invalid' });
+  it('criteria 1 and 3: calls set_my_rowing_cp once with the watts and never writes anchors', async () => {
+    rpcMock.mockResolvedValue({
+      data: { status: 'saved', watts: 210, replaced: false },
+      error: null,
+    });
+    const result = await setRowingCp('210');
+    expect(result).toEqual({ ok: true, watts: 210 });
+    expect(rpcMock).toHaveBeenCalledTimes(1);
+    expect(rpcMock).toHaveBeenCalledWith('set_my_rowing_cp', { p_watts: 210 });
     expect(fromMock).not.toHaveBeenCalled();
   });
 
-  it('inserts a first rowing_cp when none is current', async () => {
-    const anchors = chain(
-      {},
-      { maybeSingle: { data: null, error: null }, insert: { error: null } }
-    );
-    fromMock.mockReturnValue(anchors);
-    const result = await setRowingCp('210');
-    expect(result).toEqual({ ok: true, watts: 210 });
-    expect(fromMock).toHaveBeenCalledWith('anchors');
-    expect(anchors.insert).toHaveBeenCalledWith({
-      key: 'rowing_cp',
-      value: '210',
-      unit: 'W',
-      status: 'unvalidated',
-      source: 'tester',
+  it('criterion 4: a failed save makes no follow-up writes to put a row back', async () => {
+    rpcMock.mockResolvedValue({
+      data: null,
+      error: { code: '23514', message: 'check' },
     });
-  });
-
-  // Retro Gate 3 (#811, CR 1 / RC 1, Blocker): 'set' broke anchors_status_check,
-  // so every save failed with 23514.
-  it('writes a status that anchors_status_check accepts', async () => {
-    expect(ALLOWED_STATUSES).toEqual([
-      'provisional',
-      'unvalidated',
-      'confirmed',
-    ]);
-    const anchors = chain(
-      {},
-      { maybeSingle: { data: null, error: null }, insert: { error: null } }
-    );
-    fromMock.mockReturnValue(anchors);
-    await setRowingCp('210');
-    const row = anchors.insert.mock.calls[0][0];
-    expect(ALLOWED_STATUSES).toContain(row.status);
-  });
-
-  // Retro Gate 3 (#811, CR 1 / RC 1): a failed insert must not leave the tester
-  // with no live rowing CP. The one-live-row index (anchors_one_live_per_key)
-  // rules out inserting first, so the supersede is undone instead.
-  it('puts the previous CP back when the new row cannot be saved', async () => {
-    const updates = [];
-    const anchors = chain(
-      {},
-      { maybeSingle: { data: { id: 'row-1' }, error: null } }
-    );
-    anchors.update = vi.fn((patch) => ({
-      eq: vi.fn(async (col, val) => {
-        updates.push([patch, col, val]);
-        return { error: null };
-      }),
-    }));
-    anchors.insert = vi.fn(async () => ({ error: { code: '23514' } }));
-    fromMock.mockReturnValue(anchors);
     const result = await setRowingCp('220');
     expect(result).toEqual({ ok: false, cause: 'error' });
-    expect(updates).toHaveLength(2);
-    expect(updates[0][0].superseded_at).toEqual(expect.any(String));
-    expect(updates[1]).toEqual([{ superseded_at: null }, 'id', 'row-1']);
+    expect(rpcMock).toHaveBeenCalledTimes(1);
+    expect(fromMock).not.toHaveBeenCalled();
   });
 
-  it('supersedes the current row before inserting the new one', async () => {
-    const eqAfterUpdate = vi.fn(async () => ({ error: null }));
-    const anchors = chain(
-      {},
-      { maybeSingle: { data: { id: 'row-1' }, error: null } }
-    );
-    anchors.update = vi.fn(() => ({ eq: eqAfterUpdate }));
-    anchors.insert = vi.fn(async () => ({ error: null }));
-    fromMock.mockReturnValue(anchors);
-    const result = await setRowingCp('220');
-    expect(result).toEqual({ ok: true, watts: 220 });
-    expect(anchors.update).toHaveBeenCalled();
-    expect(eqAfterUpdate).toHaveBeenCalledWith('id', 'row-1');
-    expect(anchors.insert).toHaveBeenCalled();
+  it('criterion 4: a reply without status saved counts as a failure', async () => {
+    rpcMock.mockResolvedValue({ data: null, error: null });
+    expect(await setRowingCp('220')).toEqual({ ok: false, cause: 'error' });
+  });
+
+  it('criterion 5: an out-of-range value is refused before any call', async () => {
+    for (const raw of ['12', '49', '501', '', 'abc']) {
+      expect(await setRowingCp(raw)).toEqual({ ok: false, cause: 'invalid' });
+    }
+    expect(rpcMock).not.toHaveBeenCalled();
+    expect(fromMock).not.toHaveBeenCalled();
+  });
+
+  it('criterion 5: the form bounds match set_my_rowing_cp in migration 025 (50 to 500 W)', () => {
+    expect(MIN_CP).toBe(50);
+    expect(MAX_CP).toBe(500);
+  });
+
+  it('criterion 10: SetRowingCpForm is the only caller of setRowingCp', () => {
+    const files = readdirSync(srcDir, { recursive: true })
+      .filter((f) => /\.(js|jsx)$/.test(f) && !f.includes('__tests__'))
+      .filter((f) =>
+        /import\s*\{[^}]*\bsetRowingCp\b[^}]*\}\s*from/.test(
+          readFileSync(resolve(srcDir, f), 'utf8')
+        )
+      )
+      .map((f) => f.split(sep).join('/'));
+    expect(files).toEqual(['components/SetRowingCpForm.jsx']);
+  });
+
+  it('criterion 10: only setRowingCp.js names set_my_rowing_cp', () => {
+    const files = readdirSync(srcDir, { recursive: true })
+      .filter((f) => /\.(js|jsx)$/.test(f) && !f.includes('__tests__'))
+      .filter((f) =>
+        readFileSync(resolve(srcDir, f), 'utf8').includes('set_my_rowing_cp')
+      )
+      .map((f) => f.split(sep).join('/'));
+    expect(files).toEqual(['utils/setRowingCp.js']);
   });
 });
 

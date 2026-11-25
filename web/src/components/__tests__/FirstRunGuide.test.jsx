@@ -8,6 +8,7 @@ import SampleDataBadge from '../SampleDataBadge.jsx';
 import TestersWelcomeCard from '../TestersWelcomeCard.jsx';
 import { SessionOwnerContext } from '../../hooks/useSessionOwner.js';
 import { dismissGuide, guideStorageKey } from '../../utils/firstRunGuide.js';
+import { GUIDE } from '../../constants/firstRunGuide.js';
 
 vi.mock('../../supabaseClient.js', () => ({
   supabase: { from: () => ({}) },
@@ -96,5 +97,44 @@ describe('TestersWelcomeCard', () => {
       screen.getByRole('button', { name: 'Open the guide' })
     ).toBeInTheDocument();
     expect(screen.getByLabelText('Rowing CP (watts)')).toBeInTheDocument();
+  });
+});
+
+// #811 copy rewording (Scott, 26 Nov): the guide names only screens the
+// testers build has, describes the sample data that 024 really loads, and the
+// clear button covers all of it, not only sessions. English and Spanish.
+describe('guide copy', () => {
+  const text = (locale) => JSON.stringify(GUIDE[locale]);
+
+  it('names no Plan or Log tab and does not send testers to Body for readiness', () => {
+    expect(text('en')).not.toMatch(/Use Plan|and Log to|Body is for readiness/);
+    expect(text('es')).not.toMatch(
+      /Usa Plan|y Registro para|Cuerpo es para la preparación/
+    );
+    expect(text('en')).toContain('Use Train to plan a session');
+    expect(text('es')).toContain('Usa Entrenar para planificar una sesión');
+  });
+
+  it('calls it sample data, including the 200 W placeholder CP', () => {
+    for (const locale of ['en', 'es']) {
+      const samples = GUIDE[locale].steps.find((s) => s.id === 'samples');
+      expect(samples.body).toContain('200 W');
+      expect(samples.body).not.toMatch(/A later change|Un cambio posterior/);
+    }
+    expect(GUIDE.en.steps.find((s) => s.id === 'samples').title).toBe(
+      'Sample data'
+    );
+    expect(GUIDE.es.steps.find((s) => s.id === 'samples').title).toBe(
+      'Datos de ejemplo'
+    );
+    expect(GUIDE.en.welcomeCard.clearSamples).toBe('Clear sample data');
+    expect(GUIDE.es.welcomeCard.clearSamples).toBe('Borrar datos de ejemplo');
+    expect(GUIDE.en.welcomeCard.cleared).toBe('Sample data cleared.');
+    expect(GUIDE.en.welcomeCard.noneToClear).toBe(
+      'There is no sample data on this account.'
+    );
+    expect(GUIDE.es.welcomeCard.noneToClear).toBe(
+      'No hay datos de ejemplo en esta cuenta.'
+    );
   });
 });

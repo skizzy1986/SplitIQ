@@ -448,7 +448,7 @@ function Gate() {
             <App sidebarFoot={showSplash ? null : <SignOutButton />} />
           )}
         </Suspense>
-        {session && !showSplash && isTestersBuild() && (
+        {!showSplash && isTestersBuild() && (
           <Suspense fallback={null}>
             <FirstRunGuide userId={session.user?.id} />
           </Suspense>

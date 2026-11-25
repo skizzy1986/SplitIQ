@@ -34,11 +34,18 @@ describe('Train: plan before connecting (#774)', () => {
     expect(screen.queryByRole('button', { name: /Plan a session/ })).toBeNull();
   });
 
-  it('offers it once the live screen is on, and it opens the planner', async () => {
+  it('offers it once the live screen is on, next to Erg, and it opens the planner', async () => {
     window.localStorage.setItem(LIVE_ERG_FLAG_KEY, LIVE_ERG_FLAG_ON);
     const user = userEvent.setup();
     const onMode = vi.fn();
     render(<MobileTrain mode={null} onMode={onMode} />);
+    const labels = screen
+      .getAllByRole('button')
+      .map((b) => b.textContent)
+      .filter((t) => /session/i.test(t));
+    expect(labels[0]).toMatch(/Erg session/);
+    expect(labels[1]).toMatch(/Plan a session/);
+    expect(labels[2]).toMatch(/Strength session/);
     await user.click(screen.getByRole('button', { name: /Plan a session/ }));
     expect(onMode).toHaveBeenCalledWith('plan');
   });

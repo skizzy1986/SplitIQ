@@ -70,6 +70,18 @@ describe('Today → Tweak (#774)', () => {
     expect(screen.queryByRole('button', { name: /Plan a session/ })).toBeNull();
   });
 
+  it('Back from a Today-opened planner returns to Today', async () => {
+    window.localStorage.setItem(LIVE_ERG_FLAG_KEY, LIVE_ERG_FLAG_ON);
+    const user = userEvent.setup();
+    render(<MobileApp />);
+    await user.click(screen.getByRole('button', { name: 'Tweak' }));
+    expect(await screen.findByTestId('live-erg-planner')).toBeVisible();
+    await user.click(screen.getByRole('button', { name: 'Back to Today' }));
+    expect(screen.getByText('TODAY')).toBeVisible();
+    expect(screen.queryByTestId('live-erg-planner')).toBeNull();
+    expect(screen.queryByRole('button', { name: /Erg session/ })).toBeNull();
+  });
+
   it('Start still goes straight to the erg flow', async () => {
     window.localStorage.setItem(LIVE_ERG_FLAG_KEY, LIVE_ERG_FLAG_ON);
     const user = userEvent.setup();

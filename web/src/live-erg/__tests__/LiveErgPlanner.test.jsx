@@ -71,15 +71,52 @@ describe('LiveErgPlannerView', () => {
     ).toHaveLength(4);
   });
 
-  it('Start on PM5 hands over to the erg flow, and is absent without a handler', async () => {
+  it('Start on PM5 saves the in-memory plan even when it was not edited', async () => {
     const user = userEvent.setup();
+    const storage = memory();
     const onStart = vi.fn();
-    const { rerender } = render(
-      <LiveErgPlannerView storage={memory()} onStart={onStart} />
+    const { unmount } = render(
+      <LiveErgPlannerView storage={storage} onStart={onStart} />
     );
+    expect(storage.getItem(LIVE_ERG_WORKOUT_KEY)).toBeNull();
     await user.click(screen.getByRole('button', { name: 'Start on PM5' }));
     expect(onStart).toHaveBeenCalledTimes(1);
+    const saved = readSavedWorkout(storage);
+    expect(intervalsOf(saved)).toHaveLength(4);
+    unmount();
+
+    render(<LiveErgSessionView storage={storage} />);
+    expect(screen.getByText(/Your saved plan is loaded/)).toBeVisible();
+    expect(
+      screen.getAllByRole('region', { name: /interval \d of 4/i })
+    ).toHaveLength(4);
+  });
+
+  it('Start on PM5 is absent without a handler, and disabled when the plan is invalid', () => {
+    const { rerender } = render(
+      <LiveErgPlannerView storage={memory()} onStart={() => {}} />
+    );
+    expect(screen.getByRole('button', { name: 'Start on PM5' })).toBeEnabled();
     rerender(<LiveErgPlannerView storage={memory()} />);
     expect(screen.queryByRole('button', { name: 'Start on PM5' })).toBeNull();
+
+    const storage = memory();
+    storage.setItem(
+      LIVE_ERG_WORKOUT_KEY,
+      JSON.stringify({
+        type: 'int',
+        ints: [{ work: 50, unit: 'm', rest: 0, watts: 125, rate: 22 }],
+      })
+    );
+    render(<LiveErgPlannerView storage={storage} onStart={() => {}} />);
+    expect(screen.getByRole('button', { name: 'Start on PM5' })).toBeDisabled();
+  });
+
+  it('the live screen says build, not loaded, for a bare or non-interval save', () => {
+    const storage = memory();
+    storage.setItem(LIVE_ERG_WORKOUT_KEY, JSON.stringify({ type: 'int' }));
+    render(<LiveErgSessionView storage={storage} />);
+    expect(screen.queryByText(/Your saved plan is loaded/)).toBeNull();
+    expect(screen.getByText(/Build your intervals here/)).toBeVisible();
   });
 });

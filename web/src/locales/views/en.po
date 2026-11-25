@@ -383,6 +383,11 @@ msgstr "Back"
 msgid "Back to {destination}"
 msgstr "Back to {destination}"
 
+#. Leave the interval planner for Today
+#: src/components/mobile/SessionExitBar.jsx
+msgid "Back to Today"
+msgstr "Back to Today"
+
 #. Leave a live session for the Train start screen
 #: src/components/mobile/SessionExitBar.jsx
 msgid "Back to Train"
@@ -1514,12 +1519,24 @@ msgstr "Plan"
 msgid "Plan a session"
 msgstr "Plan a session"
 
+#: src/views/mobile/MobileToday.jsx
+msgid "Plan intervals"
+msgstr "Plan intervals"
+
 #. Badge, all capitals
 #. Day badge, all capitals
 #: src/components/LogEntry.jsx
 #: src/views/CalendarView.jsx
 msgid "PLANNED"
 msgstr "PLANNED"
+
+#: src/live-erg/LiveErgSession.jsx
+msgid "PM5 connected. Build your intervals here. Set the same workout on the PM5 (Intervals, then Variable) and start rowing. SplitIQ follows each interval’s target here. Sending the workout from the phone comes next."
+msgstr "PM5 connected. Build your intervals here. Set the same workout on the PM5 (Intervals, then Variable) and start rowing. SplitIQ follows each interval’s target here. Sending the workout from the phone comes next."
+
+#: src/live-erg/LiveErgSession.jsx
+msgid "PM5 connected. Your saved plan is loaded; change it here if you need to. Set the same workout on the PM5 (Intervals, then Variable) and start rowing. SplitIQ follows each interval’s target here. Sending the workout from the phone comes next."
+msgstr "PM5 connected. Your saved plan is loaded; change it here if you need to. Set the same workout on the PM5 (Intervals, then Variable) and start rowing. SplitIQ follows each interval’s target here. Sending the workout from the phone comes next."
 
 #. Meal after the session
 #: src/components/WorkoutItem.jsx

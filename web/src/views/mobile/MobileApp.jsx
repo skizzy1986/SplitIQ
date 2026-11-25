@@ -86,6 +86,9 @@ export default function MobileApp() {
   // Which session Train is running, if any. Held here rather than inside Train
   // because it decides whether the tab bar exists.
   const [trainMode, setTrainMode] = useState(null);
+  // Today > Plan intervals opened the planner, so Back should return to
+  // Today, not the Train list.
+  const [planFromToday, setPlanFromToday] = useState(false);
 
   // The session page: its id lives in the hash after `#/session/`.
   const sessionId = useHashSessionId();
@@ -144,6 +147,16 @@ export default function MobileApp() {
   // Spent once the bar unmounts, so it cannot refocus when it next mounts.
   if (focusSettings && (route === 'settings' || live)) setFocusSettings(false);
 
+  const leaveLive = () => {
+    if (trainMode === 'plan' && planFromToday) {
+      setPlanFromToday(false);
+      setTrainMode(null);
+      navigate('today');
+      return;
+    }
+    setTrainMode(null);
+  };
+
   // Back unwinds one level at a time: out of a live session, then to Today,
   // then out of the app. Kept in a ref so the listener below can be registered
   // exactly once while still seeing the current route.
@@ -152,7 +165,7 @@ export default function MobileApp() {
   // the listener is attached. No dep array: it must track every render.
   useEffect(() => {
     onBack.current = () => {
-      if (live) setTrainMode(null);
+      if (live) leaveLive();
       else if (route === 'settings') leaveSettings();
       else if (route === 'session') leaveSession();
       else if (route !== DEFAULT_DESTINATION) navigate(DEFAULT_DESTINATION);
@@ -190,10 +203,16 @@ export default function MobileApp() {
           // tweak opens the planner (no PM5 needed) when the v10 live screen
           // is on, since only that screen reads the plan; otherwise it lands
           // on the Train list with pick (Pick a workout, Open Train).
-          if (intent === 'tweak' && readLiveErgFlag()) setTrainMode('plan');
-          else if (intent && intent !== 'pick' && intent !== 'tweak')
+          if (intent === 'tweak' && readLiveErgFlag()) {
+            setPlanFromToday(true);
+            setTrainMode('plan');
+          } else if (intent && intent !== 'pick' && intent !== 'tweak') {
+            setPlanFromToday(false);
             setTrainMode('erg');
-          else setTrainMode(null);
+          } else {
+            setPlanFromToday(false);
+            setTrainMode(null);
+          }
         }}
         onOpenBody={() => navigate('body')}
       />
@@ -207,7 +226,20 @@ export default function MobileApp() {
       />
     );
   else if (route === 'train')
-    content = <MobileTrain mode={trainMode} onMode={setTrainMode} />;
+    content = (
+      <MobileTrain
+        mode={trainMode}
+        planExitTo={trainMode === 'plan' && planFromToday ? 'today' : 'train'}
+        onMode={
+          trainMode === 'plan' && planFromToday
+            ? (next) => {
+                if (next == null) leaveLive();
+                else setTrainMode(next);
+              }
+            : setTrainMode
+        }
+      />
+    );
   else if (route === 'progress')
     content = (
       <MobileProgress

@@ -129,6 +129,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `pZomf-` | AVG WATTS | VATIOS PROM. | Average power, all capitals · src/components/LogEntry.jsx |
 | `iH8pgl` | Back | Volver | src/App.jsx · src/views/SessionView.jsx |
 | `m8KGUx` | Back to {destination} | Volver a {destination} | Settings back button; destination is a mobile tab name · src/views/mobile/MobileSettings.jsx |
+| `rtDcZz` | Back to Today | Volver a Hoy | Leave the interval planner for Today · src/components/mobile/SessionExitBar.jsx |
 | `jYK-BY` | Back to Train | Volver a Entrenar | Leave a live session for the Train start screen · src/components/mobile/SessionExitBar.jsx |
 | `moKkl9` | baseline | línea base | After "vs": compared with the baseline · Chart reference line label · src/views/mobile/MobileRecovery.jsx · src/views/RecoveryView.jsx |
 | `LxO1i3` | Baselines are your own rolling 28-day trimmed mean. | Las líneas base son tu propio promedio recortado de los últimos 28 días. | src/views/RecoveryView.jsx |
@@ -367,8 +368,11 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `5SchA7` | Peak power, {window} min | Potencia pico, {window} min | src/components/session/MoreDetail.jsx |
 | `LEwweY` | Pick a workout | Elegir un entrenamiento | src/views/mobile/MobileToday.jsx |
 | `GdgCoi` | Plan | Plan | Desktop Train pane · src/App.jsx · src/views/PlanView.jsx |
-| `B08adi` | Plan a session | Planear una sesión | Build an interval workout before connecting the PM5 · src/live-erg/LiveErgSession.jsx · src/views/mobile/MobileTrain.jsx |
+| `B08adi` | Plan a session | Planificar una sesión | Build an interval workout before connecting the PM5 · src/live-erg/LiveErgSession.jsx · src/views/mobile/MobileTrain.jsx |
+| `h90kNe` | Plan intervals | Planificar intervalos | src/views/mobile/MobileToday.jsx |
 | `iQ1n2D` | PLANNED | PLANIFICADA | Badge, all capitals · Day badge, all capitals · src/components/LogEntry.jsx · src/views/CalendarView.jsx |
+| `q4PNIP` | PM5 connected. Build your intervals here. Set the same workout on the PM5 (Intervals, then Variable) and start rowing. SplitIQ follows each interval’s target here. Sending the workout from the phone comes next. | PM5 conectado. Arma tus intervalos aquí. Configura el mismo entrenamiento en el PM5 (Intervalos, luego Variable) y empieza a remar. SplitIQ sigue aquí la meta de cada intervalo. Enviar el entrenamiento desde el teléfono viene después. | src/live-erg/LiveErgSession.jsx |
+| `YjYpSv` | PM5 connected. Your saved plan is loaded; change it here if you need to. Set the same workout on the PM5 (Intervals, then Variable) and start rowing. SplitIQ follows each interval’s target here. Sending the workout from the phone comes next. | PM5 conectado. Tu plan guardado ya está cargado; cámbialo aquí si lo necesitas. Configura el mismo entrenamiento en el PM5 (Intervalos, luego Variable) y empieza a remar. SplitIQ sigue aquí la meta de cada intervalo. Enviar el entrenamiento desde el teléfono viene después. | src/live-erg/LiveErgSession.jsx |
 | `7F65H5` | Post: | Después: | Meal after the session · src/components/WorkoutItem.jsx |
 | `KwjyNG` | power | potencia | Session caption list item · src/components/session/ProvenanceNote.jsx |
 | `NHfDC5` | Power | Potencia | src/components/session/SplitsTable.jsx · src/components/session/TraceTooltip.jsx |
@@ -565,7 +569,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `WLqk2A` | Vol (2260kg) | Vol. (2260kg) | Total volume lifted, with an example · src/components/LogSessionForm.jsx |
 | `_cF7Rs` | Volume | Volumen | src/components/LogSessionForm.jsx |
 | `pJVzhg` | vs {baselineLabel} | vs. {baselineLabel} | Compared with, e.g. vs your avg · Compared with, e.g. vs your avg · src/views/mobile/MobileRecovery.jsx |
-| `sJG8Et` | Watt targets start from a 200 W critical power placeholder until onboarding sets yours. | Las metas de vatios parten de una potencia crítica provisional de 200 W hasta que el registro inicial fije la tuya. | src/live-erg/LiveErgSession.jsx |
+| `sJG8Et` | Watt targets start from a 200 W critical power placeholder until onboarding sets yours. | Las metas de vatios parten de una potencia crítica provisional de 200 W hasta que configures la tuya. | src/live-erg/LiveErgSession.jsx |
 | `6X3pVF` | WATTS | VATIOS | Live metric label · src/views/ErgLiveView.jsx |
 | `VSob3X` | Web Bluetooth is not supported in this browser. Use Chrome or Edge. | Este navegador no es compatible con Web Bluetooth. Usa Chrome o Edge. | Chrome and Edge are browser names: keep them · src/constants/pm5ErrorMessages.js |
 | `rjcD_9` | Weighted power | Potencia ponderada | src/components/session/MoreDetail.jsx |

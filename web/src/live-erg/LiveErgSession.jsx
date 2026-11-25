@@ -15,6 +15,7 @@ import {
   formatPace,
   resolvedCp,
   term,
+  validateWorkout,
 } from './intervalModel.js';
 import { readSavedWorkout, saveWorkout } from './liveErgFlag.js';
 import {
@@ -76,6 +77,7 @@ export function LiveErgSessionView({
   termsMode = 'rowing',
   storage,
 }) {
+  const { t } = useLingui();
   const [workout, setWorkout] = useState(() => initialWorkout(cp, storage));
   // A plan saved earlier (the planner at home, or the last piece) is what
   // opened here; say so, so it is not mistaken for a blank builder.
@@ -173,11 +175,8 @@ export function LiveErgSessionView({
           <section style={card} aria-label="Before you row">
             <p style={bodyStyle}>
               {planLoaded
-                ? 'PM5 connected. Your saved plan is loaded; change it here if you need to. '
-                : 'PM5 connected. Build your intervals here. '}
-              Set the same workout on the PM5 (Intervals, then Variable) and
-              start rowing. SplitIQ follows each interval{'\u2019'}s target
-              here. Sending the workout from the phone comes next.
+                ? t`PM5 connected. Your saved plan is loaded; change it here if you need to. Set the same workout on the PM5 (Intervals, then Variable) and start rowing. SplitIQ follows each interval’s target here. Sending the workout from the phone comes next.`
+                : t`PM5 connected. Build your intervals here. Set the same workout on the PM5 (Intervals, then Variable) and start rowing. SplitIQ follows each interval’s target here. Sending the workout from the phone comes next.`}
             </p>
             {placeholder && (
               <p
@@ -187,8 +186,7 @@ export function LiveErgSessionView({
                   color: THEME.muted,
                 }}
               >
-                Watt targets start from a 200 W critical power placeholder until
-                onboarding sets yours.
+                {t`Watt targets start from a 200 W critical power placeholder until onboarding sets yours.`}
               </p>
             )}
           </section>
@@ -340,6 +338,14 @@ export function LiveErgPlannerView({
     saveWorkout(next, storage);
   };
 
+  // Persist even when the default plan was not edited, so the live screen
+  // opens with it and says it is loaded.
+  const start = () => {
+    saveWorkout(workout, storage);
+    onStart();
+  };
+  const invalid = validateWorkout(workout).length > 0;
+
   return (
     <div
       data-testid="live-erg-planner"
@@ -390,7 +396,7 @@ export function LiveErgPlannerView({
       />
       {onStart && (
         <div style={{ marginTop: SPACE.md }}>
-          <Button variant="primary" onClick={onStart}>
+          <Button variant="primary" onClick={start} disabled={invalid}>
             {t`Start on PM5`}
           </Button>
         </div>

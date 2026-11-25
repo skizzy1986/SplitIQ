@@ -21,9 +21,10 @@ const LiveErgPlanner = lazy(loadLiveErgPlanner);
 // Train is the doing: the session in front of you. It absorbs what were the
 // separate "Live" and "Strength" tabs — DESIGN_BRIEF.md §2.2.
 //
-// When the planner (R40) writes today's session as a sessions row with
-// status 'planned', it leads this screen. Until then these are the two entry
-// points, so nothing reachable before this change is unreachable after it.
+// Today's planned session, when it exists, is started from Today. This
+// screen's always-on entries are Erg and Strength. With the v10 live screen
+// on, Plan a session sits next to Erg so a workout can be built before the
+// PM5 is in range.
 const ENTRIES = [
   {
     mode: 'erg',
@@ -71,7 +72,7 @@ const PLAN_ENTRY = {
 
 export { ENTRIES, PLAN_ENTRY };
 
-export default function MobileTrain({ mode, onMode }) {
+export default function MobileTrain({ mode, onMode, planExitTo = 'train' }) {
   const { i18n } = useLingui();
   const { data: sessions } = useSessions({ mode: 'all' });
   // Minimal shape for ErgLiveView — don't pull sessionLog.js into the
@@ -100,7 +101,7 @@ export default function MobileTrain({ mode, onMode }) {
   if (mode === 'plan')
     return (
       <>
-        <SessionExitBar onExit={() => onMode(null)} />
+        <SessionExitBar to={planExitTo} onExit={() => onMode(null)} />
         <Suspense fallback={null}>
           <LiveErgPlanner onStart={() => onMode('erg')} />
         </Suspense>
@@ -127,7 +128,10 @@ export default function MobileTrain({ mode, onMode }) {
       />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: SPACE.sm }}>
-        {(readLiveErgFlag() ? [...ENTRIES, PLAN_ENTRY] : ENTRIES).map((e) => (
+        {(readLiveErgFlag()
+          ? [ENTRIES[0], PLAN_ENTRY, ENTRIES[1]]
+          : ENTRIES
+        ).map((e) => (
           <button
             key={e.mode}
             onClick={() => onMode(e.mode)}

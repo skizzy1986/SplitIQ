@@ -383,6 +383,11 @@ msgstr "Volver"
 msgid "Back to {destination}"
 msgstr "Volver a {destination}"
 
+#. Leave the interval planner for Today
+#: src/components/mobile/SessionExitBar.jsx
+msgid "Back to Today"
+msgstr "Volver a Hoy"
+
 #. Leave a live session for the Train start screen
 #: src/components/mobile/SessionExitBar.jsx
 msgid "Back to Train"
@@ -1512,7 +1517,11 @@ msgstr "Plan"
 #: src/live-erg/LiveErgSession.jsx
 #: src/views/mobile/MobileTrain.jsx
 msgid "Plan a session"
-msgstr "Planear una sesión"
+msgstr "Planificar una sesión"
+
+#: src/views/mobile/MobileToday.jsx
+msgid "Plan intervals"
+msgstr "Planificar intervalos"
 
 #. Badge, all capitals
 #. Day badge, all capitals
@@ -1520,6 +1529,14 @@ msgstr "Planear una sesión"
 #: src/views/CalendarView.jsx
 msgid "PLANNED"
 msgstr "PLANIFICADA"
+
+#: src/live-erg/LiveErgSession.jsx
+msgid "PM5 connected. Build your intervals here. Set the same workout on the PM5 (Intervals, then Variable) and start rowing. SplitIQ follows each interval’s target here. Sending the workout from the phone comes next."
+msgstr "PM5 conectado. Arma tus intervalos aquí. Configura el mismo entrenamiento en el PM5 (Intervalos, luego Variable) y empieza a remar. SplitIQ sigue aquí la meta de cada intervalo. Enviar el entrenamiento desde el teléfono viene después."
+
+#: src/live-erg/LiveErgSession.jsx
+msgid "PM5 connected. Your saved plan is loaded; change it here if you need to. Set the same workout on the PM5 (Intervals, then Variable) and start rowing. SplitIQ follows each interval’s target here. Sending the workout from the phone comes next."
+msgstr "PM5 conectado. Tu plan guardado ya está cargado; cámbialo aquí si lo necesitas. Configura el mismo entrenamiento en el PM5 (Intervalos, luego Variable) y empieza a remar. SplitIQ sigue aquí la meta de cada intervalo. Enviar el entrenamiento desde el teléfono viene después."
 
 #. Meal after the session
 #: src/components/WorkoutItem.jsx
@@ -2459,7 +2476,7 @@ msgstr "vs. {baselineLabel}"
 
 #: src/live-erg/LiveErgSession.jsx
 msgid "Watt targets start from a 200 W critical power placeholder until onboarding sets yours."
-msgstr "Las metas de vatios parten de una potencia crítica provisional de 200 W hasta que el registro inicial fije la tuya."
+msgstr "Las metas de vatios parten de una potencia crítica provisional de 200 W hasta que configures la tuya."
 
 #. Live metric label
 #: src/views/ErgLiveView.jsx

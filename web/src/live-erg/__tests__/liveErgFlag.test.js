@@ -45,4 +45,16 @@ describe('liveErgFlag', () => {
     store.setItem('splitiq.liveErg.workout', '{not json');
     expect(readSavedWorkout(store)).toBeNull();
   });
+
+  it('only treats a non-empty interval list as a saved plan', () => {
+    const store = memory();
+    saveWorkout({ type: 'int' }, store);
+    expect(readSavedWorkout(store)).toBeNull();
+    saveWorkout({ type: 'int', ints: [] }, store);
+    expect(readSavedWorkout(store)).toBeNull();
+    saveWorkout({ type: 'time', total: 1800, split: 180 }, store);
+    expect(readSavedWorkout(store)).toBeNull();
+    saveWorkout({ type: 'int', ints: [{ work: 1000, unit: 'm' }] }, store);
+    expect(readSavedWorkout(store).ints).toHaveLength(1);
+  });
 });

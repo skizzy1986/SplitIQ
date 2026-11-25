@@ -48,3 +48,11 @@ For **personal, non-commercial** purposes, Paul may:
   it is in this repo any more); please keep anything of that kind private.
 - **Future changes.** Scott may update this permission for future versions of the
   repository. Anything Paul has already built or published under it stays fine.
+
+## Invited testers
+
+**Granted by:** Scott (copyright holder), 2026-11-25.
+
+Invited testers may use the testers app for personal, non-commercial purposes.
+They may not copy or redistribute the app, the source, or its assets.
+

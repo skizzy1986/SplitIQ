@@ -259,6 +259,13 @@
       ],
       "note": "Applied 2026-11-25 1:13 am AWST (Australia/Perth) to production swdrueaserjzhuxnzmeu only, via Supabase MCP apply_migration with name 021_sessions_duration_min, as postgres. Not applied to SplitIQ dev. Generated sessions.duration_min plus sessions_no_strava extension (#216). PostgREST schema cache reloaded with NOTIFY pgrst, 'reload schema'.",
       "issue": 216
+    },
+    {
+      "file": "022_sessions_unique_per_user.sql",
+      "status": "unapplied",
+      "reason": "Draft awaiting Scott's explicit yes (#790). Dev first, rehearsed, then production. Not applied to either project.",
+      "note": "Scopes sessions uniqueness to the owner: adds UNIQUE (user_id, date, label), updates fn_sync_strength_session's ON CONFLICT to match, then drops sessions_date_label_key.",
+      "issue": 790
     }
   ],
   "liveOnly": [

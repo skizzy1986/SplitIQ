@@ -76,9 +76,15 @@ export default defineConfig({
       path: '<rootDir>/src/squat/locales/{locale}',
       include: [
         '<rootDir>/src/squat',
+        '<rootDir>/src/tool',
         '<rootDir>/src/anatomy',
         '<rootDir>/src/movements',
       ],
+    },
+    {
+      // /row's own words (#756), so neither tool downloads the other's.
+      path: '<rootDir>/src/row/locales/{locale}',
+      include: ['<rootDir>/src/row'],
     },
     {
       path: '<rootDir>/src/locales/views/{locale}',
@@ -89,6 +95,8 @@ export default defineConfig({
       include: ['<rootDir>/src'],
       exclude: [
         '<rootDir>/src/squat/**',
+        '<rootDir>/src/row/**',
+        '<rootDir>/src/tool/**',
         '<rootDir>/src/anatomy/**',
         '<rootDir>/src/movements/**',
         '**/__tests__/**',

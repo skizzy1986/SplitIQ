@@ -14,6 +14,12 @@
 > collaborator (read-only access, own clone) uses the **`/collaborate`** skill
 > (`.claude/skills/collaborate/SKILL.md`). Never push to `skizzy1986/SplitIQ`.
 > Onboarding starts at `docs/onboarding/START_HERE.md`.
+>
+> **Coordination.** Before starting work, read
+> [`docs/COORDINATION.md`](docs/COORDINATION.md): who owns which issues,
+> which files to leave alone, and the current roadmap order. `VISION.md`
+> underpins the anatomy and movement model work; proposed changes go
+> through Product and need Scott's yes.
 
 ## What SplitIQ is
 

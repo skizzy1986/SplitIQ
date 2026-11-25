@@ -42,7 +42,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `hdxhKx` | We could not sign you in. Try again. | No pudimos iniciar sesión. Inténtalo de nuevo. | Login error for any unrecognised cause. Only shown in Spanish. · src/utils/authError.js |
 | `y1oEoC` | Wrong email or password. | Correo o contraseña incorrectos. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
 
-## Dashboard views (src/locales/views, 525 strings)
+## Dashboard views (src/locales/views, 528 strings)
 
 | Row | English | Español | Where / note |
 |---|---|---|---|
@@ -251,6 +251,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `FLn-wp` | INJURY WATCH | SEGUIMIENTO DE LESIONES | Card title, all capitals · src/views/RecoveryView.jsx |
 | `nbfdhU` | Integrations | Integraciones | Settings section heading above the Strava panel · src/views/SettingsView.jsx |
 | `xOTzt5` | just now | justo ahora | src/utils/stravaStatus.js |
+| `8QgJZb` | Labs | Funciones en prueba | Settings section heading for features still being tested · src/views/mobile/MobileSettings.jsx |
 | `vXIe7J` | Language | Idioma | Settings section heading above the language control · src/views/SettingsView.jsx |
 | `HEIQ5F` | Lap | Vuelta | src/components/session/SplitsTable.jsx |
 | `SfZTx1` | LAST 3 DAYS · TODAY · NEXT 13 · | ÚLTIMOS 3 DÍAS · HOY · PRÓXIMOS 13 · | Calendar legend: the window shown, all capitals · src/views/CalendarView.jsx |
@@ -298,6 +299,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `CWwrj6` | needs overnight wear | requiere usarlo de noche | src/views/RecoveryView.jsx |
 | `ivLomN` | Neuromuscular power | Potencia neuromuscular | Cycling power level (Coggan Z7) · src/components/session/zoneLabels.js |
 | `IJ4SwP` | Neutral — balanced | Neutral: en equilibrio | Training form (TSB) band · src/utils/trainingLoad.js |
+| `Rws2or` | New live screen (beta) | Nueva pantalla en vivo (beta) | Settings switch. Turns on the new live rowing screen, still in testing · src/views/mobile/MobileSettings.jsx |
 | `JAhfrY` | No blood pressure readings yet. | Todavía no hay mediciones de presión arterial. | src/views/RecoveryView.jsx |
 | `F-lAgi` | No cadence was recorded for this session. | No se registró cadencia en esta sesión. | src/components/session/SessionTrace.jsx |
 | `Kav4av` | NO DATA | SIN DATOS | Readiness status when there is no resting heart rate, all capitals · src/utils/recoveryAnalytics.js |
@@ -557,6 +559,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `eWX1fY` | Weighted power divided by the average power, {avg} W. 1.00 is an even output throughout. | La potencia ponderada dividida entre la potencia promedio, {avg} W. 1.00 es un esfuerzo parejo de principio a fin. | src/components/session/MoreDetail.jsx |
 | `Who23M` | Weighted power divided by the average power. 1.00 is an even output throughout. | La potencia ponderada dividida entre la potencia promedio. 1.00 es un esfuerzo parejo de principio a fin. | src/components/session/MoreDetail.jsx |
 | `HioAOv` | Where this data comes from | De dónde vienen estos datos | src/components/session/ProvenanceNote.jsx |
+| `cwQOBC` | While you row, show your intervals, watt targets and split table. Connecting to the PM5 and saving stay the same. | Mientras remas, muestra tus intervalos, tus objetivos de vatios y la tabla de parciales. La conexión con el PM5 y el guardado no cambian. | Under the new live screen switch. PM5 is the rowing machine's monitor: keep it · src/views/mobile/MobileSettings.jsx |
 | `LRklOm` | Words impossible. All-out. Race/test efforts only. | Imposible hablar. A tope. Solo en competencias o pruebas. | sRPE scale, effort 9-10: the talk test · src/constants/srpeGuideMessages.js |
 | `qRILxq` | Work | Trabajo | src/components/session/SessionSummary.jsx |
 | `0qdR_Q` | working avg power | potencia promedio de trabajo | src/views/OverviewView.jsx |

@@ -6,9 +6,11 @@ import { messages as es } from '../../locales/views/es.po';
 import ChangePasswordPanel from '../ChangePasswordPanel.jsx';
 import { MIN_PASSWORD } from '../../utils/changePassword.js';
 
-const mocks = vi.hoisted(() => ({ change: null }));
+const mocks = vi.hoisted(() => ({ change: null, minPassword: 8 }));
 vi.mock('../../utils/changePassword.js', () => ({
-  MIN_PASSWORD: 8,
+  get MIN_PASSWORD() {
+    return mocks.minPassword;
+  },
   changePassword: (...a) => mocks.change(...a),
 }));
 
@@ -29,6 +31,7 @@ const submit = (container) =>
   });
 
 beforeEach(() => {
+  mocks.minPassword = 8;
   mocks.change = vi.fn().mockResolvedValue({ ok: true });
 });
 afterEach(() => i18n.activate('en'));
@@ -141,6 +144,32 @@ describe('ChangePasswordPanel', () => {
       }
       await user.click(screen.getByRole('button', { name: button }));
       expect(await screen.findByRole('alert')).toHaveTextContent(text);
+      unmount();
+    }
+  });
+
+  it('derives the weak-password reason from MIN_PASSWORD, in English and in Spanish', async () => {
+    mocks.minPassword = 12;
+    mocks.change.mockResolvedValue({ ok: false, cause: 'weak_password' });
+    const cases = [
+      [
+        'en',
+        `Choose a longer new password: at least ${mocks.minPassword} characters.`,
+      ],
+      [
+        'es',
+        `Elige una contraseña nueva más larga: mínimo ${mocks.minPassword} caracteres.`,
+      ],
+    ];
+    for (const [lang, text] of cases) {
+      if (lang === 'es') {
+        i18n.load('es', es);
+        i18n.activate('es');
+      }
+      const { container, unmount } = render(<ChangePasswordPanel />);
+      fill(container, 'old password', 'new password 1', 'new password 1');
+      await submit(container);
+      expect(screen.getByRole('alert')).toHaveTextContent(text);
       unmount();
     }
   });

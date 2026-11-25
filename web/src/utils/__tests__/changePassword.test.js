@@ -75,6 +75,28 @@ describe('changePassword', () => {
     expect(mocks.updateUser).not.toHaveBeenCalled();
   });
 
+  it('refuses a 7-character new password and accepts an 8-character one', async () => {
+    const seven = 'abcdefg';
+    const eight = 'abcdefgh';
+    expect(
+      await changePassword({
+        current: 'old password',
+        next: seven,
+        confirm: seven,
+      })
+    ).toEqual({ ok: false, cause: 'weak_password' });
+    expect(mocks.updateUser).not.toHaveBeenCalled();
+
+    expect(
+      await changePassword({
+        current: 'old password',
+        next: eight,
+        confirm: eight,
+      })
+    ).toEqual({ ok: true });
+    expect(mocks.updateUser).toHaveBeenCalledWith({ password: eight });
+  });
+
   it('asks for a fresh sign-in when there is no session', async () => {
     mocks.getSession.mockResolvedValue({ data: { session: null } });
     expect(await changePassword(FORM)).toEqual({ ok: false, cause: 'session' });

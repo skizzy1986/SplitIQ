@@ -12,7 +12,7 @@ from scipy.spatial import cKDTree
 
 from core.geom import inv, tpts
 from core.dqs import dqs
-from squat.model.skin import adjacency, group_of_pid, smooth
+from core.skin import adjacency, group_of_pid, smooth
 from squat.stages._io import cache, out_path
 
 OUTPUTS = ('upper3.npz',)

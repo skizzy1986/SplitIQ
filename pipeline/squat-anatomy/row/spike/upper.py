@@ -15,7 +15,7 @@ from scipy.spatial import cKDTree
 
 from core.geom import inv, tpts
 from core.dqs import dqs
-from squat.model.skin import adjacency, smooth
+from core.skin import adjacency, smooth
 from squat.stages import upper3
 
 NEAR_BAR = 0.0006

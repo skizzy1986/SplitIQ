@@ -5,11 +5,11 @@ import os
 import subprocess
 import sys
 
-CORE_MODULES = ('core.geom', 'core.dqs', 'core.paths')
+CORE_MODULES = ('core.geom', 'core.dqs', 'core.paths', 'core.skin')
 SKIP = {'node_modules', '.pytest_cache', '__pycache__'}
 # names whose only home is core/: importing them from their old module is refused even where it would still work
 ONE_HOME = {'squat.paths': {'MissingInputError', 'display', 'PROJECT'}}
-GONE = ('squat.geom', 'squat.model.dqs')
+GONE = ('squat.geom', 'squat.model.dqs', 'squat.model.skin')
 
 
 def _imported(path):

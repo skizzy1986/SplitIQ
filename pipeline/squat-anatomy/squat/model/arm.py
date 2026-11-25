@@ -11,7 +11,7 @@ from numpy.linalg import norm
 from scipy.spatial.transform import Rotation as Rot
 
 from core.geom import Rof, inv, rot_about, screw, tpts
-from squat.model.skin import group_of_pid
+from core.skin import group_of_pid
 
 GRIP_Z=0.40
 

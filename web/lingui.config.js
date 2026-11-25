@@ -13,6 +13,8 @@ export const VIEWS_SOURCES = [
   'src/utils/stravaDisconnect.js',
   'src/views/SettingsView.jsx',
   'src/views/mobile/MobileSettings.jsx',
+  // Voice cues switch, voice choice and test cue (#785).
+  'src/views/mobile/VoiceCuesLabs.jsx',
   'src/components/StravaConnectPanel.jsx',
   'src/components/ThemeControl.jsx',
   'src/views/OverviewView.jsx',
@@ -51,6 +53,8 @@ export const VIEWS_SOURCES = [
   'src/components/session/MoreDetail.jsx',
   // Localisation PR 2: the erg path Train hands the screen to.
   'src/views/ErgLiveView.jsx',
+  // The in-session mute for the voice cues (#785).
+  'src/live-erg/CueMuteButton.jsx',
   'src/components/WorkoutTarget.jsx',
   'src/constants/pm5ErrorMessages.js',
   'src/utils/durationLabel.js',

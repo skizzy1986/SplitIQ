@@ -8,7 +8,9 @@
   },
   "scripts": {
     "dev": "vite",
+    "prebuild": "node scripts/fetch-voice-cues.mjs",
     "build": "vite build",
+    "cues:fetch": "node scripts/fetch-voice-cues.mjs",
     "preview": "vite preview",
     "size": "node scripts/check-bundle-size.mjs",
     "test": "vitest run",

@@ -110,6 +110,19 @@ export default defineConfig(({ command }) => ({
               cacheableResponse: { statuses: [200] },
             },
           },
+          {
+            // Voice cue clips (#785): fetched at build time into
+            // public/audio/cues, never precached (every installed app would
+            // download 15 MiB on each update), cached on first use. The index
+            // is cached with them, so a new bank needs a new cacheName.
+            urlPattern: /\/audio\/cues\/.*\.(mp3|json)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'cues-v1',
+              expiration: { maxEntries: 800 },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
           SQUAT_CODE_ROUTE,
           I18N_CODE_ROUTE,
           // Supabase REST is not cached. The old NetworkFirst pattern matched

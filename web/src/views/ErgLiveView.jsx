@@ -5,6 +5,7 @@ import { useSessionOwner } from '../hooks/useSessionOwner.js';
 import { privateSessionGeneration } from '../utils/privateSessionState.js';
 import { useQueryClient } from '@tanstack/react-query';
 import { usePM5 } from '../hooks/usePM5';
+import { useCueLifecycle } from '../hooks/useCueLifecycle';
 import { useOfflineQueue } from '../hooks/useOfflineQueue';
 import { supabase } from '../supabaseClient';
 import LiveMetric from '../components/LiveMetric';
@@ -686,7 +687,7 @@ export default function ErgLiveView({
     summary,
     error,
     errorCode,
-    connect,
+    connect: connectPM5,
     reset,
     finish,
     disconnect,
@@ -702,6 +703,13 @@ export default function ErgLiveView({
   const { addToQueue, pending } = useOfflineQueue();
   const queryClient = useQueryClient();
   const [saveState, setSaveState] = useState('idle');
+  // Voice cues (#785): the finish and session cues read `status` here, and the
+  // tap that connects is where the audio context may start.
+  const cues = useCueLifecycle(status, saveState);
+  const connect = () => {
+    cues.unlock();
+    return connectPM5();
+  };
   const [liveErgV10] = useState(() => readLiveErgFlag());
   // With the v10 screen on, the planner is the pre-session screen: you
   // connect from there, then Start opens the live view. Rowing without

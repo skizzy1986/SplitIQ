@@ -8,6 +8,7 @@ import {
   readLiveErgFlag,
   writeLiveErgFlag,
 } from '../../live-erg/liveErgFlag.js';
+import VoiceCuesLabs from './VoiceCuesLabs.jsx';
 
 // Beta opt-in for the v10 live screen (#768). Off by default; it only swaps
 // the screen shown mid-piece, so connecting, the PM5 list, the summary and
@@ -71,6 +72,7 @@ function LiveErgLabs() {
           </span>
         </span>
       </label>
+      <VoiceCuesLabs />
     </section>
   );
 }

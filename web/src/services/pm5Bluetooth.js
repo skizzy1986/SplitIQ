@@ -58,7 +58,14 @@ export function isEndState(state) {
 
 // 0032/0033 arrive on their own notifications, so a value is only merged into
 // a 0031 sample when its own elapsed clock is this close to 0031's.
-export const STALE_LIMIT_S = 1.0;
+//
+// The PM5 sends all three at one sample rate, 500 ms by default (0x0034;
+// ergometerjs performancemonitorBle.ts, "By default this is 500 ms"). A 0032
+// landing just after its 0031 is already a period old when merged, and one
+// late or missed 0032 makes it two, so a window of 1.0 s blanked pace, SPM and
+// watts on alternate samples: the live pace flickered to dashes (#739). 2.5 s
+// rides out four missed packets and is still under one stroke at 20 spm.
+export const STALE_LIMIT_S = 2.5;
 
 // Convert 500m split time (raw 0.01s units) to "m:ss.t" string
 export function parsePace(rawValue) {

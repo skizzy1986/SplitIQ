@@ -10,7 +10,7 @@
 import { DTYPES } from './arrays.js';
 
 // `cycle` is provisional: a repeating stroke rather than a rep (#757).
-export const TIMELINE_KINDS = Object.freeze(['rep', 'cycle']);
+export const TIMELINE_KINDS = ['rep', 'cycle'];
 
 const isPlainObject = (v) =>
   v !== null && typeof v === 'object' && !Array.isArray(v);
@@ -36,7 +36,6 @@ function lockedIds(bins) {
       typeof bin.id !== 'string' ||
       !bin.id ||
       !isCount(bin.rawBytes) ||
-      typeof bin.rawSha256 !== 'string' ||
       !SHA256.test(bin.rawSha256)
     ) {
       throw new Error('The bins lock is malformed.');
@@ -120,9 +119,7 @@ export function checkManifest(manifest, kind) {
  */
 export function checkBuffer(manifest, buffer) {
   if ('bins' in manifest) {
-    throw new Error(
-      'The manifest locks its bins: check them with checkBuffers.'
-    );
+    throw new Error('The manifest locks its bins.');
   }
   for (const [name, e] of manifestEntries(manifest)) {
     if (end(e) > buffer.byteLength) {

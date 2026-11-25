@@ -82,7 +82,6 @@ describe('checkManifest: the rep timeline in one bin', () => {
 describe('checkManifest: the timeline kind', () => {
   it('lists the two kinds', () => {
     expect(TIMELINE_KINDS).toEqual(['rep', 'cycle']);
-    expect(Object.isFrozen(TIMELINE_KINDS)).toBe(true);
   });
 
   it('throws on an unknown kind', () => {
@@ -192,7 +191,7 @@ describe('one bin', () => {
 
   it('checkBuffer refuses a locked manifest', () => {
     expect(() => checkBuffer(twoBins(), new ArrayBuffer(64))).toThrow(
-      'The manifest locks its bins: check them with checkBuffers.'
+      'The manifest locks its bins.'
     );
   });
 });

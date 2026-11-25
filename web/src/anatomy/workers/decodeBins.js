@@ -5,56 +5,47 @@
 // not a copy.
 //
 // A worker fetches only the URLs its entry bundled, never an address handed
-// to it in a message, and answers only the page that created it.
+// to it in a message, and answers only the page that created it. The two
+// protocols share no helpers on purpose: the squat's worker ships serveBin
+// alone, and every helper call would be bytes on each squat visit.
 import { decodeStream } from './decodeStream.js';
 
-// A dedicated worker's messages carry an empty origin; anything else is not
-// from the page that created it. Only `type` is read.
-const isStart = (event) =>
-  !(event.origin && event.origin !== self.location.origin) &&
-  event.data?.type === 'start';
-
-const messageOf = (error) => String(error?.message || error);
-
-// ~1% steps: a message per network chunk floods the main thread. `decoding`
-// goes once, when the last byte is in and only the gunzip is left.
-function progressReporter(total) {
-  let last = 0;
-  let decoding = false;
-  return (loaded) => {
-    if (loaded - last >= total / 100 || loaded >= total) {
-      last = loaded;
-      self.postMessage({ type: 'progress', loaded, total });
-    }
-    if (!decoding && loaded >= total) {
-      decoding = true;
-      self.postMessage({ type: 'decoding' });
-    }
-  };
-}
-
 /**
- * One bin (the squat). Posts `progress`, `decoding` once, then
+ * One bin (the squat). Posts `progress` in ~1% steps, `decoding` once, then
  * `{ type: 'done', buffer }`, or `{ type: 'error', message }`.
  * @param {{ url: string, bytes: number }} bin the bundled URL, and its pinned
  *   size: the progress denominator when the host sends no Content-Length
  */
 export function serveBin({ url, bytes }) {
   self.onmessage = async (event) => {
-    if (!isStart(event)) return;
+    // A dedicated worker's messages carry an empty origin; anything else is
+    // not from the page that created it. Only `type` is read.
+    if (event.origin && event.origin !== self.location.origin) return;
+    if (event.data?.type !== 'start') return;
     try {
       const res = await fetch(new URL(url, self.location.href));
       if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
       const header = Number(res.headers.get('Content-Length'));
       const total = header > 0 ? header : bytes;
-      const buffer = await decodeStream(
-        res.body,
-        total,
-        progressReporter(total)
-      );
+      let last = 0;
+      let decoding = false;
+      const buffer = await decodeStream(res.body, total, (loaded) => {
+        // ~1% steps; a message per network chunk floods the main thread.
+        if (loaded - last >= total / 100 || loaded >= total) {
+          last = loaded;
+          self.postMessage({ type: 'progress', loaded, total });
+        }
+        if (!decoding && loaded >= total) {
+          decoding = true;
+          self.postMessage({ type: 'decoding' });
+        }
+      });
       self.postMessage({ type: 'done', buffer }, [buffer]);
     } catch (error) {
-      self.postMessage({ type: 'error', message: messageOf(error) });
+      self.postMessage({
+        type: 'error',
+        message: String(error?.message || error),
+      });
     }
   };
 }
@@ -97,27 +88,42 @@ export function serveBins(bins) {
   checkBins(bins);
   const total = bins.reduce((sum, bin) => sum + bin.bytes, 0);
   self.onmessage = async (event) => {
-    if (!isStart(event)) return;
+    // The page that created the worker, and a start message, as serveBin.
+    if (event.origin && event.origin !== self.location.origin) return;
+    if (event.data?.type !== 'start') return;
     const controller = new AbortController();
     const received = {};
-    const report = progressReporter(total);
+    let last = 0;
+    let decoding = false;
     let failed = false;
+    // serveBin's steps, over the bytes received across every bin.
+    const onProgress = (id) => (loaded) => {
+      received[id] = loaded;
+      if (failed) return;
+      const sum = Object.values(received).reduce((a, n) => a + n, 0);
+      if (sum - last >= total / 100 || sum >= total) {
+        last = sum;
+        self.postMessage({ type: 'progress', loaded: sum, total });
+      }
+      if (!decoding && sum >= total) {
+        decoding = true;
+        self.postMessage({ type: 'decoding' });
+      }
+    };
     const load = async ({ id, url }) => {
       try {
         const res = await fetch(new URL(url, self.location.href), {
           signal: controller.signal,
         });
         if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
-        return await decodeStream(res.body, total, (loaded) => {
-          received[id] = loaded;
-          if (failed) return;
-          report(Object.values(received).reduce((sum, n) => sum + n, 0));
-        });
+        return await decodeStream(res.body, total, onProgress(id));
       } catch (error) {
         // Aborted because another bin failed first: that failure is the one
         // reported, so this bin's AbortError is expected and dropped.
         if (controller.signal.aborted) return null;
-        throw new Error(`${messageOf(error)} (${id})`, { cause: error });
+        throw new Error(`${String(error?.message || error)} (${id})`, {
+          cause: error,
+        });
       }
     };
     try {

@@ -5,7 +5,7 @@ before starting work. The official decision log is the private ops repo's
 `docs/ROADMAP.md` (D30, D31). `VISION.md` still wins where docs disagree;
 see the VISION.md rule below.
 
-Last updated: 25 November 2026, late morning Perth (UTC+8). Re-query GitHub
+Last updated: 25 November 2026, 11:09 Perth (UTC+8). Re-query GitHub
 before treating the status section as live.
 
 ## Roadmap order (D31)
@@ -75,24 +75,30 @@ in this file and open a PR. Do not silently edit `main`.
 
 ## Current status
 
-As of 25 November 2026, late morning Perth (UTC+8).
+As of 25 November 2026, 11:09 Perth (UTC+8), queried with `gh`.
 
 - Main is `de0eea9` after [#740](https://github.com/skizzy1986/SplitIQ/pull/740)
-  (pace flicker fix). Testing APK 1.3.0+1254 includes that fix. The gym check is
-  still open: row 2+ minutes and confirm pace, stroke rate and watts hold.
-- [#775](https://github.com/skizzy1986/SplitIQ/pull/775) (plan a workout before
-  connecting the PM5, #774): open on `feat/774-plan-before-connect`. CI was green
-  on `fd9361e`. Live Session asked for four should-fixes before approval; those
-  may still be in flight.
+  (pace flicker fix, merged 10:44 Perth). Testing APK 1.3.0+1254 (asset updated
+  10:47 Perth) includes that fix. The gym check is still open: row 2+ minutes
+  and confirm pace, stroke rate and watts hold.
+- [#779](https://github.com/skizzy1986/SplitIQ/pull/779) (Supabase cut from
+  #776): open, mergeable, CI green, approved to merge. Official `npm run size`
+  on main `de0eea9`: ENTRY 204.3 → 179.3 / 208 KB (−25.0, 28.7 spare); TOTAL
+  432.1 → 407.1 / 433 KB (−25.0, 25.9 spare). Sentry tracing is unchanged.
 - [#777](https://github.com/skizzy1986/SplitIQ/pull/777) (build number on the
-  splash, #773): open on `feat/773-build-number-splash`. Merge needs Scott's yes.
+  splash, #773): open, mergeable, CI green, approved to merge. Its own measure
+  on current main: ENTRY 204.4 / 208 KB, TOTAL 432.3 / 433 KB (0.7 KB spare).
+- [#775](https://github.com/skizzy1986/SplitIQ/pull/775) (plan a workout before
+  connecting the PM5, #774): open on `feat/774-plan-before-connect`, head
+  `4992cb1` (Live Session should-fixes). It is being reworked to fold the PM5
+  connect step into the planner, so it should not merge until that lands.
 - [#778](https://github.com/skizzy1986/SplitIQ/pull/778) (draft findings for
-  #776): cutting unused Supabase Realtime and Storage, or Sentry performance
-  tracing, would free enough room that later live-erg PRs need not raise the
-  433 KB TOTAL ceiling. #756 stays held until this work lands.
+  #776) is still open and behind main. #756 stays held until the headroom work
+  has landed.
 - [#730](https://github.com/skizzy1986/SplitIQ/pull/730) (stroke ratio and drive
-  length, #729): draft, needs a rebase onto current main, a re-measure, and a
-  real-erg check. Touches the PM5 lane.
+  length, #729): draft, dirty against main, and its Build check was failing
+  when checked. Needs a rebase, a re-measure, and a real-erg check. Touches
+  the PM5 lane.
 - #755 is in progress in a Claude session. There is no public branch or PR yet;
   do not start a second one.
 - Seat-sensor work is on draft [#738](https://github.com/skizzy1986/SplitIQ/pull/738)
@@ -100,6 +106,6 @@ As of 25 November 2026, late morning Perth (UTC+8).
 - Do not merge [#703](https://github.com/skizzy1986/SplitIQ/pull/703),
   [#712](https://github.com/skizzy1986/SplitIQ/pull/712) or
   [#670](https://github.com/skizzy1986/SplitIQ/pull/670).
-- Dashboard TOTAL was 432.1 / 433 KB on main at #772 (`93a8a54`); #740 claimed
-  +0.0 KB. #775 measured 432.8 / 433 KB (0.2 KB spare) on its own branch.
-  Re-measure; do not quote these as current.
+- Until #779 lands, main TOTAL is still 432.1 / 433 KB as measured for that PR
+  against `de0eea9`. After it lands, the same official measure is 407.1 / 433 KB.
+  Re-measure; do not quote these as current once further PRs have merged.

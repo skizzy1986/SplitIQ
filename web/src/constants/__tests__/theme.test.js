@@ -40,6 +40,9 @@ const EXPECTED_KEYS = [
   'anatomyHeatHigh',
   'anatomyHeatPeak',
   'anatomyFocus',
+  'onAccent',
+  'bandAmber',
+  'bandCoral',
 ];
 
 // The activation ramp is geometry paint, not ink anyone reads, and starts on
@@ -53,9 +56,9 @@ const SHARED_BY_DESIGN = [
 ];
 
 describe('THEME', () => {
-  it('has exactly the 36 expected keys (no more, no fewer)', () => {
+  it('has exactly the 39 expected keys (no more, no fewer)', () => {
     const keys = Object.keys(THEME);
-    expect(keys).toHaveLength(36);
+    expect(keys).toHaveLength(39);
     expect(keys.sort()).toEqual([...EXPECTED_KEYS].sort());
   });
 
@@ -71,9 +74,9 @@ describe('THEME', () => {
 });
 
 describe('DARK — the palette values THEME resolves to', () => {
-  it('has exactly the 36 expected keys (no more, no fewer)', () => {
+  it('has exactly the 39 expected keys (no more, no fewer)', () => {
     const keys = Object.keys(DARK);
-    expect(keys).toHaveLength(36);
+    expect(keys).toHaveLength(39);
     expect(keys.sort()).toEqual([...EXPECTED_KEYS].sort());
   });
 
@@ -115,6 +118,9 @@ describe('DARK — the palette values THEME resolves to', () => {
     expect(DARK.anatomyBone).toBe('#e6dccb');
     expect(DARK.anatomyShadow).toBe('#000004');
     expect(DARK.anatomyBar).toBe('#9aa3b5');
+    expect(DARK.onAccent).toBe('#06222c');
+    expect(DARK.bandAmber).toBe('#e8b45c');
+    expect(DARK.bandCoral).toBe('#e87a5c');
   });
 });
 

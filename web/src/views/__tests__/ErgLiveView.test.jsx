@@ -639,3 +639,106 @@ describe('ErgLiveView way out (phone)', () => {
     expect(onExit).toHaveBeenCalledTimes(1);
   });
 });
+
+// #696: on Android, Connect opens a list of PM5s in range.
+describe('ErgLiveView and the Android PM5 list', () => {
+  function choosing(extra = {}) {
+    pm5State = {
+      ...pm5State,
+      status: 'choosing',
+      monitors: [
+        { id: 'AA', name: 'PM5 431719123 Row' },
+        { id: 'BB', name: null },
+      ],
+      scanPhase: 'searching',
+      connectingId: null,
+      locationOff: false,
+      errorCode: null,
+      choose: vi.fn(),
+      retryScan: vi.fn(),
+      cancelScan: vi.fn(),
+      ...extra,
+    };
+  }
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('renders the list, not the live screen, while choosing', () => {
+    choosing();
+    renderWithClient(<ErgLiveView />, makeClient());
+    expect(
+      screen.getByRole('heading', { name: 'Choose your PM5' })
+    ).toBeInTheDocument();
+    expect(screen.queryByText('END')).not.toBeInTheDocument();
+    expect(screen.queryByText('CONNECTED')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'PM5 431719123 Row' }));
+    expect(pm5State.choose).toHaveBeenCalledWith('AA');
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(pm5State.cancelScan).toHaveBeenCalledTimes(1);
+  });
+
+  it('hands the empty state and its retry to the list', () => {
+    choosing({ monitors: [], scanPhase: 'empty', locationOff: true });
+    renderWithClient(<ErgLiveView />, makeClient());
+    expect(
+      screen.getByText(/Location must be on to find a PM5/)
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+    expect(pm5State.retryScan).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows a failed connect on the list', () => {
+    choosing({ errorCode: 'PM5_CONNECT_FAILED' });
+    renderWithClient(<ErgLiveView />, makeClient());
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      "Couldn't connect to that PM5."
+    );
+  });
+
+  // AC7: the browser copy is unchanged.
+  it('keeps the browser chooser copy in the browser', () => {
+    const { container } = renderWithClient(<ErgLiveView />, makeClient());
+    expect(container.textContent).toContain('Tap Connect — your browser will');
+    expect(container.textContent).not.toContain('from the list');
+  });
+
+  it('tells the Android app to choose from the list', async () => {
+    const { Capacitor } = await import('@capacitor/core');
+    vi.spyOn(Capacitor, 'isNativePlatform').mockReturnValue(true);
+    const { container } = renderWithClient(<ErgLiveView />, makeClient());
+    expect(container.textContent).toContain('Tap Connect, then choose your');
+    expect(container.textContent).toContain('monitor from the list.');
+    expect(container.textContent).not.toContain('your browser will');
+  });
+
+  it.each([
+    [
+      'PM5_BLE_UNAVAILABLE',
+      "This phone can't use Bluetooth Low Energy, so it can't connect to a PM5.",
+    ],
+    [
+      'PM5_SCAN_FAILED',
+      "Couldn't start searching for PM5s. Tap Connect to try again.",
+    ],
+    [
+      'PM5_BLUETOOTH_OFF',
+      "Bluetooth is off. Turn it on in your phone's settings, then tap Connect again.",
+    ],
+    [
+      'PM5_PERMISSION_DENIED',
+      "SplitIQ can't use Bluetooth. In Settings › Apps › SplitIQ › Permissions, allow Nearby devices (Location on Android 11 and older), then tap Connect again.",
+    ],
+  ])('shows %s in its own words on the Connect screen', (code, words) => {
+    pm5State = {
+      ...pm5State,
+      status: 'error',
+      error: 'English for the logs',
+      errorCode: code,
+    };
+    renderWithClient(<ErgLiveView />, makeClient());
+    expect(screen.getByText(words)).toBeInTheDocument();
+    expect(screen.queryByText('English for the logs')).not.toBeInTheDocument();
+  });
+});

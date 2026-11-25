@@ -394,6 +394,14 @@ export default defineConfig({
         // Extracted from main.jsx so the boot decision is testable. main.jsx
         // itself stays excluded — it is bootstrap only now.
         'src/AuthGate.jsx': { lines: 80, functions: 80, branches: 70 },
+        // The Android PM5 list (#696): new code, commercial baseline.
+        'src/services/pm5Scan.js': { lines: 80, functions: 80, branches: 70 },
+        'src/utils/pm5Monitors.js': { lines: 80, functions: 80, branches: 70 },
+        'src/components/PM5Picker.jsx': {
+          lines: 80,
+          functions: 80,
+          branches: 70,
+        },
       },
     },
   },

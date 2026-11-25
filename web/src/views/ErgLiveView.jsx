@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { Suspense, lazy, useState } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { Plural, Trans, useLingui } from '@lingui/react/macro';
 import { useSessionOwner } from '../hooks/useSessionOwner.js';
 import { privateSessionGeneration } from '../utils/privateSessionState.js';
@@ -9,6 +10,7 @@ import { supabase } from '../supabaseClient';
 import LiveMetric from '../components/LiveMetric';
 import WorkoutTarget from '../components/WorkoutTarget';
 import SessionExitBar from '../components/mobile/SessionExitBar.jsx';
+import PM5Picker from '../components/PM5Picker';
 import { parsePace, formatElapsed } from '../services/pm5Bluetooth';
 import { THEME } from '../constants/theme.js';
 import { toISODate, toLogDate } from '../utils/dateFormat.js';
@@ -17,6 +19,8 @@ import { FONT } from '../constants/type.js';
 import { SRPE_GUIDE } from '../constants/trainingConfig.js';
 import { SRPE_GUIDE_MESSAGES } from '../constants/srpeGuideMessages.js';
 import { PM5_ERROR_MESSAGES } from '../constants/pm5ErrorMessages.js';
+import { readLiveErgFlag } from '../live-erg/liveErgFlag.js';
+import { loadLiveErgSession } from '../live-erg/loadLiveErgSession.js';
 
 // Values only: the band's words are looked up at render, in the active language.
 const SRPE_BUTTONS = SRPE_GUIDE.flatMap((band) => {
@@ -113,13 +117,23 @@ function ConnectScreen({
           maxWidth: 300,
         }}
       >
-        <Trans comment="PM5 is the rowing machine's monitor: keep it. Connect is the button below. The tags are line breaks">
-          Power on your PM5.
-          <br />
-          Tap Connect — your browser will
-          <br />
-          ask you to select the device.
-        </Trans>
+        {Capacitor.isNativePlatform() ? (
+          <Trans comment="Android app. PM5 is the rowing machine's monitor: keep it. Connect is the button below. The tags are line breaks">
+            Power on your PM5.
+            <br />
+            Tap Connect, then choose your
+            <br />
+            monitor from the list.
+          </Trans>
+        ) : (
+          <Trans comment="PM5 is the rowing machine's monitor: keep it. Connect is the button below. The tags are line breaks">
+            Power on your PM5.
+            <br />
+            Tap Connect — your browser will
+            <br />
+            ask you to select the device.
+          </Trans>
+        )}
       </div>
 
       {error && (
@@ -643,6 +657,13 @@ function SummaryScreen({ summary, onSave, onDiscard, onDone, saveState }) {
 // Postgres unique_violation on sessions' UNIQUE(date, label). The row is
 // already in the table, so this is a successful save, not a failure — queueing
 // it would guarantee a permanently undrainable entry.
+// The v10 live screen (#768), opt-in while in beta. Its own chunk, loaded
+// only when the opt-in is on and a piece is live. If the chunk cannot load,
+// today's rowing screen takes its place.
+const LiveErgSession = lazy(() =>
+  loadLiveErgSession().catch(() => ({ default: RowingScreen }))
+);
+
 function isDuplicate(dbError) {
   return (
     dbError?.code === '23505' || /duplicate key/i.test(dbError?.message || '')
@@ -664,11 +685,19 @@ export default function ErgLiveView({
     reset,
     finish,
     disconnect,
+    monitors,
+    scanPhase,
+    connectingId,
+    locationOff,
+    choose,
+    retryScan,
+    cancelScan,
   } = usePM5();
   const { t } = useLingui();
   const { addToQueue, pending } = useOfflineQueue();
   const queryClient = useQueryClient();
   const [saveState, setSaveState] = useState('idle');
+  const [liveErgV10] = useState(() => readLiveErgFlag());
   const ownerId = useSessionOwner();
   const [producerGeneration] = useState(privateSessionGeneration);
   const isCurrentProducer = () =>
@@ -795,6 +824,20 @@ export default function ErgLiveView({
         pending={pending}
       />
     );
+  } else if (status === 'choosing') {
+    // Android only: the list of PM5s in range.
+    screen = (
+      <PM5Picker
+        monitors={monitors}
+        phase={scanPhase}
+        connectingId={connectingId}
+        errorCode={errorCode}
+        locationOff={locationOff}
+        onChoose={choose}
+        onRetry={retryScan}
+        onCancel={cancelScan}
+      />
+    );
   } else if (status === 'finished' && summary) {
     screen = (
       <SummaryScreen
@@ -809,13 +852,25 @@ export default function ErgLiveView({
       />
     );
   } else {
-    screen = (
+    const rowing = (
       <RowingScreen
         metrics={metrics}
         status={status}
         todaySession={todaySession}
         onEnd={finish}
       />
+    );
+    screen = liveErgV10 ? (
+      <Suspense fallback={rowing}>
+        <LiveErgSession
+          metrics={metrics}
+          status={status}
+          todaySession={todaySession}
+          onEnd={finish}
+        />
+      </Suspense>
+    ) : (
+      rowing
     );
   }
 

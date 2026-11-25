@@ -11,7 +11,7 @@ import { captureError } from '../utils/sentry.js';
 // The UUID a PM5 advertises. The rowing service below is found only after
 // connecting, so it cannot be what the scan filters on (ergometerjs
 // performanceMonitorBle.ts scans on PMDEVICE the same way).
-const PM5_DEVICE = 'ce060000-43e5-11e4-916c-0800200c9a66';
+export const PM5_DEVICE = 'ce060000-43e5-11e4-916c-0800200c9a66';
 const PM5_ROW_SERVICE = 'ce060030-43e5-11e4-916c-0800200c9a66';
 const ROWING_GENERAL_STATUS = 'ce060031-43e5-11e4-916c-0800200c9a66';
 const ROWING_ADDITIONAL_STATUS_1 = 'ce060032-43e5-11e4-916c-0800200c9a66';
@@ -287,6 +287,13 @@ export async function connectToPM5() {
   });
 
   const server = await device.gatt.connect();
+  return openPM5(device, server);
+}
+
+// Fetch the characteristics from a connected device. Shared by the browser
+// chooser above and the native list (pm5Scan.js), which already holds the
+// server and must not call gatt.connect() again.
+export async function openPM5(device, server) {
   let service;
   let generalStatus;
   try {

@@ -28,20 +28,41 @@ import SectionHeader from '../../components/SectionHeader.jsx';
 import { FONT } from '../../constants/type.js';
 import { RADIUS, SPACE, TYPE } from '../../constants/tokens.js';
 
-// Today answers one question: what am I doing right now, and am I in any state
-// to do it. Layout follows designs/today.html — readiness first, then the
-// session, then the week, then what just happened.
+// Today answers one question: what am I doing right now, and am I in any
+// state to do it. Home A (#771): the planned session and Start on PM5 lead,
+// then a compact readiness/form glance, this week, the last row, and recent.
 //
 // Every number here is derived. HANDOFF.md's house rule: any caption stating a
 // count, rank or comparison is computed, never typed, because a hardcoded
 // "3rd best this month" is wrong the day after it is written.
 
+export const START_PLANNED = 'planned';
+export const START_AGAIN = 'again';
+export const START_JUST_ROW = 'just-row';
+export const START_PICK = 'pick';
+
+export function isErgSessionType(type) {
+  const t = (type ?? '').toLowerCase();
+  return t.includes('erg') || t.includes('row');
+}
+
+function sessionFacts(session, i18n) {
+  const parts = [];
+  if (session.avg_watts != null) parts.push(`${session.avg_watts} W`);
+  const duration = durationLabel(session.duration, i18n);
+  if (duration) parts.push(duration);
+  if (session.distance_m != null) {
+    parts.push(`${(session.distance_m / 1000).toFixed(1)} km`);
+  }
+  return parts.join(' · ');
+}
+
 const Label = ({ children, style }) => (
   <div
     style={{
-      fontSize: TYPE.micro.size,
-      fontWeight: TYPE.micro.weight,
-      letterSpacing: TYPE.micro.letterSpacing,
+      fontSize: TYPE.label.size,
+      fontWeight: TYPE.label.weight,
+      letterSpacing: TYPE.label.letterSpacing,
       color: THEME.textSubtle,
       ...style,
     }}
@@ -51,6 +72,48 @@ const Label = ({ children, style }) => (
 );
 
 const Card = SharedCard;
+
+function StartButton({ children, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+        minHeight: 56,
+        marginTop: SPACE.md,
+        padding: `0 ${SPACE.lg}px`,
+        background: THEME.accent,
+        color: THEME.onAccent,
+        border: 'none',
+        borderRadius: RADIUS.md,
+        fontSize: TYPE.title.size,
+        fontWeight: TYPE.title.weight,
+        fontFamily: FONT.sans,
+        cursor: 'pointer',
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function SecondaryRow({ children }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        gap: SPACE.sm,
+        marginTop: SPACE.sm,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
 
 export default function MobileToday({ onStartSession, onOpenBody }) {
   const { t, i18n } = useLingui();
@@ -71,7 +134,7 @@ export default function MobileToday({ onStartSession, onOpenBody }) {
   const latestLoad = load[load.length - 1] ?? null;
   const band = tsbBand(latestLoad?.tsb);
 
-  const { todays, week, recent } = useMemo(() => {
+  const { todays, week, recent, lastErg } = useMemo(() => {
     const all = sessions ?? [];
     const withIso = all.map((s) => ({ ...s, iso: toISODate(s.date) }));
 
@@ -83,6 +146,12 @@ export default function MobileToday({ onStartSession, onOpenBody }) {
 
     const inWeek = withIso.filter((s) => s.iso >= weekStart && s.iso <= today);
     const done = inWeek.filter((s) => COMPLETED_STATUSES.includes(s.status));
+
+    const completedErgs = withIso
+      .filter(
+        (s) => COMPLETED_STATUSES.includes(s.status) && isErgSessionType(s.type)
+      )
+      .sort((a, b) => (a.iso < b.iso ? 1 : a.iso > b.iso ? -1 : 0));
 
     return {
       todays: withIso.filter((s) => s.iso === today),
@@ -99,12 +168,39 @@ export default function MobileToday({ onStartSession, onOpenBody }) {
         .filter((s) => COMPLETED_STATUSES.includes(s.status) && s.iso < today)
         .sort((a, b) => (a.iso < b.iso ? 1 : a.iso > b.iso ? -1 : 0))
         .slice(0, 3),
+      lastErg: completedErgs[0] ?? null,
     };
   }, [sessions, today, cp]);
 
   const prescribed = todays.find((s) => s.status === PLANNED_STATUS) ?? null;
+  const doneToday = todays.filter((s) => COMPLETED_STATUSES.includes(s.status));
   const phase = anchors?.current_phase?.value ?? null;
   const block = anchors?.current_block?.value ?? null;
+  const phaseLabel = phase
+    ? [phase, block].filter(Boolean).join(' · ').toUpperCase()
+    : null;
+
+  const start = (intent) => onStartSession?.(intent);
+
+  const dateMeta = new Date(`${today}T00:00:00`).toLocaleDateString(
+    dateLocale(i18n.locale, 'en-GB'),
+    {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+    }
+  );
+
+  const formValue = latestLoad
+    ? latestLoad.tsb.toFixed(1)
+    : loadPending
+      ? t`Reading…`
+      : t`No reading`;
+  const formBand = band
+    ? i18n._(TSB_BAND_MESSAGES[band.key])
+    : loadPending
+      ? t`Reading…`
+      : t`No reading`;
 
   return (
     <div
@@ -116,40 +212,176 @@ export default function MobileToday({ onStartSession, onOpenBody }) {
     >
       <ScreenHeader
         title={<Trans>Today</Trans>}
-        meta={new Date(`${today}T00:00:00`).toLocaleDateString(
-          dateLocale(i18n.locale, 'en-GB'),
-          {
-            weekday: 'short',
-            day: 'numeric',
-            month: 'short',
-          }
-        )}
+        meta={
+          <>
+            {dateMeta}
+            {phaseLabel && (
+              <span
+                style={{
+                  marginLeft: SPACE.sm,
+                  fontFamily: FONT.mono,
+                  color: THEME.text,
+                }}
+              >
+                {phaseLabel}
+              </span>
+            )}
+          </>
+        }
       />
-      <header
-        style={{
-          display: 'flex',
-          alignItems: 'baseline',
-          gap: SPACE.sm,
-          marginBottom: SPACE.md,
-        }}
-      >
-        {phase && (
-          <span
+
+      <Card>
+        {prescribed ? (
+          <>
+            <Label>
+              <Trans comment="Card eyebrow, all capitals">
+                TODAY'S SESSION · PLANNED
+              </Trans>
+            </Label>
+            <div
+              style={{
+                fontSize: TYPE.title.size,
+                fontWeight: TYPE.title.weight,
+                letterSpacing: TYPE.title.letterSpacing,
+                color: THEME.text,
+                marginTop: SPACE.xs,
+              }}
+            >
+              {prescribed.label ?? prescribed.type}
+            </div>
+            {sessionFacts(prescribed, i18n) && (
+              <div
+                style={{
+                  fontSize: TYPE.bodySm.size,
+                  fontFamily: FONT.mono,
+                  color: THEME.text,
+                  marginTop: SPACE.xs,
+                }}
+              >
+                {sessionFacts(prescribed, i18n)}
+              </div>
+            )}
+            {prescribed.coach_note && (
+              <div
+                style={{
+                  fontSize: TYPE.bodySm.size,
+                  color: THEME.muted,
+                  marginTop: SPACE.xs,
+                  lineHeight: TYPE.bodySm.lineHeight,
+                }}
+              >
+                {prescribed.coach_note}
+              </div>
+            )}
+            <StartButton onClick={() => start(START_PLANNED)}>
+              <Trans>Start on PM5</Trans>
+            </StartButton>
+            <SecondaryRow>
+              <Button variant="secondary" onClick={() => start(START_PICK)}>
+                <Trans>Tweak</Trans>
+              </Button>
+              <Button variant="secondary" onClick={() => start(START_JUST_ROW)}>
+                <Trans>Just row</Trans>
+              </Button>
+            </SecondaryRow>
+          </>
+        ) : lastErg ? (
+          <>
+            <Label>
+              <Trans comment="Card eyebrow, all capitals">
+                NOTHING PLANNED TODAY
+              </Trans>
+            </Label>
+            <div
+              style={{
+                fontSize: TYPE.title.size,
+                fontWeight: TYPE.title.weight,
+                letterSpacing: TYPE.title.letterSpacing,
+                color: THEME.text,
+                marginTop: SPACE.xs,
+              }}
+            >
+              <Trans>Row your last piece again?</Trans>
+            </div>
+            <div
+              style={{
+                fontSize: TYPE.bodySm.size,
+                fontFamily: FONT.mono,
+                color: THEME.text,
+                marginTop: SPACE.xs,
+              }}
+            >
+              {lastErg.label ?? lastErg.type}
+              {sessionFacts(lastErg, i18n)
+                ? ` · ${sessionFacts(lastErg, i18n)}`
+                : ''}
+            </div>
+            <StartButton onClick={() => start(START_AGAIN)}>
+              <Trans>Row it again</Trans>
+            </StartButton>
+            <SecondaryRow>
+              <Button variant="secondary" onClick={() => start(START_JUST_ROW)}>
+                <Trans>Just row</Trans>
+              </Button>
+              <Button variant="secondary" onClick={() => start(START_PICK)}>
+                <Trans>Pick a workout</Trans>
+              </Button>
+            </SecondaryRow>
+          </>
+        ) : (
+          <>
+            <Label>
+              <Trans comment="Card eyebrow, all capitals">
+                NOTHING PLANNED TODAY
+              </Trans>
+            </Label>
+            <div
+              style={{
+                fontSize: TYPE.body.size,
+                color: THEME.muted,
+                marginTop: SPACE.xs,
+              }}
+            >
+              <Trans>No previous erg piece to repeat.</Trans>
+            </div>
+            <StartButton onClick={() => start(START_JUST_ROW)}>
+              <Trans>Just row</Trans>
+            </StartButton>
+            <SecondaryRow>
+              <Button variant="secondary" onClick={() => start(START_PICK)}>
+                <Trans>Pick a workout</Trans>
+              </Button>
+            </SecondaryRow>
+          </>
+        )}
+      </Card>
+
+      {doneToday.map((s) => (
+        <Card key={s.id}>
+          <div
             style={{
-              marginLeft: 'auto',
-              fontSize: TYPE.caption.size,
-              fontFamily: FONT.mono,
-              color: THEME.accent,
-              background: THEME.surface,
-              border: `1px solid ${THEME.border}`,
-              borderRadius: RADIUS.pill,
-              padding: `2px ${SPACE.sm}px`,
+              fontSize: TYPE.title.size,
+              fontWeight: TYPE.title.weight,
+              letterSpacing: TYPE.title.letterSpacing,
+              color: THEME.text,
             }}
           >
-            {[phase, block].filter(Boolean).join(' · ').toUpperCase()}
-          </span>
-        )}
-      </header>
+            {s.label ?? s.type}
+          </div>
+          {sessionFacts(s, i18n) && (
+            <div
+              style={{
+                fontSize: TYPE.bodySm.size,
+                fontFamily: FONT.mono,
+                color: THEME.muted,
+                marginTop: SPACE.xs,
+              }}
+            >
+              {sessionFacts(s, i18n)}
+            </div>
+          )}
+        </Card>
+      ))}
 
       <Card>
         <Label>
@@ -186,15 +418,20 @@ export default function MobileToday({ onStartSession, onOpenBody }) {
           </>
         ) : (
           <div
-            style={{ display: 'flex', alignItems: 'flex-end', gap: SPACE.lg }}
+            style={{
+              display: 'flex',
+              alignItems: 'flex-end',
+              gap: SPACE.lg,
+              marginTop: SPACE.xs,
+            }}
           >
             <div>
               <div
                 style={{
-                  fontSize: TYPE.hero.size,
-                  fontWeight: TYPE.hero.weight,
-                  letterSpacing: TYPE.hero.letterSpacing,
-                  lineHeight: TYPE.hero.lineHeight,
+                  fontSize: TYPE.display.size,
+                  fontWeight: TYPE.display.weight,
+                  letterSpacing: TYPE.display.letterSpacing,
+                  lineHeight: TYPE.display.lineHeight,
                   fontFamily: FONT.mono,
                   color: THEME.text,
                 }}
@@ -224,18 +461,10 @@ export default function MobileToday({ onStartSession, onOpenBody }) {
                   color: THEME[band?.token] ?? THEME.muted,
                 }}
               >
-                {latestLoad
-                  ? latestLoad.tsb.toFixed(1)
-                  : loadPending
-                    ? t`Reading…`
-                    : t`No reading`}
+                {formValue}
               </div>
               <div style={{ fontSize: TYPE.caption.size, color: THEME.muted }}>
-                {band
-                  ? i18n._(TSB_BAND_MESSAGES[band.key])
-                  : loadPending
-                    ? t`Reading…`
-                    : t`No reading`}
+                {formBand}
               </div>
             </div>
           </div>
@@ -254,68 +483,6 @@ export default function MobileToday({ onStartSession, onOpenBody }) {
           </div>
         )}
       </Card>
-
-      <SectionHeader>
-        <Trans comment="Section heading, all capitals">TODAY</Trans>
-      </SectionHeader>
-      {todays.length === 0 ? (
-        <Card>
-          <div style={{ fontSize: TYPE.body.size, color: THEME.muted }}>
-            <Trans>Nothing prescribed today.</Trans>
-          </div>
-          <Button onClick={() => onStartSession?.()}>
-            <Trans>Open Train</Trans>
-          </Button>
-        </Card>
-      ) : (
-        todays.map((s) => (
-          <Card key={s.id} accent={THEME.accent}>
-            <div
-              style={{
-                fontSize: TYPE.title.size,
-                fontWeight: TYPE.title.weight,
-                letterSpacing: TYPE.title.letterSpacing,
-                color: THEME.text,
-              }}
-            >
-              {s.label ?? s.type}
-            </div>
-            {s.coach_note && (
-              <div
-                style={{
-                  fontSize: TYPE.bodySm.size,
-                  color: THEME.muted,
-                  marginTop: SPACE.xs,
-                  lineHeight: TYPE.bodySm.lineHeight,
-                }}
-              >
-                {s.coach_note}
-              </div>
-            )}
-            {s === prescribed && (
-              <button
-                onClick={() => onStartSession?.()}
-                style={{
-                  marginTop: SPACE.md,
-                  width: '100%',
-                  background: THEME.accent,
-                  color: THEME.surface,
-                  border: 'none',
-                  borderRadius: RADIUS.sm,
-                  padding: `${SPACE.md}px`,
-                  fontSize: TYPE.label.size,
-                  fontWeight: TYPE.label.weight,
-                  letterSpacing: TYPE.label.letterSpacing,
-                  fontFamily: FONT.sans,
-                  cursor: 'pointer',
-                }}
-              >
-                <Trans comment="Button, all capitals">START SESSION</Trans>
-              </button>
-            )}
-          </Card>
-        ))
-      )}
 
       <SectionHeader>
         <Trans comment="Section heading, all capitals">THIS WEEK</Trans>
@@ -351,6 +518,60 @@ export default function MobileToday({ onStartSession, onOpenBody }) {
         </div>
       </Card>
 
+      {lastErg && (
+        <>
+          <SectionHeader>
+            <Trans comment="Section heading, all capitals">LAST ROW</Trans>
+          </SectionHeader>
+          <Card>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'baseline',
+                gap: SPACE.sm,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: TYPE.body.size,
+                  fontWeight: TYPE.label.weight,
+                  color: THEME.text,
+                }}
+              >
+                {lastErg.label ?? lastErg.type}
+              </div>
+              <div
+                style={{
+                  fontSize: TYPE.caption.size,
+                  color: THEME.textFaint,
+                }}
+              >
+                {lastErg.iso
+                  ? new Date(`${lastErg.iso}T00:00:00`).toLocaleDateString(
+                      dateLocale(i18n.locale, 'en-GB'),
+                      { day: 'numeric', month: 'short' }
+                    )
+                  : ''}
+              </div>
+            </div>
+            {sessionFacts(lastErg, i18n) && (
+              <div
+                style={{
+                  fontFamily: FONT.mono,
+                  fontSize: TYPE.body.size,
+                  marginTop: SPACE.sm,
+                  color: THEME.textStrong,
+                }}
+              >
+                {sessionFacts(lastErg, i18n)}
+                {lastErg.srpe != null ? ` · sRPE ${lastErg.srpe}` : ''}
+              </div>
+            )}
+          </Card>
+        </>
+      )}
+
       <SectionHeader>
         <Trans comment="Section heading, all capitals">RECENT</Trans>
       </SectionHeader>
@@ -359,7 +580,7 @@ export default function MobileToday({ onStartSession, onOpenBody }) {
           <div style={{ fontSize: TYPE.body.size, color: THEME.muted }}>
             <Trans>No sessions logged yet.</Trans>
           </div>
-          <Button variant="secondary" onClick={() => onStartSession?.()}>
+          <Button variant="secondary" onClick={() => start(START_PICK)}>
             <Trans>Open Train</Trans>
           </Button>
         </Card>

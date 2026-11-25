@@ -1,8 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { i18n } from '@lingui/core';
 import { messages as es } from '../../locales/views/es.po';
 import ChangePasswordPanel from '../ChangePasswordPanel.jsx';
+import { MIN_PASSWORD } from '../../utils/changePassword.js';
 
 const mocks = vi.hoisted(() => ({ change: null }));
 vi.mock('../../utils/changePassword.js', () => ({
@@ -49,7 +51,10 @@ describe('ChangePasswordPanel', () => {
 
   it.each([
     ['mismatch', "The two new passwords don't match."],
-    ['weak_password', 'Choose a longer new password: at least 8 characters.'],
+    [
+      'weak_password',
+      `Choose a longer new password: at least ${MIN_PASSWORD} characters.`,
+    ],
     ['wrong_current', 'The current password is not right.'],
     ['same', 'The new password must be different from the current one.'],
   ])('shows the %s cause and keeps what was typed', async (cause, text) => {
@@ -95,5 +100,48 @@ describe('ChangePasswordPanel', () => {
     expect(screen.getByRole('alert')).toHaveTextContent(
       'La contraseña actual no es correcta.'
     );
+  });
+
+  it('shows the in-app weak-password reason for a short password, in English and in Spanish', async () => {
+    mocks.change.mockResolvedValue({ ok: false, cause: 'weak_password' });
+    const short = 'abcdefg';
+    const cases = [
+      [
+        'en',
+        'Change password',
+        `Choose a longer new password: at least ${MIN_PASSWORD} characters.`,
+      ],
+      [
+        'es',
+        'Cambiar contraseña',
+        `Elige una contraseña nueva más larga: mínimo ${MIN_PASSWORD} caracteres.`,
+      ],
+    ];
+    for (const [lang, button, text] of cases) {
+      if (lang === 'es') {
+        i18n.load('es', es);
+        i18n.activate('es');
+      }
+      const user = userEvent.setup();
+      const { container, unmount } = render(<ChangePasswordPanel />);
+      const next = container.querySelector('#pw-new');
+      await user.type(container.querySelector('#pw-current'), 'old password');
+      await user.type(next, short);
+      await user.type(container.querySelector('#pw-confirm'), short);
+      // jsdom 31 stubs ValidityState.tooShort as always false, so minLength
+      // never fails a submit on its own. If the field has a minimum the value
+      // does not meet, setCustomValidity so the button click uses the same
+      // constraint-validation path a browser would for tooShort.
+      if (
+        next.minLength >= 0 &&
+        next.value.length > 0 &&
+        next.value.length < next.minLength
+      ) {
+        next.setCustomValidity('too short');
+      }
+      await user.click(screen.getByRole('button', { name: button }));
+      expect(await screen.findByRole('alert')).toHaveTextContent(text);
+      unmount();
+    }
   });
 });

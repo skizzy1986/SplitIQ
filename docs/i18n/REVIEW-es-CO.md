@@ -159,7 +159,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `GptGxg` | Change password | Cambiar contraseña | Change-password button · src/components/ChangePasswordPanel.jsx |
 | `JDjV6k` | Changing… | Cambiando… | Change-password button while the request is out · src/components/ChangePasswordPanel.jsx |
 | `LgcGHa` | Checking Strava connection… | Verificando la conexión con Strava… | Loading state · src/components/StravaConnectPanel.jsx |
-| `uXRvrX` | Choose a longer new password: at least 8 characters. | Elige una contraseña nueva más larga: mínimo 8 caracteres. | Change-password error. · src/components/ChangePasswordPanel.jsx |
+| `BYSvF7` | Choose a longer new password: at least {min} characters. | Elige una contraseña nueva más larga: mínimo {min} caracteres. | Change-password error. {min} is the minimum length. · src/components/ChangePasswordPanel.jsx |
 | `1td_sZ` | Choose your PM5 | Elige tu PM5 | Title of the list of nearby rowing monitors; PM5 is the monitor: keep it · src/components/PM5Picker.jsx |
 | `E9GkoQ` | Chrome / Edge · Android or Desktop | Chrome / Edge · Android o computador | Where live rowing works: browser names, then device kinds · src/views/ErgLiveView.jsx |
 | `tcceNK` | clean | en condiciones | Blood pressure reading taken under proper resting conditions · src/views/RecoveryView.jsx |

@@ -18,8 +18,8 @@ const CAUSE_TEXT = {
     comment: 'Change-password error.',
   }),
   weak_password: msg({
-    message: 'Choose a longer new password: at least 8 characters.',
-    comment: 'Change-password error.',
+    message: 'Choose a longer new password: at least {min} characters.',
+    comment: 'Change-password error. {min} is the minimum length.',
   }),
   same: msg({
     message: 'The new password must be different from the current one.',
@@ -63,7 +63,7 @@ const label = {
 };
 
 export default function ChangePasswordPanel() {
-  const { t } = useLingui();
+  const { t, i18n } = useLingui();
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -128,7 +128,6 @@ export default function ChangePasswordPanel() {
           style={field}
           type="password"
           autoComplete="new-password"
-          minLength={MIN_PASSWORD}
           value={next}
           onChange={(e) => setNext(e.target.value)}
         />
@@ -157,7 +156,9 @@ export default function ChangePasswordPanel() {
             color: THEME.critical,
           }}
         >
-          {t(CAUSE_TEXT[cause] ?? CAUSE_TEXT.failed)}
+          {i18n._(CAUSE_TEXT[cause] ?? CAUSE_TEXT.failed, {
+            min: MIN_PASSWORD,
+          })}
         </div>
       )}
       {done && (

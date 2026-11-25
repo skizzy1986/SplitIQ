@@ -525,10 +525,10 @@ msgstr "Cambiando…"
 msgid "Checking Strava connection…"
 msgstr "Verificando la conexión con Strava…"
 
-#. Change-password error.
+#. Change-password error. {min} is the minimum length.
 #: src/components/ChangePasswordPanel.jsx
-msgid "Choose a longer new password: at least 8 characters."
-msgstr "Elige una contraseña nueva más larga: mínimo 8 caracteres."
+msgid "Choose a longer new password: at least {min} characters."
+msgstr "Elige una contraseña nueva más larga: mínimo {min} caracteres."
 
 #. Title of the list of nearby rowing monitors; PM5 is the monitor: keep it
 #: src/components/PM5Picker.jsx

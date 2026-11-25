@@ -866,13 +866,27 @@ describe('usePM5 on the Capacitor path', () => {
     vi.doUnmock('@capacitor/core');
     vi.doUnmock('@capacitor/app');
     vi.doUnmock('@capgo/capacitor-bluetooth-low-energy');
+    vi.doUnmock('../../services/pm5Scan');
     vi.resetModules();
   });
 
   // Mount the hook with Capacitor reporting native. `listeners` collects the
   // App events the hook registers, so a test can fire one.
+  // After #697, native connect() opens the PM5 list; startPiece runs from
+  // choose(). The scan module is mocked here so this block can reach a
+  // connected piece without going through the real adapter.
   async function mountNative(BluetoothLowEnergy) {
     const listeners = {};
+    const scan = {
+      check: vi.fn().mockResolvedValue({ locationOff: false }),
+      start: vi.fn(),
+      connectChosen: vi.fn(),
+      onSighting: null,
+    };
+    scan.start.mockImplementation(async (fn) => {
+      scan.onSighting = fn;
+      return vi.fn();
+    });
     vi.resetModules();
     vi.doMock('@capacitor/core', () => ({
       Capacitor: { isNativePlatform: () => true },
@@ -888,13 +902,22 @@ describe('usePM5 on the Capacitor path', () => {
     vi.doMock('@capgo/capacitor-bluetooth-low-energy', () => ({
       BluetoothLowEnergy,
     }));
+    vi.doMock('../../services/pm5Scan', async () => {
+      const actual = await vi.importActual('../../services/pm5Scan');
+      return {
+        ...actual,
+        checkScanPrerequisites: (...args) => scan.check(...args),
+        startPM5Scan: (...args) => scan.start(...args),
+        connectToChosenPM5: (...args) => scan.connectChosen(...args),
+      };
+    });
 
     const { usePM5: nativeUsePM5 } = await import('../usePM5');
     let rendered;
     await act(async () => {
       rendered = renderHook(() => nativeUsePM5());
     });
-    return { rendered, listeners };
+    return { rendered, listeners, scan };
   }
 
   const workingBle = () => ({
@@ -918,13 +941,17 @@ describe('usePM5 on the Capacitor path', () => {
   });
 
   it('clears the live state and the stroke when the app is paused', async () => {
-    const { rendered, listeners } = await mountNative(workingBle());
-    connectToPM5Mock.mockResolvedValue({
+    const { rendered, listeners, scan } = await mountNative(workingBle());
+    scan.connectChosen.mockResolvedValue({
       device: fakeDevice,
       chars: ALL_CHARS,
     });
     await act(async () => {
       await rendered.result.current.connect();
+    });
+    act(() => scan.onSighting({ deviceId: 'AA', name: 'PM5 1 Row' }));
+    await act(async () => {
+      await rendered.result.current.choose('AA');
     });
 
     emit('0031', general({ t: 10, dist: 50, state: 1, rowing: 1 }));

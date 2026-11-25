@@ -5,8 +5,8 @@ import os
 import subprocess
 import sys
 
-CORE_MODULES = ('core.geom',)
-GONE = ('squat.geom',)
+CORE_MODULES = ('core.geom', 'core.dqs')
+GONE = ('squat.geom', 'squat.model.dqs')
 
 
 def _imported(path):

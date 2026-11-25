@@ -1,9 +1,12 @@
 import { render, screen } from '@testing-library/react';
 
 // What the test is for: /squat and /row must never evaluate
-// supabaseClient.js, whose createClient() runs at import. The mock's factory
-// only executes if something imports the module, so the spy records exactly
-// that.
+// supabaseClient.js, whose createClient() runs at import. A mock's factory
+// only executes if something imports the module, so its spy records exactly
+// that. Vitest runs a factory once and keeps its result until the module is
+// unmocked, through vi.resetModules() too, so these two mocks are registered
+// before each test and unmocked after it: each test's spies see that test's
+// imports, whatever order the tests run in.
 const mocks = vi.hoisted(() => ({
   native: false,
   supabaseImported: vi.fn(),
@@ -13,16 +16,6 @@ const mocks = vi.hoisted(() => ({
 vi.mock('@capacitor/core', () => ({
   Capacitor: { isNativePlatform: () => mocks.native },
 }));
-vi.mock('../supabaseClient.js', () => {
-  mocks.supabaseImported();
-  return { supabase: {} };
-});
-// AuthGate is the only route to supabaseClient, so "AuthGate never imported"
-// is the stronger half of the /squat assertion.
-vi.mock('../AuthGate.jsx', () => {
-  mocks.authGateImported();
-  return { default: () => <div>AuthGate-stub</div> };
-});
 vi.mock('../utils/sentry.js', () => ({ captureError: vi.fn() }));
 vi.mock('../squat/hooks/useCapabilities.js', () => ({
   useCapabilities: () => ({
@@ -43,7 +36,22 @@ async function renderAt(path, { native = false } = {}) {
 beforeEach(() => {
   mocks.supabaseImported.mockClear();
   mocks.authGateImported.mockClear();
+  vi.doMock('../supabaseClient.js', () => {
+    mocks.supabaseImported();
+    return { supabase: {} };
+  });
+  // AuthGate is the only route to supabaseClient, so "AuthGate never
+  // imported" is the stronger half of the tool assertions.
+  vi.doMock('../AuthGate.jsx', () => {
+    mocks.authGateImported();
+    return { default: () => <div>AuthGate-stub</div> };
+  });
   globalThis.fetch = vi.fn(() => new Promise(() => {}));
+});
+
+afterEach(() => {
+  vi.doUnmock('../supabaseClient.js');
+  vi.doUnmock('../AuthGate.jsx');
 });
 
 describe('RouteRoot', () => {
@@ -87,9 +95,6 @@ describe('RouteRoot', () => {
     }
   });
 
-  // Before any test that loads AuthGate: Vitest runs a mock's factory once
-  // per file, even across vi.resetModules(), so authGateImported records only
-  // the first import and would stay silent here afterwards.
   it('renders the row tool at /row without importing supabaseClient', async () => {
     await renderAt('/row');
     expect(

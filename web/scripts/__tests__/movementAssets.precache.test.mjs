@@ -6,11 +6,11 @@ import {
   rmSync,
   writeFileSync,
 } from 'node:fs';
+import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterAll } from 'vitest';
-import { getManifest } from 'workbox-build';
 import { I18N_GLOB_IGNORES } from '../i18nChunks.mjs';
 import {
   DATASETS,
@@ -19,6 +19,28 @@ import {
   isWebOnlyAsset,
   sampleName,
 } from '../movementAssets.mjs';
+
+// workbox-build is vite-plugin-pwa's dependency, not this package's, so it is
+// loaded from the plugin's own folder: the copy `npm run build` runs, wherever
+// npm installs it. A devDependency of our own could drift from the plugin's
+// copy under Dependabot, and this test would then check a different Workbox
+// from the one the build runs (#813).
+function workboxBuild() {
+  let plugin;
+  try {
+    plugin = createRequire(import.meta.url).resolve(
+      'vite-plugin-pwa/package.json'
+    );
+    return createRequire(plugin)('workbox-build');
+  } catch (error) {
+    throw new Error(
+      `Cannot load workbox-build through vite-plugin-pwa (${plugin ? dirname(plugin) : 'not found'}): ${error.message}\n` +
+        'This test runs the Workbox the build runs. If the plugin no longer depends on workbox-build, change the test with it.',
+      { cause: error }
+    );
+  }
+}
+const { getManifest } = workboxBuild();
 
 // What Workbox would precache, computed by the workbox-build that
 // vite-plugin-pwa runs (generateSW reads dist the same way getManifest does).

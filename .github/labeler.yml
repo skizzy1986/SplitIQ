@@ -11,6 +11,9 @@
       - any-glob-to-any-file:
           - 'web/src/anatomy/**'
           - 'web/src/squat/**'
+          - 'web/src/row/**'
+          - 'web/src/tool/**'
+          - 'web/src/movements/**'
           - 'docs/squat/**'
 
 'area: coherence':

@@ -87,6 +87,18 @@ describe('strip-tool-assets', () => {
     expect(after.stdout).toMatch(/no web-only movement-tool files/);
   });
 
+  // A built dist/assets always holds app JS, so an empty or wrong directory
+  // must not pass for one that was stripped.
+  it('--check exits 1 on a directory with no JS at all', () => {
+    for (const names of [[], ['icon-192.png', 'archivo-var-Ab12Cd34.woff2']]) {
+      const dir = assets(names);
+      const { status, stdout, stderr } = cli('--check', dir);
+      expect(status, names.join(', ') || 'empty').toBe(1);
+      expect(stdout).toBe('');
+      expect(stderr).toMatch(/^found no \.js files in .*nothing to check$/m);
+    }
+  });
+
   it('exits 1 with no anatomy-* chunk; exits 2 without a directory', () => {
     const dashboardOnly = assets([...APP, sampleName(DATASETS[0])]);
     const none = cli(dashboardOnly);

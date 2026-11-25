@@ -12,7 +12,7 @@ import numpy as np
 from row.spike import curveskin as cs
 from row.spike import rig as rigmod
 from row.spike import upper
-from squat.model.skin import group_of_pid
+from core.skin import group_of_pid
 
 ARM_PIDS = set(range(30)) | {37, 38}
 

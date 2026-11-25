@@ -8,7 +8,7 @@ import numpy as np
 import trimesh
 from scipy.spatial import cKDTree
 
-from squat.geom import BONE_FID, tpts
+from core.geom import BONE_FID, tpts
 from squat.stages._io import out_path
 
 OUTPUTS = ('Tcur.npy',)

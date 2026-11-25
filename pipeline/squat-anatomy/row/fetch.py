@@ -12,7 +12,7 @@ import zipfile
 from pathlib import Path, PurePosixPath
 
 from row import inputs
-from squat.paths import display
+from core.paths import display
 
 UA = 'pipeline-fetch/1.0'
 

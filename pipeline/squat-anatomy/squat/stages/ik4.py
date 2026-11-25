@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import numpy as np
 from scipy.optimize import minimize
 
-from squat.geom import tpts
+from core.geom import tpts
 from squat.stages._io import cache, out_path
 
 OUTPUTS = ('armik4_x.npy',)

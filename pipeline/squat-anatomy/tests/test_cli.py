@@ -94,7 +94,7 @@ def test_verify_missing_shipped_manifest(paths, tmp_path, monkeypatch, capsys):
 def test_stage_build_defaults_to_dist(paths, tmp_path, need_stl):
     need_stl()
     project = tmp_path / 'proj'
-    for name in ('squat', 'page'):
+    for name in ('core', 'squat', 'page'):
         (project / name).parent.mkdir(parents=True, exist_ok=True)
         shutil.copytree(paths.project / name, project / name, ignore=shutil.ignore_patterns('__pycache__', 'template.html'))
     root = _root(paths, tmp_path, with_stl=True)

@@ -1,7 +1,7 @@
 """Quasi-static sagittal kinetics on the model, de Leva (1996) BSP (was pipeline/v3/kin3.py)."""
 import numpy as np
 
-from squat.geom import tpts
+from core.geom import tpts
 
 BW=85.0; MBAR=100.0; G=9.81; MT=BW+MBAR
 DL={'head':.0694,'trunk':.4346,'ua':.0271,'fa':.0162,'hand':.0061,'thigh':.1416,'shank':.0433,'foot':.0137}

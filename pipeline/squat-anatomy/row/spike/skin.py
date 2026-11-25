@@ -16,7 +16,7 @@ from row import inputs
 from row.spike import collide
 from row.spike import thresholds as th
 from row.spike import rig as rigmod
-from squat.geom import inv, tpts
+from core.geom import inv, tpts
 
 BUDGET, BUDGET_TOL = th.SKIN_TRIS, th.SKIN_TOL_PCT / 100
 ARM_PAIRS = {'humerus': 'FMA23130', 'radius': 'FMA23464', 'ulna': 'FMA23467', 'metacarpal3': 'FMA24468',

@@ -13,7 +13,7 @@ from scipy.optimize import least_squares
 
 from row.spike import fk
 from row.spike.erg import v
-from squat.geom import rot_about, tpts
+from core.geom import rot_about, tpts
 
 POSES = ('catch', 'legs_flat', 'trunk_open', 'finish', 'mid_recovery')
 # shoulder-girdle retraction per pose (°): modelled, the squat's 12.015° at the finish, protracted at the catch

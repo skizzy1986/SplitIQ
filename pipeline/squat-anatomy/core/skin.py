@@ -5,7 +5,7 @@ import numpy as np
 import scipy.sparse as sps
 from scipy.spatial import cKDTree
 
-from squat.geom import tpts
+from core.geom import tpts
 
 
 @dataclass(frozen=True, eq=False)

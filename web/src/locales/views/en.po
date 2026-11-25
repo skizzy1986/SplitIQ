@@ -239,6 +239,10 @@ msgstr "A rowing session."
 msgid "About"
 msgstr "About"
 
+#: src/live-erg/LiveErgSession.jsx
+msgid "About this plan"
+msgstr "About this plan"
+
 #: src/utils/stravaDisconnect.js
 msgid "Access at Strava revoked."
 msgstr "Access at Strava revoked."
@@ -429,6 +433,10 @@ msgstr "BODYWEIGHT — 14 DAYS (kg)"
 #: src/views/SettingsView.jsx
 msgid "Build {APP_BUILD}"
 msgstr "Build {APP_BUILD}"
+
+#: src/views/mobile/MobileTrain.jsx
+msgid "Build your intervals now, no PM5 needed"
+msgstr "Build your intervals now, no PM5 needed"
 
 #. Screen title, all capitals; C2 is Concept2, the rowing machine maker: keep it
 #: src/views/ErgLiveView.jsx
@@ -1267,6 +1275,10 @@ msgstr "NO PLANNED SESSION TODAY"
 msgid "No PM5 found nearby. Wake your monitor and try again."
 msgstr "No PM5 found nearby. Wake your monitor and try again."
 
+#: src/live-erg/LiveErgSession.jsx
+msgid "No PM5 needed. Every change saves on this phone, and the live screen opens with this plan when you connect."
+msgstr "No PM5 needed. Every change saves on this phone, and the live screen opens with this plan when you connect."
+
 #: src/components/session/SessionTrace.jsx
 msgid "No power or speed was recorded, so there is no pace trace."
 msgstr "No power or speed was recorded, so there is no pace trace."
@@ -1495,6 +1507,12 @@ msgstr "Pick a workout"
 #: src/views/PlanView.jsx
 msgid "Plan"
 msgstr "Plan"
+
+#. Build an interval workout before connecting the PM5
+#: src/live-erg/LiveErgSession.jsx
+#: src/views/mobile/MobileTrain.jsx
+msgid "Plan a session"
+msgstr "Plan a session"
 
 #. Badge, all capitals
 #. Day badge, all capitals
@@ -1934,6 +1952,7 @@ msgstr "sRPE target:"
 msgid "START A SESSION"
 msgstr "START A SESSION"
 
+#: src/live-erg/LiveErgSession.jsx
 #: src/views/mobile/MobileToday.jsx
 msgid "Start on PM5"
 msgstr "Start on PM5"
@@ -2437,6 +2456,10 @@ msgstr "Volume"
 #: src/views/mobile/MobileRecovery.jsx
 msgid "vs {baselineLabel}"
 msgstr "vs {baselineLabel}"
+
+#: src/live-erg/LiveErgSession.jsx
+msgid "Watt targets start from a 200 W critical power placeholder until onboarding sets yours."
+msgstr "Watt targets start from a 200 W critical power placeholder until onboarding sets yours."
 
 #. Live metric label
 #: src/views/ErgLiveView.jsx

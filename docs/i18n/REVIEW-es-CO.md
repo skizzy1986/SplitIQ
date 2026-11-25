@@ -315,6 +315,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `intItA` | No metrics logged for this session. | No hay métricas registradas para esta sesión. | src/components/LogEntry.jsx |
 | `l3H3b8` | NO PLANNED SESSION TODAY | NO HAY SESIÓN PLANIFICADA HOY | All capitals · src/components/WorkoutTarget.jsx |
 | `tMD4eT` | No PM5 found nearby. Wake your monitor and try again. | No encontramos ningún PM5 cerca. Activa tu monitor e inténtalo de nuevo. | The search found no PM5 rowing monitor in range · src/components/PM5Picker.jsx |
+| `FCvFjh` | No PM5 needed. Every change saves on this phone, and the live screen opens with this plan when you connect. | No necesitas el PM5. Cada cambio se guarda en este teléfono, y la pantalla en vivo se abre con este plan cuando te conectes. | src/live-erg/LiveErgSession.jsx |
 | `A1dE6j` | No power or speed was recorded, so there is no pace trace. | No se registró potencia ni velocidad, así que no hay trazado de ritmo. | src/components/session/SessionTrace.jsx |
 | `T_V4Zy` | No power was recorded on this ride, so there is no power trace and no zones. | No se registró potencia en esta salida, así que no hay trazado de potencia ni zonas. | src/components/session/SessionTrace.jsx |
 | `8dOSwu` | No previous erg piece to repeat. | No hay una pieza de erg anterior para repetir. | src/views/mobile/MobileToday.jsx |
@@ -366,6 +367,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `5SchA7` | Peak power, {window} min | Potencia pico, {window} min | src/components/session/MoreDetail.jsx |
 | `LEwweY` | Pick a workout | Elegir un entrenamiento | src/views/mobile/MobileToday.jsx |
 | `GdgCoi` | Plan | Plan | Desktop Train pane · src/App.jsx · src/views/PlanView.jsx |
+| `B08adi` | Plan a session | Planear una sesión | Build an interval workout before connecting the PM5 · src/live-erg/LiveErgSession.jsx · src/views/mobile/MobileTrain.jsx |
 | `iQ1n2D` | PLANNED | PLANIFICADA | Badge, all capitals · Day badge, all capitals · src/components/LogEntry.jsx · src/views/CalendarView.jsx |
 | `7F65H5` | Post: | Después: | Meal after the session · src/components/WorkoutItem.jsx |
 | `KwjyNG` | power | potencia | Session caption list item · src/components/session/ProvenanceNote.jsx |
@@ -455,7 +457,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `ZbsEjC` | sRPE SCALE · TALK-TEST ANCHORED (asked every session) | ESCALA sRPE · SEGÚN LA PRUEBA DEL HABLA (se pregunta en cada sesión) | sRPE stays as is; the rest is in capitals except the parenthesis · src/views/LogView.jsx |
 | `cEmihp` | sRPE target: | sRPE objetivo: | Followed by a number or the word easy; sRPE stays as is · src/components/WorkoutTarget.jsx |
 | `vjiwd1` | START A SESSION | INICIA UNA SESIÓN | Heading, all capitals · src/views/mobile/MobileTrain.jsx |
-| `hLItl9` | Start on PM5 | Empezar en el PM5 | src/views/mobile/MobileToday.jsx |
+| `hLItl9` | Start on PM5 | Empezar en el PM5 | src/live-erg/LiveErgSession.jsx · src/views/mobile/MobileToday.jsx |
 | `GCJTE0` | Stay | Quedarse | Cancel leaving a live session · src/components/mobile/SessionExitBar.jsx |
 | `lqrTOx` | Steady (UT1) | Constante (UT1) | sRPE scale, effort 5-6 · src/constants/srpeGuideMessages.js |
 | `maUeij` | Strava access was revoked. Reconnect to resume importing. | Se revocó el acceso a Strava. Reconecta para seguir importando. | src/utils/stravaStatus.js |
@@ -563,6 +565,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `WLqk2A` | Vol (2260kg) | Vol. (2260kg) | Total volume lifted, with an example · src/components/LogSessionForm.jsx |
 | `_cF7Rs` | Volume | Volumen | src/components/LogSessionForm.jsx |
 | `pJVzhg` | vs {baselineLabel} | vs. {baselineLabel} | Compared with, e.g. vs your avg · Compared with, e.g. vs your avg · src/views/mobile/MobileRecovery.jsx |
+| `sJG8Et` | Watt targets start from a 200 W critical power placeholder until onboarding sets yours. | Las metas de vatios parten de una potencia crítica provisional de 200 W hasta que el registro inicial fije la tuya. | src/live-erg/LiveErgSession.jsx |
 | `6X3pVF` | WATTS | VATIOS | Live metric label · src/views/ErgLiveView.jsx |
 | `VSob3X` | Web Bluetooth is not supported in this browser. Use Chrome or Edge. | Este navegador no es compatible con Web Bluetooth. Usa Chrome o Edge. | Chrome and Edge are browser names: keep them · src/constants/pm5ErrorMessages.js |
 | `rjcD_9` | Weighted power | Potencia ponderada | src/components/session/MoreDetail.jsx |

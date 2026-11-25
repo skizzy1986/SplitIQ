@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useLingui } from '@lingui/react/macro';
 import { THEME } from '../constants/theme.js';
 import { FONT } from '../constants/type.js';
 import { RADIUS, SPACE, TYPE } from '../constants/tokens.js';
 import { useAnchors } from '../hooks/useAnchors.js';
+import Button from '../components/Button.jsx';
 import IntervalBuilder from './IntervalBuilder.jsx';
 import SplitTable from './SplitTable.jsx';
 import {
@@ -55,6 +57,9 @@ const card = {
   marginBottom: SPACE.md,
 };
 
+// The plan on this phone: whatever was last built in the planner or on the
+// live screen, else a fresh four-interval workout from critical power. The
+// planner at home and the live screen at the gym open the same plan.
 function initialWorkout(cp, storage) {
   return (
     readSavedWorkout(storage) ?? createWorkout({ type: 'int', reps: 4 }, cp)
@@ -72,6 +77,9 @@ export function LiveErgSessionView({
   storage,
 }) {
   const [workout, setWorkout] = useState(() => initialWorkout(cp, storage));
+  // A plan saved earlier (the planner at home, or the last piece) is what
+  // opened here; say so, so it is not mistaken for a blank builder.
+  const [planLoaded] = useState(() => readSavedWorkout(storage) !== null);
   const [tracker, setTracker] = useState(createSplitTracker);
   const [seen, setSeen] = useState(null);
   const [seenCp, setSeenCp] = useState(cp);
@@ -164,10 +172,12 @@ export function LiveErgSessionView({
         <>
           <section style={card} aria-label="Before you row">
             <p style={bodyStyle}>
-              PM5 connected. Build your intervals here, set the same workout on
-              the PM5 (Intervals, then Variable), and start rowing. SplitIQ
-              follows each interval{'\u2019'}s target here. Sending the workout
-              from the phone comes next.
+              {planLoaded
+                ? 'PM5 connected. Your saved plan is loaded; change it here if you need to. '
+                : 'PM5 connected. Build your intervals here. '}
+              Set the same workout on the PM5 (Intervals, then Variable) and
+              start rowing. SplitIQ follows each interval{'\u2019'}s target
+              here. Sending the workout from the phone comes next.
             </p>
             {placeholder && (
               <p
@@ -293,4 +303,103 @@ export function LiveErgSessionView({
 export default function LiveErgSession(props) {
   const { cp } = useAnchors();
   return <LiveErgSessionView {...props} cp={cp} />;
+}
+
+const planNoteStyle = {
+  margin: 0,
+  fontFamily: FONT.sans,
+  fontSize: TYPE.body.size,
+  fontWeight: TYPE.body.weight,
+  lineHeight: TYPE.body.lineHeight,
+  color: THEME.muted,
+};
+
+// Plan a piece with no PM5 in range. Every change is saved on this phone under
+// the key the live screen loads from, so connecting at the gym opens the same
+// plan. Nothing here touches Bluetooth or Supabase.
+export function LiveErgPlannerView({
+  onStart,
+  cp = null,
+  termsMode = 'rowing',
+  storage,
+}) {
+  const { t } = useLingui();
+  const [workout, setWorkout] = useState(() => initialWorkout(cp, storage));
+  const [seenCp, setSeenCp] = useState(cp);
+  if (cp !== seenCp) {
+    // CP lands after the anchors query; re-seed a plan nobody has saved yet.
+    setSeenCp(cp);
+    if (!readSavedWorkout(storage)) {
+      setWorkout(createWorkout({ type: 'int', reps: 4 }, cp));
+    }
+  }
+  const { placeholder } = resolvedCp(cp);
+
+  const change = (next) => {
+    setWorkout(next);
+    saveWorkout(next, storage);
+  };
+
+  return (
+    <div
+      data-testid="live-erg-planner"
+      style={{
+        boxSizing: 'border-box',
+        minHeight: '100%',
+        padding: `${SPACE.sm}px ${SPACE.lg}px ${SPACE.xl}px`,
+        background: THEME.bg,
+        color: THEME.text,
+        fontFamily: FONT.sans,
+      }}
+    >
+      <h1
+        style={{
+          margin: `0 0 ${SPACE.sm}px`,
+          color: THEME.text,
+          fontFamily: FONT.sans,
+          fontSize: TYPE.title.size,
+          fontWeight: TYPE.title.weight,
+          letterSpacing: TYPE.title.letterSpacing,
+          lineHeight: TYPE.title.lineHeight,
+        }}
+      >
+        {t`Plan a session`}
+      </h1>
+      <section
+        aria-label={t`About this plan`}
+        style={{
+          background: THEME.surface,
+          borderRadius: RADIUS.md,
+          padding: SPACE.lg,
+          marginBottom: SPACE.md,
+        }}
+      >
+        <p style={{ ...planNoteStyle, color: THEME.text }}>
+          {t`No PM5 needed. Every change saves on this phone, and the live screen opens with this plan when you connect.`}
+        </p>
+        {placeholder && (
+          <p style={{ ...planNoteStyle, marginTop: SPACE.sm }}>
+            {t`Watt targets start from a 200 W critical power placeholder until onboarding sets yours.`}
+          </p>
+        )}
+      </section>
+      <IntervalBuilder
+        workout={workout}
+        onChange={change}
+        termsMode={termsMode}
+      />
+      {onStart && (
+        <div style={{ marginTop: SPACE.md }}>
+          <Button variant="primary" onClick={onStart}>
+            {t`Start on PM5`}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function LiveErgPlanner(props) {
+  const { cp } = useAnchors();
+  return <LiveErgPlannerView {...props} cp={cp} />;
 }

@@ -13,7 +13,11 @@ import {
   labMarkerText,
 } from '../../utils/healthRecords.js';
 import { LIPID_REF } from '../../constants/logs.js';
-import { ENTRIES, ENTRY_MESSAGES } from '../../views/mobile/MobileTrain.jsx';
+import {
+  ENTRIES,
+  ENTRY_MESSAGES,
+  PLAN_ENTRY,
+} from '../../views/mobile/MobileTrain.jsx';
 import { PANES, PANE_MESSAGES } from '../../views/mobile/MobileProgress.jsx';
 import {
   ERROR_CODE_LABELS,
@@ -118,7 +122,7 @@ describe('English constants and their descriptors agree', () => {
   });
 
   it('mobile Train entries and Progress panes', () => {
-    for (const e of ENTRIES) {
+    for (const e of [...ENTRIES, PLAN_ENTRY]) {
       expect(i18n._(ENTRY_MESSAGES[e.mode].label), e.mode).toBe(e.label);
       expect(i18n._(ENTRY_MESSAGES[e.mode].detail), e.mode).toBe(e.detail);
     }

@@ -141,7 +141,7 @@ describe("today's session", () => {
     expect(onStart).toHaveBeenCalledWith('again');
   });
 
-  it('Tweak and Pick a workout open the Train picker, not the erg', async () => {
+  it('Pick a workout opens the Train picker and Tweak asks to tweak, never the erg', async () => {
     const user = userEvent.setup();
     mockSessions.mockReturnValue({
       data: [
@@ -156,7 +156,7 @@ describe("today's session", () => {
     const onStart = vi.fn();
     render(<MobileToday onStartSession={onStart} />);
     await user.click(screen.getByRole('button', { name: 'Tweak' }));
-    expect(onStart).toHaveBeenCalledWith('pick');
+    expect(onStart).toHaveBeenCalledWith('tweak');
   });
 });
 

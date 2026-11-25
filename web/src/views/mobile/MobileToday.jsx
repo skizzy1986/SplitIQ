@@ -40,6 +40,7 @@ export const START_PLANNED = 'planned';
 export const START_AGAIN = 'again';
 export const START_JUST_ROW = 'just-row';
 export const START_PICK = 'pick';
+export const START_TWEAK = 'tweak';
 
 export function isErgSessionType(type) {
   const t = (type ?? '').toLowerCase();
@@ -277,7 +278,7 @@ export default function MobileToday({ onStartSession, onOpenBody }) {
               <Trans>Start on PM5</Trans>
             </StartButton>
             <SecondaryRow>
-              <Button variant="secondary" onClick={() => start(START_PICK)}>
+              <Button variant="secondary" onClick={() => start(START_TWEAK)}>
                 <Trans>Tweak</Trans>
               </Button>
               <Button variant="secondary" onClick={() => start(START_JUST_ROW)}>

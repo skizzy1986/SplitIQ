@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { Suspense, lazy, useMemo } from 'react';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { msg } from '@lingui/core/macro';
 import ErgLiveView from '../ErgLiveView.jsx';
@@ -10,6 +10,13 @@ import { FONT } from '../../constants/type.js';
 import { RADIUS, SPACE, TYPE } from '../../constants/tokens.js';
 import { useSessions } from '../../hooks/useSessions.js';
 import { PLANNED_STATUS } from '../../constants/sessionStatus.js';
+import { readLiveErgFlag } from '../../live-erg/liveErgFlag.js';
+import { loadLiveErgPlanner } from '../../live-erg/loadLiveErgSession.js';
+
+// Plan an interval workout with no PM5 connected (#774). It lives in the v10
+// live screen's chunk, loaded only when the planner opens, and feeds that
+// screen, so the entry shows only while its Labs switch is on.
+const LiveErgPlanner = lazy(loadLiveErgPlanner);
 
 // Train is the doing: the session in front of you. It absorbs what were the
 // separate "Live" and "Strength" tabs — DESIGN_BRIEF.md §2.2.
@@ -38,6 +45,13 @@ export const ENTRY_MESSAGES = {
     label: msg({ message: 'Erg session', comment: 'Start a rowing session' }),
     detail: msg`Connect the PM5 and row against a watt band`,
   },
+  plan: {
+    label: msg({
+      message: 'Plan a session',
+      comment: 'Build an interval workout before connecting the PM5',
+    }),
+    detail: msg`Build your intervals now, no PM5 needed`,
+  },
   strength: {
     label: msg({
       message: 'Strength session',
@@ -47,7 +61,15 @@ export const ENTRY_MESSAGES = {
   },
 };
 
-export { ENTRIES };
+// Not in ENTRIES: it only exists while the v10 live screen is on.
+const PLAN_ENTRY = {
+  mode: 'plan',
+  label: 'Plan a session',
+  detail: 'Build your intervals now, no PM5 needed',
+  token: 'accent',
+};
+
+export { ENTRIES, PLAN_ENTRY };
 
 export default function MobileTrain({ mode, onMode }) {
   const { i18n } = useLingui();
@@ -75,6 +97,15 @@ export default function MobileTrain({ mode, onMode }) {
         plannedSessions={plannedSessions}
       />
     );
+  if (mode === 'plan')
+    return (
+      <>
+        <SessionExitBar onExit={() => onMode(null)} />
+        <Suspense fallback={null}>
+          <LiveErgPlanner onStart={() => onMode('erg')} />
+        </Suspense>
+      </>
+    );
   if (mode === 'strength')
     return (
       <>
@@ -96,7 +127,7 @@ export default function MobileTrain({ mode, onMode }) {
       />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: SPACE.sm }}>
-        {ENTRIES.map((e) => (
+        {(readLiveErgFlag() ? [...ENTRIES, PLAN_ENTRY] : ENTRIES).map((e) => (
           <button
             key={e.mode}
             onClick={() => onMode(e.mode)}

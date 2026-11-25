@@ -239,6 +239,10 @@ msgstr "Una sesión de remo."
 msgid "About"
 msgstr "Acerca de"
 
+#: src/live-erg/LiveErgSession.jsx
+msgid "About this plan"
+msgstr "Sobre este plan"
+
 #: src/utils/stravaDisconnect.js
 msgid "Access at Strava revoked."
 msgstr "Se revocó el acceso en Strava."
@@ -429,6 +433,10 @@ msgstr "PESO CORPORAL — 14 DÍAS (kg)"
 #: src/views/SettingsView.jsx
 msgid "Build {APP_BUILD}"
 msgstr "Versión {APP_BUILD}"
+
+#: src/views/mobile/MobileTrain.jsx
+msgid "Build your intervals now, no PM5 needed"
+msgstr "Arma tus intervalos ahora, sin necesidad del PM5"
 
 #. Screen title, all capitals; C2 is Concept2, the rowing machine maker: keep it
 #: src/views/ErgLiveView.jsx
@@ -1267,6 +1275,10 @@ msgstr "NO HAY SESIÓN PLANIFICADA HOY"
 msgid "No PM5 found nearby. Wake your monitor and try again."
 msgstr "No encontramos ningún PM5 cerca. Activa tu monitor e inténtalo de nuevo."
 
+#: src/live-erg/LiveErgSession.jsx
+msgid "No PM5 needed. Every change saves on this phone, and the live screen opens with this plan when you connect."
+msgstr "No necesitas el PM5. Cada cambio se guarda en este teléfono, y la pantalla en vivo se abre con este plan cuando te conectes."
+
 #: src/components/session/SessionTrace.jsx
 msgid "No power or speed was recorded, so there is no pace trace."
 msgstr "No se registró potencia ni velocidad, así que no hay trazado de ritmo."
@@ -1495,6 +1507,12 @@ msgstr "Elegir un entrenamiento"
 #: src/views/PlanView.jsx
 msgid "Plan"
 msgstr "Plan"
+
+#. Build an interval workout before connecting the PM5
+#: src/live-erg/LiveErgSession.jsx
+#: src/views/mobile/MobileTrain.jsx
+msgid "Plan a session"
+msgstr "Planear una sesión"
 
 #. Badge, all capitals
 #. Day badge, all capitals
@@ -1934,6 +1952,7 @@ msgstr "sRPE objetivo:"
 msgid "START A SESSION"
 msgstr "INICIA UNA SESIÓN"
 
+#: src/live-erg/LiveErgSession.jsx
 #: src/views/mobile/MobileToday.jsx
 msgid "Start on PM5"
 msgstr "Empezar en el PM5"
@@ -2437,6 +2456,10 @@ msgstr "Volumen"
 #: src/views/mobile/MobileRecovery.jsx
 msgid "vs {baselineLabel}"
 msgstr "vs. {baselineLabel}"
+
+#: src/live-erg/LiveErgSession.jsx
+msgid "Watt targets start from a 200 W critical power placeholder until onboarding sets yours."
+msgstr "Las metas de vatios parten de una potencia crítica provisional de 200 W hasta que el registro inicial fije la tuya."
 
 #. Live metric label
 #: src/views/ErgLiveView.jsx

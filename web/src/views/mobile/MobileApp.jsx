@@ -23,6 +23,7 @@ import {
   DESTINATIONS,
   isDestination,
 } from '../../constants/destinations.js';
+import { readLiveErgFlag } from '../../live-erg/liveErgFlag.js';
 import { THEME } from '../../constants/theme.js';
 import { FONT } from '../../constants/type.js';
 import {
@@ -186,8 +187,12 @@ export default function MobileApp() {
         onStartSession={(intent) => {
           navigate('train');
           // planned / again / just-row go straight into the erg live flow.
-          // pick (Tweak, Pick a workout, Open Train) lands on the Train list.
-          if (intent && intent !== 'pick') setTrainMode('erg');
+          // tweak opens the planner (no PM5 needed) when the v10 live screen
+          // is on, since only that screen reads the plan; otherwise it lands
+          // on the Train list with pick (Pick a workout, Open Train).
+          if (intent === 'tweak' && readLiveErgFlag()) setTrainMode('plan');
+          else if (intent && intent !== 'pick' && intent !== 'tweak')
+            setTrainMode('erg');
           else setTrainMode(null);
         }}
         onOpenBody={() => navigate('body')}

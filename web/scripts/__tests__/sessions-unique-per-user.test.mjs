@@ -19,6 +19,13 @@ const sql = strip(
     'utf8'
   )
 );
+const rawSql = readFileSync(
+  resolve(migrationsDir, '022_sessions_unique_per_user.sql'),
+  'utf8'
+);
+const manifest = JSON.parse(
+  readFileSync(resolve(migrationsDir, 'manifest.json'), 'utf8')
+);
 const rollback = strip(
   readFileSync(
     resolve(migrationsDir, '022_sessions_unique_per_user_rollback.sql'),
@@ -65,5 +72,44 @@ describe('022 sessions unique per user', () => {
     );
     expect(rollback).toContain('on conflict (date, label) do update set');
     expect(rollback).toContain('drop constraint sessions_user_date_label_key');
+  });
+
+  // Retro Gate 3 (#807, RC 2): the main criterion is behavioural, so the
+  // migration proves it on a real database at apply time, on synthetic rows
+  // that are always rolled back (sentinel SF022, the 019/020/023/024 pattern).
+  it('self-tests two owners saving the same date and label, and rolls them back', () => {
+    const start = sql.indexOf('ua constant uuid');
+    expect(start).toBeGreaterThan(
+      sql.indexOf('drop constraint sessions_date_label_key')
+    );
+    const block = sql.slice(
+      start,
+      sql.indexOf("exception when sqlstate 'sf022'", start)
+    );
+    expect(block).toContain('insert into auth.users (id) values (ua), (ub)');
+    // Both owners insert the same date and label; neither may be refused.
+    expect(
+      block.match(/insert into public\.sessions/g)?.length
+    ).toBeGreaterThanOrEqual(3);
+    expect(block).toContain(
+      'two owners could not save the same date and label'
+    );
+    // The same owner repeating it must still hit the per-owner key.
+    expect(block).toContain('exception when unique_violation');
+    expect(block).toContain('one owner saved the same date and label twice');
+    expect(block).toContain("raise exception using errcode = 'sf022'");
+  });
+
+  // Retro Gate 3 (#807, RC 1): the record must say where 022 runs today.
+  it('records the dev apply in the manifest, while production stays unapplied', () => {
+    const entry = manifest.files.find(
+      (e) => e.file === '022_sessions_unique_per_user.sql'
+    );
+    expect(entry.status).toBe('unapplied');
+    expect(entry.reason).not.toMatch(/not applied to either project/i);
+    expect(entry.reason).toMatch(/applied to SplitIQ dev/i);
+    expect(entry.reason).toMatch(/25 Nov 2026/);
+    expect(entry.reason).toMatch(/Scott/);
+    expect(rawSql).not.toMatch(/DRAFT — not applied/);
   });
 });

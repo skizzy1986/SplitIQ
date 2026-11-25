@@ -1,8 +1,10 @@
 -- 022_sessions_unique_per_user.sql
--- DRAFT — not applied. Additive-then-swap, reversible (#790, from #682).
--- Do not apply to SplitIQ dev or production until Scott gives an explicit yes
--- for this file. Dev first, rehearsed; production can follow and is not a
--- tester blocker.
+-- Additive-then-swap, reversible (#790, from #682).
+-- Applied to SplitIQ dev only, 25 Nov 2026 about 6:30 PM Perth (AWST), on
+-- Scott's yes at 6:28 PM. Production is not applied: it needs Scott's separate
+-- explicit yes and is not a tester blocker. The two-owner self-test block at the
+-- end was added after that dev apply (retro Gate 3); it changes no DDL and no
+-- function body, and its rows are always rolled back.
 --
 -- sessions had UNIQUE (date, label) across ALL users. With more than one account
 -- two athletes logging the same label on the same date collided: the second
@@ -157,6 +159,43 @@ begin
   if v_inf <> 1 then
     raise exception '022 self-test: fn_sync_strength_session does not use the per-user key';
   end if;
+end $$;
+
+-- Behavioural self-test (retro Gate 3): two synthetic owners save the same date
+-- and label, and both rows stay; one owner repeating it is still refused by the
+-- per-owner key. Synthetic rows only, in a subtransaction that always rolls back
+-- (sentinel SQLSTATE 'SF022', the pattern 019, 020, 023 and 024 use). A failed
+-- assertion raises a normal error and rolls the whole file back.
+do $$
+declare
+  ua constant uuid := 'f0220000-0000-4000-8000-00000000000a';
+  ub constant uuid := 'f0220000-0000-4000-8000-00000000000b';
+  v_rows int;
+begin
+  begin
+    insert into auth.users (id) values (ua), (ub);
+    insert into public.sessions (date, type, label, status, user_id)
+      values ('1/1/00', 'Erg', '022 self-test', 'logged', ua);
+    insert into public.sessions (date, type, label, status, user_id)
+      values ('1/1/00', 'Erg', '022 self-test', 'logged', ub);
+    select count(*) into v_rows from public.sessions
+      where date = '1/1/00' and label = '022 self-test' and user_id in (ua, ub);
+    if v_rows <> 2 then
+      raise exception '022 self-test: two owners could not save the same date and label (rows=%)', v_rows;
+    end if;
+
+    begin
+      insert into public.sessions (date, type, label, status, user_id)
+        values ('1/1/00', 'Erg', '022 self-test', 'logged', ua);
+      raise exception '022 self-test: one owner saved the same date and label twice';
+    exception when unique_violation then
+      null;
+    end;
+
+    raise exception using errcode = 'SF022', message = 'rollback synthetic rows';
+  exception when sqlstate 'SF022' then
+    null;
+  end;
 end $$;
 
 commit;

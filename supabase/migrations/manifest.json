@@ -263,7 +263,7 @@
     {
       "file": "022_sessions_unique_per_user.sql",
       "status": "unapplied",
-      "reason": "Draft awaiting Scott's explicit yes (#790). Dev first, rehearsed, then production. Not applied to either project.",
+      "reason": "Production not applied: needs Scott's separate explicit yes (#790); not a tester blocker. This manifest tracks production. Applied to SplitIQ dev only, 25 Nov 2026 about 6:30 PM Perth (AWST), on Scott's yes at 6:28 PM.",
       "note": "Scopes sessions uniqueness to the owner: adds UNIQUE (user_id, date, label), updates fn_sync_strength_session's ON CONFLICT to match, then drops sessions_date_label_key.",
       "issue": 790
     }

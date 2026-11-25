@@ -2,13 +2,13 @@
 from functools import cached_property
 
 from core.skin import load_skin
+from core.stl import StlCache
 from squat.model.arm import load_arm
 from squat.model.base import load_base
 from squat.model.curves import load_curves
 from squat.model.girdle import load_girdle
 from squat.model.kinetics import Kinetics
 from squat.model.readouts import load_readouts
-from squat.model.stl import StlCache
 from squat.paths import Paths
 
 

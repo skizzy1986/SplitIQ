@@ -7,8 +7,8 @@ import sys
 import pytest
 
 from core.paths import MissingInputError
+from core.stl import StlCache
 from squat.inputs import FIXED_INPUTS, STL_SHA256
-from squat.model.stl import StlCache
 from squat.paths import Paths
 
 

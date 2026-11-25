@@ -5,10 +5,10 @@ import os
 import subprocess
 import sys
 
-CORE_MODULES = ('core.geom', 'core.dqs', 'core.paths', 'core.skin', 'core.stl', 'core.repack', 'core.base')
+CORE_MODULES = ('core.geom', 'core.dqs', 'core.paths', 'core.skin', 'core.stl', 'core.repack', 'core.base', 'core.arm')
 SKIP = {'node_modules', '.pytest_cache', '__pycache__'}
 # names whose only home is core/: importing them from their old module is refused even where it would still work
-ONE_HOME = {'squat.paths': {'MissingInputError', 'display', 'PROJECT'}}
+ONE_HOME = {'squat.paths': {'MissingInputError', 'display', 'PROJECT'}, 'squat.model.arm': {'Arm'}}
 GONE = ('squat.geom', 'squat.model.dqs', 'squat.model.skin', 'squat.model.stl', 'squat.repack', 'squat.model.base')
 
 
@@ -38,6 +38,10 @@ def test_core_imports_alone(paths, tmp_path):
 
 def test_moved_modules_are_gone():
     assert [n for n in GONE if importlib.util.find_spec(n) is not None] == []
+    # squat/model/arm.py keeps load_arm, which builds the core Arm: the name it holds must be that class
+    import core.arm
+    import squat.model.arm
+    assert squat.model.arm.Arm is core.arm.Arm
 
 
 def test_moved_names_have_one_home(paths):

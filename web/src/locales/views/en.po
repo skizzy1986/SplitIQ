@@ -979,6 +979,11 @@ msgstr "Integrations"
 msgid "just now"
 msgstr "just now"
 
+#. Settings section heading for features still being tested
+#: src/views/mobile/MobileSettings.jsx
+msgid "Labs"
+msgstr "Labs"
+
 #. Settings section heading above the language control
 #: src/views/SettingsView.jsx
 msgid "Language"
@@ -1193,6 +1198,11 @@ msgstr "Neuromuscular power"
 #: src/utils/trainingLoad.js
 msgid "Neutral — balanced"
 msgstr "Neutral — balanced"
+
+#. Settings switch. Turns on the new live rowing screen, still in testing
+#: src/views/mobile/MobileSettings.jsx
+msgid "New live screen (beta)"
+msgstr "New live screen (beta)"
 
 #: src/views/RecoveryView.jsx
 msgid "No blood pressure readings yet."
@@ -2412,6 +2422,11 @@ msgstr "Weighted power divided by the average power. 1.00 is an even output thro
 #: src/components/session/ProvenanceNote.jsx
 msgid "Where this data comes from"
 msgstr "Where this data comes from"
+
+#. Under the new live screen switch. PM5 is the rowing machine's monitor: keep it
+#: src/views/mobile/MobileSettings.jsx
+msgid "While you row, show your intervals, watt targets and split table. Connecting to the PM5 and saving stay the same."
+msgstr "While you row, show your intervals, watt targets and split table. Connecting to the PM5 and saving stay the same."
 
 #. sRPE scale, effort 9-10: the talk test
 #: src/constants/srpeGuideMessages.js

@@ -13,10 +13,14 @@ No key, token or password belongs in this file. The dev project URL is public.
 
 ## What dev holds
 
-Production's structure, the public exercise catalogue, and nothing else. No
-sessions, vitals, health records, anchors, coach log, Strava data, backups,
-templates, strength logs, accounts or secrets. Personal rows are never copied
-from production, and tester rows are never copied back to it.
+At the build (below): production's structure and the public exercise
+catalogue only. No sessions, vitals, health records, anchors, coach log, Strava
+data, backups, templates, strength logs, accounts or secrets. Since then, dev
+also has the tester-launch migrations 022 to 024 and the `invite-signup`
+function (see [Changes since the build](#changes-since-the-build)), so it can
+now hold invite codes, tester accounts, and the rows testers create, including
+labelled sample data. Personal rows are never copied from production, and tester
+rows are never copied back to it.
 
 ## How it was built (25 November 2026)
 
@@ -27,7 +31,8 @@ transaction. Production was only read through catalog queries: no table rows.
 
 1. **`014_revoke_default_function_execute`**, applied to dev first (the one
    numbered migration on dev).
-2. **`baseline_schema_from_prod_catalog`**, applied as one transaction:
+2. **`baseline_schema_from_prod_catalog`**, applied as one transaction (counts
+   are as built; see the log below for today's):
    extensions `pg_cron`, `http` and `pg_net` (no cron jobs); 18 functions; 21
    tables; constraints; 18 indexes; 8 views (with `security_invoker` kept); 5
    triggers; row-level security on all 21 tables; 22 policies; grants matching
@@ -50,9 +55,11 @@ migration names.
   The only differences are allowed: dev has the platform's `ensure_rls` event
   trigger and its `rls_auto_enable()` helper (production has neither), and two
   extension patch versions differ (`pg_net` and `supabase_vault`).
-- **Emptiness (counts on dev only).** Every public table has 0 rows except
+- **Emptiness (counts on dev only, at build time).** Every public table had 0
+  rows except
   `exercises` (873). `auth.users`, `auth.identities`, `auth.sessions`,
-  `storage.buckets`, `storage.objects`, `vault.secrets` and `cron.job` are 0.
+  `storage.buckets`, `storage.objects`, `vault.secrets` and `cron.job` were 0.
+  That no longer holds once testers sign up; it hasn't been re-counted.
 - **Exercise fingerprint.** The query below returns
   `149ed35cc65128b5ee354a997d7fdd79` on dev, the same value the seed generator
   pins and production returns.
@@ -70,6 +77,29 @@ select md5(string_agg(concat_ws('|', id, name, force, level, mechanic,
   category, array_to_string(images, ',')), E'\n' order by id collate "C"))
 from public.exercises;
 ```
+
+## Changes since the build
+
+Every migration or function applied to dev after the build, newest last. Add a
+line for each new one: what, when (Perth time), who approved it, and the PR.
+
+| What | When (AWST) | Approved | PR |
+|---|---|---|---|
+| Migration `022_sessions_unique_per_user` (per-owner session key) | 25 Nov 2026, about 6:30 PM | Scott, 6:28 PM | #807 |
+| Migration `023_invite_codes` (invite tables and claim/release functions) | 25 Nov 2026, about 6:30 PM | Scott, 6:28 PM | #808 |
+| Migration `024_sample_data` (sample-data ledger and load/clear functions) | 25 Nov 2026, about 6:30 PM | Scott, 6:28 PM | #812 |
+| Edge function `invite-signup` v1, `verify_jwt` off, built from #812's branch | 25 Nov 2026, about 6:30 PM | Scott, 6:28 PM | #812 (code in #808) |
+
+Each migration ran its own self-test on apply. `INVITE_SIGNUP_ENABLED` is not
+set yet, so `invite-signup` answers `disabled` until it is. These are on dev
+only; production has none of them (023, 024 and `invite-signup` never go there,
+D32).
+
+Counts after these changes (catalogue only, 26 Nov 2026): 24 public tables,
+all with row-level security on; 23 policies; 8 views. The build's 21 tables and
+22 policies plus `invite_codes`, `invite_attempts`, `sample_data_rows` and its
+one owner-select policy. By the migration files, 023 and 024 add 6 functions to
+the build's 18.
 
 ## Vercel
 
@@ -97,11 +127,15 @@ separate secrets (#794).
   Scott's explicit yes. Applying a migration to either project is never part of
   a pull request.
 - Functions that need Scott's Google Health or Strava credentials are not
-  deployed to dev. Strava for testers (#800) and testers adding their own health
+  deployed to dev. `invite-signup` is deployed to dev, and it needs no
+  personal credentials. Strava for testers (#800) and testers adding their own health
   data (#801) stay off until Scott turns them on.
 - Public sign-up stays off on both projects.
 - To refresh dev after a production migration, apply the same migration file to
-  dev, then re-run the fidelity comparison. Do not copy rows.
+  dev, then re-run the fidelity comparison. Do not copy rows. Log every apply or
+  deploy in [Changes since the build](#changes-since-the-build). The fidelity
+  comparison will now also show 022 to 024 as dev-only differences, until 022
+  reaches production.
 
 ## Still open on #716
 

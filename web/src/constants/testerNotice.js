@@ -4,10 +4,10 @@
 // not in the message catalogs, which also keeps a long legal-ish text out of
 // the Spanish catalog budget.
 //
-// Approved by Scott on 25 Nov 2026, including the wording that says "the owner"
-// and "whoever invited you" (scripts/check-names.mjs keeps first-person names
-// out of web/src). CONSENT_VERSION in supabase/functions/invite-signup/logic.ts
-// is "2026-11-25", so each account records which text it saw. Not legal advice.
+// Approved on 25 Nov 2026, including the wording that says "the owner" and
+// "whoever invited you" (scripts/check-names.mjs keeps first-person names out
+// of web/src). CONSENT_VERSION in supabase/functions/invite-signup/logic.ts is
+// "2026-11-25", so each account records which text it saw. Not legal advice.
 export const NOTICE_APPROVED = true;
 export const NOTICE_VERSION = '2026-11-25';
 

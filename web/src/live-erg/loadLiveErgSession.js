@@ -3,3 +3,11 @@
 export function loadLiveErgSession() {
   return import('./LiveErgSession.jsx');
 }
+
+// The planner shares the live screen's chunk, so planning at home costs no
+// extra download beyond it. Opened from Train with no PM5 connected.
+export function loadLiveErgPlanner() {
+  return import('./LiveErgSession.jsx').then((m) => ({
+    default: m.LiveErgPlanner,
+  }));
+}

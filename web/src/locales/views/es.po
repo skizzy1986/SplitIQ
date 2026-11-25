@@ -239,6 +239,10 @@ msgstr "Una sesión de remo."
 msgid "About"
 msgstr "Acerca de"
 
+#: src/live-erg/LiveErgSession.jsx
+msgid "About this plan"
+msgstr "Sobre este plan"
+
 #: src/utils/stravaDisconnect.js
 msgid "Access at Strava revoked."
 msgstr "Se revocó el acceso en Strava."
@@ -379,6 +383,11 @@ msgstr "Volver"
 msgid "Back to {destination}"
 msgstr "Volver a {destination}"
 
+#. Leave the interval planner for Today
+#: src/components/mobile/SessionExitBar.jsx
+msgid "Back to Today"
+msgstr "Volver a Hoy"
+
 #. Leave a live session for the Train start screen
 #: src/components/mobile/SessionExitBar.jsx
 msgid "Back to Train"
@@ -429,6 +438,14 @@ msgstr "PESO CORPORAL — 14 DÍAS (kg)"
 #: src/views/SettingsView.jsx
 msgid "Build {APP_BUILD}"
 msgstr "Versión {APP_BUILD}"
+
+#: src/live-erg/LiveErgSession.jsx
+msgid "Build your intervals here. Every change saves on this phone. Connect the PM5 when you are ready, then Start."
+msgstr "Arma tus intervalos aquí. Cada cambio se guarda en este teléfono. Conecta el PM5 cuando estés listo y pulsa Empezar."
+
+#: src/views/mobile/MobileTrain.jsx
+msgid "Build your intervals now, no PM5 needed"
+msgstr "Arma tus intervalos ahora, sin necesidad del PM5"
 
 #. Screen title, all capitals; C2 is Concept2, the rowing machine maker: keep it
 #: src/views/ErgLiveView.jsx
@@ -559,6 +576,14 @@ msgstr "Conecta Strava para importar automáticamente tus actividades de remo y 
 msgid "Connect the PM5 and row against a watt band"
 msgstr "Conecta el PM5 y rema dentro de una banda de vatios"
 
+#: src/live-erg/LiveErgSession.jsx
+msgid "Connect the PM5 to start."
+msgstr "Conecta el PM5 para empezar."
+
+#: src/live-erg/LiveErgSession.jsx
+msgid "Connect to PM5"
+msgstr "Conectar al PM5"
+
 #. Button, all capitals; PM5 is the rowing machine's monitor
 #: src/views/ErgLiveView.jsx
 msgid "CONNECT TO PM5"
@@ -580,6 +605,7 @@ msgstr "Conectando con {name}…"
 
 #. On the list row of the monitor being connected
 #: src/components/PM5Picker.jsx
+#: src/live-erg/LiveErgSession.jsx
 msgid "Connecting…"
 msgstr "Conectando…"
 
@@ -1267,6 +1293,10 @@ msgstr "NO HAY SESIÓN PLANIFICADA HOY"
 msgid "No PM5 found nearby. Wake your monitor and try again."
 msgstr "No encontramos ningún PM5 cerca. Activa tu monitor e inténtalo de nuevo."
 
+#: src/live-erg/LiveErgSession.jsx
+msgid "No PM5 needed. Every change saves on this phone, and the live screen opens with this plan when you connect."
+msgstr "No necesitas el PM5. Cada cambio se guarda en este teléfono, y la pantalla en vivo se abre con este plan cuando te conectes."
+
 #: src/components/session/SessionTrace.jsx
 msgid "No power or speed was recorded, so there is no pace trace."
 msgstr "No se registró potencia ni velocidad, así que no hay trazado de ritmo."
@@ -1496,12 +1526,42 @@ msgstr "Elegir un entrenamiento"
 msgid "Plan"
 msgstr "Plan"
 
+#. Build an interval workout before connecting the PM5
+#: src/live-erg/LiveErgSession.jsx
+#: src/views/mobile/MobileTrain.jsx
+msgid "Plan a session"
+msgstr "Planificar una sesión"
+
+#: src/views/mobile/MobileToday.jsx
+msgid "Plan intervals"
+msgstr "Planificar intervalos"
+
 #. Badge, all capitals
 #. Day badge, all capitals
 #: src/components/LogEntry.jsx
 #: src/views/CalendarView.jsx
 msgid "PLANNED"
 msgstr "PLANIFICADA"
+
+#: src/live-erg/LiveErgSession.jsx
+msgid "PM5 connected"
+msgstr "PM5 conectado"
+
+#: src/live-erg/LiveErgSession.jsx
+msgid "PM5 connected. Build your intervals here. Set the same workout on the PM5 (Intervals, then Variable) and start rowing. SplitIQ follows each interval’s target here. Sending the workout from the phone comes next."
+msgstr "PM5 conectado. Arma tus intervalos aquí. Configura el mismo entrenamiento en el PM5 (Intervalos, luego Variable) y empieza a remar. SplitIQ sigue aquí la meta de cada intervalo. Enviar el entrenamiento desde el teléfono viene después."
+
+#: src/live-erg/LiveErgSession.jsx
+msgid "PM5 connected. Your saved plan is loaded; change it here if you need to. Set the same workout on the PM5 (Intervals, then Variable) and start rowing. SplitIQ follows each interval’s target here. Sending the workout from the phone comes next."
+msgstr "PM5 conectado. Tu plan guardado ya está cargado; cámbialo aquí si lo necesitas. Configura el mismo entrenamiento en el PM5 (Intervalos, luego Variable) y empieza a remar. SplitIQ sigue aquí la meta de cada intervalo. Enviar el entrenamiento desde el teléfono viene después."
+
+#: src/live-erg/LiveErgSession.jsx
+msgid "PM5 connection"
+msgstr "Conexión al PM5"
+
+#: src/live-erg/LiveErgSession.jsx
+msgid "PM5 not connected"
+msgstr "PM5 no conectado"
 
 #. Meal after the session
 #: src/components/WorkoutItem.jsx
@@ -1525,6 +1585,14 @@ msgstr "Potencia durante {over}, entre {lo} y {hi} W; promedio {avg} W."
 #: src/components/session/SessionTrace.jsx
 msgid "Power across {over}, between {lo} and {hi} W."
 msgstr "Potencia durante {over}, entre {lo} y {hi} W."
+
+#: src/live-erg/LiveErgSession.jsx
+msgid "Power on your PM5, then tap Connect to PM5 and choose your monitor from the list."
+msgstr "Enciende el PM5, pulsa Conectar al PM5 y elige tu monitor de la lista."
+
+#: src/live-erg/LiveErgSession.jsx
+msgid "Power on your PM5, then tap Connect to PM5. Your browser will ask you to pick the device."
+msgstr "Enciende el PM5 y pulsa Conectar al PM5. El navegador te pedirá que elijas el dispositivo."
 
 #. PM5 is the rowing machine's monitor: keep it. Connect is the button below. The tags are line breaks
 #: src/views/ErgLiveView.jsx
@@ -1759,6 +1827,7 @@ msgstr "Se puntuó con las lecturas que llegaron; faltaron algunas."
 
 #. Shown while the app searches for nearby PM5 rowing monitors
 #: src/components/PM5Picker.jsx
+#: src/live-erg/LiveErgSession.jsx
 msgid "Searching for PM5s…"
 msgstr "Buscando PM5…"
 
@@ -1929,11 +1998,16 @@ msgstr "ESCALA sRPE · SEGÚN LA PRUEBA DEL HABLA (se pregunta en cada sesión)"
 msgid "sRPE target:"
 msgstr "sRPE objetivo:"
 
+#: src/live-erg/LiveErgSession.jsx
+msgid "Start"
+msgstr "Empezar"
+
 #. Heading, all capitals
 #: src/views/mobile/MobileTrain.jsx
 msgid "START A SESSION"
 msgstr "INICIA UNA SESIÓN"
 
+#: src/live-erg/LiveErgSession.jsx
 #: src/views/mobile/MobileToday.jsx
 msgid "Start on PM5"
 msgstr "Empezar en el PM5"
@@ -2437,6 +2511,10 @@ msgstr "Volumen"
 #: src/views/mobile/MobileRecovery.jsx
 msgid "vs {baselineLabel}"
 msgstr "vs. {baselineLabel}"
+
+#: src/live-erg/LiveErgSession.jsx
+msgid "Watt targets start from a 200 W critical power placeholder until onboarding sets yours."
+msgstr "Las metas de vatios parten de una potencia crítica provisional de 200 W hasta que configures la tuya."
 
 #. Live metric label
 #: src/views/ErgLiveView.jsx

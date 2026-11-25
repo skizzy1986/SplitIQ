@@ -20,7 +20,10 @@ import { SRPE_GUIDE } from '../constants/trainingConfig.js';
 import { SRPE_GUIDE_MESSAGES } from '../constants/srpeGuideMessages.js';
 import { PM5_ERROR_MESSAGES } from '../constants/pm5ErrorMessages.js';
 import { readLiveErgFlag } from '../live-erg/liveErgFlag.js';
-import { loadLiveErgSession } from '../live-erg/loadLiveErgSession.js';
+import {
+  loadLiveErgPlanner,
+  loadLiveErgSession,
+} from '../live-erg/loadLiveErgSession.js';
 
 // Values only: the band's words are looked up at render, in the active language.
 const SRPE_BUTTONS = SRPE_GUIDE.flatMap((band) => {
@@ -663,6 +666,7 @@ function SummaryScreen({ summary, onSave, onDiscard, onDone, saveState }) {
 const LiveErgSession = lazy(() =>
   loadLiveErgSession().catch(() => ({ default: RowingScreen }))
 );
+const LiveErgPlanner = lazy(loadLiveErgPlanner);
 
 function isDuplicate(dbError) {
   return (
@@ -674,6 +678,7 @@ export default function ErgLiveView({
   plannedSessions = [],
   onSessionSaved,
   onExit,
+  exitTo = 'train',
 }) {
   const {
     status,
@@ -698,6 +703,10 @@ export default function ErgLiveView({
   const queryClient = useQueryClient();
   const [saveState, setSaveState] = useState('idle');
   const [liveErgV10] = useState(() => readLiveErgFlag());
+  // With the v10 screen on, the planner is the pre-session screen: you
+  // connect from there, then Start opens the live view. Rowing without
+  // tapping Start still advances, so a piece is not missed.
+  const [sessionStarted, setSessionStarted] = useState(false);
   const ownerId = useSessionOwner();
   const [producerGeneration] = useState(privateSessionGeneration);
   const isCurrentProducer = () =>
@@ -798,12 +807,41 @@ export default function ErgLiveView({
 
   function done() {
     setSaveState('idle');
+    setSessionStarted(false);
     reset();
     if (onSessionSaved) onSessionSaved();
   }
 
+  const preSession =
+    liveErgV10 &&
+    !sessionStarted &&
+    status !== 'rowing' &&
+    !(status === 'finished' && summary);
+
   let screen;
-  if (status === 'idle' || status === 'error') {
+  if (preSession) {
+    screen = (
+      <Suspense fallback={null}>
+        <LiveErgPlanner
+          onStart={() => setSessionStarted(true)}
+          native={Capacitor.isNativePlatform()}
+          pm5={{
+            status,
+            error,
+            errorCode,
+            onConnect: connect,
+            monitors,
+            scanPhase,
+            connectingId,
+            locationOff,
+            onChoose: choose,
+            onRetry: retryScan,
+            onCancel: cancelScan,
+          }}
+        />
+      </Suspense>
+    );
+  } else if (status === 'idle' || status === 'error') {
     screen = (
       <ConnectScreen
         onConnect={connect}
@@ -845,6 +883,7 @@ export default function ErgLiveView({
         onSave={saveSession}
         onDiscard={() => {
           setSaveState('idle');
+          setSessionStarted(false);
           reset();
         }}
         onDone={done}
@@ -888,6 +927,7 @@ export default function ErgLiveView({
   return (
     <>
       <SessionExitBar
+        to={exitTo}
         confirm={confirm}
         onExit={() => {
           disconnect();

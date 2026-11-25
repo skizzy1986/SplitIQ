@@ -31,12 +31,24 @@ export function writeLiveErgFlag(on, storage) {
   }
 }
 
+// A usable v10 plan: variable intervals, at least one. A bare { type } or a
+// time/dist object is not a plan the live screen should treat as loaded.
+export function isSavedIntervalPlan(workout) {
+  return (
+    !!workout &&
+    typeof workout === 'object' &&
+    workout.type === 'int' &&
+    Array.isArray(workout.ints) &&
+    workout.ints.length > 0
+  );
+}
+
 // The last workout built on the v10 screen, so the plan survives a reconnect.
 export function readSavedWorkout(storage) {
   try {
     const raw = storageOf(storage)?.getItem(LIVE_ERG_WORKOUT_KEY);
     const parsed = raw ? JSON.parse(raw) : null;
-    return parsed && typeof parsed === 'object' && parsed.type ? parsed : null;
+    return isSavedIntervalPlan(parsed) ? parsed : null;
   } catch {
     return null;
   }

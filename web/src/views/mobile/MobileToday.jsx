@@ -27,6 +27,7 @@ import StatTile from '../../components/StatTile.jsx';
 import SectionHeader from '../../components/SectionHeader.jsx';
 import { FONT } from '../../constants/type.js';
 import { RADIUS, SPACE, TYPE } from '../../constants/tokens.js';
+import { readLiveErgFlag } from '../../live-erg/liveErgFlag.js';
 
 // Today answers one question: what am I doing right now, and am I in any
 // state to do it. Home A (#771): the planned session and Start on PM5 lead,
@@ -40,6 +41,7 @@ export const START_PLANNED = 'planned';
 export const START_AGAIN = 'again';
 export const START_JUST_ROW = 'just-row';
 export const START_PICK = 'pick';
+export const START_TWEAK = 'tweak';
 
 export function isErgSessionType(type) {
   const t = (type ?? '').toLowerCase();
@@ -181,6 +183,9 @@ export default function MobileToday({ onStartSession, onOpenBody }) {
     : null;
 
   const start = (intent) => onStartSession?.(intent);
+  // With the v10 live screen on, this opens the interval planner, not an
+  // editor for today's prescribed sessions row. Say so on the button.
+  const labsLiveErg = readLiveErgFlag();
 
   const dateMeta = new Date(`${today}T00:00:00`).toLocaleDateString(
     dateLocale(i18n.locale, 'en-GB'),
@@ -277,8 +282,12 @@ export default function MobileToday({ onStartSession, onOpenBody }) {
               <Trans>Start on PM5</Trans>
             </StartButton>
             <SecondaryRow>
-              <Button variant="secondary" onClick={() => start(START_PICK)}>
-                <Trans>Tweak</Trans>
+              <Button variant="secondary" onClick={() => start(START_TWEAK)}>
+                {labsLiveErg ? (
+                  <Trans>Plan intervals</Trans>
+                ) : (
+                  <Trans>Tweak</Trans>
+                )}
               </Button>
               <Button variant="secondary" onClick={() => start(START_JUST_ROW)}>
                 <Trans>Just row</Trans>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
@@ -21,6 +21,10 @@ vi.mock('../../../hooks/useAnchors.js', () => ({
 }));
 
 import MobileToday from '../MobileToday.jsx';
+import {
+  LIVE_ERG_FLAG_KEY,
+  LIVE_ERG_FLAG_ON,
+} from '../../../live-erg/liveErgFlag.js';
 
 const iso = (d) => d.toISOString().slice(0, 10);
 const mdy = (d) =>
@@ -33,11 +37,13 @@ const daysAgo = (n) => {
 };
 
 beforeEach(() => {
+  window.localStorage.clear();
   mockSessions.mockReturnValue({ data: [] });
   mockVitals.mockReturnValue({ readiness: { score: 91, status: 'READY' } });
   mockTss.mockReturnValue({ data: [], isLoading: false });
   mockAnchors.mockReturnValue({ anchors: {}, cp: 205 });
 });
+afterEach(() => window.localStorage.clear());
 
 describe('readiness', () => {
   it('renders the score and status when there is one', () => {
@@ -141,7 +147,7 @@ describe("today's session", () => {
     expect(onStart).toHaveBeenCalledWith('again');
   });
 
-  it('Tweak and Pick a workout open the Train picker, not the erg', async () => {
+  it('Pick a workout opens the Train picker and Tweak asks to tweak, never the erg', async () => {
     const user = userEvent.setup();
     mockSessions.mockReturnValue({
       data: [
@@ -156,7 +162,28 @@ describe("today's session", () => {
     const onStart = vi.fn();
     render(<MobileToday onStartSession={onStart} />);
     await user.click(screen.getByRole('button', { name: 'Tweak' }));
-    expect(onStart).toHaveBeenCalledWith('pick');
+    expect(onStart).toHaveBeenCalledWith('tweak');
+    expect(screen.queryByRole('button', { name: 'Plan intervals' })).toBeNull();
+  });
+
+  it('with the v10 live screen on, the same control reads Plan intervals', async () => {
+    window.localStorage.setItem(LIVE_ERG_FLAG_KEY, LIVE_ERG_FLAG_ON);
+    const user = userEvent.setup();
+    mockSessions.mockReturnValue({
+      data: [
+        {
+          id: 1,
+          date: mdy(today),
+          status: 'planned',
+          label: 'UT1 4 x 10min',
+        },
+      ],
+    });
+    const onStart = vi.fn();
+    render(<MobileToday onStartSession={onStart} />);
+    expect(screen.queryByRole('button', { name: 'Tweak' })).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Plan intervals' }));
+    expect(onStart).toHaveBeenCalledWith('tweak');
   });
 });
 

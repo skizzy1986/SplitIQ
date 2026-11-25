@@ -16,6 +16,18 @@
       "destination": "/$1"
     },
     {
+      "source": "/row/assets/(.*)",
+      "destination": "/assets/$1"
+    },
+    {
+      "source": "/row/icons/(.*)",
+      "destination": "/icons/$1"
+    },
+    {
+      "source": "/row/(registerSW\\.js|manifest\\.webmanifest)",
+      "destination": "/$1"
+    },
+    {
       "source": "/(.*)",
       "destination": "/"
     }
@@ -65,6 +77,15 @@
       ]
     },
     {
+      "source": "/row/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
       "source": "/assets/squat-anatomy-(.*)\\.bin",
       "headers": [
         {
@@ -75,6 +96,42 @@
     },
     {
       "source": "/squat/assets/squat-anatomy-(.*)\\.bin",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/octet-stream"
+        }
+      ]
+    },
+    {
+      "source": "/assets/anatomy-body-(.*)\\.bin",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/octet-stream"
+        }
+      ]
+    },
+    {
+      "source": "/row/assets/anatomy-body-(.*)\\.bin",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/octet-stream"
+        }
+      ]
+    },
+    {
+      "source": "/assets/row-motion-(.*)\\.bin",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/octet-stream"
+        }
+      ]
+    },
+    {
+      "source": "/row/assets/row-motion-(.*)\\.bin",
       "headers": [
         {
           "key": "Content-Type",

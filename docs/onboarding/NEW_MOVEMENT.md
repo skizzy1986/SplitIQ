@@ -33,14 +33,19 @@ and implemented, pure and fixture-tested, in `web/src/anatomy/utils/`.
 - **The 3D scene** (`web/src/anatomy/scene/`): builds whatever bones, muscles and
   equipment the data describes, with an empty **body** layer reserved for a future
   clothed human.
-- **The data loader** (`squat/hooks/useAnatomyData`, `squat/workers/`): decodes any
-  manifest + bin pair.
+- **The data loader** (`squat/hooks/useAnatomyData`, and the decode protocol in
+  `anatomy/workers/decodeBins.js`: `serveBin` for one bin, `serveBins` for several):
+  decodes any manifest + bin pair. Each movement has its own small worker entry that
+  bundles its bins with `?url` and hands them to the protocol; the squat's is
+  `squat/workers/anatomyDecode.worker.js`.
 - **The manifest array readers** (`anatomy/utils/arrays.js`: `DTYPES`, `isArrayEntry`,
   `arrayEntries`, `viewArray`) and `anatomy/utils/dequantise.js`. Any movement's
   manifest is read the same way, so these sit under `anatomy/`. The layering inversion
-  PR1 left behind — `anatomy/` importing them from `squat/utils/` — is **resolved**;
-  what stayed in `squat/utils/manifest.js` is `validateManifest`, which asserts
-  `meta.S` and `meta.readout` and so is squat-specific by definition.
+  PR1 left behind — `anatomy/` importing them from `squat/utils/` — is **resolved**.
+  The manifest check is shared too (`anatomy/utils/manifest.js`, per timeline kind:
+  `rep` for the squat, a provisional `cycle` for the row); `squat/utils/manifest.js`
+  keeps only `validateManifest`, the squat's binding of it to a `rep` timeline in one
+  bin.
 - **Theme tokens** are named `anatomy*`, not `squat*` — including the activation
   heatmap's four ramp stops (`anatomyHeat{Low,Mid,High,Peak}`) and the scene's
   `setActivation(weights | null)`, which takes one 0–1 weight per muscle and knows
@@ -70,9 +75,16 @@ and implemented, pure and fixture-tested, in `web/src/anatomy/utils/`.
   movement built from a different ramp needs its own.
 - **All the coaching content** in `web/src/squat/constants/` (guide prose, phases, form
   check, metrics table, sources) and the readout summary in `squat/utils/repSummary.js`.
-- **The route, assets and bundle gates** are hard-wired to `/squat` and
-  `squat-anatomy-*.bin`. Code under `src/movements/` already takes the `squat-` chunk
-  prefix; the data-file checks still expect exactly one dataset (R15, #443).
+- **The route, assets and bundle gates** are no longer hard-wired to `/squat`: they
+  come from one registry, `web/scripts/movementAssets.mjs`, and a new movement adds its
+  entries there. A movement is one entry (route, lazy root, entry and total budgets set
+  by the #504 rule) and each data file is another (stem, cache, budget, or `pending`
+  until it lands). The build's `anatomy-` chunk names, the
+  precache ignores and runtime caches, `npm run size`, the APK strip and the
+  `vercel.json` rules all derive from it; `vercel.json` stays literal and a test holds
+  it to the registry. RouteRoot and `utils/movementRoute.js` keep their own literal
+  route table so no build data reaches a first paint, and a registry test keeps the
+  two in step.
 
 The `movement` config now exists: `web/src/movements/squat/movement.js`
 (`SQUAT_MOVEMENT`), with its field-by-field contract in

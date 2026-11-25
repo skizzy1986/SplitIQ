@@ -96,10 +96,11 @@ model is not a substitute.
 and trims the ends. Over all 118 names that gives 118 unique slugs, longest 47
 characters. ~80 bytes of function instead of ~1 KB of data, and a name survives
 a data regeneration where an array index does not.
-`web/src/utils/squatRoute.js` validates `m` by **shape only**
-(`/^[a-z0-9-]{1,64}$/`) because it sits outside `src/squat/` so `RouteRoot` can
-read it at first paint without pulling the tool's chunk in; the tool resolves the
-slug itself and reports a dead link.
+`web/src/squat/utils/squatHash.js` validates `m` by **shape only**
+(`MUSCLE_SLUG_RE`, `/^[a-z0-9-]{1,64}$/`); the tool resolves the slug against the
+muscle list itself and reports a dead link. The hash parser moved into the tool in
+R11 (#439) from `utils/squatRoute.js`, now `utils/movementRoute.js`, which
+`RouteRoot` reads at first paint and which only maps a path to a movement.
 
 **Bands, not numbers.** `constants/activationBands.js` holds the three bands
 (Low / Moderate / High, cut at 0.30 and 0.60 of `act/255`) and every

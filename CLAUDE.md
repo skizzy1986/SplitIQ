@@ -36,9 +36,9 @@ Recharts, Lingui, Supabase, Vercel, Vitest + RTL.
 - `web/src/` — the app. Layers below; `squat/` (public `/squat` tool, web only, not in
   the APK), `anatomy/` (movement-neutral 3D runtime), `i18n/` + `locales/` (Lingui),
   `App.jsx` (shell/router — targeted edits only), `RouteRoot.jsx` (`/squat` →
-  `SquatApp`, else `AuthGate`, both lazy), `main.jsx` (bootstrap).
-- `/squat` must never import `supabaseClient.js` (`RouteRoot.test.jsx` pins it). Only
-  `anatomy/scene/` imports three.js, loaded lazily (ESLint enforces).
+  `SquatApp`, `/row` → `RowApp`, else `AuthGate`, all lazy), `main.jsx` (bootstrap).
+- `/squat` and `/row` must never import `supabaseClient.js` (`RouteRoot.test.jsx` pins
+  it). Only `anatomy/scene/` imports three.js, loaded lazily (ESLint enforces).
 - `web/.design-sync/` design surface (`DESIGN.md` first, before anything visual) ·
   `supabase/functions/` Edge Functions (`ls` them) · `supabase/migrations/` SQL +
   `manifest.json` · `docs/` squat, i18n, onboarding, environments · `pipeline/` the

@@ -13,6 +13,7 @@ import {
 } from './scripts/squatChunks.mjs';
 import { HEALTH_NETWORK_ONLY_ROUTE } from './scripts/healthRoute.mjs';
 import { I18N_CODE_ROUTE, I18N_GLOB_IGNORES } from './scripts/i18nChunks.mjs';
+import { resolveAppBuild } from './scripts/appBuild.mjs';
 
 // The ground was written down in five places — index.html twice, two PWA
 // manifests and the Android launch theme — each with a "keep in sync" comment
@@ -74,7 +75,7 @@ const sentryDefine = {
     : {}),
 };
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [
     react(),
     lingui({ macroTransform: true }),
@@ -158,7 +159,10 @@ export default defineConfig({
   // Makes the computed release and environment visible to utils/sentry.js. The
   // release must match what the plugin uploaded under, or Sentry serves
   // minified frames without erroring.
-  ...(Object.keys(sentryDefine).length ? { define: sentryDefine } : {}),
+  define: {
+    __APP_BUILD__: JSON.stringify(resolveAppBuild({ command })),
+    ...sentryDefine,
+  },
   // 'hidden' emits source maps for Sentry upload without referencing them from
   // the shipped bundles, so production source stays out of the browser.
   //
@@ -394,7 +398,15 @@ export default defineConfig({
         // Extracted from main.jsx so the boot decision is testable. main.jsx
         // itself stays excluded — it is bootstrap only now.
         'src/AuthGate.jsx': { lines: 80, functions: 80, branches: 70 },
+        // The Android PM5 list (#696): new code, commercial baseline.
+        'src/services/pm5Scan.js': { lines: 80, functions: 80, branches: 70 },
+        'src/utils/pm5Monitors.js': { lines: 80, functions: 80, branches: 70 },
+        'src/components/PM5Picker.jsx': {
+          lines: 80,
+          functions: 80,
+          branches: 70,
+        },
       },
     },
   },
-});
+}));

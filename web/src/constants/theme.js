@@ -41,4 +41,7 @@ export const THEME = {
   anatomyHeatHigh: 'var(--color-anatomy-heat-high)',
   anatomyHeatPeak: 'var(--color-anatomy-heat-peak)',
   anatomyFocus: 'var(--color-anatomy-focus)',
+  onAccent: 'var(--color-on-accent)',
+  bandAmber: 'var(--color-band-amber)',
+  bandCoral: 'var(--color-band-coral)',
 };

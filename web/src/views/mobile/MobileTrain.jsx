@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { msg } from '@lingui/core/macro';
 import ErgLiveView from '../ErgLiveView.jsx';
@@ -8,13 +8,17 @@ import SessionExitBar from '../../components/mobile/SessionExitBar.jsx';
 import ScreenHeader from '../../components/ScreenHeader.jsx';
 import { FONT } from '../../constants/type.js';
 import { RADIUS, SPACE, TYPE } from '../../constants/tokens.js';
+import { useSessions } from '../../hooks/useSessions.js';
+import { PLANNED_STATUS } from '../../constants/sessionStatus.js';
+import { readLiveErgFlag } from '../../live-erg/liveErgFlag.js';
 
 // Train is the doing: the session in front of you. It absorbs what were the
 // separate "Live" and "Strength" tabs — DESIGN_BRIEF.md §2.2.
 //
-// When the planner (R40) writes today's session as a sessions row with
-// status 'planned', it leads this screen. Until then these are the two entry
-// points, so nothing reachable before this change is unreachable after it.
+// Today's planned session, when it exists, is started from Today. This
+// screen's always-on entries are Erg and Strength. With the v10 live screen
+// on, Plan a session sits next to Erg so a workout can be built before the
+// PM5 is in range.
 const ENTRIES = [
   {
     mode: 'erg',
@@ -36,6 +40,13 @@ export const ENTRY_MESSAGES = {
     label: msg({ message: 'Erg session', comment: 'Start a rowing session' }),
     detail: msg`Connect the PM5 and row against a watt band`,
   },
+  plan: {
+    label: msg({
+      message: 'Plan a session',
+      comment: 'Build an interval workout before connecting the PM5',
+    }),
+    detail: msg`Build your intervals now, no PM5 needed`,
+  },
   strength: {
     label: msg({
       message: 'Strength session',
@@ -45,15 +56,50 @@ export const ENTRY_MESSAGES = {
   },
 };
 
-export { ENTRIES };
+// Not in ENTRIES: it only exists while the v10 live screen is on.
+const PLAN_ENTRY = {
+  mode: 'plan',
+  label: 'Plan a session',
+  detail: 'Build your intervals now, no PM5 needed',
+  token: 'accent',
+};
 
-export default function MobileTrain({ mode, onMode }) {
+export { ENTRIES, PLAN_ENTRY };
+
+export default function MobileTrain({ mode, onMode, planExitTo = 'train' }) {
   const { i18n } = useLingui();
+  const { data: sessions } = useSessions({ mode: 'all' });
+  // Minimal shape for ErgLiveView — don't pull sessionLog.js into the
+  // MobileApp chunk just to pick today's planned erg.
+  const plannedSessions = useMemo(
+    () =>
+      (sessions ?? [])
+        .filter((row) => row.status === PLANNED_STATUS && row.type !== 'Test')
+        .map((row) => ({
+          ...row,
+          _isErg: (row.type || '').toLowerCase() === 'erg',
+        })),
+    [sessions]
+  );
   // A live session owns the screen — no tab bar, no chrome (HANDOFF.md §4) —
   // but always with a way back to this screen. Erg asks first when leaving
   // would drop a connection or an unsaved piece; strength keeps its own draft,
   // so leaving it loses nothing.
-  if (mode === 'erg') return <ErgLiveView onExit={() => onMode(null)} />;
+  if (mode === 'erg')
+    return (
+      <ErgLiveView
+        onExit={() => onMode(null)}
+        plannedSessions={plannedSessions}
+      />
+    );
+  if (mode === 'plan')
+    return (
+      <ErgLiveView
+        onExit={() => onMode(null)}
+        plannedSessions={plannedSessions}
+        exitTo={planExitTo}
+      />
+    );
   if (mode === 'strength')
     return (
       <>
@@ -75,7 +121,10 @@ export default function MobileTrain({ mode, onMode }) {
       />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: SPACE.sm }}>
-        {ENTRIES.map((e) => (
+        {(readLiveErgFlag()
+          ? [ENTRIES[0], PLAN_ENTRY, ENTRIES[1]]
+          : ENTRIES
+        ).map((e) => (
           <button
             key={e.mode}
             onClick={() => onMode(e.mode)}

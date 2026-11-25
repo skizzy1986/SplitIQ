@@ -234,6 +234,15 @@ msgstr "A cycling session."
 msgid "A rowing session."
 msgstr "A rowing session."
 
+#. Settings section heading for the app version
+#: src/views/SettingsView.jsx
+msgid "About"
+msgstr "About"
+
+#: src/live-erg/LiveErgSession.jsx
+msgid "About this plan"
+msgstr "About this plan"
+
 #: src/utils/stravaDisconnect.js
 msgid "Access at Strava revoked."
 msgstr "Access at Strava revoked."
@@ -374,6 +383,11 @@ msgstr "Back"
 msgid "Back to {destination}"
 msgstr "Back to {destination}"
 
+#. Leave the interval planner for Today
+#: src/components/mobile/SessionExitBar.jsx
+msgid "Back to Today"
+msgstr "Back to Today"
+
 #. Leave a live session for the Train start screen
 #: src/components/mobile/SessionExitBar.jsx
 msgid "Back to Train"
@@ -404,6 +418,11 @@ msgstr "BLOOD PRESSURE"
 msgid "BLOODS · LIPID PANEL"
 msgstr "BLOODS · LIPID PANEL"
 
+#. Android app error. Connect is the CONNECT TO PM5 button: match its translation
+#: src/constants/pm5ErrorMessages.js
+msgid "Bluetooth is off. Turn it on in your phone's settings, then tap Connect again."
+msgstr "Bluetooth is off. Turn it on in your phone's settings, then tap Connect again."
+
 #. Desktop body screen heading
 #: src/views/RecoveryView.jsx
 msgid "Body"
@@ -413,6 +432,20 @@ msgstr "Body"
 #: src/views/mobile/MobileRecovery.jsx
 msgid "BODYWEIGHT — 14 DAYS (kg)"
 msgstr "BODYWEIGHT — 14 DAYS (kg)"
+
+#. Accessible label for the build identifier in Settings. Same identifier as the loading screen.
+#. Settings About line. The identifier is the current app build.
+#: src/views/SettingsView.jsx
+msgid "Build {APP_BUILD}"
+msgstr "Build {APP_BUILD}"
+
+#: src/live-erg/LiveErgSession.jsx
+msgid "Build your intervals here. Every change saves on this phone. Connect the PM5 when you are ready, then Start."
+msgstr "Build your intervals here. Every change saves on this phone. Connect the PM5 when you are ready, then Start."
+
+#: src/views/mobile/MobileTrain.jsx
+msgid "Build your intervals now, no PM5 needed"
+msgstr "Build your intervals now, no PM5 needed"
 
 #. Screen title, all capitals; C2 is Concept2, the rowing machine maker: keep it
 #: src/views/ErgLiveView.jsx
@@ -453,6 +486,8 @@ msgid "CALORIES"
 msgstr "CALORIES"
 
 #. Button
+#. Button that closes the list of monitors without connecting
+#: src/components/PM5Picker.jsx
 #: src/components/StravaConnectPanel.jsx
 msgid "Cancel"
 msgstr "Cancel"
@@ -479,6 +514,11 @@ msgstr "CAUTION"
 #: src/components/StravaConnectPanel.jsx
 msgid "Checking Strava connection…"
 msgstr "Checking Strava connection…"
+
+#. Title of the list of nearby rowing monitors; PM5 is the monitor: keep it
+#: src/components/PM5Picker.jsx
+msgid "Choose your PM5"
+msgstr "Choose your PM5"
 
 #. Where live rowing works: browser names, then device kinds
 #: src/views/ErgLiveView.jsx
@@ -536,6 +576,14 @@ msgstr "Connect Strava to import rowing and cycling activities into the training
 msgid "Connect the PM5 and row against a watt band"
 msgstr "Connect the PM5 and row against a watt band"
 
+#: src/live-erg/LiveErgSession.jsx
+msgid "Connect the PM5 to start."
+msgstr "Connect the PM5 to start."
+
+#: src/live-erg/LiveErgSession.jsx
+msgid "Connect to PM5"
+msgstr "Connect to PM5"
+
 #. Button, all capitals; PM5 is the rowing machine's monitor
 #: src/views/ErgLiveView.jsx
 msgid "CONNECT TO PM5"
@@ -549,6 +597,17 @@ msgstr "CONNECTED"
 #: src/utils/stravaStatus.js
 msgid "Connected · waiting for the first sync"
 msgstr "Connected · waiting for the first sync"
+
+#. Status line while the app connects to the monitor the user tapped; {name} is its broadcast name, e.g. PM5 431719123 Row
+#: src/components/PM5Picker.jsx
+msgid "Connecting to {name}…"
+msgstr "Connecting to {name}…"
+
+#. On the list row of the monitor being connected
+#: src/components/PM5Picker.jsx
+#: src/live-erg/LiveErgSession.jsx
+msgid "Connecting…"
+msgstr "Connecting…"
 
 #. Button, busy, all capitals
 #: src/views/ErgLiveView.jsx
@@ -575,6 +634,11 @@ msgstr "Could not read the Strava connection status"
 msgid "Could not start the Strava connection. Try again."
 msgstr "Could not start the Strava connection. Try again."
 
+#. Shown above the list of nearby PM5 monitors after the chosen one failed to connect; "it" is that monitor in the list
+#: src/constants/pm5ErrorMessages.js
+msgid "Couldn't connect to that PM5. Check it's awake and not connected to another phone, then tap it again."
+msgstr "Couldn't connect to that PM5. Check it's awake and not connected to another phone, then tap it again."
+
 #. {what} is the card's title in lower case, e.g. blood pressure
 #: src/components/HealthRecordCard.jsx
 msgid "Couldn't load {what}."
@@ -587,6 +651,11 @@ msgstr "Couldn't refresh sessions — showing what loaded earlier."
 #: src/components/HealthRecordCard.jsx
 msgid "Couldn't refresh, showing earlier data."
 msgstr "Couldn't refresh, showing earlier data."
+
+#. Android app error. Connect is the CONNECT TO PM5 button: match its translation
+#: src/constants/pm5ErrorMessages.js
+msgid "Couldn't start searching for PM5s. Tap Connect to try again."
+msgstr "Couldn't start searching for PM5s. Tap Connect to try again."
 
 #. Loading state while counting Strava-sourced sessions before a disconnect
 #: src/components/StravaConnectPanel.jsx
@@ -947,6 +1016,15 @@ msgstr "Integrations"
 msgid "just now"
 msgstr "just now"
 
+#: src/views/mobile/MobileToday.jsx
+msgid "Just row"
+msgstr "Just row"
+
+#. Settings section heading for features still being tested
+#: src/views/mobile/MobileSettings.jsx
+msgid "Labs"
+msgstr "Labs"
+
 #. Settings section heading above the language control
 #: src/views/SettingsView.jsx
 msgid "Language"
@@ -960,6 +1038,11 @@ msgstr "Lap"
 #: src/views/CalendarView.jsx
 msgid "LAST 3 DAYS · TODAY · NEXT 13 ·"
 msgstr "LAST 3 DAYS · TODAY · NEXT 13 ·"
+
+#. Section heading, all capitals
+#: src/views/mobile/MobileToday.jsx
+msgid "LAST ROW"
+msgstr "LAST ROW"
 
 #: src/utils/stravaStatus.js
 msgid "Last sync {when}"
@@ -1162,6 +1245,11 @@ msgstr "Neuromuscular power"
 msgid "Neutral — balanced"
 msgstr "Neutral — balanced"
 
+#. Settings switch. Turns on the new live rowing screen, still in testing
+#: src/views/mobile/MobileSettings.jsx
+msgid "New live screen (beta)"
+msgstr "New live screen (beta)"
+
 #: src/views/RecoveryView.jsx
 msgid "No blood pressure readings yet."
 msgstr "No blood pressure readings yet."
@@ -1200,6 +1288,15 @@ msgstr "No metrics logged for this session."
 msgid "NO PLANNED SESSION TODAY"
 msgstr "NO PLANNED SESSION TODAY"
 
+#. The search found no PM5 rowing monitor in range
+#: src/components/PM5Picker.jsx
+msgid "No PM5 found nearby. Wake your monitor and try again."
+msgstr "No PM5 found nearby. Wake your monitor and try again."
+
+#: src/live-erg/LiveErgSession.jsx
+msgid "No PM5 needed. Every change saves on this phone, and the live screen opens with this plan when you connect."
+msgstr "No PM5 needed. Every change saves on this phone, and the live screen opens with this plan when you connect."
+
 #: src/components/session/SessionTrace.jsx
 msgid "No power or speed was recorded, so there is no pace trace."
 msgstr "No power or speed was recorded, so there is no pace trace."
@@ -1207,6 +1304,10 @@ msgstr "No power or speed was recorded, so there is no pace trace."
 #: src/components/session/SessionTrace.jsx
 msgid "No power was recorded on this ride, so there is no power trace and no zones."
 msgstr "No power was recorded on this ride, so there is no power trace and no zones."
+
+#: src/views/mobile/MobileToday.jsx
+msgid "No previous erg piece to repeat."
+msgstr "No previous erg piece to repeat."
 
 #: src/views/mobile/MobileAnalytics.jsx
 #: src/views/mobile/MobileRecovery.jsx
@@ -1303,9 +1404,11 @@ msgstr "Nothing in your log came from Strava; nothing will be removed."
 msgid "Nothing in your log came from Strava."
 msgstr "Nothing in your log came from Strava."
 
+#. Card eyebrow, all capitals
+#. Card eyebrow, all capitals
 #: src/views/mobile/MobileToday.jsx
-msgid "Nothing prescribed today."
-msgstr "Nothing prescribed today."
+msgid "NOTHING PLANNED TODAY"
+msgstr "NOTHING PLANNED TODAY"
 
 #: src/utils/stravaStatus.js
 msgid "Nothing was overwritten. Resolve the duplicates in the log, then sync again."
@@ -1318,6 +1421,11 @@ msgstr "Offline: no saved data yet."
 #: src/utils/stravaStatus.js
 msgid "Older activities are fetched a page at a time to stay inside Strava rate limits."
 msgstr "Older activities are fetched a page at a time to stay inside Strava rate limits."
+
+#. Hint when no monitor was found and the phone's Location setting is off
+#: src/components/PM5Picker.jsx
+msgid "On Android 11 and older, Location must be on to find a PM5."
+msgstr "On Android 11 and older, Location must be on to find a PM5."
 
 #: src/components/session/SplitsTable.jsx
 msgid "One row every {every}."
@@ -1366,6 +1474,11 @@ msgstr "Open Train"
 msgid "Opening Strava…"
 msgstr "Opening Strava…"
 
+#. On a list row whose monitor has not been seen for a few seconds; the row cannot be tapped until it is seen again
+#: src/components/PM5Picker.jsx
+msgid "Out of range"
+msgstr "Out of range"
+
 #. Strava is a brand; RE is relative effort; HR is heart rate
 #: src/views/LogView.jsx
 msgid "Over-rating easy work is the common error — anchor to the talk test. TRIANGULATION: sRPE (felt) + Strava RE (HR-dist) + watts/HR (output) cross-checked every session. All agree = confidence; diverge = early fatigue/stress signal."
@@ -1403,11 +1516,25 @@ msgstr "pace from power"
 msgid "Peak power, {window} min"
 msgstr "Peak power, {window} min"
 
+#: src/views/mobile/MobileToday.jsx
+msgid "Pick a workout"
+msgstr "Pick a workout"
+
 #. Desktop Train pane
 #: src/App.jsx
 #: src/views/PlanView.jsx
 msgid "Plan"
 msgstr "Plan"
+
+#. Build an interval workout before connecting the PM5
+#: src/live-erg/LiveErgSession.jsx
+#: src/views/mobile/MobileTrain.jsx
+msgid "Plan a session"
+msgstr "Plan a session"
+
+#: src/views/mobile/MobileToday.jsx
+msgid "Plan intervals"
+msgstr "Plan intervals"
 
 #. Badge, all capitals
 #. Day badge, all capitals
@@ -1415,6 +1542,26 @@ msgstr "Plan"
 #: src/views/CalendarView.jsx
 msgid "PLANNED"
 msgstr "PLANNED"
+
+#: src/live-erg/LiveErgSession.jsx
+msgid "PM5 connected"
+msgstr "PM5 connected"
+
+#: src/live-erg/LiveErgSession.jsx
+msgid "PM5 connected. Build your intervals here. Set the same workout on the PM5 (Intervals, then Variable) and start rowing. SplitIQ follows each interval’s target here. Sending the workout from the phone comes next."
+msgstr "PM5 connected. Build your intervals here. Set the same workout on the PM5 (Intervals, then Variable) and start rowing. SplitIQ follows each interval’s target here. Sending the workout from the phone comes next."
+
+#: src/live-erg/LiveErgSession.jsx
+msgid "PM5 connected. Your saved plan is loaded; change it here if you need to. Set the same workout on the PM5 (Intervals, then Variable) and start rowing. SplitIQ follows each interval’s target here. Sending the workout from the phone comes next."
+msgstr "PM5 connected. Your saved plan is loaded; change it here if you need to. Set the same workout on the PM5 (Intervals, then Variable) and start rowing. SplitIQ follows each interval’s target here. Sending the workout from the phone comes next."
+
+#: src/live-erg/LiveErgSession.jsx
+msgid "PM5 connection"
+msgstr "PM5 connection"
+
+#: src/live-erg/LiveErgSession.jsx
+msgid "PM5 not connected"
+msgstr "PM5 not connected"
 
 #. Meal after the session
 #: src/components/WorkoutItem.jsx
@@ -1439,10 +1586,23 @@ msgstr "Power across {over}, between {lo} and {hi} W; average {avg} W."
 msgid "Power across {over}, between {lo} and {hi} W."
 msgstr "Power across {over}, between {lo} and {hi} W."
 
+#: src/live-erg/LiveErgSession.jsx
+msgid "Power on your PM5, then tap Connect to PM5 and choose your monitor from the list."
+msgstr "Power on your PM5, then tap Connect to PM5 and choose your monitor from the list."
+
+#: src/live-erg/LiveErgSession.jsx
+msgid "Power on your PM5, then tap Connect to PM5. Your browser will ask you to pick the device."
+msgstr "Power on your PM5, then tap Connect to PM5. Your browser will ask you to pick the device."
+
 #. PM5 is the rowing machine's monitor: keep it. Connect is the button below. The tags are line breaks
 #: src/views/ErgLiveView.jsx
 msgid "Power on your PM5.<0/>Tap Connect — your browser will<1/>ask you to select the device."
 msgstr "Power on your PM5.<0/>Tap Connect — your browser will<1/>ask you to select the device."
+
+#. Android app. PM5 is the rowing machine's monitor: keep it. Connect is the button below. The tags are line breaks
+#: src/views/ErgLiveView.jsx
+msgid "Power on your PM5.<0/>Tap Connect, then choose your<1/>monitor from the list."
+msgstr "Power on your PM5.<0/>Tap Connect, then choose your<1/>monitor from the list."
 
 #: src/components/session/MoreDetail.jsx
 msgid "Power over the moving time, averaged over each 30 s, each value raised to the fourth power, those averaged, then the fourth root taken. Hard stretches count for more than their share of the time."
@@ -1593,6 +1753,14 @@ msgstr "RESTING HR TREND — 14 DAYS"
 msgid "Retry"
 msgstr "Retry"
 
+#: src/views/mobile/MobileToday.jsx
+msgid "Row it again"
+msgstr "Row it again"
+
+#: src/views/mobile/MobileToday.jsx
+msgid "Row your last piece again?"
+msgstr "Row your last piece again?"
+
 #. Live status, all capitals
 #: src/views/ErgLiveView.jsx
 msgid "ROWING"
@@ -1656,6 +1824,12 @@ msgstr "Scored from sRPE {srpe} and the duration."
 #: src/views/mobile/MobileToday.jsx
 msgid "Scored on the readings that arrived — some were missing."
 msgstr "Scored on the readings that arrived — some were missing."
+
+#. Shown while the app searches for nearby PM5 rowing monitors
+#: src/components/PM5Picker.jsx
+#: src/live-erg/LiveErgSession.jsx
+msgid "Searching for PM5s…"
+msgstr "Searching for PM5s…"
 
 #: src/App.jsx
 msgid "Sections"
@@ -1791,6 +1965,11 @@ msgstr "Split"
 msgid "Split distance"
 msgstr "Split distance"
 
+#. Android app error. Settings › Apps › SplitIQ › Permissions, Nearby devices and Location are Android's own menu and permission names: use the names Android shows in Spanish
+#: src/constants/pm5ErrorMessages.js
+msgid "SplitIQ can't use Bluetooth. In Settings › Apps › SplitIQ › Permissions, allow Nearby devices (Location on Android 11 and older), then tap Connect again."
+msgstr "SplitIQ can't use Bluetooth. In Settings › Apps › SplitIQ › Permissions, allow Nearby devices (Location on Android 11 and older), then tap Connect again."
+
 #: src/utils/stravaDisconnect.js
 msgid "SplitIQ's access at Strava had already ended."
 msgstr "SplitIQ's access at Strava had already ended."
@@ -1819,15 +1998,19 @@ msgstr "sRPE SCALE · TALK-TEST ANCHORED (asked every session)"
 msgid "sRPE target:"
 msgstr "sRPE target:"
 
+#: src/live-erg/LiveErgSession.jsx
+msgid "Start"
+msgstr "Start"
+
 #. Heading, all capitals
 #: src/views/mobile/MobileTrain.jsx
 msgid "START A SESSION"
 msgstr "START A SESSION"
 
-#. Button, all capitals
+#: src/live-erg/LiveErgSession.jsx
 #: src/views/mobile/MobileToday.jsx
-msgid "START SESSION"
-msgstr "START SESSION"
+msgid "Start on PM5"
+msgstr "Start on PM5"
 
 #. Cancel leaving a live session
 #: src/components/mobile/SessionExitBar.jsx
@@ -2073,6 +2256,11 @@ msgstr "The last sync failed for an unrecognised reason. Try again."
 msgid "The limit has reset — you can sync again now."
 msgstr "The limit has reset — you can sync again now."
 
+#. Under the title of the list of nearby rowing monitors. Connect is the name of a menu screen on the PM5 monitor itself, not a button in the app
+#: src/components/PM5Picker.jsx
+msgid "The number in each name is the serial on your monitor's Connect screen."
+msgstr "The number in each name is the serial on your monitor's Connect screen."
+
 #. Banner lead-in, all capitals
 #: src/views/PlanView.jsx
 msgid "THE PLAN."
@@ -2121,6 +2309,11 @@ msgstr "This activity is no longer on Strava, so there is no trace."
 msgid "This activity was recorded on a Garmin device. Its trace appears once Garmin attribution is in place."
 msgstr "This activity was recorded on a Garmin device. Its trace appears once Garmin attribution is in place."
 
+#. Android app error. Bluetooth Low Energy is a technology name; PM5 is the rowing machine monitor: keep both
+#: src/constants/pm5ErrorMessages.js
+msgid "This phone can't use Bluetooth Low Energy, so it can't connect to a PM5."
+msgstr "This phone can't use Bluetooth Low Energy, so it can't connect to a PM5."
+
 #. Session page: no series source
 #: src/components/session/SessionState.jsx
 msgid "This session has a summary only; no trace is linked to it."
@@ -2164,10 +2357,10 @@ msgstr "Time in zone: {summary}."
 msgid "Today"
 msgstr "Today"
 
-#. Section heading, all capitals
+#. Card eyebrow, all capitals
 #: src/views/mobile/MobileToday.jsx
-msgid "TODAY"
-msgstr "TODAY"
+msgid "TODAY'S SESSION · PLANNED"
+msgstr "TODAY'S SESSION · PLANNED"
 
 #: src/components/LogSessionForm.jsx
 msgid "Top weight"
@@ -2227,6 +2420,11 @@ msgstr "Training phase"
 msgid "Triglycerides"
 msgstr "Triglycerides"
 
+#. Button that searches for PM5 monitors again
+#: src/components/PM5Picker.jsx
+msgid "Try again"
+msgstr "Try again"
+
 #. Error state detail
 #: src/components/StravaConnectPanel.jsx
 msgid "Try again in a moment."
@@ -2236,6 +2434,15 @@ msgstr "Try again in a moment."
 #: src/views/mobile/MobileToday.jsx
 msgid "TSS LOGGED"
 msgstr "TSS LOGGED"
+
+#: src/views/mobile/MobileToday.jsx
+msgid "Tweak"
+msgstr "Tweak"
+
+#. A rowing monitor in the list that broadcast no name; PM5 is the monitor: keep it
+#: src/components/PM5Picker.jsx
+msgid "Unnamed PM5"
+msgstr "Unnamed PM5"
 
 #. Anchor status
 #: src/components/session/ZoneBar.jsx
@@ -2305,6 +2512,10 @@ msgstr "Volume"
 msgid "vs {baselineLabel}"
 msgstr "vs {baselineLabel}"
 
+#: src/live-erg/LiveErgSession.jsx
+msgid "Watt targets start from a 200 W critical power placeholder until onboarding sets yours."
+msgstr "Watt targets start from a 200 W critical power placeholder until onboarding sets yours."
+
 #. Live metric label
 #: src/views/ErgLiveView.jsx
 msgid "WATTS"
@@ -2330,6 +2541,11 @@ msgstr "Weighted power divided by the average power. 1.00 is an even output thro
 #: src/components/session/ProvenanceNote.jsx
 msgid "Where this data comes from"
 msgstr "Where this data comes from"
+
+#. Under the new live screen switch. PM5 is the rowing machine's monitor: keep it
+#: src/views/mobile/MobileSettings.jsx
+msgid "While you row, show your intervals, watt targets and split table. Connecting to the PM5 and saving stay the same."
+msgstr "While you row, show your intervals, watt targets and split table. Connecting to the PM5 and saving stay the same."
 
 #. sRPE scale, effort 9-10: the talk test
 #: src/constants/srpeGuideMessages.js

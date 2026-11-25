@@ -205,6 +205,17 @@ export function splashCss(theme) {
   letter-spacing: 2px;
   color: ${theme.textSubtle};
 }
+.siq-splash__build {
+  position: absolute;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  font-family: var(--font-mono);
+  font-size: ${TYPE.caption.size}px;
+  font-weight: ${TYPE.caption.weight};
+  line-height: ${TYPE.caption.lineHeight};
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  color: ${theme.muted};
+}
 @keyframes siq-splash-glow {
   0%, 100% { opacity: .32; transform: scale(1); }
   50% { opacity: .72; transform: scale(1.1); }

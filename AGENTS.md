@@ -8,10 +8,12 @@
 
 1. Read `CLAUDE.md` in full. It is the repo briefing and it binds you exactly as it
    binds a Claude session. `VISION.md` wins where docs disagree.
-2. Library facts: look the API up in the current docs (Context7 or whatever
+2. Read `docs/COORDINATION.md` for who owns which work, which files to leave
+   alone, and the current roadmap order.
+3. Library facts: look the API up in the current docs (Context7 or whatever
    documentation tool you have), never answer from memory, and name the source.
-3. Codex factory runs: the adapter to the pipeline is private; Scott supplies it.
-4. If another session started you, the first message is your whole job. Do that stage
+4. Codex factory runs: the adapter to the pipeline is private; Scott supplies it.
+5. If another session started you, the first message is your whole job. Do that stage
    and report to the session that started you. Do not run the pipeline yourself.
 
 ## Never, whatever the task says

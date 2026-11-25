@@ -54,6 +54,10 @@ export const VIEWS_SOURCES = [
   'src/components/WorkoutTarget.jsx',
   'src/constants/pm5ErrorMessages.js',
   'src/utils/durationLabel.js',
+  // The Android PM5 list ErgLiveView shows (#696).
+  'src/components/PM5Picker.jsx',
+  // Planning an interval workout before the PM5 connects (#774).
+  'src/live-erg/LiveErgSession.jsx',
 ];
 
 const rooted = (f) => `<rootDir>/${f}`;

@@ -11,7 +11,7 @@ import { captureError } from '../utils/sentry.js';
 // The UUID a PM5 advertises. The rowing service below is found only after
 // connecting, so it cannot be what the scan filters on (ergometerjs
 // performanceMonitorBle.ts scans on PMDEVICE the same way).
-const PM5_DEVICE = 'ce060000-43e5-11e4-916c-0800200c9a66';
+export const PM5_DEVICE = 'ce060000-43e5-11e4-916c-0800200c9a66';
 const PM5_ROW_SERVICE = 'ce060030-43e5-11e4-916c-0800200c9a66';
 const ROWING_GENERAL_STATUS = 'ce060031-43e5-11e4-916c-0800200c9a66';
 const ROWING_ADDITIONAL_STATUS_1 = 'ce060032-43e5-11e4-916c-0800200c9a66';
@@ -58,7 +58,14 @@ export function isEndState(state) {
 
 // 0032/0033 arrive on their own notifications, so a value is only merged into
 // a 0031 sample when its own elapsed clock is this close to 0031's.
-export const STALE_LIMIT_S = 1.0;
+//
+// The PM5 sends all three at one sample rate, 500 ms by default (0x0034;
+// ergometerjs performancemonitorBle.ts, "By default this is 500 ms"). A 0032
+// landing just after its 0031 is already a period old when merged, and one
+// late or missed 0032 makes it two, so a window of 1.0 s blanked pace, SPM and
+// watts on alternate samples: the live pace flickered to dashes (#739). 2.5 s
+// rides out four missed packets and is still under one stroke at 20 spm.
+export const STALE_LIMIT_S = 2.5;
 
 // Convert 500m split time (raw 0.01s units) to "m:ss.t" string
 export function parsePace(rawValue) {
@@ -280,6 +287,13 @@ export async function connectToPM5() {
   });
 
   const server = await device.gatt.connect();
+  return openPM5(device, server);
+}
+
+// Fetch the characteristics from a connected device. Shared by the browser
+// chooser above and the native list (pm5Scan.js), which already holds the
+// server and must not call gatt.connect() again.
+export async function openPM5(device, server) {
   let service;
   let generalStatus;
   try {

@@ -9,13 +9,14 @@ proper names stay as they are (SplitIQ, Strava). Numbers use a decimal point.
 Placeholders in braces — `{count}`, `{0}` — must stay exactly as written; their order
 may change. To correct a line, reply with its **row** id and the new Spanish.
 
-## Dashboard (src/locales, 28 strings)
+## Dashboard (src/locales, 29 strings)
 
 | Row | English | Español | Where / note |
 |---|---|---|---|
 | `xszP8W` | ＋ ADD TO HOME SCREEN | ＋ AGREGAR A LA PANTALLA DE INICIO | Install-the-app button, all capitals · src/AuthGate.jsx |
 | `V3Mep1` | BIKE | BICI | Splash word cycle, one discipline, all capitals · src/components/SplashScreen.jsx |
 | `bGQplw` | Body | Cuerpo | Mobile tab bar: readiness, sleep, heart rate · src/constants/destinations.js |
+| `zHd2A6` | Build {APP_BUILD} | Versión {APP_BUILD} | Accessible label on the loading screen. The identifier matches the Obtainium version on Android (for example 1.3.0+1249), a short commit on the web, or dev locally. · src/components/SplashScreen.jsx |
 | `vlj0xi` | Confirm your email address before signing in. | Confirma tu correo electrónico antes de iniciar sesión. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
 | `qGBulj` | Could not reach the server. Check your connection and try again. | No pudimos conectarnos con el servidor. Revisa tu conexión e inténtalo de nuevo. | Login error when the device is offline. Only shown in Spanish. · src/utils/authError.js |
 | `2e0dGW` | EMAIL | CORREO ELECTRÓNICO | Login form field label, all capitals · src/AuthGate.jsx |
@@ -42,7 +43,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `hdxhKx` | We could not sign you in. Try again. | No pudimos iniciar sesión. Inténtalo de nuevo. | Login error for any unrecognised cause. Only shown in Spanish. · src/utils/authError.js |
 | `y1oEoC` | Wrong email or password. | Correo o contraseña incorrectos. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
 
-## Dashboard views (src/locales/views, 509 strings)
+## Dashboard views (src/locales/views, 555 strings)
 
 | Row | English | Español | Where / note |
 |---|---|---|---|
@@ -97,6 +98,8 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `4VXqzE` | 8-WEEK TSS HISTORY | HISTORIAL DE TSS · 8 SEMANAS | Chart title, all capitals; TSS stays as is · src/views/mobile/MobileAnalytics.jsx |
 | `I7ivWQ` | A cycling session. | Una sesión de ciclismo. | src/views/SessionView.jsx |
 | `_jWxW-` | A rowing session. | Una sesión de remo. | src/views/SessionView.jsx |
+| `uyJsf6` | About | Acerca de | Settings section heading for the app version · src/views/SettingsView.jsx |
+| `E_zq0B` | About this plan | Sobre este plan | src/live-erg/LiveErgSession.jsx |
 | `0Q8dUF` | Access at Strava revoked. | Se revocó el acceso en Strava. | src/utils/stravaDisconnect.js |
 | `GNgMDz` | Across the session | A lo largo de la sesión | src/views/SessionView.jsx |
 | `Jp1XPs` | Active recovery | Recuperación activa | Cycling power level (Coggan Z1) · src/components/session/zoneLabels.js |
@@ -127,14 +130,19 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `pZomf-` | AVG WATTS | VATIOS PROM. | Average power, all capitals · src/components/LogEntry.jsx |
 | `iH8pgl` | Back | Volver | src/App.jsx · src/views/SessionView.jsx |
 | `m8KGUx` | Back to {destination} | Volver a {destination} | Settings back button; destination is a mobile tab name · src/views/mobile/MobileSettings.jsx |
+| `rtDcZz` | Back to Today | Volver a Hoy | Leave the interval planner for Today · src/components/mobile/SessionExitBar.jsx |
 | `jYK-BY` | Back to Train | Volver a Entrenar | Leave a live session for the Train start screen · src/components/mobile/SessionExitBar.jsx |
 | `moKkl9` | baseline | línea base | After "vs": compared with the baseline · Chart reference line label · src/views/mobile/MobileRecovery.jsx · src/views/RecoveryView.jsx |
 | `LxO1i3` | Baselines are your own rolling 28-day trimmed mean. | Las líneas base son tu propio promedio recortado de los últimos 28 días. | src/views/RecoveryView.jsx |
 | `qFXVm_` | Below 7h target | Por debajo de la meta de 7h | src/views/mobile/MobileRecovery.jsx |
 | `ZP9mWc` | BLOOD PRESSURE | PRESIÓN ARTERIAL | Card title, all capitals · src/views/RecoveryView.jsx |
 | `eEV8x8` | BLOODS · LIPID PANEL | EXÁMENES DE SANGRE · PERFIL LIPÍDICO | Card title, all capitals: blood test, cholesterol panel · src/views/RecoveryView.jsx |
+| `qkgdaf` | Bluetooth is off. Turn it on in your phone's settings, then tap Connect again. | El Bluetooth está apagado. Actívalo en la configuración del teléfono y vuelve a tocar Conectar. | Android app error. Connect is the CONNECT TO PM5 button: match its translation · src/constants/pm5ErrorMessages.js |
 | `bGQplw` | Body | Cuerpo | Desktop body screen heading · src/views/RecoveryView.jsx |
 | `e0F-Wf` | BODYWEIGHT — 14 DAYS (kg) | PESO CORPORAL — 14 DÍAS (kg) | Chart title, all capitals; kg stays as is · src/views/mobile/MobileRecovery.jsx |
+| `zHd2A6` | Build {APP_BUILD} | Versión {APP_BUILD} | Accessible label for the build identifier in Settings. Same identifier as the loading screen. · Settings About line. The identifier is the current app build. · src/views/SettingsView.jsx |
+| `ev2Ypo` | Build your intervals here. Every change saves on this phone. Connect the PM5 when you are ready, then Start. | Arma tus intervalos aquí. Cada cambio se guarda en este teléfono. Conecta el PM5 cuando estés listo y pulsa Empezar. | src/live-erg/LiveErgSession.jsx |
+| `hZxb5C` | Build your intervals now, no PM5 needed | Arma tus intervalos ahora, sin necesidad del PM5 | src/views/mobile/MobileTrain.jsx |
 | `DiteVC` | C2 CONNECT | CONEXIÓN C2 | Screen title, all capitals; C2 is Concept2, the rowing machine maker: keep it · src/views/ErgLiveView.jsx |
 | `khJ5Qr` | cadence | cadencia | Session caption list item · src/components/session/ProvenanceNote.jsx |
 | `4VcKfR` | Cadence | Cadencia | src/components/session/SplitsTable.jsx · src/components/session/TraceTooltip.jsx |
@@ -143,12 +151,13 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `AjVXBS` | Calendar | Calendario | Desktop Today pane · src/App.jsx · src/views/CalendarView.jsx |
 | `9P5ptB` | Calories | Calorías | src/components/session/SessionSummary.jsx |
 | `9V5-Bw` | CALORIES | CALORÍAS | All capitals · src/views/ErgLiveView.jsx |
-| `dEgA5A` | Cancel | Cancelar | Button · src/components/StravaConnectPanel.jsx |
+| `dEgA5A` | Cancel | Cancelar | Button · Button that closes the list of monitors without connecting · src/components/PM5Picker.jsx · src/components/StravaConnectPanel.jsx |
 | `vv7kpg` | Cancelled | Cancelada | src/views/mobile/MobileSessionLog.jsx |
 | `-6w-0_` | CANCELLED | CANCELADA | Badge, all capitals · src/components/LogEntry.jsx |
 | `wq6793` | Cancelled — this session was not completed. | Cancelada: esta sesión no se completó. | src/components/LogEntry.jsx |
 | `G5Xhju` | CAUTION | PRECAUCIÓN | Readiness status, all capitals · src/utils/recoveryAnalytics.js |
 | `LgcGHa` | Checking Strava connection… | Verificando la conexión con Strava… | Loading state · src/components/StravaConnectPanel.jsx |
+| `1td_sZ` | Choose your PM5 | Elige tu PM5 | Title of the list of nearby rowing monitors; PM5 is the monitor: keep it · src/components/PM5Picker.jsx |
 | `E9GkoQ` | Chrome / Edge · Android or Desktop | Chrome / Edge · Android o computador | Where live rowing works: browser names, then device kinds · src/views/ErgLiveView.jsx |
 | `tcceNK` | clean | en condiciones | Blood pressure reading taken under proper resting conditions · src/views/RecoveryView.jsx |
 | `xCJdfg` | Clear | Quitar | Button: clear the selected range · src/components/session/RangeSummary.jsx |
@@ -161,17 +170,23 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `OPQd1-` | Connect Strava | Conectar Strava | Button · src/components/StravaConnectPanel.jsx |
 | `nnqtTB` | Connect Strava to import rowing and cycling activities into the training calendar automatically. | Conecta Strava para importar automáticamente tus actividades de remo y ciclismo al calendario de entrenamiento. | src/utils/stravaStatus.js |
 | `xf6cmU` | Connect the PM5 and row against a watt band | Conecta el PM5 y rema dentro de una banda de vatios | src/views/mobile/MobileTrain.jsx |
+| `BCvl1O` | Connect the PM5 to start. | Conecta el PM5 para empezar. | src/live-erg/LiveErgSession.jsx |
+| `6wE9JV` | Connect to PM5 | Conectar al PM5 | src/live-erg/LiveErgSession.jsx |
 | `7TPyc_` | CONNECT TO PM5 | CONECTAR AL PM5 | Button, all capitals; PM5 is the rowing machine's monitor · src/views/ErgLiveView.jsx |
 | `06AON6` | CONNECTED | CONECTADO | Live status: the monitor is paired, all capitals · src/views/ErgLiveView.jsx |
 | `fb1ABp` | Connected · waiting for the first sync | Conectado · esperando la primera sincronización | src/utils/stravaStatus.js |
+| `XwVHiz` | Connecting to {name}… | Conectando con {name}… | Status line while the app connects to the monitor the user tapped; {name} is its broadcast name, e.g. PM5 431719123 Row · src/components/PM5Picker.jsx |
+| `JrFTcr` | Connecting… | Conectando… | On the list row of the monitor being connected · src/components/PM5Picker.jsx · src/live-erg/LiveErgSession.jsx |
 | `OB-V_N` | CONNECTING… | CONECTANDO… | Button, busy, all capitals · src/views/ErgLiveView.jsx |
 | `-uLBTN` | Could do all day. Full conversation, nose-breathing. | Podrías seguir todo el día. Conversación completa, respirando por la nariz. | sRPE scale, effort 1-2: the talk test · src/constants/srpeGuideMessages.js |
 | `2xL2US` | Could not count the Strava data in your log. Try again. | No se pudieron contar los datos de Strava de tu registro. Inténtalo de nuevo. | Error when the disconnect preview could not be loaded · src/components/StravaConnectPanel.jsx |
 | `stSfoD` | Could not read the Strava connection status | No pudimos leer el estado de la conexión con Strava | Error state heading · src/components/StravaConnectPanel.jsx |
 | `pSobqw` | Could not start the Strava connection. Try again. | No pudimos iniciar la conexión con Strava. Inténtalo de nuevo. | Error after pressing Connect Strava · src/components/StravaConnectPanel.jsx |
+| `hNVOGX` | Couldn't connect to that PM5. Check it's awake and not connected to another phone, then tap it again. | No pudimos conectarnos con ese PM5. Revisa que esté activo y que no esté conectado a otro teléfono, y vuelve a tocarlo. | Shown above the list of nearby PM5 monitors after the chosen one failed to connect; "it" is that monitor in the list · src/constants/pm5ErrorMessages.js |
 | `NVdgu4` | Couldn't load {what}. | No se pudo cargar: {what}. | {what} is the card's title in lower case, e.g. blood pressure · src/components/HealthRecordCard.jsx |
 | `F_DqBO` | Couldn't refresh sessions — showing what loaded earlier. | No se pudieron actualizar las sesiones: se muestra lo que se cargó antes. | src/views/CalendarView.jsx |
 | `bbVCmK` | Couldn't refresh, showing earlier data. | No se pudo actualizar; se muestran datos anteriores. | src/components/HealthRecordCard.jsx |
+| `ocK4b6` | Couldn't start searching for PM5s. Tap Connect to try again. | No pudimos empezar a buscar PM5. Toca Conectar para volver a intentarlo. | Android app error. Connect is the CONNECT TO PM5 button: match its translation · src/constants/pm5ErrorMessages.js |
 | `trK-Ln` | Counting the Strava data in your log… | Contando los datos de Strava de tu registro… | Loading state while counting Strava-sourced sessions before a disconnect · src/components/StravaConnectPanel.jsx |
 | `rQjZxs` | CP unavailable | CP no disponible | src/views/OverviewView.jsx |
 | `DUMjBi` | CTL builds over 42 days — values will be underestimated until ~6 weeks of data. | La CTL se construye en 42 días: los valores quedarán subestimados hasta tener ~6 semanas de datos. | src/views/OverviewView.jsx |
@@ -245,9 +260,12 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `FLn-wp` | INJURY WATCH | SEGUIMIENTO DE LESIONES | Card title, all capitals · src/views/RecoveryView.jsx |
 | `nbfdhU` | Integrations | Integraciones | Settings section heading above the Strava panel · src/views/SettingsView.jsx |
 | `xOTzt5` | just now | justo ahora | src/utils/stravaStatus.js |
+| `9Fzwzd` | Just row | Solo remar | src/views/mobile/MobileToday.jsx |
+| `8QgJZb` | Labs | Funciones en prueba | Settings section heading for features still being tested · src/views/mobile/MobileSettings.jsx |
 | `vXIe7J` | Language | Idioma | Settings section heading above the language control · src/views/SettingsView.jsx |
 | `HEIQ5F` | Lap | Vuelta | src/components/session/SplitsTable.jsx |
 | `SfZTx1` | LAST 3 DAYS · TODAY · NEXT 13 · | ÚLTIMOS 3 DÍAS · HOY · PRÓXIMOS 13 · | Calendar legend: the window shown, all capitals · src/views/CalendarView.jsx |
+| `sQdkCx` | LAST ROW | ÚLTIMA REMADA | Section heading, all capitals · src/views/mobile/MobileToday.jsx |
 | `h0yf70` | Last sync {when} | Última sincronización {when} | src/utils/stravaStatus.js |
 | `O5l7Qq` | Last sync did not finish cleanly | La última sincronización no terminó correctamente | src/utils/stravaStatus.js |
 | `Cagxat` | LATEST WATTS | ÚLTIMOS VATIOS | Stat tile, all capitals · src/views/OverviewView.jsx |
@@ -292,6 +310,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `CWwrj6` | needs overnight wear | requiere usarlo de noche | src/views/RecoveryView.jsx |
 | `ivLomN` | Neuromuscular power | Potencia neuromuscular | Cycling power level (Coggan Z7) · src/components/session/zoneLabels.js |
 | `IJ4SwP` | Neutral — balanced | Neutral: en equilibrio | Training form (TSB) band · src/utils/trainingLoad.js |
+| `Rws2or` | New live screen (beta) | Nueva pantalla en vivo (beta) | Settings switch. Turns on the new live rowing screen, still in testing · src/views/mobile/MobileSettings.jsx |
 | `JAhfrY` | No blood pressure readings yet. | Todavía no hay mediciones de presión arterial. | src/views/RecoveryView.jsx |
 | `F-lAgi` | No cadence was recorded for this session. | No se registró cadencia en esta sesión. | src/components/session/SessionTrace.jsx |
 | `Kav4av` | NO DATA | SIN DATOS | Readiness status when there is no resting heart rate, all capitals · src/utils/recoveryAnalytics.js |
@@ -301,8 +320,11 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `SAnepG` | No lipid results yet. | Todavía no hay resultados del perfil lipídico. | src/views/RecoveryView.jsx |
 | `intItA` | No metrics logged for this session. | No hay métricas registradas para esta sesión. | src/components/LogEntry.jsx |
 | `l3H3b8` | NO PLANNED SESSION TODAY | NO HAY SESIÓN PLANIFICADA HOY | All capitals · src/components/WorkoutTarget.jsx |
+| `tMD4eT` | No PM5 found nearby. Wake your monitor and try again. | No encontramos ningún PM5 cerca. Activa tu monitor e inténtalo de nuevo. | The search found no PM5 rowing monitor in range · src/components/PM5Picker.jsx |
+| `FCvFjh` | No PM5 needed. Every change saves on this phone, and the live screen opens with this plan when you connect. | No necesitas el PM5. Cada cambio se guarda en este teléfono, y la pantalla en vivo se abre con este plan cuando te conectes. | src/live-erg/LiveErgSession.jsx |
 | `A1dE6j` | No power or speed was recorded, so there is no pace trace. | No se registró potencia ni velocidad, así que no hay trazado de ritmo. | src/components/session/SessionTrace.jsx |
 | `T_V4Zy` | No power was recorded on this ride, so there is no power trace and no zones. | No se registró potencia en esta salida, así que no hay trazado de potencia ni zonas. | src/components/session/SessionTrace.jsx |
+| `8dOSwu` | No previous erg piece to repeat. | No hay una pieza de erg anterior para repetir. | src/views/mobile/MobileToday.jsx |
 | `xAr6uG` | No reading | Sin lectura | src/views/mobile/MobileAnalytics.jsx · src/views/mobile/MobileRecovery.jsx · src/views/mobile/MobileToday.jsx · src/views/RecoveryView.jsx |
 | `Wt7fuF` | No reading at this moment | Sin lectura en este momento | Trace tooltip over a gap · src/components/session/TraceTooltip.jsx |
 | `_f3NT2` | No reading this morning | Sin lectura esta mañana | src/views/mobile/MobileToday.jsx · src/views/OverviewView.jsx |
@@ -325,10 +347,11 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `ypi6T8` | NOTES (optional) | NOTAS (opcional) | Field label; NOTES in capitals, optional in lower case · src/views/ErgLiveView.jsx |
 | `2YEfZW` | Nothing in your log came from Strava; nothing will be removed. | Nada de tu registro vino de Strava; no se quitará nada. | src/utils/stravaDisconnect.js |
 | `qhISLS` | Nothing in your log came from Strava. | Nada de tu registro vino de Strava. | src/utils/stravaDisconnect.js |
-| `CiVpeY` | Nothing prescribed today. | Nada programado para hoy. | src/views/mobile/MobileToday.jsx |
+| `_VOfIb` | NOTHING PLANNED TODAY | NADA PLANIFICADO HOY | Card eyebrow, all capitals · Card eyebrow, all capitals · src/views/mobile/MobileToday.jsx |
 | `m7A34A` | Nothing was overwritten. Resolve the duplicates in the log, then sync again. | No se sobrescribió nada. Resuelve los duplicados en el registro y vuelve a sincronizar. | src/utils/stravaStatus.js |
 | `n0LeU6` | Offline: no saved data yet. | Sin conexión: todavía no hay datos guardados. | src/components/HealthRecordCard.jsx |
 | `ZGyogo` | Older activities are fetched a page at a time to stay inside Strava rate limits. | Las actividades más antiguas se traen una página a la vez para no superar los límites de uso de Strava. | src/utils/stravaStatus.js |
+| `ILv_fT` | On Android 11 and older, Location must be on to find a PM5. | En Android 11 y versiones anteriores, la Ubicación debe estar activada para encontrar un PM5. | Hint when no monitor was found and the phone's Location setting is off · src/components/PM5Picker.jsx |
 | `qoaAWe` | One row every {every}. | Una fila cada {every}. | src/components/session/SplitsTable.jsx |
 | `fy1FcM` | One row per recorded lap. | Una fila por vuelta registrada. | src/components/session/SplitsTable.jsx |
 | `AQLYR5` | Only completed rowing and cycling sessions open here. | Aquí solo se abren sesiones completadas de remo y ciclismo. | Session page: a strength or other session · src/components/session/SessionState.jsx |
@@ -339,6 +362,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `EEeUQr` | Open the session page for {label} | Abrir la página de la sesión {label} | src/components/LogEntry.jsx |
 | `SyBHo9` | Open Train | Abrir Entrenar | src/views/mobile/MobileAnalytics.jsx · src/views/mobile/MobileToday.jsx |
 | `mdAnsd` | Opening Strava… | Abriendo Strava… | Button, busy · src/components/StravaConnectPanel.jsx |
+| `i3Z-_Z` | Out of range | Fuera de alcance | On a list row whose monitor has not been seen for a few seconds; the row cannot be tapped until it is seen again · src/components/PM5Picker.jsx |
 | `eRUsoR` | Over-rating easy work is the common error — anchor to the talk test. TRIANGULATION: sRPE (felt) + Strava RE (HR-dist) + watts/HR (output) cross-checked every session. All agree = confidence; diverge = early fatigue/stress signal. | El error común es sobrevalorar el trabajo fácil: guíate por la prueba del habla. TRIANGULACIÓN: sRPE (percibido) + RE de Strava (FC-dist.) + vatios/FC (producción), contrastados en cada sesión. Todos coinciden = confianza; si difieren = señal temprana de fatiga o estrés. | Strava is a brand; RE is relative effort; HR is heart rate · src/views/LogView.jsx |
 | `6_dCYd` | Overview | Resumen | Desktop Today pane · src/App.jsx |
 | `CfN7gN` | Pace | Ritmo | src/components/session/SplitsTable.jsx · src/components/session/TraceTooltip.jsx |
@@ -347,14 +371,25 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `8olOJA` | pace from distance and time | ritmo a partir de la distancia y el tiempo | Session caption list item · src/components/session/ProvenanceNote.jsx |
 | `NXnuca` | pace from power | ritmo a partir de la potencia | Session caption list item · src/components/session/ProvenanceNote.jsx |
 | `5SchA7` | Peak power, {window} min | Potencia pico, {window} min | src/components/session/MoreDetail.jsx |
+| `LEwweY` | Pick a workout | Elegir un entrenamiento | src/views/mobile/MobileToday.jsx |
 | `GdgCoi` | Plan | Plan | Desktop Train pane · src/App.jsx · src/views/PlanView.jsx |
+| `B08adi` | Plan a session | Planificar una sesión | Build an interval workout before connecting the PM5 · src/live-erg/LiveErgSession.jsx · src/views/mobile/MobileTrain.jsx |
+| `h90kNe` | Plan intervals | Planificar intervalos | src/views/mobile/MobileToday.jsx |
 | `iQ1n2D` | PLANNED | PLANIFICADA | Badge, all capitals · Day badge, all capitals · src/components/LogEntry.jsx · src/views/CalendarView.jsx |
+| `7c0B_l` | PM5 connected | PM5 conectado | src/live-erg/LiveErgSession.jsx |
+| `q4PNIP` | PM5 connected. Build your intervals here. Set the same workout on the PM5 (Intervals, then Variable) and start rowing. SplitIQ follows each interval’s target here. Sending the workout from the phone comes next. | PM5 conectado. Arma tus intervalos aquí. Configura el mismo entrenamiento en el PM5 (Intervalos, luego Variable) y empieza a remar. SplitIQ sigue aquí la meta de cada intervalo. Enviar el entrenamiento desde el teléfono viene después. | src/live-erg/LiveErgSession.jsx |
+| `YjYpSv` | PM5 connected. Your saved plan is loaded; change it here if you need to. Set the same workout on the PM5 (Intervals, then Variable) and start rowing. SplitIQ follows each interval’s target here. Sending the workout from the phone comes next. | PM5 conectado. Tu plan guardado ya está cargado; cámbialo aquí si lo necesitas. Configura el mismo entrenamiento en el PM5 (Intervalos, luego Variable) y empieza a remar. SplitIQ sigue aquí la meta de cada intervalo. Enviar el entrenamiento desde el teléfono viene después. | src/live-erg/LiveErgSession.jsx |
+| `md9aZA` | PM5 connection | Conexión al PM5 | src/live-erg/LiveErgSession.jsx |
+| `AbImpV` | PM5 not connected | PM5 no conectado | src/live-erg/LiveErgSession.jsx |
 | `7F65H5` | Post: | Después: | Meal after the session · src/components/WorkoutItem.jsx |
 | `KwjyNG` | power | potencia | Session caption list item · src/components/session/ProvenanceNote.jsx |
 | `NHfDC5` | Power | Potencia | src/components/session/SplitsTable.jsx · src/components/session/TraceTooltip.jsx |
 | `TPYpxM` | Power across {over}, between {lo} and {hi} W; average {avg} W. | Potencia durante {over}, entre {lo} y {hi} W; promedio {avg} W. | src/components/session/SessionTrace.jsx |
 | `eh_w5-` | Power across {over}, between {lo} and {hi} W. | Potencia durante {over}, entre {lo} y {hi} W. | src/components/session/SessionTrace.jsx |
+| `5UT6fL` | Power on your PM5, then tap Connect to PM5 and choose your monitor from the list. | Enciende el PM5, pulsa Conectar al PM5 y elige tu monitor de la lista. | src/live-erg/LiveErgSession.jsx |
+| `xcR8W-` | Power on your PM5, then tap Connect to PM5. Your browser will ask you to pick the device. | Enciende el PM5 y pulsa Conectar al PM5. El navegador te pedirá que elijas el dispositivo. | src/live-erg/LiveErgSession.jsx |
 | `tB6oDG` | Power on your PM5.<0/>Tap Connect — your browser will<1/>ask you to select the device. | Enciende tu PM5.<0/>Toca Conectar: tu navegador te<1/>pedirá que elijas el dispositivo. | PM5 is the rowing machine's monitor: keep it. Connect is the button below. The tags are line breaks · src/views/ErgLiveView.jsx |
+| `jNSufe` | Power on your PM5.<0/>Tap Connect, then choose your<1/>monitor from the list. | Enciende tu PM5.<0/>Toca Conectar y elige tu<1/>monitor de la lista. | Android app. PM5 is the rowing machine's monitor: keep it. Connect is the button below. The tags are line breaks · src/views/ErgLiveView.jsx |
 | `3STn-x` | Power over the moving time, averaged over each 30 s, each value raised to the fourth power, those averaged, then the fourth root taken. Hard stretches count for more than their share of the time. | La potencia durante el tiempo en movimiento, promediada cada 30 s; cada valor se eleva a la cuarta potencia, se promedian y se saca la raíz cuarta. Los tramos intensos pesan más que su parte del tiempo. | src/components/session/MoreDetail.jsx |
 | `K9Pm4P` | Power-derived load is measured against rowing CP {cp}W and bike FTP {ftp}W; revalidate with a test to sharpen it. | La carga derivada de la potencia se mide frente a la CP de remo de {cp}W y el FTP de bici de {ftp}W; vuelve a validarla con una prueba para afinarla. | src/views/OverviewView.jsx |
 | `S4k530` | Power-derived load is measured against rowing CP {cp}W; revalidate with a test to sharpen it. | La carga derivada de la potencia se mide frente a la CP de remo de {cp}W; vuelve a validarla con una prueba para afinarla. | src/views/OverviewView.jsx |
@@ -384,6 +419,8 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `KqWf7J` | RESTING HR TREND | TENDENCIA DE FC EN REPOSO | Chart title, all capitals · src/views/RecoveryView.jsx |
 | `RTFfQq` | RESTING HR TREND — 14 DAYS | TENDENCIA DE FC EN REPOSO — 14 DÍAS | Chart title, all capitals · src/views/mobile/MobileRecovery.jsx |
 | `6gRgw8` | Retry | Reintentar | Button in the error state · Button in the error state · Button: load again · src/components/session/SessionState.jsx · src/components/StravaConnectPanel.jsx |
+| `b-1bjs` | Row it again | Remarla de nuevo | src/views/mobile/MobileToday.jsx |
+| `c1IkzP` | Row your last piece again? | ¿Remar de nuevo tu última pieza? | src/views/mobile/MobileToday.jsx |
 | `9iZxB0` | ROWING | REMANDO | Live status, all capitals · src/views/ErgLiveView.jsx |
 | `cJp6m0` | Rowing CP {cp}W | CP de remo {cp}W | src/views/OverviewView.jsx |
 | `kBKd0c` | Rowing CP {cp}W · bike FTP {ftp}W | CP de remo {cp}W · FTP de bici {ftp}W | src/views/OverviewView.jsx |
@@ -398,6 +435,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `J6bV0E` | Scored from average power {watts} W against your rowing CP {threshold} W (intensity {factor}). | Puntuado con la potencia promedio de {watts} W frente a tu CP de remo de {threshold} W (intensidad {factor}). | src/components/session/SessionSummary.jsx |
 | `eIdIwi` | Scored from sRPE {srpe} and the duration. | Puntuado con el sRPE {srpe} y la duración. | src/components/session/SessionSummary.jsx |
 | `MC_dgX` | Scored on the readings that arrived — some were missing. | Se puntuó con las lecturas que llegaron; faltaron algunas. | src/views/mobile/MobileToday.jsx |
+| `Q3eLed` | Searching for PM5s… | Buscando PM5… | Shown while the app searches for nearby PM5 rowing monitors · src/components/PM5Picker.jsx · src/live-erg/LiveErgSession.jsx |
 | `R4OWFD` | Sections | Secciones | src/App.jsx |
 | `dWPDm3` | Selected range | Tramo seleccionado | src/components/session/RangeSummary.jsx |
 | `CqO9qC` | Session | Sesión | src/views/SessionView.jsx |
@@ -425,14 +463,16 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `pXBndC` | speed from distance and time | velocidad a partir de la distancia y el tiempo | Session caption list item · src/components/session/ProvenanceNote.jsx |
 | `I6SWEy` | Split | Parcial | src/components/session/SplitsTable.jsx |
 | `PfQ5ex` | Split distance | Distancia del parcial | src/components/session/SplitsTable.jsx |
+| `FxzkbD` | SplitIQ can't use Bluetooth. In Settings › Apps › SplitIQ › Permissions, allow Nearby devices (Location on Android 11 and older), then tap Connect again. | SplitIQ no puede usar el Bluetooth. En Configuración › Aplicaciones › SplitIQ › Permisos, permite Dispositivos cercanos (Ubicación en Android 11 y versiones anteriores) y vuelve a tocar Conectar. | Android app error. Settings › Apps › SplitIQ › Permissions, Nearby devices and Location are Android's own menu and permission names: use the names Android shows in Spanish · src/constants/pm5ErrorMessages.js |
 | `a8VA-2` | SplitIQ's access at Strava had already ended. | El acceso de SplitIQ en Strava ya había terminado. | src/utils/stravaDisconnect.js |
 | `1CJQmA` | Splits | Parciales | src/views/SessionView.jsx |
 | `VNbzs6` | Sprint | Sprint | Training zone name · src/constants/srpeGuideMessages.js |
 | `AlJs8G` | sRPE — talk-test anchored | sRPE — según la prueba del habla | sRPE stays as is · src/components/LogSessionForm.jsx |
 | `ZbsEjC` | sRPE SCALE · TALK-TEST ANCHORED (asked every session) | ESCALA sRPE · SEGÚN LA PRUEBA DEL HABLA (se pregunta en cada sesión) | sRPE stays as is; the rest is in capitals except the parenthesis · src/views/LogView.jsx |
 | `cEmihp` | sRPE target: | sRPE objetivo: | Followed by a number or the word easy; sRPE stays as is · src/components/WorkoutTarget.jsx |
+| `tXkhj_` | Start | Empezar | src/live-erg/LiveErgSession.jsx |
 | `vjiwd1` | START A SESSION | INICIA UNA SESIÓN | Heading, all capitals · src/views/mobile/MobileTrain.jsx |
-| `Ul5Zpl` | START SESSION | INICIAR SESIÓN DE ENTRENAMIENTO | Button, all capitals · src/views/mobile/MobileToday.jsx |
+| `hLItl9` | Start on PM5 | Empezar en el PM5 | src/live-erg/LiveErgSession.jsx · src/views/mobile/MobileToday.jsx |
 | `GCJTE0` | Stay | Quedarse | Cancel leaving a live session · src/components/mobile/SessionExitBar.jsx |
 | `lqrTOx` | Steady (UT1) | Constante (UT1) | sRPE scale, effort 5-6 · src/constants/srpeGuideMessages.js |
 | `maUeij` | Strava access was revoked. Reconnect to resume importing. | Se revocó el acceso a Strava. Reconecta para seguir importando. | src/utils/stravaStatus.js |
@@ -487,6 +527,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `TES7sz` | The highest average power over any {window} min of the elapsed time, a pause counting as 0 W. | La potencia promedio más alta en cualquier tramo de {window} min dentro del tiempo total; una pausa cuenta como 0 W. | src/components/session/MoreDetail.jsx |
 | `GNVWcN` | The last sync failed for an unrecognised reason. Try again. | La última sincronización falló por un motivo desconocido. Inténtalo de nuevo. | src/utils/stravaStatus.js |
 | `dOG-38` | The limit has reset — you can sync again now. | El límite se restableció: ya puedes volver a sincronizar. | src/utils/stravaStatus.js |
+| `VIO1J5` | The number in each name is the serial on your monitor's Connect screen. | El número de cada nombre es el número de serie que aparece en la pantalla Connect de tu monitor. | Under the title of the list of nearby rowing monitors. Connect is the name of a menu screen on the PM5 monitor itself, not a button in the app · src/components/PM5Picker.jsx |
 | `yf6xVI` | THE PLAN. | EL PLAN. | Banner lead-in, all capitals · src/views/PlanView.jsx |
 | `-LCNXs` | The scheduled import has not run recently. Sync now to catch up. | La importación programada no se ha ejecutado últimamente. Sincroniza ahora para ponerte al día. | src/utils/stravaStatus.js |
 | `GauHsj` | The session could not be loaded. | No se pudo cargar la sesión. | Session page: the row failed to load · src/components/session/SessionState.jsx |
@@ -497,6 +538,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `k7TAMw` | There is no session with this id in your log. | No hay ninguna sesión con este id en tu registro. | Session page: not found · src/components/session/SessionState.jsx |
 | `TDJakS` | This activity is no longer on Strava, so there is no trace. | Esta actividad ya no está en Strava, así que no hay trazado. | Session page: trace unavailable · src/components/session/sourceCopy.js |
 | `Abevso` | This activity was recorded on a Garmin device. Its trace appears once Garmin attribution is in place. | Esta actividad se registró en un dispositivo Garmin. El trazado aparece cuando la atribución de Garmin esté lista. | Session page: trace unavailable. Garmin is a brand name · src/components/session/sourceCopy.js |
+| `Ji5D5_` | This phone can't use Bluetooth Low Energy, so it can't connect to a PM5. | Este teléfono no puede usar Bluetooth Low Energy, así que no puede conectarse a un PM5. | Android app error. Bluetooth Low Energy is a technology name; PM5 is the rowing machine monitor: keep both · src/constants/pm5ErrorMessages.js |
 | `ffbH3r` | This session has a summary only; no trace is linked to it. | Esta sesión solo tiene resumen; no tiene un trazado vinculado. | Session page: no series source · src/components/session/SessionState.jsx |
 | `2MpFog` | This session has no power reading, so no time in zone. | Esta sesión no tiene lectura de potencia, así que no hay tiempo en zona. | Session page zones · src/components/session/ZoneBar.jsx |
 | `KhVJOP` | THIS WEEK | ESTA SEMANA | Section heading, all capitals · src/views/mobile/MobileToday.jsx |
@@ -506,7 +548,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `va00KW` | Time in zone | Tiempo en zona | src/views/SessionView.jsx |
 | `0yO9ub` | Time in zone: {summary}. | Tiempo en zona: {summary}. | src/components/session/ZoneBar.jsx |
 | `ecUA8p` | Today | Hoy | src/views/mobile/MobileSettings.jsx · src/views/mobile/MobileToday.jsx · src/views/OverviewView.jsx |
-| `SOb7_c` | TODAY | HOY | Section heading, all capitals · src/views/mobile/MobileToday.jsx |
+| `UsgZ88` | TODAY'S SESSION · PLANNED | SESIÓN DE HOY · PLANIFICADA | Card eyebrow, all capitals · src/views/mobile/MobileToday.jsx |
 | `gNLJjH` | Top weight | Peso máximo | src/components/LogSessionForm.jsx |
 | `vMc93p` | Top Wt | Peso máx. | Column: heaviest weight lifted, abbreviated · src/components/LogEntry.jsx |
 | `QJw1Lb` | Top wt (70kg) | Peso máx. (70kg) | Heaviest weight lifted, with an example · src/components/LogSessionForm.jsx |
@@ -519,8 +561,11 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `ouzTMv` | TRAINING LOAD UNAVAILABLE | CARGA DE ENTRENAMIENTO NO DISPONIBLE | All capitals · All capitals · src/views/mobile/MobileAnalytics.jsx · src/views/OverviewView.jsx |
 | `V1yilb` | Training phase | Fase de entrenamiento | src/views/OverviewView.jsx |
 | `rHdlg1` | Triglycerides | Triglicéridos | Blood lipid marker · src/utils/healthRecords.js |
+| `KDw4GX` | Try again | Volver a intentar | Button that searches for PM5 monitors again · src/components/PM5Picker.jsx |
 | `u62wQ4` | Try again in a moment. | Inténtalo de nuevo en un momento. | Error state detail · src/components/StravaConnectPanel.jsx |
 | `sLqPhy` | TSS LOGGED | TSS REGISTRADO | Stat label, all capitals; TSS stays as is · src/views/mobile/MobileToday.jsx |
+| `3lLYyO` | Tweak | Ajustar | src/views/mobile/MobileToday.jsx |
+| `p8iK-C` | Unnamed PM5 | PM5 sin nombre | A rowing monitor in the list that broadcast no name; PM5 is the monitor: keep it · src/components/PM5Picker.jsx |
 | `1ikfyP` | unvalidated | sin validar | Anchor status · src/components/session/ZoneBar.jsx |
 | `zSzBX4` | UPCOMING | PRÓXIMAS | Section heading, all capitals · src/views/mobile/MobileAnalytics.jsx |
 | `qDKS2V` | Upcoming planned sessions (today forward). A dashed border marks a planned session; tap any card for the targets. Cards mark ✓ done once you log the matching session. | Sesiones planificadas de hoy en adelante. Un borde discontinuo indica una sesión planificada; toca cualquier tarjeta para ver los objetivos. Las tarjetas muestran ✓ cuando registras la sesión correspondiente. | src/views/PlanView.jsx |
@@ -535,12 +580,14 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `WLqk2A` | Vol (2260kg) | Vol. (2260kg) | Total volume lifted, with an example · src/components/LogSessionForm.jsx |
 | `_cF7Rs` | Volume | Volumen | src/components/LogSessionForm.jsx |
 | `pJVzhg` | vs {baselineLabel} | vs. {baselineLabel} | Compared with, e.g. vs your avg · Compared with, e.g. vs your avg · src/views/mobile/MobileRecovery.jsx |
+| `sJG8Et` | Watt targets start from a 200 W critical power placeholder until onboarding sets yours. | Las metas de vatios parten de una potencia crítica provisional de 200 W hasta que configures la tuya. | src/live-erg/LiveErgSession.jsx |
 | `6X3pVF` | WATTS | VATIOS | Live metric label · src/views/ErgLiveView.jsx |
 | `VSob3X` | Web Bluetooth is not supported in this browser. Use Chrome or Edge. | Este navegador no es compatible con Web Bluetooth. Usa Chrome o Edge. | Chrome and Edge are browser names: keep them · src/constants/pm5ErrorMessages.js |
 | `rjcD_9` | Weighted power | Potencia ponderada | src/components/session/MoreDetail.jsx |
 | `eWX1fY` | Weighted power divided by the average power, {avg} W. 1.00 is an even output throughout. | La potencia ponderada dividida entre la potencia promedio, {avg} W. 1.00 es un esfuerzo parejo de principio a fin. | src/components/session/MoreDetail.jsx |
 | `Who23M` | Weighted power divided by the average power. 1.00 is an even output throughout. | La potencia ponderada dividida entre la potencia promedio. 1.00 es un esfuerzo parejo de principio a fin. | src/components/session/MoreDetail.jsx |
 | `HioAOv` | Where this data comes from | De dónde vienen estos datos | src/components/session/ProvenanceNote.jsx |
+| `cwQOBC` | While you row, show your intervals, watt targets and split table. Connecting to the PM5 and saving stay the same. | Mientras remas, muestra tus intervalos, tus objetivos de vatios y la tabla de parciales. La conexión con el PM5 y el guardado no cambian. | Under the new live screen switch. PM5 is the rowing machine's monitor: keep it · src/views/mobile/MobileSettings.jsx |
 | `LRklOm` | Words impossible. All-out. Race/test efforts only. | Imposible hablar. A tope. Solo en competencias o pruebas. | sRPE scale, effort 9-10: the talk test · src/constants/srpeGuideMessages.js |
 | `qRILxq` | Work | Trabajo | src/components/session/SessionSummary.jsx |
 | `0qdR_Q` | working avg power | potencia promedio de trabajo | src/views/OverviewView.jsx |

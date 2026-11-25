@@ -48,4 +48,11 @@ describe('SettingsView', () => {
     render(<SettingsView />);
     expect(screen.queryByRole('status')).toBeNull();
   });
+
+  it('shows the baked-in build identifier under About', () => {
+    render(<SettingsView />);
+    expect(screen.getByRole('heading', { name: 'About' })).toBeInTheDocument();
+    const line = screen.getByLabelText('Build dev');
+    expect(line).toHaveTextContent('Build dev');
+  });
 });

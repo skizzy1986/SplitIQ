@@ -9,7 +9,11 @@ import Button from '../Button.jsx';
 // (HANDOFF.md §4), so without this the only exit was the Android back button,
 // which a browser tab does not route to the app. `confirm`, when set, is the
 // sentence shown before leaving: something on screen would be lost.
-export default function SessionExitBar({ onExit, confirm = null }) {
+export default function SessionExitBar({
+  onExit,
+  confirm = null,
+  to = 'train',
+}) {
   const [asking, setAsking] = useState(false);
   // The risk can pass while the question is open (a save settles); then the
   // question no longer applies and Back leaves directly again.
@@ -83,9 +87,15 @@ export default function SessionExitBar({ onExit, confirm = null }) {
         >
           <path d="M15 5l-7 7 7 7" />
         </svg>
-        <Trans comment="Leave a live session for the Train start screen">
-          Back to Train
-        </Trans>
+        {to === 'today' ? (
+          <Trans comment="Leave the interval planner for Today">
+            Back to Today
+          </Trans>
+        ) : (
+          <Trans comment="Leave a live session for the Train start screen">
+            Back to Train
+          </Trans>
+        )}
       </button>
     </div>
   );

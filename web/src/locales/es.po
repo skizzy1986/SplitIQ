@@ -22,6 +22,11 @@ msgstr "BICI"
 msgid "Body"
 msgstr "Cuerpo"
 
+#. Accessible label on the loading screen. The identifier matches the Obtainium version on Android (for example 1.3.0+1249), a short commit on the web, or dev locally.
+#: src/components/SplashScreen.jsx
+msgid "Build {APP_BUILD}"
+msgstr "Versión {APP_BUILD}"
+
 #. Login error. Only shown in Spanish; English shows the server message.
 #: src/utils/authError.js
 msgid "Confirm your email address before signing in."

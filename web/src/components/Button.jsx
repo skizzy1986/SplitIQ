@@ -25,7 +25,7 @@ export default function Button({
         borderRadius: RADIUS.pill,
         border: primary ? 'none' : `1px solid ${THEME.border}`,
         background: primary ? THEME.accent : THEME.raised,
-        color: primary ? THEME.surface : THEME.text,
+        color: primary ? THEME.onAccent : THEME.text,
         fontFamily: FONT.sans,
         fontSize: TYPE.body.size,
         fontWeight: TYPE.label.weight,

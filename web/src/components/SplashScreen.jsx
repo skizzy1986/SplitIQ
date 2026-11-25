@@ -4,6 +4,7 @@ import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion.js';
 import { FONT } from '../constants/type.js';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { brandLine } from '../utils/brandLine.js';
+import { APP_BUILD } from '../utils/appBuild.js';
 
 const CSS = splashCss(THEME);
 
@@ -11,7 +12,7 @@ const MARK_PATH = 'M30 88 C 44 88, 46 40, 62 40 C 78 40, 80 88, 94 88';
 
 export default function SplashScreen() {
   const reduced = usePrefersReducedMotion();
-  const { i18n } = useLingui();
+  const { i18n, t } = useLingui();
   const line = brandLine(i18n.locale);
   return (
     <div
@@ -97,6 +98,16 @@ export default function SplashScreen() {
         <Trans comment="Splash-screen loading caption, all capitals">
           SYNCING TRAINING LOG
         </Trans>
+      </div>
+      <div
+        className="siq-splash__build"
+        aria-label={t({
+          message: `Build ${APP_BUILD}`,
+          comment:
+            'Accessible label on the loading screen. The identifier matches the Obtainium version on Android (for example 1.3.0+1249), a short commit on the web, or dev locally.',
+        })}
+      >
+        {APP_BUILD}
       </div>
     </div>
   );

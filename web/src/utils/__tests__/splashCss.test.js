@@ -15,6 +15,7 @@ const SUBSTITUTED = [
   ['surfaceAlt', '#040404'],
   ['surfaceDeep', '#050505'],
   ['divider', '#060606'],
+  ['muted', '#070707'],
 ];
 
 describe('splashCss', () => {
@@ -39,6 +40,15 @@ describe('splashCss', () => {
   // The substitution tests above pass a literal hex, so they never saw it.
   it('emits no unparsed colour when given the real THEME', () => {
     expect(splashCss(THEME)).not.toContain('NaN');
+  });
+
+  it('places the build identifier in mono tabular figures from the muted token', () => {
+    const css = splashCss({ ...THEME, muted: '#070707' });
+    expect(css).toContain('.siq-splash__build');
+    expect(css).toContain('font-variant-numeric: tabular-nums');
+    expect(css).toContain('var(--font-mono)');
+    expect(css).toContain(`${TYPE.caption.size}px`);
+    expect(css).toContain('#070707');
   });
 
   it('defines all ten namespaced keyframes', () => {

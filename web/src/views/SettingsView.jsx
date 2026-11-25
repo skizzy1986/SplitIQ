@@ -2,11 +2,12 @@ import React from 'react';
 import StravaConnectPanel from '../components/StravaConnectPanel.jsx';
 import LanguageToggle from '../components/LanguageToggle.jsx';
 import ThemeControl from '../components/ThemeControl.jsx';
-import { Trans } from '@lingui/react/macro';
+import { Trans, useLingui } from '@lingui/react/macro';
 import { THEME } from '../constants/theme.js';
 import ScreenHeader from '../components/ScreenHeader.jsx';
 import { FONT } from '../constants/type.js';
 import { RADIUS, SPACE, TYPE } from '../constants/tokens.js';
+import { APP_BUILD } from '../utils/appBuild.js';
 
 const sectionStyle = {
   display: 'flex',
@@ -26,6 +27,7 @@ const headingStyle = {
 // Concept2 and the rest land here as sibling panels rather than growing another
 // tab each.
 export default function SettingsView({ onSynced, notice, heading = true }) {
+  const { t } = useLingui();
   return (
     <div
       style={{
@@ -92,6 +94,37 @@ export default function SettingsView({ onSynced, notice, heading = true }) {
           </Trans>
         </h2>
         <StravaConnectPanel onSynced={onSynced} />
+      </section>
+      <section aria-labelledby="settings-about" style={sectionStyle}>
+        <h2 id="settings-about" style={headingStyle}>
+          <Trans comment="Settings section heading for the app version">
+            About
+          </Trans>
+        </h2>
+        <p
+          aria-label={t({
+            message: `Build ${APP_BUILD}`,
+            comment:
+              'Accessible label for the build identifier in Settings. Same identifier as the loading screen.',
+          })}
+          style={{
+            margin: 0,
+            background: THEME.surface,
+            border: `1px solid ${THEME.border}`,
+            borderRadius: RADIUS.md,
+            padding: `${SPACE.lg}px`,
+            color: THEME.muted,
+            fontFamily: FONT.mono,
+            fontSize: TYPE.body.size,
+            fontWeight: TYPE.body.weight,
+            lineHeight: TYPE.body.lineHeight,
+            fontVariantNumeric: 'tabular-nums',
+          }}
+        >
+          <Trans comment="Settings About line. The identifier is the current app build.">
+            Build {APP_BUILD}
+          </Trans>
+        </p>
       </section>
     </div>
   );

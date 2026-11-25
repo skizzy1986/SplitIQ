@@ -9,13 +9,14 @@ proper names stay as they are (SplitIQ, Strava). Numbers use a decimal point.
 Placeholders in braces — `{count}`, `{0}` — must stay exactly as written; their order
 may change. To correct a line, reply with its **row** id and the new Spanish.
 
-## Dashboard (src/locales, 28 strings)
+## Dashboard (src/locales, 29 strings)
 
 | Row | English | Español | Where / note |
 |---|---|---|---|
 | `xszP8W` | ＋ ADD TO HOME SCREEN | ＋ AGREGAR A LA PANTALLA DE INICIO | Install-the-app button, all capitals · src/AuthGate.jsx |
 | `V3Mep1` | BIKE | BICI | Splash word cycle, one discipline, all capitals · src/components/SplashScreen.jsx |
 | `bGQplw` | Body | Cuerpo | Mobile tab bar: readiness, sleep, heart rate · src/constants/destinations.js |
+| `zHd2A6` | Build {APP_BUILD} | Versión {APP_BUILD} | Accessible label on the loading screen. The identifier matches the Obtainium version on Android (for example 1.3.0+1249), a short commit on the web, or dev locally. · src/components/SplashScreen.jsx |
 | `vlj0xi` | Confirm your email address before signing in. | Confirma tu correo electrónico antes de iniciar sesión. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
 | `qGBulj` | Could not reach the server. Check your connection and try again. | No pudimos conectarnos con el servidor. Revisa tu conexión e inténtalo de nuevo. | Login error when the device is offline. Only shown in Spanish. · src/utils/authError.js |
 | `2e0dGW` | EMAIL | CORREO ELECTRÓNICO | Login form field label, all capitals · src/AuthGate.jsx |
@@ -42,7 +43,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `hdxhKx` | We could not sign you in. Try again. | No pudimos iniciar sesión. Inténtalo de nuevo. | Login error for any unrecognised cause. Only shown in Spanish. · src/utils/authError.js |
 | `y1oEoC` | Wrong email or password. | Correo o contraseña incorrectos. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
 
-## Dashboard views (src/locales/views, 535 strings)
+## Dashboard views (src/locales/views, 537 strings)
 
 | Row | English | Español | Where / note |
 |---|---|---|---|
@@ -97,6 +98,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `4VXqzE` | 8-WEEK TSS HISTORY | HISTORIAL DE TSS · 8 SEMANAS | Chart title, all capitals; TSS stays as is · src/views/mobile/MobileAnalytics.jsx |
 | `I7ivWQ` | A cycling session. | Una sesión de ciclismo. | src/views/SessionView.jsx |
 | `_jWxW-` | A rowing session. | Una sesión de remo. | src/views/SessionView.jsx |
+| `uyJsf6` | About | Acerca de | Settings section heading for the app version · src/views/SettingsView.jsx |
 | `0Q8dUF` | Access at Strava revoked. | Se revocó el acceso en Strava. | src/utils/stravaDisconnect.js |
 | `GNgMDz` | Across the session | A lo largo de la sesión | src/views/SessionView.jsx |
 | `Jp1XPs` | Active recovery | Recuperación activa | Cycling power level (Coggan Z1) · src/components/session/zoneLabels.js |
@@ -136,6 +138,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `qkgdaf` | Bluetooth is off. Turn it on in your phone's settings, then tap Connect again. | El Bluetooth está apagado. Actívalo en la configuración del teléfono y vuelve a tocar Conectar. | Android app error. Connect is the CONNECT TO PM5 button: match its translation · src/constants/pm5ErrorMessages.js |
 | `bGQplw` | Body | Cuerpo | Desktop body screen heading · src/views/RecoveryView.jsx |
 | `e0F-Wf` | BODYWEIGHT — 14 DAYS (kg) | PESO CORPORAL — 14 DÍAS (kg) | Chart title, all capitals; kg stays as is · src/views/mobile/MobileRecovery.jsx |
+| `zHd2A6` | Build {APP_BUILD} | Versión {APP_BUILD} | Accessible label for the build identifier in Settings. Same identifier as the loading screen. · Settings About line. The identifier is the current app build. · src/views/SettingsView.jsx |
 | `DiteVC` | C2 CONNECT | CONEXIÓN C2 | Screen title, all capitals; C2 is Concept2, the rowing machine maker: keep it · src/views/ErgLiveView.jsx |
 | `khJ5Qr` | cadence | cadencia | Session caption list item · src/components/session/ProvenanceNote.jsx |
 | `4VcKfR` | Cadence | Cadencia | src/components/session/SplitsTable.jsx · src/components/session/TraceTooltip.jsx |

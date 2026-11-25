@@ -8,9 +8,9 @@ import { fromDegrees, toDegrees } from '../../anatomy/utils/cameraPose.js';
 // Deep-link state rides in the hash so the Vercel catch-all rewrite never has
 // to know about it: #guide=metrics&t=1.60&tab=moments&paused. Unknown keys and
 // malformed values are dropped rather than trusted. Moved here from
-// utils/squatRoute.js, which RouteRoot reads at first paint: only the tool
-// itself parses a hash, so these bytes now load with the tool, not with the
-// dashboard.
+// utils/squatRoute.js (since renamed utils/movementRoute.js), which RouteRoot
+// reads at first paint: only the tool itself parses a hash, so these bytes now
+// load with the tool, not with the dashboard.
 
 export const GUIDE_PANE_IDS = [
   'phases',

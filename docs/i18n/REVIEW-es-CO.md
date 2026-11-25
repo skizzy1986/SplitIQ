@@ -612,6 +612,7 @@ No strings yet.
 | Row | English | Español | Where / note |
 |---|---|---|---|
 | `offline` | The squat tool needs a connection the first time. Reconnect and reload. | La herramienta de sentadilla necesita conexión la primera vez. Conéctate y vuelve a cargar. | /squat first visit with no connection |
+| `offline-row` | The rowing tool needs a connection the first time. Reconnect and reload. | La herramienta de remo necesita conexión la primera vez. Conéctate y vuelve a cargar. | /row first visit with no connection |
 | `err-head` | SOMETHING WENT WRONG | ALGO SALIÓ MAL | Whole-app crash screen, heading |
 | `err-body` | The error has been reported. Try again, and if it keeps happening reload the app. | Ya reportamos el error. Inténtalo de nuevo y, si sigue pasando, vuelve a cargar la app. | Whole-app crash screen, body |
 | `err-retry` | TRY AGAIN | INTÉNTALO DE NUEVO | Whole-app crash screen, button |

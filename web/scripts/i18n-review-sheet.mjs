@@ -119,7 +119,9 @@ export function preChunkRows() {
   const add = (key, table, note) => {
     if (table.es) rows.push({ id: key, en: table.en, es: table.es, note });
   };
-  add('offline', OFFLINE_TEXT, '/squat first visit with no connection');
+  // The squat keeps its original row id, so a reviewer's reply still finds it.
+  add('offline', OFFLINE_TEXT.squat, '/squat first visit with no connection');
+  add('offline-row', OFFLINE_TEXT.row, '/row first visit with no connection');
   add('err-head', ROOT_ERROR_TEXT.heading, 'Whole-app crash screen, heading');
   add('err-body', ROOT_ERROR_TEXT.body, 'Whole-app crash screen, body');
   add('err-retry', ROOT_ERROR_TEXT.retry, 'Whole-app crash screen, button');

@@ -1,5 +1,6 @@
 import {
   LANG_KEY,
+  LANGS,
   LANG_TAG,
   LANG_UI,
   OFFLINE_TEXT,
@@ -175,7 +176,7 @@ describe('the language preference', () => {
 
   it('has both languages for every pre-chunk string', () => {
     for (const table of [
-      OFFLINE_TEXT,
+      ...Object.values(OFFLINE_TEXT),
       ROOT_ERROR_TEXT.heading,
       ROOT_ERROR_TEXT.body,
       ROOT_ERROR_TEXT.retry,
@@ -191,5 +192,24 @@ describe('the language preference', () => {
 
   it('names each language in its own language', () => {
     expect(LANG_UI.native).toEqual({ en: 'English', es: 'Español' });
+  });
+
+  // Keyed by movement: RouteRoot shows the line for the tool whose chunk
+  // failed. The registry's test pins the keys to the registered movements.
+  it("both languages for every movement's offline line", () => {
+    expect(Object.keys(OFFLINE_TEXT).length).toBeGreaterThan(1);
+    for (const [movement, line] of Object.entries(OFFLINE_TEXT)) {
+      expect(Object.keys(line).sort(), movement).toEqual([...LANGS].sort());
+      expect(line.en, movement).toMatch(
+        /^The \w+ tool needs a connection the first time\. Reconnect and reload\.$/
+      );
+      expect(line.es, movement).toMatch(
+        /^La herramienta de \w+ necesita conexión la primera vez\. Conéctate y vuelve a cargar\.$/
+      );
+    }
+    expect(OFFLINE_TEXT.row).toEqual({
+      en: 'The rowing tool needs a connection the first time. Reconnect and reload.',
+      es: 'La herramienta de remo necesita conexión la primera vez. Conéctate y vuelve a cargar.',
+    });
   });
 });

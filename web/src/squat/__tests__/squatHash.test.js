@@ -22,7 +22,8 @@ const EMPTY = {
   heat: false,
 };
 
-// Moved from utils/__tests__/squatRoute.test.js with the module (R11, #439).
+// Moved from utils/__tests__/squatRoute.test.js (since renamed
+// movementRoute.test.js) with the module (R11, #439).
 // Only the empty state grew: it now carries the three R11 keys.
 describe('parseSquatHash', () => {
   it('reads every supported key', () => {

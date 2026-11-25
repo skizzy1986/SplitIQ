@@ -35,7 +35,10 @@ import { REFERENCES } from '../../../squat/constants/references.js';
 import { MV_TABLE } from '../../../squat/constants/velocityTable.js';
 import { ATTRIBUTION } from '../../../squat/constants/attribution.js';
 import { BARBELL } from '../../../squat/constants/barbell.js';
-import { canonicalSquatUrl, isSquatPath } from '../../../utils/squatRoute.js';
+import {
+  canonicalMovementUrl,
+  movementForPath,
+} from '../../../utils/movementRoute.js';
 
 const ROOT = process.cwd();
 const SOURCE = readFileSync(
@@ -133,11 +136,15 @@ describe('SQUAT_MOVEMENT', () => {
   // RouteRoot keeps its own '/squat' (dashboard first paint); the two must agree.
   it('names the route the dashboard router recognises', () => {
     const path = SQUAT_MOVEMENT.route.path;
-    expect(isSquatPath(path)).toBe(true);
-    expect(isSquatPath(`${path}/`)).toBe(true);
-    expect(canonicalSquatUrl({ pathname: path })).toBeNull();
+    expect(movementForPath(path)).toBe(SQUAT_MOVEMENT.id);
+    expect(movementForPath(`${path}/`)).toBe(SQUAT_MOVEMENT.id);
+    expect(canonicalMovementUrl({ pathname: path })).toBeNull();
     expect(
-      canonicalSquatUrl({ pathname: `${path}/`, search: '?a=1', hash: '#t=1' })
+      canonicalMovementUrl({
+        pathname: `${path}/`,
+        search: '?a=1',
+        hash: '#t=1',
+      })
     ).toBe(`${path}?a=1#t=1`);
   });
 

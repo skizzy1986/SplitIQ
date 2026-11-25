@@ -28,6 +28,8 @@ import {
   vercelRules,
 } from '../movementAssets.mjs';
 import { DATA_ASSET } from '../../src/squat/constants/dataAsset.js';
+import { OFFLINE_TEXT } from '../../src/i18n/lang.js';
+import { MOVEMENT_ROUTES } from '../../src/utils/movementRoute.js';
 
 const WEB = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const ROOT = '/repo/web';
@@ -140,6 +142,26 @@ describe('the registry', () => {
     }
     expect(isToolOnly([`${ROOT}/${SCENE.root}`])).toBe(true);
     expect(existsSync(join(WEB, SCENE.root))).toBe(true);
+  });
+
+  it("each movement's root is a committed file", () => {
+    for (const { root } of MOVEMENTS) {
+      expect(existsSync(join(WEB, root)), root).toBe(true);
+    }
+  });
+
+  // RouteRoot's table is literal, so no build data reaches the first paint;
+  // this is what keeps it and the registry the same list.
+  it('MOVEMENT_ROUTES lists exactly the registered routes and ids', () => {
+    expect(MOVEMENT_ROUTES).toEqual(
+      Object.fromEntries(MOVEMENTS.map((m) => [m.route, m.id]))
+    );
+  });
+
+  it('OFFLINE_TEXT has a line for every movement and no other', () => {
+    expect(Object.keys(OFFLINE_TEXT).sort()).toEqual(
+      MOVEMENTS.map((m) => m.id).sort()
+    );
   });
 
   it("stems are unique and none is another's stem plus '-'; each sample matches only its own pattern", () => {

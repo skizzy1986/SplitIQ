@@ -3,11 +3,13 @@ import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 
 const NEUTRAL_MESSAGE =
-  'src/anatomy/ is movement-neutral: take movement data as an argument, never import squat/, movements/ or utils/squatRoute.';
+  'src/anatomy/ is movement-neutral: take movement data as an argument, never import squat/, row/, tool/, movements/ or utils/movementRoute.';
 const ANATOMY_NEUTRAL = [
   { group: ['**/squat/**'], message: NEUTRAL_MESSAGE },
+  { group: ['**/row/**'], message: NEUTRAL_MESSAGE },
+  { group: ['**/tool/**'], message: NEUTRAL_MESSAGE },
   { group: ['**/movements/**'], message: NEUTRAL_MESSAGE },
-  { group: ['**/utils/squatRoute*'], message: NEUTRAL_MESSAGE },
+  { group: ['**/utils/movementRoute*'], message: NEUTRAL_MESSAGE },
 ];
 
 export default [
@@ -185,6 +187,7 @@ export default [
     // tests read its doc.
     files: [
       'src/squat/__tests__/**/*.{js,jsx}',
+      'src/row/**/__tests__/**/*.{js,jsx}',
       'src/anatomy/**/__tests__/**/*.{js,jsx}',
       'src/movements/**/__tests__/**/*.{js,jsx}',
     ],

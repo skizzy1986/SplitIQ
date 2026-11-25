@@ -43,6 +43,15 @@ vi.mock('../hooks/useLabResults.js', () => ({
 vi.mock('../hooks/useInjuries.js', () => ({
   useInjuries: () => readInjuries(),
 }));
+// Progress's panes have their own data; only the foot of the screen matters here.
+vi.mock('../views/mobile/MobileAnalytics.jsx', () => ({
+  default: () => <div data-testid="load-pane" />,
+}));
+vi.mock('../views/mobile/MobileSessionLog.jsx', () => ({
+  default: () => null,
+}));
+vi.mock('../views/mobile/MobileStrength.jsx', () => ({ default: () => null }));
+vi.mock('../views/ErgView.jsx', () => ({ default: () => null }));
 vi.mock('recharts', async () => {
   const actual = await vi.importActual('recharts');
   return {
@@ -55,6 +64,8 @@ import SettingsView from '../views/SettingsView.jsx';
 import RecoveryView from '../views/RecoveryView.jsx';
 import MobileRecovery from '../views/mobile/MobileRecovery.jsx';
 import MobileToday from '../views/mobile/MobileToday.jsx';
+import MobileProgress from '../views/mobile/MobileProgress.jsx';
+import OverviewView from '../views/OverviewView.jsx';
 
 const emptyVitals = {
   latest: null,
@@ -167,6 +178,55 @@ describe('Today (mobile)', () => {
     render(<MobileToday />);
     expect(screen.queryByText('READINESS')).toBeNull();
     expect(screen.queryByText(/Sync vitals from Body/)).toBeNull();
+  });
+});
+
+// Retro Gate 3 (#810, CR 1 / RC 1, Blocker): the Strava panel sat at the foot
+// of mobile Progress on every build.
+describe('Progress (mobile)', () => {
+  it('shows the Strava panel on the owner’s build', () => {
+    render(<MobileProgress />);
+    expect(screen.getByTestId('load-pane')).toBeInTheDocument();
+    expect(screen.getByTestId('strava-panel')).toBeInTheDocument();
+  });
+
+  it('hides it on a testers build, and keeps the Load pane', () => {
+    mocks.testers = true;
+    render(<MobileProgress />);
+    expect(screen.getByTestId('load-pane')).toBeInTheDocument();
+    expect(screen.queryByTestId('strava-panel')).toBeNull();
+  });
+});
+
+// Retro Gate 3 (#810, CR 2 / RC 2): desktop Today follows mobile Today, so no
+// readiness card or "Open Body" prompt points at a vitals sync that isn't there.
+describe('Today (desktop)', () => {
+  const props = {
+    latest: null,
+    loadData: [],
+    loggedSessions: [],
+    latestErg: null,
+    totalErgDist: 0,
+    totalSessions: 0,
+    isWide: true,
+    onOpenBody: () => {},
+    onOpenHistory: () => {},
+  };
+
+  it('shows the readiness card and the Open Body prompt on the owner’s build', () => {
+    render(<OverviewView {...props} />);
+    expect(screen.getByText('READINESS')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Open Body' })
+    ).toBeInTheDocument();
+  });
+
+  it('hides both on a testers build, and keeps the stat tiles', () => {
+    mocks.testers = true;
+    render(<OverviewView {...props} />);
+    expect(screen.queryByText('READINESS')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Open Body' })).toBeNull();
+    expect(screen.getByText('SESSIONS LOGGED')).toBeInTheDocument();
   });
 });
 

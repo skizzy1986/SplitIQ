@@ -12,6 +12,7 @@ import SegmentedControl from '../../components/SegmentedControl.jsx';
 import ScreenHeader from '../../components/ScreenHeader.jsx';
 import { THEME } from '../../constants/theme.js';
 import { SPACE } from '../../constants/tokens.js';
+import { isTestersBuild } from '../../utils/testersBuild.js';
 
 // Progress is the reviewing: is the training working. It absorbs what were the
 // separate "Log" and "Strength" tabs — DESIGN_BRIEF.md §2.2.
@@ -107,8 +108,9 @@ export default function MobileProgress({ onOpenTrain, initialPane, onPane }) {
       {body}
       {/* Progress is where the user reviews whether the log is complete, so the
           import's health belongs at the foot of it. Deliberately NOT a sixth
-          destination — DESTINATIONS is the fixed five from DESIGN_BRIEF.md §2.2. */}
-      <StravaConnectPanel compact />
+          destination — DESTINATIONS is the fixed five from DESIGN_BRIEF.md §2.2.
+          Strava is the owner's own account: not on a testers build (#793). */}
+      {!isTestersBuild() && <StravaConnectPanel compact />}
     </div>
   );
 }

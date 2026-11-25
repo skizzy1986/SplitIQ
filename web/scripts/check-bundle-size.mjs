@@ -133,8 +133,17 @@ import { parsePo } from './i18n-review-sheet.mjs';
 // confirm, and five views-catalog strings. Worth it: without it the phone's
 // live erg screen is a dead end in a browser tab. Rule: 419.1 + 2 = 421.1, to
 // the nearest whole KB: 421.
+//
+// TOTAL raised 421 -> 425 on 2026-11-25 (Scott approved 425 KB for #696: the
+// Android PM5 list; first approved as 419 -> 424 on 2026-11-22, re-measured
+// after rebasing onto #742, #765 and #767). Measured 420.4 -> 423.7 KB with
+// ENTRY unchanged at 204.3. The growth is the list screen (PM5Picker), the
+// scan and connect-by-id service (pm5Scan) and the hook's list state, all in
+// the lazy erg chunk and none of it on first paint; the plugin it calls was
+// already in the entry for the Web Bluetooth shim. Measured + 2 would round
+// to 426; Scott set 425 explicitly, leaving 1.3 KB of headroom.
 const MAX_ENTRY_GZIP_KB = 208;
-const MAX_TOTAL_GZIP_KB = 421;
+const MAX_TOTAL_GZIP_KB = 425;
 
 // Squat tool, measured 2026-11-04 on PR1 (no three.js yet): SQUAT_ENTRY
 // 107.2 KB, SQUAT_TOTAL 18.8 KB. Entry gets the approved +10 KB (117), total
@@ -220,7 +229,12 @@ const MAX_SQUAT_3D_GZIP_KB = 145;
 // catalog gained the page's Spanish, about 130 messages. Measured 8.0 -> 10.2
 // KB. Fetched only by a visitor who chose Spanish, never precached. Rule:
 // 10.2 + 2 = 12.2, to the nearest whole KB: 12.
-const MAX_DASH_ES_GZIP_KB = 12;
+//
+// Raised 12 -> 14 on 2026-11-22 (Scott, at Gate 3, #696): the views catalog
+// gained the Android PM5 list's Spanish and its five connect errors, 16
+// messages. Measured 12.0 KB. Fetched only by a visitor who chose Spanish,
+// never precached. Rule: 12.0 + 2 = 14.0, to the nearest whole KB: 14.
+const MAX_DASH_ES_GZIP_KB = 14;
 // The stream measured 2,202,168 bytes; 2.3 MB keeps a re-run of the pipeline
 // from quietly doubling every first visit.
 const MAX_SQUAT_DATA_BYTES = 2_300_000;

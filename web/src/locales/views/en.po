@@ -404,6 +404,11 @@ msgstr "BLOOD PRESSURE"
 msgid "BLOODS · LIPID PANEL"
 msgstr "BLOODS · LIPID PANEL"
 
+#. Android app error. Connect is the CONNECT TO PM5 button: match its translation
+#: src/constants/pm5ErrorMessages.js
+msgid "Bluetooth is off. Turn it on in your phone's settings, then tap Connect again."
+msgstr "Bluetooth is off. Turn it on in your phone's settings, then tap Connect again."
+
 #. Desktop body screen heading
 #: src/views/RecoveryView.jsx
 msgid "Body"
@@ -453,6 +458,8 @@ msgid "CALORIES"
 msgstr "CALORIES"
 
 #. Button
+#. Button that closes the list of monitors without connecting
+#: src/components/PM5Picker.jsx
 #: src/components/StravaConnectPanel.jsx
 msgid "Cancel"
 msgstr "Cancel"
@@ -479,6 +486,11 @@ msgstr "CAUTION"
 #: src/components/StravaConnectPanel.jsx
 msgid "Checking Strava connection…"
 msgstr "Checking Strava connection…"
+
+#. Title of the list of nearby rowing monitors; PM5 is the monitor: keep it
+#: src/components/PM5Picker.jsx
+msgid "Choose your PM5"
+msgstr "Choose your PM5"
 
 #. Where live rowing works: browser names, then device kinds
 #: src/views/ErgLiveView.jsx
@@ -550,6 +562,16 @@ msgstr "CONNECTED"
 msgid "Connected · waiting for the first sync"
 msgstr "Connected · waiting for the first sync"
 
+#. Status line while the app connects to the monitor the user tapped; {name} is its broadcast name, e.g. PM5 431719123 Row
+#: src/components/PM5Picker.jsx
+msgid "Connecting to {name}…"
+msgstr "Connecting to {name}…"
+
+#. On the list row of the monitor being connected
+#: src/components/PM5Picker.jsx
+msgid "Connecting…"
+msgstr "Connecting…"
+
 #. Button, busy, all capitals
 #: src/views/ErgLiveView.jsx
 msgid "CONNECTING…"
@@ -575,6 +597,11 @@ msgstr "Could not read the Strava connection status"
 msgid "Could not start the Strava connection. Try again."
 msgstr "Could not start the Strava connection. Try again."
 
+#. Shown above the list of nearby PM5 monitors after the chosen one failed to connect; "it" is that monitor in the list
+#: src/constants/pm5ErrorMessages.js
+msgid "Couldn't connect to that PM5. Check it's awake and not connected to another phone, then tap it again."
+msgstr "Couldn't connect to that PM5. Check it's awake and not connected to another phone, then tap it again."
+
 #. {what} is the card's title in lower case, e.g. blood pressure
 #: src/components/HealthRecordCard.jsx
 msgid "Couldn't load {what}."
@@ -587,6 +614,11 @@ msgstr "Couldn't refresh sessions — showing what loaded earlier."
 #: src/components/HealthRecordCard.jsx
 msgid "Couldn't refresh, showing earlier data."
 msgstr "Couldn't refresh, showing earlier data."
+
+#. Android app error. Connect is the CONNECT TO PM5 button: match its translation
+#: src/constants/pm5ErrorMessages.js
+msgid "Couldn't start searching for PM5s. Tap Connect to try again."
+msgstr "Couldn't start searching for PM5s. Tap Connect to try again."
 
 #. Loading state while counting Strava-sourced sessions before a disconnect
 #: src/components/StravaConnectPanel.jsx
@@ -1200,6 +1232,11 @@ msgstr "No metrics logged for this session."
 msgid "NO PLANNED SESSION TODAY"
 msgstr "NO PLANNED SESSION TODAY"
 
+#. The search found no PM5 rowing monitor in range
+#: src/components/PM5Picker.jsx
+msgid "No PM5 found nearby. Wake your monitor and try again."
+msgstr "No PM5 found nearby. Wake your monitor and try again."
+
 #: src/components/session/SessionTrace.jsx
 msgid "No power or speed was recorded, so there is no pace trace."
 msgstr "No power or speed was recorded, so there is no pace trace."
@@ -1319,6 +1356,11 @@ msgstr "Offline: no saved data yet."
 msgid "Older activities are fetched a page at a time to stay inside Strava rate limits."
 msgstr "Older activities are fetched a page at a time to stay inside Strava rate limits."
 
+#. Hint when no monitor was found and the phone's Location setting is off
+#: src/components/PM5Picker.jsx
+msgid "On Android 11 and older, Location must be on to find a PM5."
+msgstr "On Android 11 and older, Location must be on to find a PM5."
+
 #: src/components/session/SplitsTable.jsx
 msgid "One row every {every}."
 msgstr "One row every {every}."
@@ -1365,6 +1407,11 @@ msgstr "Open Train"
 #: src/components/StravaConnectPanel.jsx
 msgid "Opening Strava…"
 msgstr "Opening Strava…"
+
+#. On a list row whose monitor has not been seen for a few seconds; the row cannot be tapped until it is seen again
+#: src/components/PM5Picker.jsx
+msgid "Out of range"
+msgstr "Out of range"
 
 #. Strava is a brand; RE is relative effort; HR is heart rate
 #: src/views/LogView.jsx
@@ -1443,6 +1490,11 @@ msgstr "Power across {over}, between {lo} and {hi} W."
 #: src/views/ErgLiveView.jsx
 msgid "Power on your PM5.<0/>Tap Connect — your browser will<1/>ask you to select the device."
 msgstr "Power on your PM5.<0/>Tap Connect — your browser will<1/>ask you to select the device."
+
+#. Android app. PM5 is the rowing machine's monitor: keep it. Connect is the button below. The tags are line breaks
+#: src/views/ErgLiveView.jsx
+msgid "Power on your PM5.<0/>Tap Connect, then choose your<1/>monitor from the list."
+msgstr "Power on your PM5.<0/>Tap Connect, then choose your<1/>monitor from the list."
 
 #: src/components/session/MoreDetail.jsx
 msgid "Power over the moving time, averaged over each 30 s, each value raised to the fourth power, those averaged, then the fourth root taken. Hard stretches count for more than their share of the time."
@@ -1657,6 +1709,11 @@ msgstr "Scored from sRPE {srpe} and the duration."
 msgid "Scored on the readings that arrived — some were missing."
 msgstr "Scored on the readings that arrived — some were missing."
 
+#. Shown while the app searches for nearby PM5 rowing monitors
+#: src/components/PM5Picker.jsx
+msgid "Searching for PM5s…"
+msgstr "Searching for PM5s…"
+
 #: src/App.jsx
 msgid "Sections"
 msgstr "Sections"
@@ -1790,6 +1847,11 @@ msgstr "Split"
 #: src/components/session/SplitsTable.jsx
 msgid "Split distance"
 msgstr "Split distance"
+
+#. Android app error. Settings › Apps › SplitIQ › Permissions, Nearby devices and Location are Android's own menu and permission names: use the names Android shows in Spanish
+#: src/constants/pm5ErrorMessages.js
+msgid "SplitIQ can't use Bluetooth. In Settings › Apps › SplitIQ › Permissions, allow Nearby devices (Location on Android 11 and older), then tap Connect again."
+msgstr "SplitIQ can't use Bluetooth. In Settings › Apps › SplitIQ › Permissions, allow Nearby devices (Location on Android 11 and older), then tap Connect again."
 
 #: src/utils/stravaDisconnect.js
 msgid "SplitIQ's access at Strava had already ended."
@@ -2073,6 +2135,11 @@ msgstr "The last sync failed for an unrecognised reason. Try again."
 msgid "The limit has reset — you can sync again now."
 msgstr "The limit has reset — you can sync again now."
 
+#. Under the title of the list of nearby rowing monitors. Connect is the name of a menu screen on the PM5 monitor itself, not a button in the app
+#: src/components/PM5Picker.jsx
+msgid "The number in each name is the serial on your monitor's Connect screen."
+msgstr "The number in each name is the serial on your monitor's Connect screen."
+
 #. Banner lead-in, all capitals
 #: src/views/PlanView.jsx
 msgid "THE PLAN."
@@ -2120,6 +2187,11 @@ msgstr "This activity is no longer on Strava, so there is no trace."
 #: src/components/session/sourceCopy.js
 msgid "This activity was recorded on a Garmin device. Its trace appears once Garmin attribution is in place."
 msgstr "This activity was recorded on a Garmin device. Its trace appears once Garmin attribution is in place."
+
+#. Android app error. Bluetooth Low Energy is a technology name; PM5 is the rowing machine monitor: keep both
+#: src/constants/pm5ErrorMessages.js
+msgid "This phone can't use Bluetooth Low Energy, so it can't connect to a PM5."
+msgstr "This phone can't use Bluetooth Low Energy, so it can't connect to a PM5."
 
 #. Session page: no series source
 #: src/components/session/SessionState.jsx
@@ -2227,6 +2299,11 @@ msgstr "Training phase"
 msgid "Triglycerides"
 msgstr "Triglycerides"
 
+#. Button that searches for PM5 monitors again
+#: src/components/PM5Picker.jsx
+msgid "Try again"
+msgstr "Try again"
+
 #. Error state detail
 #: src/components/StravaConnectPanel.jsx
 msgid "Try again in a moment."
@@ -2236,6 +2313,11 @@ msgstr "Try again in a moment."
 #: src/views/mobile/MobileToday.jsx
 msgid "TSS LOGGED"
 msgstr "TSS LOGGED"
+
+#. A rowing monitor in the list that broadcast no name; PM5 is the monitor: keep it
+#: src/components/PM5Picker.jsx
+msgid "Unnamed PM5"
+msgstr "Unnamed PM5"
 
 #. Anchor status
 #: src/components/session/ZoneBar.jsx

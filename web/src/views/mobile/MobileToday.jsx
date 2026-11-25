@@ -19,6 +19,7 @@ import {
   PLANNED_STATUS,
 } from '../../constants/sessionStatus.js';
 import { THEME } from '../../constants/theme.js';
+import { isTestersBuild } from '../../utils/testersBuild.js';
 import SharedCard from '../../components/Card.jsx';
 import ScreenHeader from '../../components/ScreenHeader.jsx';
 import Button from '../../components/Button.jsx';
@@ -392,106 +393,112 @@ export default function MobileToday({ onStartSession, onOpenBody }) {
         </Card>
       ))}
 
-      <Card>
-        <Label>
-          <Trans comment="Card heading, all capitals">READINESS</Trans>
-        </Label>
-        {readiness?.score == null ? (
-          // computeReadiness returns null when RHR is missing. That is a real
-          // state and must not render as a zero or a confident low score.
-          <>
-            <div
-              style={{
-                fontSize: TYPE.title.size,
-                fontWeight: TYPE.title.weight,
-                color: THEME.muted,
-                marginTop: SPACE.xs,
-              }}
-            >
-              <Trans>No reading this morning</Trans>
-            </div>
-            <div
-              style={{
-                fontSize: TYPE.bodySm.size,
-                color: THEME.muted,
-                marginTop: SPACE.xs,
-              }}
-            >
-              <Trans comment="Body is the name of a tab in the app">
-                Readiness needs a resting heart rate. Sync vitals from Body.
-              </Trans>
-            </div>
-            <Button onClick={() => onOpenBody?.()}>
-              <Trans>Open Body</Trans>
-            </Button>
-          </>
-        ) : (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'flex-end',
-              gap: SPACE.lg,
-              marginTop: SPACE.xs,
-            }}
-          >
-            <div>
-              <div
-                style={{
-                  fontSize: TYPE.display.size,
-                  fontWeight: TYPE.display.weight,
-                  letterSpacing: TYPE.display.letterSpacing,
-                  lineHeight: TYPE.display.lineHeight,
-                  fontFamily: FONT.mono,
-                  color: THEME.text,
-                }}
-              >
-                {readiness.score}
-              </div>
-              <div
-                style={{
-                  fontSize: TYPE.body.size,
-                  fontWeight: TYPE.label.weight,
-                  color: THEME.text,
-                  marginTop: SPACE.xs,
-                }}
-              >
-                {readinessStatusText(i18n, readiness.status)}
-              </div>
-            </div>
-            <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
-              <Label>
-                <Trans comment="Training form (TSB), all capitals">FORM</Trans>
-              </Label>
+      {!isTestersBuild() && (
+        <Card>
+          <Label>
+            <Trans comment="Card heading, all capitals">READINESS</Trans>
+          </Label>
+          {readiness?.score == null ? (
+            // computeReadiness returns null when RHR is missing. That is a real
+            // state and must not render as a zero or a confident low score.
+            <>
               <div
                 style={{
                   fontSize: TYPE.title.size,
                   fontWeight: TYPE.title.weight,
-                  fontFamily: FONT.mono,
-                  color: THEME[band?.token] ?? THEME.muted,
+                  color: THEME.muted,
+                  marginTop: SPACE.xs,
                 }}
               >
-                {formValue}
+                <Trans>No reading this morning</Trans>
               </div>
-              <div style={{ fontSize: TYPE.caption.size, color: THEME.muted }}>
-                {formBand}
+              <div
+                style={{
+                  fontSize: TYPE.bodySm.size,
+                  color: THEME.muted,
+                  marginTop: SPACE.xs,
+                }}
+              >
+                <Trans comment="Body is the name of a tab in the app">
+                  Readiness needs a resting heart rate. Sync vitals from Body.
+                </Trans>
+              </div>
+              <Button onClick={() => onOpenBody?.()}>
+                <Trans>Open Body</Trans>
+              </Button>
+            </>
+          ) : (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'flex-end',
+                gap: SPACE.lg,
+                marginTop: SPACE.xs,
+              }}
+            >
+              <div>
+                <div
+                  style={{
+                    fontSize: TYPE.display.size,
+                    fontWeight: TYPE.display.weight,
+                    letterSpacing: TYPE.display.letterSpacing,
+                    lineHeight: TYPE.display.lineHeight,
+                    fontFamily: FONT.mono,
+                    color: THEME.text,
+                  }}
+                >
+                  {readiness.score}
+                </div>
+                <div
+                  style={{
+                    fontSize: TYPE.body.size,
+                    fontWeight: TYPE.label.weight,
+                    color: THEME.text,
+                    marginTop: SPACE.xs,
+                  }}
+                >
+                  {readinessStatusText(i18n, readiness.status)}
+                </div>
+              </div>
+              <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
+                <Label>
+                  <Trans comment="Training form (TSB), all capitals">
+                    FORM
+                  </Trans>
+                </Label>
+                <div
+                  style={{
+                    fontSize: TYPE.title.size,
+                    fontWeight: TYPE.title.weight,
+                    fontFamily: FONT.mono,
+                    color: THEME[band?.token] ?? THEME.muted,
+                  }}
+                >
+                  {formValue}
+                </div>
+                <div
+                  style={{ fontSize: TYPE.caption.size, color: THEME.muted }}
+                >
+                  {formBand}
+                </div>
               </div>
             </div>
-          </div>
-        )}
-        {readiness?.score != null && readiness?.partial && (
-          <div
-            style={{
-              fontSize: TYPE.caption.size,
-              color: THEME.muted,
-              marginTop: SPACE.sm,
-            }}
-          >
-            <Trans>
-              Scored on the readings that arrived — some were missing.
-            </Trans>
-          </div>
-        )}
-      </Card>
+          )}
+          {readiness?.score != null && readiness?.partial && (
+            <div
+              style={{
+                fontSize: TYPE.caption.size,
+                color: THEME.muted,
+                marginTop: SPACE.sm,
+              }}
+            >
+              <Trans>
+                Scored on the readings that arrived — some were missing.
+              </Trans>
+            </div>
+          )}
+        </Card>
+      )}
 
       <SectionHeader>
         <Trans comment="Section heading, all capitals">THIS WEEK</Trans>

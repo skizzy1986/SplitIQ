@@ -43,7 +43,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `hdxhKx` | We could not sign you in. Try again. | No pudimos iniciar sesión. Inténtalo de nuevo. | Login error for any unrecognised cause. Only shown in Spanish. · src/utils/authError.js |
 | `y1oEoC` | Wrong email or password. | Correo o contraseña incorrectos. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
 
-## Dashboard views (src/locales/views, 555 strings)
+## Dashboard views (src/locales/views, 567 strings)
 
 | Row | English | Español | Where / note |
 |---|---|---|---|
@@ -184,12 +184,14 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `pSobqw` | Could not start the Strava connection. Try again. | No pudimos iniciar la conexión con Strava. Inténtalo de nuevo. | Error after pressing Connect Strava · src/components/StravaConnectPanel.jsx |
 | `hNVOGX` | Couldn't connect to that PM5. Check it's awake and not connected to another phone, then tap it again. | No pudimos conectarnos con ese PM5. Revisa que esté activo y que no esté conectado a otro teléfono, y vuelve a tocarlo. | Shown above the list of nearby PM5 monitors after the chosen one failed to connect; "it" is that monitor in the list · src/constants/pm5ErrorMessages.js |
 | `NVdgu4` | Couldn't load {what}. | No se pudo cargar: {what}. | {what} is the card's title in lower case, e.g. blood pressure · src/components/HealthRecordCard.jsx |
+| `fTrBoL` | Couldn't play the cue. Try again. | No se pudo reproducir la indicación. Inténtalo de nuevo. | src/views/mobile/VoiceCuesLabs.jsx |
 | `F_DqBO` | Couldn't refresh sessions — showing what loaded earlier. | No se pudieron actualizar las sesiones: se muestra lo que se cargó antes. | src/views/CalendarView.jsx |
 | `bbVCmK` | Couldn't refresh, showing earlier data. | No se pudo actualizar; se muestran datos anteriores. | src/components/HealthRecordCard.jsx |
 | `ocK4b6` | Couldn't start searching for PM5s. Tap Connect to try again. | No pudimos empezar a buscar PM5. Toca Conectar para volver a intentarlo. | Android app error. Connect is the CONNECT TO PM5 button: match its translation · src/constants/pm5ErrorMessages.js |
 | `trK-Ln` | Counting the Strava data in your log… | Contando los datos de Strava de tu registro… | Loading state while counting Strava-sourced sessions before a disconnect · src/components/StravaConnectPanel.jsx |
 | `rQjZxs` | CP unavailable | CP no disponible | src/views/OverviewView.jsx |
 | `DUMjBi` | CTL builds over 42 days — values will be underestimated until ~6 weeks of data. | La CTL se construye en 42 días: los valores quedarán subestimados hasta tener ~6 semanas de datos. | src/views/OverviewView.jsx |
+| `ZDB_3W` | Cue voice | Voz de las indicaciones | src/views/mobile/VoiceCuesLabs.jsx |
 | `pvnfJD` | Dark | Oscuro | src/components/ThemeControl.jsx |
 | `mYGY3B` | Date | Fecha | src/components/session/SessionSummary.jsx |
 | `mMScjF` | DATE | FECHA (MES/DÍA/AÑO) | Field label, all capitals. The date is stored month/day/year; in Spanish say so, e.g. FECHA (MES/DÍA/AÑO) · context: log-form-date · src/components/LogSessionForm.jsx |
@@ -210,6 +212,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `0-AhBt` | DISTANCE | DISTANCIA | All capitals · Metric, all capitals · src/components/LogEntry.jsx · src/views/ErgLiveView.jsx |
 | `MI1emd` | DONE | LISTO | Button that closes the summary, all capitals · src/views/ErgLiveView.jsx |
 | `HtAyVo` | Drift | Deriva | src/components/session/MoreDetail.jsx |
+| `Qix69l` | Dry | Seca | src/views/mobile/VoiceCuesLabs.jsx |
 | `lkz6PL` | Duration | Duración | src/components/session/SessionSummary.jsx |
 | `n6udpp` | DURATION | DURACIÓN | Field label, all capitals · Metric, all capitals · src/components/LogEntry.jsx · src/components/LogSessionForm.jsx |
 | `qN2bsY` | e1RM | e1RM | src/components/LogSessionForm.jsx |
@@ -219,6 +222,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `JFnJqF` | Elapsed | Tiempo total | src/components/session/RangeSummary.jsx · src/components/session/SessionSummary.jsx |
 | `QJCuHS` | ELAPSED | TRANSCURRIDO | Live metric label: time since the start · src/views/ErgLiveView.jsx |
 | `c3aKIi` | Elevation gain | Desnivel positivo | src/components/session/SessionSummary.jsx |
+| `NlSlcO` | Encouraging | Motivadora | src/views/mobile/VoiceCuesLabs.jsx |
 | `OY_ODX` | END | TERMINAR | Button that ends the live session, all capitals · src/views/ErgLiveView.jsx |
 | `nhCuze` | Endurance | Resistencia | Cycling power level (Coggan Z2) · src/components/session/zoneLabels.js |
 | `cFg0mZ` | Erg | Ergómetro | Desktop Progress pane · Progress sub-tab: rowing · Session filter chip · src/App.jsx · src/views/mobile/MobileProgress.jsx · src/views/mobile/MobileSessionLog.jsx |
@@ -302,6 +306,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `G9QKXj` | moderate · short sentences (UT1) | moderado · oraciones cortas (UT1) | src/components/LogSessionForm.jsx |
 | `Gdsd8Y` | More detail | Más detalle | src/components/session/MoreDetail.jsx |
 | `e2IoOE` | Moving time | Tiempo en movimiento | src/components/session/RangeSummary.jsx |
+| `F3fteU` | Mute voice cues | Silenciar las indicaciones de voz | src/live-erg/CueMuteButton.jsx |
 | `RwyQVO` | Needs a heart rate reading for at least {percent}% of each half of the moving time. | Requiere una lectura de frecuencia cardíaca durante al menos el {percent} % de cada mitad del tiempo en movimiento. | src/components/session/MoreDetail.jsx |
 | `YaJ5Ua` | Needs a power reading for at least {percent}% of the moving time. | Requiere una lectura de potencia durante al menos el {percent} % del tiempo en movimiento. | src/components/session/MoreDetail.jsx |
 | `06n9vg` | Needs a power reading. | Requiere una lectura de potencia. | src/components/session/MoreDetail.jsx |
@@ -376,6 +381,8 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `B08adi` | Plan a session | Planificar una sesión | Build an interval workout before connecting the PM5 · src/live-erg/LiveErgSession.jsx · src/views/mobile/MobileTrain.jsx |
 | `h90kNe` | Plan intervals | Planificar intervalos | src/views/mobile/MobileToday.jsx |
 | `iQ1n2D` | PLANNED | PLANIFICADA | Badge, all capitals · Day badge, all capitals · src/components/LogEntry.jsx · src/views/CalendarView.jsx |
+| `owhFS-` | Play a test cue | Reproducir una indicación de prueba | Settings button. Plays one short test cue so you can hear it and check what it does to your music · src/views/mobile/VoiceCuesLabs.jsx |
+| `xZbXPh` | Played. Did your music keep going? | Reproducida. ¿Tu música siguió sonando? | src/views/mobile/VoiceCuesLabs.jsx |
 | `7c0B_l` | PM5 connected | PM5 conectado | src/live-erg/LiveErgSession.jsx |
 | `q4PNIP` | PM5 connected. Build your intervals here. Set the same workout on the PM5 (Intervals, then Variable) and start rowing. SplitIQ follows each interval’s target here. Sending the workout from the phone comes next. | PM5 conectado. Arma tus intervalos aquí. Configura el mismo entrenamiento en el PM5 (Intervalos, luego Variable) y empieza a remar. SplitIQ sigue aquí la meta de cada intervalo. Enviar el entrenamiento desde el teléfono viene después. | src/live-erg/LiveErgSession.jsx |
 | `YjYpSv` | PM5 connected. Your saved plan is loaded; change it here if you need to. Set the same workout on the PM5 (Intervals, then Variable) and start rowing. SplitIQ follows each interval’s target here. Sending the workout from the phone comes next. | PM5 conectado. Tu plan guardado ya está cargado; cámbialo aquí si lo necesitas. Configura el mismo entrenamiento en el PM5 (Intervalos, luego Variable) y empieza a remar. SplitIQ sigue aquí la meta de cada intervalo. Enviar el entrenamiento desde el teléfono viene después. | src/live-erg/LiveErgSession.jsx |
@@ -452,6 +459,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `F28qJt` | SETTINGS | CONFIGURACIÓN | Section eyebrow, all capitals · src/views/SettingsView.jsx |
 | `FKcroQ` | Share Concept2 links or Fitbod screenshots to add sessions. sRPE captured every session. | Comparte enlaces de Concept2 o capturas de pantalla de Fitbod para agregar sesiones. El sRPE se registra en cada sesión. | Concept2 and Fitbod are brand names: keep them · src/views/LogView.jsx |
 | `UTQjd8` | Short phrases only. Genuinely taxing. Threshold/AT. | Solo frases cortas. Realmente exigente. Umbral/AT. | sRPE scale, effort 7-8: the talk test · src/constants/srpeGuideMessages.js |
+| `hCpwDU` | Short spoken cues while you row: go, targets, hit or miss, rest and finish. They only work with the new live screen on, and the clips are in English. | Indicaciones habladas mientras remas: salida, objetivos, acierto o fallo, descanso y final. Solo funcionan con la nueva pantalla en vivo activada, y las grabaciones están en inglés. | Under the voice cues switch. The cues are recorded in English and stay English in Spanish. Needs the new live screen · src/views/mobile/VoiceCuesLabs.jsx |
 | `fcWrnU` | Sign out | Cerrar sesión | src/views/mobile/MobileSettings.jsx |
 | `aHb3Mx` | since {date} | desde el {date} | Injury onset date · src/views/RecoveryView.jsx |
 | `Z4Vby7` | SLEEP | SUEÑO | All capitals · All capitals · src/views/mobile/MobileRecovery.jsx · src/views/RecoveryView.jsx |
@@ -473,6 +481,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `tXkhj_` | Start | Empezar | src/live-erg/LiveErgSession.jsx |
 | `vjiwd1` | START A SESSION | INICIA UNA SESIÓN | Heading, all capitals · src/views/mobile/MobileTrain.jsx |
 | `hLItl9` | Start on PM5 | Empezar en el PM5 | src/live-erg/LiveErgSession.jsx · src/views/mobile/MobileToday.jsx |
+| `2-5tCW` | Start your music first, then tap. Note whether Spotify pauses, lowers or keeps playing. | Pon tu música primero y luego toca. Fíjate si Spotify se pausa, baja el volumen o sigue sonando. | Under the test cue button. Spotify is a music app: keep the name · src/views/mobile/VoiceCuesLabs.jsx |
 | `GCJTE0` | Stay | Quedarse | Cancel leaving a live session · src/components/mobile/SessionExitBar.jsx |
 | `lqrTOx` | Steady (UT1) | Constante (UT1) | sRPE scale, effort 5-6 · src/constants/srpeGuideMessages.js |
 | `maUeij` | Strava access was revoked. Reconnect to resume importing. | Se revocó el acceso a Strava. Reconecta para seguir importando. | src/utils/stravaStatus.js |
@@ -516,6 +525,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `mrYqxL` | TARGET | OBJETIVO | Label before today's planned session name, all capitals · src/components/WorkoutTarget.jsx |
 | `AZt0eV` | target 7h+ | meta 7h+ | src/views/RecoveryView.jsx |
 | `PdtP5B` | Target met | Meta cumplida | src/views/mobile/MobileRecovery.jsx |
+| `wanXT9` | Technical | Técnica | src/views/mobile/VoiceCuesLabs.jsx |
 | `tfxhsx` | Tempo | Tempo | Cycling power level (Coggan Z3) · src/components/session/zoneLabels.js |
 | `lK2Rxb` | That is a different Strava account from the one already connected. Disconnect the current account first. | Esa es una cuenta de Strava distinta de la que ya está conectada. Primero desconecta la cuenta actual. | src/utils/stravaCallback.js |
 | `a4CYJj` | The connection did not complete. Try again. | La conexión no se completó. Inténtalo de nuevo. | src/utils/stravaCallback.js |
@@ -565,6 +575,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `u62wQ4` | Try again in a moment. | Inténtalo de nuevo en un momento. | Error state detail · src/components/StravaConnectPanel.jsx |
 | `sLqPhy` | TSS LOGGED | TSS REGISTRADO | Stat label, all capitals; TSS stays as is · src/views/mobile/MobileToday.jsx |
 | `3lLYyO` | Tweak | Ajustar | src/views/mobile/MobileToday.jsx |
+| `GTvut5` | Unmute voice cues | Activar las indicaciones de voz | src/live-erg/CueMuteButton.jsx |
 | `p8iK-C` | Unnamed PM5 | PM5 sin nombre | A rowing monitor in the list that broadcast no name; PM5 is the monitor: keep it · src/components/PM5Picker.jsx |
 | `1ikfyP` | unvalidated | sin validar | Anchor status · src/components/session/ZoneBar.jsx |
 | `zSzBX4` | UPCOMING | PRÓXIMAS | Section heading, all capitals · src/views/mobile/MobileAnalytics.jsx |
@@ -576,6 +587,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `e9KqaD` | very easy · full conversation | muy fácil · conversación completa | src/components/LogSessionForm.jsx |
 | `L48ofA` | VITALS UNAVAILABLE | SIGNOS VITALES NO DISPONIBLES | All capitals · src/views/OverviewView.jsx · src/views/RecoveryView.jsx |
 | `1CfR4c` | VO2 max | VO2 máx | Cycling power level (Coggan Z5) · src/components/session/zoneLabels.js |
+| `ko-3ww` | Voice cues (beta) | Indicaciones de voz (beta) | Settings switch. Turns on spoken coaching cues on the new live rowing screen, still in testing · src/views/mobile/VoiceCuesLabs.jsx |
 | `Qu8S2o` | Vol | Vol. | Column: total volume lifted, abbreviated · src/components/LogEntry.jsx |
 | `WLqk2A` | Vol (2260kg) | Vol. (2260kg) | Total volume lifted, with an example · src/components/LogSessionForm.jsx |
 | `_cF7Rs` | Volume | Volumen | src/components/LogSessionForm.jsx |

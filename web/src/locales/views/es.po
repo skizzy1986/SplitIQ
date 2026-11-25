@@ -644,6 +644,10 @@ msgstr "No pudimos conectarnos con ese PM5. Revisa que esté activo y que no est
 msgid "Couldn't load {what}."
 msgstr "No se pudo cargar: {what}."
 
+#: src/views/mobile/VoiceCuesLabs.jsx
+msgid "Couldn't play the cue. Try again."
+msgstr "No se pudo reproducir la indicación. Inténtalo de nuevo."
+
 #: src/views/CalendarView.jsx
 msgid "Couldn't refresh sessions — showing what loaded earlier."
 msgstr "No se pudieron actualizar las sesiones: se muestra lo que se cargó antes."
@@ -669,6 +673,10 @@ msgstr "CP no disponible"
 #: src/views/OverviewView.jsx
 msgid "CTL builds over 42 days — values will be underestimated until ~6 weeks of data."
 msgstr "La CTL se construye en 42 días: los valores quedarán subestimados hasta tener ~6 semanas de datos."
+
+#: src/views/mobile/VoiceCuesLabs.jsx
+msgid "Cue voice"
+msgstr "Voz de las indicaciones"
 
 #: src/components/ThemeControl.jsx
 msgid "Dark"
@@ -769,6 +777,10 @@ msgstr "LISTO"
 msgid "Drift"
 msgstr "Deriva"
 
+#: src/views/mobile/VoiceCuesLabs.jsx
+msgid "Dry"
+msgstr "Seca"
+
 #: src/components/session/SessionSummary.jsx
 msgid "Duration"
 msgstr "Duración"
@@ -811,6 +823,10 @@ msgstr "TRANSCURRIDO"
 #: src/components/session/SessionSummary.jsx
 msgid "Elevation gain"
 msgstr "Desnivel positivo"
+
+#: src/views/mobile/VoiceCuesLabs.jsx
+msgid "Encouraging"
+msgstr "Motivadora"
 
 #. Button that ends the live session, all capitals
 #: src/views/ErgLiveView.jsx
@@ -1211,6 +1227,10 @@ msgstr "Más detalle"
 msgid "Moving time"
 msgstr "Tiempo en movimiento"
 
+#: src/live-erg/CueMuteButton.jsx
+msgid "Mute voice cues"
+msgstr "Silenciar las indicaciones de voz"
+
 #: src/components/session/MoreDetail.jsx
 msgid "Needs a heart rate reading for at least {percent}% of each half of the moving time."
 msgstr "Requiere una lectura de frecuencia cardíaca durante al menos el {percent} % de cada mitad del tiempo en movimiento."
@@ -1542,6 +1562,15 @@ msgstr "Planificar intervalos"
 #: src/views/CalendarView.jsx
 msgid "PLANNED"
 msgstr "PLANIFICADA"
+
+#. Settings button. Plays one short test cue so you can hear it and check what it does to your music
+#: src/views/mobile/VoiceCuesLabs.jsx
+msgid "Play a test cue"
+msgstr "Reproducir una indicación de prueba"
+
+#: src/views/mobile/VoiceCuesLabs.jsx
+msgid "Played. Did your music keep going?"
+msgstr "Reproducida. ¿Tu música siguió sonando?"
 
 #: src/live-erg/LiveErgSession.jsx
 msgid "PM5 connected"
@@ -1911,6 +1940,11 @@ msgstr "Comparte enlaces de Concept2 o capturas de pantalla de Fitbod para agreg
 msgid "Short phrases only. Genuinely taxing. Threshold/AT."
 msgstr "Solo frases cortas. Realmente exigente. Umbral/AT."
 
+#. Under the voice cues switch. The cues are recorded in English and stay English in Spanish. Needs the new live screen
+#: src/views/mobile/VoiceCuesLabs.jsx
+msgid "Short spoken cues while you row: go, targets, hit or miss, rest and finish. They only work with the new live screen on, and the clips are in English."
+msgstr "Indicaciones habladas mientras remas: salida, objetivos, acierto o fallo, descanso y final. Solo funcionan con la nueva pantalla en vivo activada, y las grabaciones están en inglés."
+
 #: src/views/mobile/MobileSettings.jsx
 msgid "Sign out"
 msgstr "Cerrar sesión"
@@ -2011,6 +2045,11 @@ msgstr "INICIA UNA SESIÓN"
 #: src/views/mobile/MobileToday.jsx
 msgid "Start on PM5"
 msgstr "Empezar en el PM5"
+
+#. Under the test cue button. Spotify is a music app: keep the name
+#: src/views/mobile/VoiceCuesLabs.jsx
+msgid "Start your music first, then tap. Note whether Spotify pauses, lowers or keeps playing."
+msgstr "Pon tu música primero y luego toca. Fíjate si Spotify se pausa, baja el volumen o sigue sonando."
 
 #. Cancel leaving a live session
 #: src/components/mobile/SessionExitBar.jsx
@@ -2210,6 +2249,10 @@ msgstr "meta 7h+"
 #: src/views/mobile/MobileRecovery.jsx
 msgid "Target met"
 msgstr "Meta cumplida"
+
+#: src/views/mobile/VoiceCuesLabs.jsx
+msgid "Technical"
+msgstr "Técnica"
 
 #. Cycling power level (Coggan Z3)
 #: src/components/session/zoneLabels.js
@@ -2439,6 +2482,10 @@ msgstr "TSS REGISTRADO"
 msgid "Tweak"
 msgstr "Ajustar"
 
+#: src/live-erg/CueMuteButton.jsx
+msgid "Unmute voice cues"
+msgstr "Activar las indicaciones de voz"
+
 #. A rowing monitor in the list that broadcast no name; PM5 is the monitor: keep it
 #: src/components/PM5Picker.jsx
 msgid "Unnamed PM5"
@@ -2491,6 +2538,11 @@ msgstr "SIGNOS VITALES NO DISPONIBLES"
 #: src/components/session/zoneLabels.js
 msgid "VO2 max"
 msgstr "VO2 máx"
+
+#. Settings switch. Turns on spoken coaching cues on the new live rowing screen, still in testing
+#: src/views/mobile/VoiceCuesLabs.jsx
+msgid "Voice cues (beta)"
+msgstr "Indicaciones de voz (beta)"
 
 #. Column: total volume lifted, abbreviated
 #: src/components/LogEntry.jsx

@@ -9,6 +9,8 @@ import PM5Picker from '../components/PM5Picker.jsx';
 import { PM5_ERROR_MESSAGES } from '../constants/pm5ErrorMessages.js';
 import IntervalBuilder from './IntervalBuilder.jsx';
 import SplitTable from './SplitTable.jsx';
+import CueMuteButton from './CueMuteButton.jsx';
+import { useWorkoutCues } from '../hooks/useWorkoutCues.js';
 import {
   bandForInterval,
   classifyBand,
@@ -113,6 +115,7 @@ export function LiveErgSessionView({
   const verdict =
     phase === 'work' && watts != null ? classifyBand(watts, band) : null;
   const current = currentSplitOf(tracker, workout);
+  useWorkoutCues({ metrics, tracker, workout, storage });
 
   return (
     <main
@@ -150,6 +153,7 @@ export function LiveErgSessionView({
           Live session
         </h1>
         <span style={labelStyle}>v10 beta</span>
+        <CueMuteButton storage={storage} />
         {onEnd && (status === 'connected' || status === 'rowing') && (
           <button
             type="button"

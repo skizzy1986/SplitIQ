@@ -644,6 +644,10 @@ msgstr "Couldn't connect to that PM5. Check it's awake and not connected to anot
 msgid "Couldn't load {what}."
 msgstr "Couldn't load {what}."
 
+#: src/views/mobile/VoiceCuesLabs.jsx
+msgid "Couldn't play the cue. Try again."
+msgstr "Couldn't play the cue. Try again."
+
 #: src/views/CalendarView.jsx
 msgid "Couldn't refresh sessions — showing what loaded earlier."
 msgstr "Couldn't refresh sessions — showing what loaded earlier."
@@ -669,6 +673,10 @@ msgstr "CP unavailable"
 #: src/views/OverviewView.jsx
 msgid "CTL builds over 42 days — values will be underestimated until ~6 weeks of data."
 msgstr "CTL builds over 42 days — values will be underestimated until ~6 weeks of data."
+
+#: src/views/mobile/VoiceCuesLabs.jsx
+msgid "Cue voice"
+msgstr "Cue voice"
 
 #: src/components/ThemeControl.jsx
 msgid "Dark"
@@ -769,6 +777,10 @@ msgstr "DONE"
 msgid "Drift"
 msgstr "Drift"
 
+#: src/views/mobile/VoiceCuesLabs.jsx
+msgid "Dry"
+msgstr "Dry"
+
 #: src/components/session/SessionSummary.jsx
 msgid "Duration"
 msgstr "Duration"
@@ -811,6 +823,10 @@ msgstr "ELAPSED"
 #: src/components/session/SessionSummary.jsx
 msgid "Elevation gain"
 msgstr "Elevation gain"
+
+#: src/views/mobile/VoiceCuesLabs.jsx
+msgid "Encouraging"
+msgstr "Encouraging"
 
 #. Button that ends the live session, all capitals
 #: src/views/ErgLiveView.jsx
@@ -1211,6 +1227,10 @@ msgstr "More detail"
 msgid "Moving time"
 msgstr "Moving time"
 
+#: src/live-erg/CueMuteButton.jsx
+msgid "Mute voice cues"
+msgstr "Mute voice cues"
+
 #: src/components/session/MoreDetail.jsx
 msgid "Needs a heart rate reading for at least {percent}% of each half of the moving time."
 msgstr "Needs a heart rate reading for at least {percent}% of each half of the moving time."
@@ -1542,6 +1562,15 @@ msgstr "Plan intervals"
 #: src/views/CalendarView.jsx
 msgid "PLANNED"
 msgstr "PLANNED"
+
+#. Settings button. Plays one short test cue so you can hear it and check what it does to your music
+#: src/views/mobile/VoiceCuesLabs.jsx
+msgid "Play a test cue"
+msgstr "Play a test cue"
+
+#: src/views/mobile/VoiceCuesLabs.jsx
+msgid "Played. Did your music keep going?"
+msgstr "Played. Did your music keep going?"
 
 #: src/live-erg/LiveErgSession.jsx
 msgid "PM5 connected"
@@ -1911,6 +1940,11 @@ msgstr "Share Concept2 links or Fitbod screenshots to add sessions. sRPE capture
 msgid "Short phrases only. Genuinely taxing. Threshold/AT."
 msgstr "Short phrases only. Genuinely taxing. Threshold/AT."
 
+#. Under the voice cues switch. The cues are recorded in English and stay English in Spanish. Needs the new live screen
+#: src/views/mobile/VoiceCuesLabs.jsx
+msgid "Short spoken cues while you row: go, targets, hit or miss, rest and finish. They only work with the new live screen on, and the clips are in English."
+msgstr "Short spoken cues while you row: go, targets, hit or miss, rest and finish. They only work with the new live screen on, and the clips are in English."
+
 #: src/views/mobile/MobileSettings.jsx
 msgid "Sign out"
 msgstr "Sign out"
@@ -2011,6 +2045,11 @@ msgstr "START A SESSION"
 #: src/views/mobile/MobileToday.jsx
 msgid "Start on PM5"
 msgstr "Start on PM5"
+
+#. Under the test cue button. Spotify is a music app: keep the name
+#: src/views/mobile/VoiceCuesLabs.jsx
+msgid "Start your music first, then tap. Note whether Spotify pauses, lowers or keeps playing."
+msgstr "Start your music first, then tap. Note whether Spotify pauses, lowers or keeps playing."
 
 #. Cancel leaving a live session
 #: src/components/mobile/SessionExitBar.jsx
@@ -2210,6 +2249,10 @@ msgstr "target 7h+"
 #: src/views/mobile/MobileRecovery.jsx
 msgid "Target met"
 msgstr "Target met"
+
+#: src/views/mobile/VoiceCuesLabs.jsx
+msgid "Technical"
+msgstr "Technical"
 
 #. Cycling power level (Coggan Z3)
 #: src/components/session/zoneLabels.js
@@ -2439,6 +2482,10 @@ msgstr "TSS LOGGED"
 msgid "Tweak"
 msgstr "Tweak"
 
+#: src/live-erg/CueMuteButton.jsx
+msgid "Unmute voice cues"
+msgstr "Unmute voice cues"
+
 #. A rowing monitor in the list that broadcast no name; PM5 is the monitor: keep it
 #: src/components/PM5Picker.jsx
 msgid "Unnamed PM5"
@@ -2491,6 +2538,11 @@ msgstr "VITALS UNAVAILABLE"
 #: src/components/session/zoneLabels.js
 msgid "VO2 max"
 msgstr "VO2 max"
+
+#. Settings switch. Turns on spoken coaching cues on the new live rowing screen, still in testing
+#: src/views/mobile/VoiceCuesLabs.jsx
+msgid "Voice cues (beta)"
+msgstr "Voice cues (beta)"
 
 #. Column: total volume lifted, abbreviated
 #: src/components/LogEntry.jsx

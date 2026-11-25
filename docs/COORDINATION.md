@@ -2,7 +2,8 @@
 
 How Claude Code, Scott and the Grok bots stay out of each other's way. Read this
 before starting work. The official decision log is the private ops repo's
-`docs/ROADMAP.md` (D30, D31). `VISION.md` still wins where docs disagree.
+`docs/ROADMAP.md` (D30, D31). `VISION.md` still wins where docs disagree;
+see the VISION.md rule below.
 
 Last updated: 25 November 2026, late morning Perth (UTC+8). Re-query GitHub
 before treating the status section as live.
@@ -33,11 +34,20 @@ Scott confirmed this order on 25 November 2026 at 10:48 Perth:
 | Owner | Owns | Leaves alone |
 |---|---|---|
 | Claude Code | Pipeline slices [#755](https://github.com/skizzy1986/SplitIQ/issues/755)–[#761](https://github.com/skizzy1986/SplitIQ/issues/761); seat sensor [#731](https://github.com/skizzy1986/SplitIQ/issues/731)–[#738](https://github.com/skizzy1986/SplitIQ/issues/738) | Live erg, home, v10 design, and bundle headroom |
-| Grok bots (Orchestrator files the PRs; Live Session, Sound, Data & Modelling, Release, Product) | Live erg, home and v10 design, bundle headroom | `pipeline/` (including the squat goldens and `pipeline/squat-anatomy/row/`), `hardware/seat-sensor/` |
+| Grok bots (Orchestrator files the PRs; Live Session, Sound, Data & Modelling, Release, Product) | Live erg, home and v10 design, bundle headroom. Product owns input on `VISION.md` | `pipeline/` (including the squat goldens and `pipeline/squat-anatomy/row/`), `hardware/seat-sensor/` |
 | Scott only | Strava issues #632, #639, #644, #660–#666, #668, #669, #673 | — |
 
 Do not rewrite Claude's issues. Do not start a second branch for work Claude already
 owns. Do not read Strava data; query `public.sessions_no_strava`.
+
+## VISION.md
+
+`VISION.md` underpins Claude Code's anatomy and movement model work, and
+still wins where docs disagree. SplitIQ Product (the Grok product lead)
+owns input on it: proposed changes go through Product and need Scott's
+yes. Claude should flag any `VISION.md` assumptions it relies on, or
+needs changed, as a comment on the relevant issue. Do not edit
+`VISION.md` outside that path.
 
 ## Handoff rules
 

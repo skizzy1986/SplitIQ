@@ -55,6 +55,7 @@ vi.mock('../../services/pm5Bluetooth', async () => {
 vi.mock('../../utils/sentry.js', () => ({ captureError: vi.fn() }));
 
 import { usePM5 } from '../usePM5';
+import { LAST_PM5_ID_KEY, writeLastPm5Id } from '../../utils/pm5LastUsed.js';
 import {
   PM5_STALE_MS,
   PM5_EMPTY_AFTER_MS,
@@ -142,6 +143,7 @@ const WORKING = {
 
 beforeEach(() => {
   vi.useFakeTimers();
+  window.localStorage.clear();
   app.listeners = {};
   stopMock = vi.fn();
   scan.check.mockReset().mockResolvedValue({ locationOff: false });
@@ -306,6 +308,55 @@ describe('usePM5 on Android: the PM5 list', () => {
       result.current.choose('ZZ');
     });
     expect(scan.connectChosen).not.toHaveBeenCalled();
+  });
+
+  it('auto-chooses the remembered PM5 when it is in the live list', async () => {
+    writeLastPm5Id('BB');
+    const { result } = await openList();
+    const pending = deferred();
+    scan.connectChosen.mockReturnValue(pending.promise);
+    see('AA', 'PM5 1 Row');
+    expect(scan.connectChosen).not.toHaveBeenCalled();
+    see('BB', 'PM5 2 Row');
+    expect(scan.connectChosen).toHaveBeenCalledTimes(1);
+    expect(scan.connectChosen.mock.calls[0][0]).toBe('BB');
+    await act(async () => {
+      pending.resolve(connected());
+      await pending.promise;
+    });
+    expect(result.current.status).toBe('connected');
+    expect(window.localStorage.getItem(LAST_PM5_ID_KEY)).toBe('BB');
+  });
+
+  it('does not auto-choose a remembered PM5 that is not in the list', async () => {
+    writeLastPm5Id('ZZ');
+    const { result } = await openList();
+    see('AA', 'PM5 1 Row');
+    expect(scan.connectChosen).not.toHaveBeenCalled();
+    expect(result.current.status).toBe('choosing');
+  });
+
+  it('a failed auto-choose returns to the list and does not loop', async () => {
+    writeLastPm5Id('AA');
+    const { result } = await openList();
+    const pending = deferred();
+    scan.connectChosen.mockReturnValue(pending.promise);
+    see('AA', 'PM5 1 Row');
+    expect(scan.connectChosen).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      pending.reject(new Error('nope'));
+      try {
+        await pending.promise;
+      } catch {
+        // the hook handles the rejection
+      }
+    });
+    expect(result.current.status).toBe('choosing');
+    // A rescan starts; seeing the same id again must not reconnect on its own.
+    see('AA', 'PM5 1 Row');
+    await advance(2000);
+    see('AA', 'PM5 1 Row');
+    expect(scan.connectChosen).toHaveBeenCalledTimes(1);
   });
 
   it('ignores further taps while a connect is in progress', async () => {
@@ -535,13 +586,14 @@ describe('usePM5 on Android: late events from an abandoned attempt', () => {
     act(() => result.current.reset());
     expect(result.current.status).toBe('idle');
 
+    // The first success remembered AA, so the next Start would auto-choose
+    // it. Set the failure first, then let the sighting fire that attempt.
+    scan.connectChosen.mockRejectedValue(coded(PM5_CONNECT_FAILED));
     await act(async () => {
       await result.current.connect();
     });
-    see('AA', 'PM5 1 Row');
-    scan.connectChosen.mockRejectedValue(coded(PM5_CONNECT_FAILED));
     await act(async () => {
-      await result.current.choose('AA');
+      see('AA', 'PM5 1 Row');
     });
     act(() => device.dispatch('gattserverdisconnected'));
     expect(result.current.status).toBe('choosing');

@@ -73,6 +73,9 @@ vi.mock('../MobileSettings.jsx', () => ({ default: () => <p>SETTINGS</p> }));
 vi.mock('../../../StrengthLogger.jsx', () => ({
   default: () => <p>STRENGTH LOGGER</p>,
 }));
+vi.mock('../../../hooks/useSessions.js', () => ({
+  useSessions: () => ({ data: [] }),
+}));
 
 import MobileApp from '../MobileApp.jsx';
 

@@ -979,10 +979,15 @@ msgstr "Integrations"
 msgid "just now"
 msgstr "just now"
 
+#: src/views/mobile/MobileToday.jsx
+msgid "Just row"
+msgstr "Just row"
+
 #. Settings section heading for features still being tested
 #: src/views/mobile/MobileSettings.jsx
 msgid "Labs"
 msgstr "Labs"
+
 
 #. Settings section heading above the language control
 #: src/views/SettingsView.jsx
@@ -997,6 +1002,11 @@ msgstr "Lap"
 #: src/views/CalendarView.jsx
 msgid "LAST 3 DAYS · TODAY · NEXT 13 ·"
 msgstr "LAST 3 DAYS · TODAY · NEXT 13 ·"
+
+#. Section heading, all capitals
+#: src/views/mobile/MobileToday.jsx
+msgid "LAST ROW"
+msgstr "LAST ROW"
 
 #: src/utils/stravaStatus.js
 msgid "Last sync {when}"
@@ -1255,6 +1265,10 @@ msgstr "No power or speed was recorded, so there is no pace trace."
 msgid "No power was recorded on this ride, so there is no power trace and no zones."
 msgstr "No power was recorded on this ride, so there is no power trace and no zones."
 
+#: src/views/mobile/MobileToday.jsx
+msgid "No previous erg piece to repeat."
+msgstr "No previous erg piece to repeat."
+
 #: src/views/mobile/MobileAnalytics.jsx
 #: src/views/mobile/MobileRecovery.jsx
 #: src/views/mobile/MobileToday.jsx
@@ -1350,9 +1364,11 @@ msgstr "Nothing in your log came from Strava; nothing will be removed."
 msgid "Nothing in your log came from Strava."
 msgstr "Nothing in your log came from Strava."
 
+#. Card eyebrow, all capitals
+#. Card eyebrow, all capitals
 #: src/views/mobile/MobileToday.jsx
-msgid "Nothing prescribed today."
-msgstr "Nothing prescribed today."
+msgid "NOTHING PLANNED TODAY"
+msgstr "NOTHING PLANNED TODAY"
 
 #: src/utils/stravaStatus.js
 msgid "Nothing was overwritten. Resolve the duplicates in the log, then sync again."
@@ -1459,6 +1475,10 @@ msgstr "pace from power"
 #: src/components/session/MoreDetail.jsx
 msgid "Peak power, {window} min"
 msgstr "Peak power, {window} min"
+
+#: src/views/mobile/MobileToday.jsx
+msgid "Pick a workout"
+msgstr "Pick a workout"
 
 #. Desktop Train pane
 #: src/App.jsx
@@ -1654,6 +1674,14 @@ msgstr "RESTING HR TREND — 14 DAYS"
 #: src/components/StravaConnectPanel.jsx
 msgid "Retry"
 msgstr "Retry"
+
+#: src/views/mobile/MobileToday.jsx
+msgid "Row it again"
+msgstr "Row it again"
+
+#: src/views/mobile/MobileToday.jsx
+msgid "Row your last piece again?"
+msgstr "Row your last piece again?"
 
 #. Live status, all capitals
 #: src/views/ErgLiveView.jsx
@@ -1896,10 +1924,9 @@ msgstr "sRPE target:"
 msgid "START A SESSION"
 msgstr "START A SESSION"
 
-#. Button, all capitals
 #: src/views/mobile/MobileToday.jsx
-msgid "START SESSION"
-msgstr "START SESSION"
+msgid "Start on PM5"
+msgstr "Start on PM5"
 
 #. Cancel leaving a live session
 #: src/components/mobile/SessionExitBar.jsx
@@ -2246,10 +2273,10 @@ msgstr "Time in zone: {summary}."
 msgid "Today"
 msgstr "Today"
 
-#. Section heading, all capitals
+#. Card eyebrow, all capitals
 #: src/views/mobile/MobileToday.jsx
-msgid "TODAY"
-msgstr "TODAY"
+msgid "TODAY'S SESSION · PLANNED"
+msgstr "TODAY'S SESSION · PLANNED"
 
 #: src/components/LogSessionForm.jsx
 msgid "Top weight"
@@ -2323,6 +2350,10 @@ msgstr "Try again in a moment."
 #: src/views/mobile/MobileToday.jsx
 msgid "TSS LOGGED"
 msgstr "TSS LOGGED"
+
+#: src/views/mobile/MobileToday.jsx
+msgid "Tweak"
+msgstr "Tweak"
 
 #. A rowing monitor in the list that broadcast no name; PM5 is the monitor: keep it
 #: src/components/PM5Picker.jsx

@@ -9,7 +9,8 @@ import json
 import sys
 from pathlib import Path
 
-from squat.paths import MissingInputError, Paths, display
+from core.paths import MissingInputError, display
+from squat.paths import Paths
 
 GOLDEN_RAW_BYTES = 3_450_003
 GOLDEN_RAW_SHA256 = 'eb15d943be022632eb6a799d53c41b27d857ece4cc21f842d7a9c7b6bc93b6be'

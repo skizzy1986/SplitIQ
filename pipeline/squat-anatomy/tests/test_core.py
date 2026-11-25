@@ -5,7 +5,10 @@ import os
 import subprocess
 import sys
 
-CORE_MODULES = ('core.geom', 'core.dqs')
+CORE_MODULES = ('core.geom', 'core.dqs', 'core.paths')
+SKIP = {'node_modules', '.pytest_cache', '__pycache__'}
+# names whose only home is core/: importing them from their old module is refused even where it would still work
+ONE_HOME = {'squat.paths': {'MissingInputError', 'display', 'PROJECT'}}
 GONE = ('squat.geom', 'squat.model.dqs')
 
 
@@ -35,3 +38,15 @@ def test_core_imports_alone(paths, tmp_path):
 
 def test_moved_modules_are_gone():
     assert [n for n in GONE if importlib.util.find_spec(n) is not None] == []
+
+
+def test_moved_names_have_one_home(paths):
+    bad = []
+    for p in sorted(paths.project.rglob('*.py')):
+        rel = p.relative_to(paths.project)
+        if SKIP.intersection(rel.parts) or rel.parts[0] == 'core' or rel.as_posix().startswith('pipeline/ext/'):
+            continue
+        for node in ast.walk(ast.parse(p.read_text(encoding='utf-8'))):
+            if isinstance(node, ast.ImportFrom) and node.module in ONE_HOME:
+                bad += [f'{rel}:{node.lineno} {a.name}' for a in node.names if a.name in ONE_HOME[node.module]]
+    assert not bad, bad

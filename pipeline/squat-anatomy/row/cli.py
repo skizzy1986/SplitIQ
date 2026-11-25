@@ -10,7 +10,8 @@ from pathlib import Path
 from row.fetch import RowDataError
 from row.spike.engstrom import EngstromDataError
 from row.spike.squatdata import ShippedDataError
-from squat.paths import MissingInputError, Paths
+from core.paths import MissingInputError
+from squat.paths import Paths
 
 EXIT_MISSING, EXIT_STL, EXIT_DATA = 3, 4, 5
 STEPS = ('all', 'fk', 'rig', 'upper', 'poses', 'skin', 'render', 'report')

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import numpy as np
 from scipy.optimize import minimize
 
-from squat.paths import MissingInputError
+from core.paths import MissingInputError
 from squat.stages._io import cache, out_path
 
 OUTPUTS = ('armik3_x.npy',)

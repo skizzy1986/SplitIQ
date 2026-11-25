@@ -6,9 +6,10 @@ import sys
 
 import pytest
 
+from core.paths import MissingInputError
 from squat.inputs import FIXED_INPUTS, STL_SHA256
 from squat.model.stl import StlCache
-from squat.paths import MissingInputError, Paths
+from squat.paths import Paths
 
 
 def sha256(path):

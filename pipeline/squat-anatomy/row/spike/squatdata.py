@@ -11,9 +11,9 @@ from types import SimpleNamespace
 import numpy as np
 
 from core.geom import qR
+from core.paths import display
 from squat.cli import GOLDEN_RAW_BYTES, GOLDEN_RAW_SHA256
 from squat.model.curves import fixed_alpha
-from squat.paths import display
 from squat.repack import TA
 from squat.stages._io import cache, load_pickle
 

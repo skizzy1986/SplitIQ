@@ -1,7 +1,7 @@
 """BodyParts3D STLs, loaded once each (was base.py:load_bp, called afresh at every use)."""
 import trimesh
 
-from squat.paths import MissingInputError
+from core.paths import MissingInputError
 
 
 class StlCache:

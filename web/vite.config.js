@@ -6,11 +6,12 @@ import { VitePWA } from 'vite-plugin-pwa';
 import { sentryVitePlugin } from '@sentry/vite-plugin';
 import { DEFAULT_THEME } from './src/constants/themeValues.js';
 import {
-  SQUAT_CHUNK_NAME,
-  SQUAT_CODE_ROUTE,
-  SQUAT_GLOB_IGNORES,
-  squatChunkFileNames,
-} from './scripts/squatChunks.mjs';
+  DATA_RUNTIME_ROUTES,
+  TOOL_CHUNK_NAME,
+  TOOL_CODE_ROUTE,
+  TOOL_GLOB_IGNORES,
+  chunkFileNames,
+} from './scripts/movementAssets.mjs';
 import { HEALTH_NETWORK_ONLY_ROUTE } from './scripts/healthRoute.mjs';
 import { I18N_CODE_ROUTE, I18N_GLOB_IGNORES } from './scripts/i18nChunks.mjs';
 import { resolveAppBuild } from './scripts/appBuild.mjs';
@@ -54,10 +55,11 @@ const sentryEnvironment =
 // find splitiq-29 without this.
 const sentryUrl = process.env.SENTRY_URL || 'https://de.sentry.io';
 
-// The squat tool's own JS — its React chunk, the anatomy scene, three.js and
-// the decode worker — is named squat-*, so the service worker can leave it out
-// of the precache by name and the Android build can strip it with one glob.
-// The rules live in scripts/squatChunks.mjs, where they are unit-tested;
+// The movement tools' own JS — each tool's React chunk, the anatomy scene,
+// three.js and the decode workers — is named anatomy-*, so the service worker
+// can leave it out of the precache by name and the Android build can strip it
+// by name. The rules, and every tool data file, are registered once in
+// scripts/movementAssets.mjs, where they are unit-tested;
 // check-bundle-size.mjs asserts the build obeyed them.
 
 // Each key is present only when its value exists. `define` is a literal text
@@ -85,32 +87,24 @@ export default defineConfig(({ command }) => ({
       includeAssets: ['icons/icon-192.png', 'icons/icon-512.png'],
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        // The squat tool's data (2.2 MB anatomy stream + its manifest) is not
-        // precached: every installed dashboard would download it on update for
-        // a page most of them never open. The extensions already sit outside
-        // globPatterns; the ignore makes that a decision, not an accident.
-        // It is cached on first use instead (runtime rule below).
+        // The movement tools' data files (the squat's 2.2 MB anatomy stream
+        // and its manifest, and every other registered file) are not
+        // precached: every installed dashboard would download them on update
+        // for pages most of them never open. The extensions already sit
+        // outside globPatterns; the ignore makes that a decision, not an
+        // accident. They are cached on first use instead, one runtime cache
+        // per group (DATA_RUNTIME_ROUTES below).
         //
-        // The tool's JS is excluded the same way (#382 PR2): with three.js it
+        // The tools' JS is excluded the same way (#382 PR2): with three.js it
         // is ~150 KB gzip that every installed dashboard would fetch on each
-        // update. It is cached on first use (squat-code rule below).
+        // update. It is cached on first use (squat-code, TOOL_CODE_ROUTE).
         //
         // A translated catalog (i18n-*) likewise: only a visitor who chose
         // that language fetches it, and it is cached on first use (i18n-code).
-        globIgnores: SQUAT_GLOB_IGNORES.concat(I18N_GLOB_IGNORES),
+        globIgnores: TOOL_GLOB_IGNORES.concat(I18N_GLOB_IGNORES),
         runtimeCaching: [
-          {
-            // Content-hashed and immutable, so cache-first is safe, and a
-            // second visit — or an offline one — opens without the download.
-            urlPattern: /\/assets\/squat-(anatomy|manifest)-.*\.(bin|json)$/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'squat-data',
-              expiration: { maxEntries: 4 },
-              cacheableResponse: { statuses: [200] },
-            },
-          },
-          SQUAT_CODE_ROUTE,
+          ...DATA_RUNTIME_ROUTES,
+          TOOL_CODE_ROUTE,
           I18N_CODE_ROUTE,
           // Supabase REST is not cached. The old NetworkFirst pattern matched
           // mid-URL, so Workbox ignored it on the cross-origin host
@@ -174,17 +168,17 @@ export default defineConfig(({ command }) => ({
   build: {
     sourcemap: uploadSourceMaps ? 'hidden' : false,
     manifest: true,
-    rolldownOptions: { output: { chunkFileNames: squatChunkFileNames } },
+    rolldownOptions: { output: { chunkFileNames } },
   },
-  // The anatomy decode worker is only ever started by /squat, so EVERY worker
-  // this build emits gets the squat- prefix. A future dashboard worker would
-  // be named squat-* too — left out of the precache and stripped from the
-  // APK by ci-android.yml. `npm run size` catches it: its prefix invariant
-  // fails when a squat-* file is reachable from the dashboard. Give such a
+  // Every worker this build emits is a movement tool's decode worker, so
+  // EVERY worker gets the anatomy- prefix. A future dashboard worker would be
+  // named anatomy-* too — left out of the precache and stripped from the APK
+  // by ci-android.yml. `npm run size` catches it: its prefix invariant fails
+  // when an anatomy-* file is reachable from the dashboard. Give such a
   // worker its own naming before adding it.
   worker: {
     rolldownOptions: {
-      output: { entryFileNames: SQUAT_CHUNK_NAME },
+      output: { entryFileNames: TOOL_CHUNK_NAME },
     },
   },
   test: {

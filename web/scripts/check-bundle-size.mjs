@@ -22,32 +22,42 @@
 // 14 desktop tabs cut the entry chunk 395.4 -> 134.7 KB (-66%) while adding
 // 26.3 KB to the total.
 //
-// Since the public squat tool (/squat) joined the bundle there are two
-// PRODUCTS behind one entry, so each budget is now scoped to one of them:
+// Since the public movement tools (/squat, then /row) joined the bundle there
+// are several PRODUCTS behind one entry, so each budget is scoped to one:
 //
 //   ENTRY / TOTAL         the dashboard. ENTRY walks main + AuthGate (a boot
 //                         key: lazy behind RouteRoot, but nothing paints
 //                         without it). TOTAL is every asset EXCEPT the files
-//                         only the squat tool can reach.
-//   SQUAT_ENTRY           what /squat costs to paint: main + SquatApp's
-//                         static graph.
-//   SQUAT_TOTAL           the files only the squat tool reaches (its chunk,
-//                         its worker), so shared code is not double-charged —
-//                         minus SQUAT_3D, which has its own line.
-//   SQUAT_3D              three.js and the anatomy scene: the files reachable
-//                         only through the scene's lazy import. Fetched after
-//                         the anatomy data, never on either first paint.
+//                         only the movement tools can reach, walked together
+//                         so a chunk two tools share stays theirs.
 //   DASH_ES               the dashboard's Spanish catalogs: files reachable
 //                         only through src/locales/es.po (boot) or
 //                         src/locales/views/es.po (views, i18n Phase 2a).
 //                         Fetched by a visitor who chose Spanish, never on
 //                         first paint, never precached. Carved out of TOTAL,
-//                         like SQUAT_3D, so a language never reads as "the
-//                         dashboard grew".
-//   SQUAT_DATA            the anatomy stream itself (already gzip, so measured
-//                         raw), plus a check that nothing the service worker
-//                         precaches exceeds Workbox's 2 MiB per-file ceiling —
-//                         above it, Workbox silently skips the file.
+//                         like the tools' files, so a language never reads as
+//                         "the dashboard grew".
+//   <tool> entry          per movement in scripts/movementAssets.mjs: what
+//                         its route costs to paint, main + its root's static
+//                         graph.
+//   <tool> total          the tool-only files its root reaches (its chunk, its
+//                         worker, any chunk it shares with another tool), so
+//                         the dashboard's shared code is not double-charged,
+//                         minus 3D, which has its own line.
+//   3D (shared)           three.js and the anatomy scene: the files reachable
+//                         only through the scene's lazy import, one budget for
+//                         every tool. Fetched after the data, never on a first
+//                         paint.
+//   Data                  each registered data file, measured raw (a bin is
+//                         already gzip): a live one must build to exactly one
+//                         file within its budget, a pending one to none. Plus
+//                         a check that nothing the service worker precaches
+//                         exceeds Workbox's 2 MiB per-file ceiling — above
+//                         it, Workbox silently skips the file.
+//
+// The dashboard's budgets live here. The tools' budgets, the 3D budget and the
+// data budgets live in scripts/movementAssets.mjs with their dated history,
+// beside the naming rules the build and the Android strip share (#756).
 //
 // Every budget is a RATCHET against unnoticed creep, not a performance
 // threshold: lower it as the bundle shrinks, and raise it only by the
@@ -64,20 +74,29 @@ import { gzipSync } from 'node:zlib';
 import { join } from 'node:path';
 import {
   catalogTextLeaks,
+  dataFileProblems,
   entryFilesFrom,
   firstPaintLeaks,
   i18nCatalogProblems,
   isCountedAsset,
+  movementFiles,
   navigationProblems,
   onlyReachableVia,
   precacheUrls,
   precachedI18n,
-  precachedSquat,
+  precachedTool,
   prefixMismatch,
   sentryInitProblems,
-  squatOnlyFiles,
+  toolOnlyFiles,
 } from './entry-graph.mjs';
-import { SQUAT_JS } from './squatChunks.mjs';
+import {
+  DATASETS,
+  MOVEMENTS,
+  SCENE,
+  TOOL_JS,
+  dataPattern,
+  isWebOnlyAsset,
+} from './movementAssets.mjs';
 import { I18N_JS } from './i18nChunks.mjs';
 import { parsePo } from './i18n-review-sheet.mjs';
 
@@ -152,74 +171,6 @@ import { parsePo } from './i18n-review-sheet.mjs';
 const MAX_ENTRY_GZIP_KB = 208;
 const MAX_TOTAL_GZIP_KB = 433;
 
-// Squat tool, measured 2026-11-04 on PR1 (no three.js yet): SQUAT_ENTRY
-// 107.2 KB, SQUAT_TOTAL 18.8 KB. Entry gets the approved +10 KB (117), total
-// +10% (20.7, rounded up to 21). PR2 adds three.js and will raise both
-// deliberately, with its own measured figures.
-//
-// The dashboard's entry moved 144.5 -> 146.1 KB on the same change: RouteRoot
-// plus the AuthGate chunk boundary it introduced. Still inside 150.
-//
-// PR2a (#382) re-measured 2026-11-04 with three.js in. SQUAT_TOTAL now
-// excludes the 3D chunk and carries the new depth/camera controls and hooks:
-// measured 23.6 KB, ceiling +10% (26); 24.0 KB after the Gate-3 fixes (the
-// controls now render, disabled, from first paint). SQUAT_ENTRY 112.7 KB, still
-// inside 117. The dashboard entry measured 146.6 KB (+0.2): RouteRoot's
-// first-visit offline fallback.
-//
-// PR2b-i re-measured 2026-11-05 with the muscle panel in (list, card, legend,
-// region map, bands, slugs, activation maths): SQUAT_TOTAL 27.6 KB after the
-// Gate-3 fix round (27.26 before it). 27.6 + 10% is 30.4; the ceiling is set
-// to 30 rather than 31, which is ~9% and so slightly tighter than the
-// convention allows. Squat total is the LOOSE ceiling
-// by this script's own definition — never precached, CacheFirst at runtime,
-// stripped from the APK — so these bytes are on nobody's first paint. The
-// panel is NOT lazy-loaded to dodge it: the canvas is aria-hidden with
-// tabindex="-1", so the list IS the accessible substitute for the model, and
-// putting it behind a chunk that can fail to fetch would make it the least
-// reliable thing on the page in exactly the situation it exists for.
-//
-// SQUAT_ENTRY is the tight gate and it still passes, at 116.4 of 117 — but
-// that is 0.6 KB spare, measured, and the next change of any size will fail
-// it. Raising it is not this PR's call.
-//
-// PR C (model as hero, docs/squat/HERO_STAGE_SPEC.md) re-measured 2026-11-12:
-// SQUAT_ENTRY 116.6 -> 118.0 KB, SQUAT_TOTAL 27.8 -> 29.2 KB, the dashboard
-// entry unchanged (147.3 -> 147.3). The growth is the docked controls rail, the
-// phone bar's Rep | View | Show disclosure and the transport icons, which
-// replace three stacked cards and the intro's button row. The bundle rule
-// approved by Scott at Gate 2 sets the ceiling to the measured figure plus
-// ~2 KB, rounded to the nearest whole KB: 118.0 + 2 = 120.
-//
-// R11 share-a-view (#439) re-measured 2026-11-12, against PR C's head:
-// SQUAT_ENTRY 118.0 -> 120.2 KB (+2.2), SQUAT_TOTAL 29.2 -> 31.8 KB (+2.6),
-// SQUAT_3D 138.2 -> 138.4 KB. The growth is the URL grammar (cam, hide, heat,
-// the t cap), the pose maths, the Copy link control and its clipboard
-// fallback. The hash parser moved out of utils/squatRoute.js into the tool,
-// so the shared index chunk shrank (91,113 -> 90,755 B) and the dashboard
-// entry dropped 147.3 -> 146.9 KB. Squat-only static code counts against
-// both squat gates, so both were exceeded. Scott's raise rule at R11 Gate 2:
-// the measured figure plus ~2 KB, rounded to the nearest whole KB. Entry 120.2 + 2 =
-// 122; total 31.8 + 2 = 34. The dashboard's 150 is not touched.
-//
-// Raised 122 -> 124 on 2026-11-13 (Scott, Gate 3, i18n PR-1). Measured 122.0
-// KB, 14 bytes under the old ceiling, with no squat feature in the change:
-// main is shared by both products, and it gained src/i18n/lang.js (the
-// language preference and the pre-chunk words RouteRoot's offline message
-// renders) and ROOT_ERROR_TEXT, the root fallback's English and Spanish,
-// pulled in through RouteRoot and ErrorFallback because both render before
-// any product chunk and so cannot use Lingui. Rule: 122.0 + 2 = 124.
-//
-// Re-based 124 -> 173 on 2026-11-15 (Scott, #465), for the same reason as
-// ENTRY above: the Sentry SDK lives in main, shared by both products, and the
-// gate had been measuring a build without it. 122.0 KB without a DSN, 170.8
-// KB with one. Rule: 170.8 + 2 = 172.8, to the nearest whole KB: 173.
-const MAX_SQUAT_ENTRY_GZIP_KB = 173;
-const MAX_SQUAT_TOTAL_GZIP_KB = 34;
-// three.js (r187, tree-shaken) + OrbitControls + the anatomy scene and posing
-// maths. Measured 2026-11-04 at 138.0 KB; ~5% headroom, because a
-// three.js bump is the likeliest way this grows and should be noticed.
-const MAX_SQUAT_3D_GZIP_KB = 145;
 // The dashboard's Spanish catalog. Measured 2026-11-13 (i18n PR-1) at 2.8 KB;
 // +~2 KB, to the nearest whole KB. It grows with every translated view (Phase 2+), each
 // of which raises it deliberately with its own measured figure.
@@ -242,22 +193,17 @@ const MAX_SQUAT_3D_GZIP_KB = 145;
 // messages. Measured 12.0 KB. Fetched only by a visitor who chose Spanish,
 // never precached. Rule: 12.0 + 2 = 14.0, to the nearest whole KB: 14.
 const MAX_DASH_ES_GZIP_KB = 14;
-// The stream measured 2,202,168 bytes; 2.3 MB keeps a re-run of the pipeline
-// from quietly doubling every first visit.
-const MAX_SQUAT_DATA_BYTES = 2_300_000;
 const MAX_PRECACHE_FILE_BYTES = 2 * 1024 * 1024;
 
-// main.jsx renders RouteRoot, which lazy-loads one product or the other.
+// main.jsx renders RouteRoot, which lazy-loads the dashboard or one tool.
 const DASHBOARD_BOOT = 'src/AuthGate.jsx';
-const SQUAT_ROOT = 'src/squat/SquatApp.jsx';
-const SCENE_ROOT = 'src/anatomy/scene/createAnatomyScene.js';
+const TOOL_ROOTS = MOVEMENTS.map((m) => m.root);
 const DASH_ES_ROOTS = ['src/locales/es.po', 'src/locales/views/es.po'];
 // The views catalog's English rides in the lazy shells' chunk (App.jsx and
 // MobileApp.jsx import src/i18n/views.js). It has no manifest key, so it is
 // kept off first paint by its words: messages only it holds.
 const VIEWS_EN = 'src/locales/views/en.po';
 const BOOT_EN = 'src/locales/en.po';
-const SQUAT_DATA = /^squat-anatomy-.*\.bin$/;
 
 const DIST = join(process.cwd(), 'dist');
 const ASSET_DIR = join(DIST, 'assets');
@@ -338,26 +284,32 @@ function precachedFiles() {
 }
 
 const manifest = readManifest();
+// A tool root that left the manifest would drop out of every figure and pass.
+for (const { root } of MOVEMENTS) {
+  if (!manifest[root]) die(`Movement root ${root} is not in the manifest.`);
+}
 const assetName = (f) =>
   f.startsWith('assets/') ? f.slice('assets/'.length) : f;
-let squatFiles;
+const counted = (files) => new Set(files.filter(isCountedAsset).map(assetName));
+let toolFiles;
 let sceneFiles;
 let dashEsFiles;
+let ownFiles;
 try {
-  squatFiles = new Set(
-    squatOnlyFiles(manifest, SQUAT_ROOT).filter(isCountedAsset).map(assetName)
-  );
-  sceneFiles = new Set(
-    onlyReachableVia(manifest, SCENE_ROOT, 'Scene root')
-      .filter(isCountedAsset)
-      .map(assetName)
-  );
+  // Every tool root walked as one graph: walked one at a time, a chunk two
+  // tools share is reachable from the other tool, so it would land in the
+  // dashboard's TOTAL and in no tool's budget.
+  toolFiles = counted(toolOnlyFiles(manifest, TOOL_ROOTS));
+  sceneFiles = counted(onlyReachableVia(manifest, SCENE.root, 'Scene root'));
   dashEsFiles = new Set(
     DASH_ES_ROOTS.flatMap((root) =>
       onlyReachableVia(manifest, root, 'Dashboard catalog')
         .filter(isCountedAsset)
         .map(assetName)
     )
+  );
+  ownFiles = MOVEMENTS.map(({ root }) =>
+    counted(movementFiles(manifest, root, TOOL_ROOTS))
   );
 } catch (error) {
   die(error.message);
@@ -366,26 +318,35 @@ const everything = allAssets();
 // The dashboard's total: nothing moved, nothing exempted — only the files no
 // dashboard path can reach are carved out, and they are gated below instead.
 const assets = everything.filter(
-  (a) => !squatFiles.has(a.file) && !dashEsFiles.has(a.file)
+  (a) => !toolFiles.has(a.file) && !dashEsFiles.has(a.file)
 );
 const dashEsAssets = everything.filter((a) => dashEsFiles.has(a.file));
-const squatAssets = everything.filter(
-  (a) => squatFiles.has(a.file) && !sceneFiles.has(a.file)
-);
 const scene3dAssets = everything.filter((a) => sceneFiles.has(a.file));
 const entry = firstPaint(manifest, DASHBOARD_BOOT);
-const squatEntry = firstPaint(manifest, SQUAT_ROOT);
 const sum = (list) => list.reduce((n, a) => n + a.gzip, 0);
 const totalBytes = sum(assets);
 const entryBytes = sum(entry);
-const squatEntryBytes = sum(squatEntry);
-const squatTotalBytes = sum(squatAssets);
-const squat3dBytes = sum(scene3dAssets);
+const scene3dBytes = sum(scene3dAssets);
 const dashEsBytes = sum(dashEsAssets);
+// Each tool's entry and total. A chunk the tools share counts in every tool
+// that reaches it.
+const movements = MOVEMENTS.map((m, i) => {
+  const entryAssets = firstPaint(manifest, m.root);
+  const totalAssets = everything.filter(
+    (a) => ownFiles[i].has(a.file) && !sceneFiles.has(a.file)
+  );
+  return {
+    ...m,
+    entry: sum(entryAssets),
+    entryAssets,
+    total: sum(totalAssets),
+    totalAssets,
+  };
+});
 
-// ── Structural invariants of the squat split (entry-graph.mjs) ────
+// ── Structural invariants of the tool split (entry-graph.mjs) ─────
 // Each fails silently if broken: three.js on a first paint costs ~140 KB
-// with every budget still green if the ceiling happened to fit; a squat chunk
+// with every budget still green if the ceiling happened to fit; a tool chunk
 // without the prefix is precached into every dashboard install; a prefixed
 // shared chunk is never precached, so the dashboard breaks offline.
 // ASCII-only, long, placeholder-free messages the views catalog holds and the
@@ -408,7 +369,7 @@ function viewsEnglishLeaks() {
     text: readFileSync(join(DIST, file), 'utf8'),
   });
   const js = (f) => f.endsWith('.js');
-  const firstPaintText = [DASHBOARD_BOOT, SQUAT_ROOT].flatMap((key) =>
+  const firstPaintText = [DASHBOARD_BOOT, ...TOOL_ROOTS].flatMap((key) =>
     entryFilesFrom(manifest, { bootKeys: [key] })
       .filter(js)
       .map(text)
@@ -439,21 +400,43 @@ try {
   invariants.push(
     ...sentryInitProblems([
       { name: 'dashboard', files: firstPaintJs(DASHBOARD_BOOT) },
-      { name: '/squat', files: firstPaintJs(SQUAT_ROOT) },
+      ...MOVEMENTS.map(({ route, root }) => ({
+        name: route,
+        files: firstPaintJs(root),
+      })),
     ]),
-    ...firstPaintLeaks(manifest, SCENE_ROOT, [DASHBOARD_BOOT, SQUAT_ROOT]),
+    // No 3D on any first paint.
+    ...firstPaintLeaks(manifest, SCENE.root, [DASHBOARD_BOOT, ...TOOL_ROOTS]),
+    // No tool code on the dashboard's: a statically imported tool root would
+    // still carry the prefix, so the naming check below would not see it.
+    ...firstPaintLeaks(manifest, TOOL_ROOTS, [DASHBOARD_BOOT], {
+      what: 'movement-tool code',
+      fix: 'Lazy-load every tool root from RouteRoot.',
+    }),
+    // No tool on another's.
+    ...MOVEMENTS.flatMap(({ root, title }) =>
+      firstPaintLeaks(
+        manifest,
+        root,
+        TOOL_ROOTS.filter((other) => other !== root),
+        {
+          what: `the ${title} tool`,
+          fix: 'Each tool root loads lazily, from RouteRoot only.',
+        }
+      )
+    ),
     ...DASH_ES_ROOTS.flatMap((root) => [
-      ...firstPaintLeaks(manifest, root, [DASHBOARD_BOOT, SQUAT_ROOT], {
+      ...firstPaintLeaks(manifest, root, [DASHBOARD_BOOT, ...TOOL_ROOTS], {
         what: `the Spanish dashboard catalog ${root}`,
         fix: 'Load it only through ensureLocale (src/i18n/locale.js).',
       }),
-      ...i18nCatalogProblems(manifest, root, SQUAT_ROOT, I18N_JS),
+      ...i18nCatalogProblems(manifest, root, TOOL_ROOTS, I18N_JS),
     ]),
     ...viewsEnglishLeaks(),
     ...prefixMismatch(
-      squatOnlyFiles(manifest, SQUAT_ROOT),
+      toolOnlyFiles(manifest, TOOL_ROOTS),
       readdirSync(ASSET_DIR),
-      SQUAT_JS
+      TOOL_JS
     ),
     ...navigationProblems(sw)
   );
@@ -461,31 +444,33 @@ try {
   die(error.message);
 }
 
-const dataFiles = readdirSync(ASSET_DIR).filter((f) => SQUAT_DATA.test(f));
-if (dataFiles.length !== 1) {
-  die(
-    `Expected exactly one squat-anatomy-*.bin in dist/assets, found ${dataFiles.length}.`
-  );
-}
-const squatData = {
-  file: dataFiles[0],
-  bytes: statSync(join(ASSET_DIR, dataFiles[0])).size,
-  budgetBytes: MAX_SQUAT_DATA_BYTES,
-};
+// The data files are found by name: the worker sub-build emits a bin with no
+// record in the manifest.
+const data = dataFileProblems(
+  DATASETS.map((d) => ({ ...d, pattern: dataPattern(d) })),
+  readdirSync(ASSET_DIR),
+  (name) => statSync(join(ASSET_DIR, name)).size
+);
 const precache = precachedFiles()
   .map((url) => ({ url, bytes: statSync(join(DIST, url)).size }))
   .sort((a, b) => b.bytes - a.bytes);
 const largestPrecached = precache[0];
 invariants.push(
-  ...precachedSquat(precache.map((p) => p.url)),
+  ...data.problems,
+  ...precachedTool(
+    precache.map((p) => p.url),
+    isWebOnlyAsset
+  ),
   ...precachedI18n(precache.map((p) => p.url))
 );
 
 // Machine-readable summary for CI reporting (report-bundle-size.mjs diffs it
 // against the main-branch baseline). `budgetKb`/`total`/`assets` keep their
-// original names and meanings so a baseline cached before #331 still reads.
-// Written before the budget checks so the PR comment still shows the delta
-// when a gate fails.
+// original names and meanings so a baseline cached before #331 still reads,
+// and the squat* keys theirs, so one cached before #756 does. Written before
+// the budget checks so the PR comment still shows the delta when a gate fails.
+const squat = movements.find((m) => m.id === 'squat');
+const squatBin = data.files.find((f) => f.id === 'squat-anatomy');
 writeFileSync(
   join(DIST, 'bundle-size.json'),
   JSON.stringify(
@@ -496,21 +481,49 @@ writeFileSync(
       entryBudgetKb: MAX_ENTRY_GZIP_KB,
       entry: entryBytes,
       entryAssets: entry,
-      squatEntryBudgetKb: MAX_SQUAT_ENTRY_GZIP_KB,
-      squatEntry: squatEntryBytes,
-      squatEntryAssets: squatEntry,
-      squatTotalBudgetKb: MAX_SQUAT_TOTAL_GZIP_KB,
-      squatTotal: squatTotalBytes,
-      squatAssets,
-      squat3dBudgetKb: MAX_SQUAT_3D_GZIP_KB,
-      squat3d: squat3dBytes,
+      squatEntryBudgetKb: squat.entryBudgetKb,
+      squatEntry: squat.entry,
+      squatEntryAssets: squat.entryAssets,
+      squatTotalBudgetKb: squat.totalBudgetKb,
+      squatTotal: squat.total,
+      squatAssets: squat.totalAssets,
+      // The shared 3D set: the same files the squat's 3D line measured.
+      squat3dBudgetKb: SCENE.budgetKb,
+      squat3d: scene3dBytes,
       squat3dAssets: scene3dAssets,
       dashEsBudgetKb: MAX_DASH_ES_GZIP_KB,
       dashEs: dashEsBytes,
       dashEsAssets,
-      squatData,
+      squatData: {
+        file: squatBin.file,
+        bytes: squatBin.bytes,
+        budgetBytes: squatBin.budgetBytes,
+      },
       precacheLargest: largestPrecached,
       precacheFileBudgetBytes: MAX_PRECACHE_FILE_BYTES,
+      movements: Object.fromEntries(
+        movements.map((m) => [
+          m.id,
+          {
+            title: m.title,
+            route: m.route,
+            entryBudgetKb: m.entryBudgetKb,
+            entry: m.entry,
+            entryAssets: m.entryAssets,
+            totalBudgetKb: m.totalBudgetKb,
+            total: m.total,
+            totalAssets: m.totalAssets,
+          },
+        ])
+      ),
+      data: data.files.map((f, i) => ({
+        id: f.id,
+        movements: DATASETS[i].movements,
+        file: f.file,
+        bytes: f.bytes,
+        budgetBytes: f.budgetBytes,
+        pending: f.pending,
+      })),
     },
     null,
     2
@@ -518,6 +531,7 @@ writeFileSync(
 );
 
 const kb = (b) => `${(b / 1024).toFixed(1)} KB`;
+const mb = (b) => `${(b / 1e6).toFixed(3)} MB`;
 const entryFiles = new Set(entry.map((a) => a.file));
 
 console.log('Bundle size (gzipped):');
@@ -538,29 +552,36 @@ console.log(
 console.log(
   `    ${kb(dashEsBytes).padStart(10)}  dash es  (budget ${MAX_DASH_ES_GZIP_KB} KB) — both Spanish catalogs, fetched only on choosing it, not precached`
 );
-console.log('\nSquat tool (gzipped):');
-for (const a of squatAssets) {
-  console.log(`  · ${kb(a.gzip).padStart(10)}  ${a.file}`);
+console.log('\nMovement tools (gzipped):');
+for (const m of movements) {
+  for (const a of m.totalAssets) {
+    console.log(`  · ${kb(a.gzip).padStart(10)}  ${a.file}`);
+  }
+  console.log(`    ${'─'.repeat(10)}`);
+  console.log(
+    `    ${kb(m.entry).padStart(10)}  ${m.id} entry  (budget ${m.entryBudgetKb} KB) — first paint of ${m.route}`
+  );
+  console.log(
+    `    ${kb(m.total).padStart(10)}  ${m.id} total  (budget ${m.totalBudgetKb} KB) — tool files ${m.route} reaches, 3D excluded`
+  );
 }
 for (const a of scene3dAssets) {
   console.log(`  ◦ ${kb(a.gzip).padStart(10)}  ${a.file}  (3D)`);
 }
 console.log(`    ${'─'.repeat(10)}`);
 console.log(
-  `    ${kb(squatEntryBytes).padStart(10)}  squat entry  (budget ${MAX_SQUAT_ENTRY_GZIP_KB} KB) — first paint of /squat`
+  `    ${kb(scene3dBytes).padStart(10)}  3D (shared)  (budget ${SCENE.budgetKb} KB) — three.js + scene, lazy after the data`
 );
+console.log('\nData (raw, not precached):');
+for (const f of data.files) {
+  const figure = f.bytes === null ? '' : mb(f.bytes);
+  const detail = f.pending
+    ? `pending (${f.pending})`
+    : `(budget ${mb(f.budgetBytes)}) — ${f.file ?? 'not exactly one file, see below'}`;
+  console.log(`    ${figure.padStart(10)}  ${f.id}  ${detail}`);
+}
 console.log(
-  `    ${kb(squatTotalBytes).padStart(10)}  squat total  (budget ${MAX_SQUAT_TOTAL_GZIP_KB} KB) — files only /squat reaches, 3D excluded`
-);
-console.log(
-  `    ${kb(squat3dBytes).padStart(10)}  squat 3D     (budget ${MAX_SQUAT_3D_GZIP_KB} KB) — three.js + scene, lazy after the data`
-);
-const mbs = (b) => `${(b / 1e6).toFixed(2)} MB`;
-console.log(
-  `    ${mbs(squatData.bytes).padStart(10)}  squat data   (budget ${mbs(MAX_SQUAT_DATA_BYTES)}) — ${squatData.file}, not precached`
-);
-console.log(
-  `    ${mbs(largestPrecached.bytes).padStart(10)}  largest precached file (ceiling 2 MiB) — ${largestPrecached.url}`
+  `    ${mb(largestPrecached.bytes).padStart(10)}  largest precached file (ceiling 2 MiB) — ${largestPrecached.url}`
 );
 
 const failures = [];
@@ -577,18 +598,20 @@ for (const [label, bytes, budgetKb, advice] of [
     MAX_TOTAL_GZIP_KB,
     'Trim a dependency, or raise MAX_TOTAL_GZIP_KB deliberately (#504).',
   ],
-  [
-    'Squat entry',
-    squatEntryBytes,
-    MAX_SQUAT_ENTRY_GZIP_KB,
-    'Something /squat statically imports grew — keep heavy pieces behind a lazy import, or raise MAX_SQUAT_ENTRY_GZIP_KB deliberately (#504).',
-  ],
-  [
-    'Squat total',
-    squatTotalBytes,
-    MAX_SQUAT_TOTAL_GZIP_KB,
-    'Trim the tool, or raise MAX_SQUAT_TOTAL_GZIP_KB deliberately (#504).',
-  ],
+  ...movements.flatMap((m) => [
+    [
+      `${m.title} entry`,
+      m.entry,
+      m.entryBudgetKb,
+      `Something ${m.route} statically imports grew — keep heavy pieces behind a lazy import, or raise its entryBudgetKb in scripts/movementAssets.mjs deliberately (#504).`,
+    ],
+    [
+      `${m.title} total`,
+      m.total,
+      m.totalBudgetKb,
+      'Trim the tool, or raise its totalBudgetKb in scripts/movementAssets.mjs deliberately (#504).',
+    ],
+  ]),
   [
     'Dashboard Spanish catalog',
     dashEsBytes,
@@ -596,10 +619,10 @@ for (const [label, bytes, budgetKb, advice] of [
     'A dashboard es.po grew — raise MAX_DASH_ES_GZIP_KB deliberately with the measured figure.',
   ],
   [
-    'Squat 3D',
-    squat3dBytes,
-    MAX_SQUAT_3D_GZIP_KB,
-    'three.js or the scene grew — check for a non-tree-shaken import (three/addons barrel, `import *`), or raise MAX_SQUAT_3D_GZIP_KB deliberately (#504).',
+    '3D (shared)',
+    scene3dBytes,
+    SCENE.budgetKb,
+    'three.js or the scene grew — check for a non-tree-shaken import (three/addons barrel, `import *`), or raise SCENE.budgetKb in scripts/movementAssets.mjs deliberately (#504).',
   ],
 ]) {
   if (bytes > budgetKb * 1024) {
@@ -609,11 +632,6 @@ for (const [label, bytes, budgetKb, advice] of [
   }
 }
 
-if (squatData.bytes > MAX_SQUAT_DATA_BYTES) {
-  failures.push(
-    `✖ ${squatData.file} is ${squatData.bytes} bytes, over the ${MAX_SQUAT_DATA_BYTES}-byte budget.\n  A pipeline re-run grew the anatomy stream; decimate or requantise it, or raise MAX_SQUAT_DATA_BYTES deliberately (#504).`
-  );
-}
 for (const p of precache.filter((f) => f.bytes > MAX_PRECACHE_FILE_BYTES)) {
   failures.push(
     `✖ ${p.url} is precached at ${p.bytes} bytes, over Workbox's 2 MiB per-file ceiling — it would be skipped silently.\n  Add it to globIgnores in vite.config.js and cache it at runtime instead.`
@@ -627,12 +645,19 @@ if (failures.length) {
   process.exit(1);
 }
 
-const spare = (budgetKb, bytes) => (budgetKb - bytes / 1024).toFixed(1);
-console.log(
-  `\n✓ Within budget (entry ${spare(MAX_ENTRY_GZIP_KB, entryBytes)} KB spare, ` +
-    `total ${spare(MAX_TOTAL_GZIP_KB, totalBytes)} KB spare, ` +
-    `squat entry ${spare(MAX_SQUAT_ENTRY_GZIP_KB, squatEntryBytes)} KB spare, ` +
-    `squat total ${spare(MAX_SQUAT_TOTAL_GZIP_KB, squatTotalBytes)} KB spare, ` +
-    `squat 3D ${spare(MAX_SQUAT_3D_GZIP_KB, squat3dBytes)} KB spare, ` +
-    `dash es ${spare(MAX_DASH_ES_GZIP_KB, dashEsBytes)} KB spare).`
-);
+const spare = (budgetKb, bytes) => `${(budgetKb - bytes / 1024).toFixed(1)} KB`;
+const thousands = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+const spares = [
+  `entry ${spare(MAX_ENTRY_GZIP_KB, entryBytes)}`,
+  `total ${spare(MAX_TOTAL_GZIP_KB, totalBytes)}`,
+  ...movements.flatMap((m) => [
+    `${m.id} entry ${spare(m.entryBudgetKb, m.entry)}`,
+    `${m.id} total ${spare(m.totalBudgetKb, m.total)}`,
+  ]),
+  `3D (shared) ${spare(SCENE.budgetKb, scene3dBytes)}`,
+  `dash es ${spare(MAX_DASH_ES_GZIP_KB, dashEsBytes)}`,
+  ...data.files
+    .filter((f) => !f.pending)
+    .map((f) => `${f.id} ${thousands(f.budgetBytes - f.bytes)} B`),
+];
+console.log(`\n✓ Within budget (${spares.join(' spare, ')} spare).`);

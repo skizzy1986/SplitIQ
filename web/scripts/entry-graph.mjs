@@ -142,19 +142,9 @@ export const onlyReachableVia = (manifest, viaKey, what = 'Root') =>
   onlyReachableViaAny(manifest, [viaKey], what);
 
 /**
- * Files only the squat tool can reach. Shared code — React, the entry chunk,
- * the tokens module — is the dashboard's, so the squat budget measures only
- * what the tool itself added.
- *
- * @param {Record<string, object>} manifest
- * @param {string} squatKey manifest key of the tool's root module
- * @returns {string[]} dist-relative paths
- */
-export const squatOnlyFiles = (manifest, squatKey) =>
-  onlyReachableVia(manifest, squatKey, 'Squat root');
-
-/**
- * Files only the movement tools can reach, walked as one graph. Walked one
+ * Files only the movement tools can reach, walked as one graph. Shared code —
+ * React, the entry chunk, the tokens module — is the dashboard's, so the tool
+ * budgets measure only what the tools themselves added. Walked one
  * root at a time, a chunk two tools share is reachable from the other tool,
  * so it lands in the dashboard's TOTAL, in no tool's budget, and the prefix
  * check expects it plain (precached). Walked together, it stays a tool's.
@@ -275,16 +265,6 @@ export function precachedTool(urls, isWebOnly) {
   return hits.length
     ? [
         `sw.js precaches movement-tool files: ${hits.join(', ')}. They belong in globIgnores.`,
-      ]
-    : [];
-}
-
-/** No squat file may be in the precache list. */
-export function precachedSquat(urls) {
-  const hits = urls.filter((u) => /(^|\/)assets\/squat-/.test(u));
-  return hits.length
-    ? [
-        `sw.js precaches squat files: ${hits.join(', ')}. They belong in globIgnores.`,
       ]
     : [];
 }

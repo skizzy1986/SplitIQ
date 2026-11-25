@@ -1,18 +1,19 @@
 // How a translated catalog's chunk is told apart from the rest, in one place —
-// the i18n sibling of squatChunks.mjs, with the same shape and the same reason.
-// A Spanish catalog is fetched only by a visitor who chose Spanish. Left to
-// Workbox's defaults it would be precached, and every English install would
-// download it on every update; named i18n-*, it is skipped by the precache and
-// cached on first use instead. The Android build keeps it (unlike squat-*), so
-// Spanish works offline there.
+// the i18n sibling of the movement tools' rules in movementAssets.mjs, with the
+// same shape and the same reason. A Spanish catalog is fetched only by a
+// visitor who chose Spanish. Left to Workbox's defaults it would be precached,
+// and every English install would download it on every update; named i18n-*,
+// it is skipped by the precache and cached on first use instead. The Android
+// build keeps it (unlike anatomy-*), so Spanish works offline there.
 
 // A dashboard catalog for a language other than the source (English): the
 // boot catalog (src/locales/es.po) or a named one beside it (since i18n Phase
 // 2a, src/locales/views/es.po). An English catalog is a static import, on first
 // paint or in a shell's chunk; it must never pick up this name, or it would
-// leave the precache and the dashboard would break offline. /squat's catalogs
-// live under src/squat/ and take the squat- prefix instead, because that rule
-// is checked first.
+// leave the precache and the dashboard would break offline. The movement
+// tools' catalogs live under their own folders (src/squat/locales,
+// src/row/locales) and take the anatomy- prefix instead, because that rule
+// (movementAssets.mjs) is checked first.
 const TRANSLATED_CATALOG =
   /\/src\/locales\/(?:[a-z][a-z0-9-]*\/)?(?!en\.po)[a-z]{2}(?:-[A-Za-z]{2})?\.po(?:\?.*)?$/;
 

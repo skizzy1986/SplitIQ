@@ -6,7 +6,9 @@
 //
 // ENTRY leads, because it is what a first paint costs and the tight ratchet.
 // TOTAL follows as the loose ceiling. A baseline cached before #331 has no
-// `entry` field; say so rather than inventing a delta from the total.
+// `entry` field; say so rather than inventing a delta from the total. Then
+// each movement tool's entry and total (scripts/movementAssets.mjs) and the
+// shared 3D line.
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -34,6 +36,13 @@ const row = (label, bytes, budgetKb, before, note) => {
   return `| ${label} | **${kb(bytes)}** | ${budgetKb} KB | ${over ? '❌ over' : '✅'} | ${vsMain} | ${note} |`;
 };
 
+// A baseline cached before #756 has no `movements`; its squat figures sit
+// under the legacy keys, so the squat still shows a delta on the first PR.
+const LEGACY_SQUAT = { entry: 'squatEntry', total: 'squatTotal' };
+const baselineFor = (id, key) =>
+  baseline?.movements?.[id]?.[key] ??
+  (id === 'squat' ? baseline?.[LEGACY_SQUAT[key]] : undefined);
+
 const lines = [
   '<!-- bundle-size-report -->',
   '## Bundle size',
@@ -54,32 +63,31 @@ const lines = [
     baseline?.total,
     'everything the dashboard can reach'
   ),
-  // The squat tool's rows, when this build has them. A baseline from before
-  // the tool reads undefined, which row() already renders as no delta.
-  ...(current.squatEntry === undefined
-    ? []
-    : [
-        row(
-          'Squat entry',
-          current.squatEntry,
-          current.squatEntryBudgetKb,
-          baseline?.squatEntry,
-          'first paint of /squat'
-        ),
-        row(
-          'Squat total',
-          current.squatTotal,
-          current.squatTotalBudgetKb,
-          baseline?.squatTotal,
-          'files only /squat reaches'
-        ),
-      ]),
-  // three.js + the anatomy scene, lazy after the anatomy data.
+  // Each movement tool's rows. A tool the baseline does not have reads
+  // undefined, which row() already renders as no delta.
+  ...Object.entries(current.movements ?? {}).flatMap(([id, m]) => [
+    row(
+      `${m.title} entry`,
+      m.entry,
+      m.entryBudgetKb,
+      baselineFor(id, 'entry'),
+      `first paint of ${m.route}`
+    ),
+    row(
+      `${m.title} total`,
+      m.total,
+      m.totalBudgetKb,
+      baselineFor(id, 'total'),
+      `tool files ${m.route} reaches`
+    ),
+  ]),
+  // three.js + the anatomy scene, shared by every tool and lazy after its
+  // data. It keeps the squat3d keys it had when the squat was the only tool.
   ...(current.squat3d === undefined
     ? []
     : [
         row(
-          'Squat 3D',
+          '3D (shared)',
           current.squat3d,
           current.squat3dBudgetKb,
           baseline?.squat3d,

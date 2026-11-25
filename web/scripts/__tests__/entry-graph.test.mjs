@@ -7,13 +7,11 @@ import {
   navigationProblems,
   onlyReachableVia,
   onlyReachableViaAny,
-  precachedSquat,
   precachedTool,
   prefixMismatch,
   precacheUrls,
   reachableFiles,
   servesIndexNavigation,
-  squatOnlyFiles,
   toolOnlyFiles,
 } from '../entry-graph.mjs';
 import {
@@ -202,7 +200,7 @@ describe('entryFilesFrom with bootKeys', () => {
   });
 });
 
-describe('squat-only classification', () => {
+describe('tool-only classification', () => {
   it('walks static, dynamic and asset edges, stopping where told', () => {
     const all = reachableFiles(TWO_PRODUCTS, ['index.html']);
     expect(all.has('assets/App-d.js')).toBe(true);
@@ -216,7 +214,7 @@ describe('squat-only classification', () => {
 
   it('charges the tool only for what the dashboard cannot reach', () => {
     expect(
-      squatOnlyFiles(TWO_PRODUCTS, 'src/squat/SquatApp.jsx').sort()
+      toolOnlyFiles(TWO_PRODUCTS, ['src/squat/SquatApp.jsx']).sort()
     ).toEqual(
       [
         'assets/SquatApp-e.js',
@@ -227,9 +225,9 @@ describe('squat-only classification', () => {
     );
   });
 
-  it('throws when the squat root is missing', () => {
-    expect(() => squatOnlyFiles(TWO_PRODUCTS, 'src/nope.jsx')).toThrow(
-      /Squat root/
+  it('throws when a tool root is missing', () => {
+    expect(() => toolOnlyFiles(TWO_PRODUCTS, ['src/nope.jsx'])).toThrow(
+      /Movement root src\/nope\.jsx/
     );
   });
 
@@ -274,10 +272,10 @@ describe('onlyReachableVia (the 3D chunk)', () => {
     ]);
   });
 
-  it('is a subset of the squat-only files', () => {
-    const squat = new Set(squatOnlyFiles(WITH_SCENE, 'src/squat/SquatApp.jsx'));
+  it('is a subset of the tool-only files', () => {
+    const tool = new Set(toolOnlyFiles(WITH_SCENE, ['src/squat/SquatApp.jsx']));
     for (const f of onlyReachableVia(WITH_SCENE, SCENE)) {
-      expect(squat.has(f)).toBe(true);
+      expect(tool.has(f)).toBe(true);
     }
   });
 
@@ -325,7 +323,7 @@ describe('service worker inspection', () => {
   });
 });
 
-describe('squat split invariants', () => {
+describe('tool split invariants, one tool', () => {
   const BOOTS = ['src/AuthGate.jsx', 'src/squat/SquatApp.jsx'];
 
   describe('firstPaintLeaks', () => {
@@ -380,24 +378,27 @@ describe('squat split invariants', () => {
   });
 
   describe('prefixMismatch', () => {
-    const SQUAT_JS = /^squat-.*\.js$/;
-    const graph = ['assets/squat-a.js', 'assets/squat-b.js', 'assets/x.bin'];
+    const graph = [
+      'assets/anatomy-a.js',
+      'assets/anatomy-b.js',
+      'assets/x.bin',
+    ];
 
     it('passes when the graph and the names agree', () => {
       expect(
         prefixMismatch(
           graph,
-          ['squat-b.js', 'squat-a.js', 'index.js'],
-          SQUAT_JS
+          ['anatomy-b.js', 'anatomy-a.js', 'index.js'],
+          TOOL_JS
         )
       ).toEqual([]);
     });
 
-    it('fails on a squat-only chunk without the prefix', () => {
+    it('fails on a tool-only chunk without the prefix', () => {
       const [msg] = prefixMismatch(
         [...graph, 'assets/three-c.js'],
-        ['squat-a.js', 'squat-b.js', 'three-c.js'],
-        SQUAT_JS
+        ['anatomy-a.js', 'anatomy-b.js', 'three-c.js'],
+        TOOL_JS
       );
       expect(msg).toMatch(/differ/);
       expect(msg).toMatch(/three-c\.js/);
@@ -407,30 +408,10 @@ describe('squat split invariants', () => {
       expect(
         prefixMismatch(
           graph,
-          ['squat-a.js', 'squat-b.js', 'squat-shared.js'],
-          SQUAT_JS
+          ['anatomy-a.js', 'anatomy-b.js', 'anatomy-shared.js'],
+          TOOL_JS
         )
       ).toHaveLength(1);
-    });
-  });
-
-  describe('precachedSquat', () => {
-    it('passes with no squat URL in the precache', () => {
-      expect(precachedSquat(['index.html', 'assets/index-a.js'])).toEqual([]);
-      expect(precachedSquat([])).toEqual([]);
-    });
-
-    it('fails on a precached squat chunk or data file', () => {
-      const [msg] = precachedSquat([
-        'index.html',
-        'assets/squat-SquatApp-a.js',
-        'assets/squat-anatomy-b.bin',
-      ]);
-      expect(msg).toMatch(/squat-SquatApp-a\.js, assets\/squat-anatomy-b\.bin/);
-    });
-
-    it('does not mistake a non-asset path for one', () => {
-      expect(precachedSquat(['icons/squat-icon.png'])).toEqual([]);
     });
   });
 
@@ -726,11 +707,20 @@ describe('the three-root graph', () => {
 });
 
 describe('with one tool root, the new figures equal the old', () => {
+  // squatOnlyFiles as it was at 5def051, before #756 replaced it: the
+  // reference the generalised walk must reproduce for a single tool.
+  const squatOnlyAt5def051 = (manifest, key) => {
+    const entries = Object.keys(manifest).filter((k) => manifest[k]?.isEntry);
+    const others = reachableFiles(manifest, entries, { stopAt: [key] });
+    return [...reachableFiles(manifest, [key])].filter((f) => !others.has(f));
+  };
+
   it.each([
     ['TWO_PRODUCTS', TWO_PRODUCTS],
     ['WITH_SCENE', WITH_SCENE],
   ])('%s', (_, m) => {
-    const old = sorted(squatOnlyFiles(m, SQUAT));
+    const old = sorted(squatOnlyAt5def051(m, SQUAT));
+    expect(old.length).toBeGreaterThan(0);
     expect(sorted(toolOnlyFiles(m, [SQUAT]))).toEqual(old);
     expect(sorted(movementFiles(m, SQUAT, [SQUAT]))).toEqual(old);
     expect(sorted(onlyReachableViaAny(m, [SQUAT]))).toEqual(old);

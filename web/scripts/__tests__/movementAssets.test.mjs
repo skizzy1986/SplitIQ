@@ -234,6 +234,30 @@ describe('the registry', () => {
     }
   });
 
+  // #504: a budget is set from a measured figure with Scott's yes, and the
+  // comment beside it records when, who and what was measured.
+  it("the row's budgets carry a dated comment naming Scott", () => {
+    const src = readFileSync(join(WEB, 'scripts', 'movementAssets.mjs'), 'utf8')
+      .split('\n')
+      .map((line) => line.trim());
+    const start = src.indexOf("id: 'row',");
+    expect(start).toBeGreaterThan(-1);
+    const row = MOVEMENTS.find((m) => m.id === 'row');
+    for (const key of ['entryBudgetKb', 'totalBudgetKb']) {
+      expect(Number.isInteger(row[key]) && row[key] > 0, key).toBe(true);
+      const at = src.indexOf(`${key}: ${row[key]},`, start);
+      expect(at, key).toBeGreaterThan(start);
+      const comment = [];
+      for (let i = at - 1; src[i].startsWith('//'); i--)
+        comment.unshift(src[i]);
+      const text = comment.join(' ');
+      expect(text, key).toMatch(/\b20\d\d-\d\d-\d\d\b/);
+      expect(text, key).toMatch(/\bScott\b/);
+      expect(text, key).toMatch(/#504/);
+      expect(text, key).toMatch(/Measured \d/);
+    }
+  });
+
   it('is frozen, so a consumer cannot edit what every other consumer reads', () => {
     for (const value of [
       TOOL_DIRS,
@@ -327,6 +351,43 @@ describe('caching', () => {
     expect(
       Object.fromEntries(DATA_CACHES.map((c) => [c.cacheName, c.maxEntries]))
     ).toEqual({ 'squat-data': 4, 'anatomy-body': 2, 'row-data': 4 });
+  });
+
+  // vite.config.js cannot be imported outside Vite (vite-plugin-pwa resolves
+  // itself from the config's location at import), so its wiring is pinned at
+  // the source; `npm run size` then checks what the build actually named and
+  // precached.
+  it('vite.config.js wires chunkFileNames, the worker name, globIgnores and runtimeCaching from the registry', () => {
+    const src = readFileSync(join(WEB, 'vite.config.js'), 'utf8');
+    const [, names] =
+      /import\s*\{([^}]*)\}\s*from\s*'\.\/scripts\/movementAssets\.mjs';/.exec(
+        src
+      ) ?? [];
+    expect(names, 'imports the registry').toBeDefined();
+    for (const name of [
+      'DATA_RUNTIME_ROUTES',
+      'TOOL_CHUNK_NAME',
+      'TOOL_CODE_ROUTE',
+      'TOOL_GLOB_IGNORES',
+      'chunkFileNames',
+    ]) {
+      expect(names).toMatch(new RegExp(`\\b${name}\\b`));
+    }
+    expect(src).toMatch(
+      /build:\s*\{[^}]*rolldownOptions:\s*\{\s*output:\s*\{\s*chunkFileNames\s*\}\s*\}/
+    );
+    expect(src).toMatch(
+      /worker:\s*\{\s*rolldownOptions:\s*\{\s*output:\s*\{\s*entryFileNames:\s*TOOL_CHUNK_NAME\s*\}/
+    );
+    expect(src).toMatch(
+      /globIgnores:\s*TOOL_GLOB_IGNORES\.concat\(I18N_GLOB_IGNORES\)/
+    );
+    // The data caches come first; the code routes follow, in this order.
+    expect(src).toMatch(
+      /runtimeCaching:\s*\[\s*\.\.\.DATA_RUNTIME_ROUTES,[\s\S]*?\bTOOL_CODE_ROUTE,[\s\S]*?\bI18N_CODE_ROUTE,/
+    );
+    // No tool rule is written inline any more, and the old module is gone.
+    expect(src).not.toMatch(/squatChunks|squat-\(anatomy|cacheName:\s*'squat-/);
   });
 
   it('leaves tool JS and every registered data file out of the precache, by name', () => {

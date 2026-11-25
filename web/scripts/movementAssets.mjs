@@ -63,20 +63,90 @@ export const chunkFileNames = ({ moduleIds }) => {
 // The scene and three.js, shared by every movement and lazy after its data.
 export const SCENE = freeze({
   root: 'src/anatomy/scene/createAnatomyScene.js',
+  // MAX_SQUAT_3D_GZIP_KB in check-bundle-size.mjs until #756, verbatim:
+  // three.js (r187, tree-shaken) + OrbitControls + the anatomy scene and posing
+  // maths. Measured 2026-11-04 at 138.0 KB; ~5% headroom, because a
+  // three.js bump is the likeliest way this grows and should be noticed.
   budgetKb: 145,
 });
 
 // Each tool's public route, its lazy root (RouteRoot's TOOLS) and its gzip
-// budgets: entry is its first paint, total the files only the tools reach,
-// the scene excluded. Budgets rise only by the #504 procedure. The squat's
-// figures (and SCENE's) are the ones check-bundle-size.mjs gates today; their
-// dated history moves here when the gate reads this file.
+// budgets, which check-bundle-size.mjs gates: entry is its first paint, total
+// the tool-only files it reaches, the scene excluded. Budgets rise only by the
+// #504 procedure, with a dated comment beside the figure.
 export const MOVEMENTS = freeze([
   {
     id: 'squat',
     title: 'Squat',
     route: '/squat',
     root: 'src/squat/SquatApp.jsx',
+    // Until #756 these were MAX_SQUAT_ENTRY_GZIP_KB (SQUAT_ENTRY below, now
+    // entryBudgetKb) and MAX_SQUAT_TOTAL_GZIP_KB (SQUAT_TOTAL, now
+    // totalBudgetKb) in check-bundle-size.mjs, which is "this script" and
+    // holds "ENTRY above". Their history, verbatim:
+    //
+    // Squat tool, measured 2026-11-04 on PR1 (no three.js yet): SQUAT_ENTRY
+    // 107.2 KB, SQUAT_TOTAL 18.8 KB. Entry gets the approved +10 KB (117), total
+    // +10% (20.7, rounded up to 21). PR2 adds three.js and will raise both
+    // deliberately, with its own measured figures.
+    //
+    // The dashboard's entry moved 144.5 -> 146.1 KB on the same change: RouteRoot
+    // plus the AuthGate chunk boundary it introduced. Still inside 150.
+    //
+    // PR2a (#382) re-measured 2026-11-04 with three.js in. SQUAT_TOTAL now
+    // excludes the 3D chunk and carries the new depth/camera controls and hooks:
+    // measured 23.6 KB, ceiling +10% (26); 24.0 KB after the Gate-3 fixes (the
+    // controls now render, disabled, from first paint). SQUAT_ENTRY 112.7 KB, still
+    // inside 117. The dashboard entry measured 146.6 KB (+0.2): RouteRoot's
+    // first-visit offline fallback.
+    //
+    // PR2b-i re-measured 2026-11-05 with the muscle panel in (list, card, legend,
+    // region map, bands, slugs, activation maths): SQUAT_TOTAL 27.6 KB after the
+    // Gate-3 fix round (27.26 before it). 27.6 + 10% is 30.4; the ceiling is set
+    // to 30 rather than 31, which is ~9% and so slightly tighter than the
+    // convention allows. Squat total is the LOOSE ceiling
+    // by this script's own definition — never precached, CacheFirst at runtime,
+    // stripped from the APK — so these bytes are on nobody's first paint. The
+    // panel is NOT lazy-loaded to dodge it: the canvas is aria-hidden with
+    // tabindex="-1", so the list IS the accessible substitute for the model, and
+    // putting it behind a chunk that can fail to fetch would make it the least
+    // reliable thing on the page in exactly the situation it exists for.
+    //
+    // SQUAT_ENTRY is the tight gate and it still passes, at 116.4 of 117 — but
+    // that is 0.6 KB spare, measured, and the next change of any size will fail
+    // it. Raising it is not this PR's call.
+    //
+    // PR C (model as hero, docs/squat/HERO_STAGE_SPEC.md) re-measured 2026-11-12:
+    // SQUAT_ENTRY 116.6 -> 118.0 KB, SQUAT_TOTAL 27.8 -> 29.2 KB, the dashboard
+    // entry unchanged (147.3 -> 147.3). The growth is the docked controls rail, the
+    // phone bar's Rep | View | Show disclosure and the transport icons, which
+    // replace three stacked cards and the intro's button row. The bundle rule
+    // approved by Scott at Gate 2 sets the ceiling to the measured figure plus
+    // ~2 KB, rounded to the nearest whole KB: 118.0 + 2 = 120.
+    //
+    // R11 share-a-view (#439) re-measured 2026-11-12, against PR C's head:
+    // SQUAT_ENTRY 118.0 -> 120.2 KB (+2.2), SQUAT_TOTAL 29.2 -> 31.8 KB (+2.6),
+    // SQUAT_3D 138.2 -> 138.4 KB. The growth is the URL grammar (cam, hide, heat,
+    // the t cap), the pose maths, the Copy link control and its clipboard
+    // fallback. The hash parser moved out of utils/squatRoute.js into the tool,
+    // so the shared index chunk shrank (91,113 -> 90,755 B) and the dashboard
+    // entry dropped 147.3 -> 146.9 KB. Squat-only static code counts against
+    // both squat gates, so both were exceeded. Scott's raise rule at R11 Gate 2:
+    // the measured figure plus ~2 KB, rounded to the nearest whole KB. Entry 120.2 + 2 =
+    // 122; total 31.8 + 2 = 34. The dashboard's 150 is not touched.
+    //
+    // Raised 122 -> 124 on 2026-11-13 (Scott, Gate 3, i18n PR-1). Measured 122.0
+    // KB, 14 bytes under the old ceiling, with no squat feature in the change:
+    // main is shared by both products, and it gained src/i18n/lang.js (the
+    // language preference and the pre-chunk words RouteRoot's offline message
+    // renders) and ROOT_ERROR_TEXT, the root fallback's English and Spanish,
+    // pulled in through RouteRoot and ErrorFallback because both render before
+    // any product chunk and so cannot use Lingui. Rule: 122.0 + 2 = 124.
+    //
+    // Re-based 124 -> 173 on 2026-11-15 (Scott, #465), for the same reason as
+    // ENTRY above: the Sentry SDK lives in main, shared by both products, and the
+    // gate had been measuring a build without it. 122.0 KB without a DSN, 170.8
+    // KB with one. Rule: 170.8 + 2 = 172.8, to the nearest whole KB: 173.
     entryBudgetKb: 173,
     totalBudgetKb: 34,
   },
@@ -85,9 +155,18 @@ export const MOVEMENTS = freeze([
     title: 'Row',
     route: '/row',
     root: 'src/row/RowApp.jsx',
-    // set from the first measured build in step 5 (#504)
-    entryBudgetKb: 0,
-    totalBudgetKb: 0,
+    // Set 2026-11-25 from the first measured build (Scott, Gate 2 of #756,
+    // "approve all"; #504 rule: measured + ~2 KB). Measured 139.9 KB
+    // (143,303 B): the shared main chunk plus the RowApp placeholder.
+    // 139.9 + 2 = 141.9, to the nearest whole KB: 142. #760 raises it with
+    // the real page.
+    entryBudgetKb: 142,
+    // Set 2026-11-25 from the same build (Scott, Gate 2 of #756, "approve
+    // all"; #504 rule: measured + ~2 KB). Measured 1.05 KB (1,075 B): the
+    // RowApp placeholder chunk, the only file only /row reaches.
+    // 1.05 + 2 = 3.05, to the nearest whole KB: 3. #760 raises it with the
+    // real page.
+    totalBudgetKb: 3,
   },
 ]);
 
@@ -109,6 +188,9 @@ export const DATASETS = freeze([
     movements: ['squat'],
     cache: 'squat-data',
     source: 'src/squat/assets/squat-anatomy.bin',
+    // MAX_SQUAT_DATA_BYTES in check-bundle-size.mjs until #756, verbatim:
+    // The stream measured 2,202,168 bytes; 2.3 MB keeps a re-run of the pipeline
+    // from quietly doubling every first visit.
     budgetBytes: 2_300_000,
     pending: null,
   },
@@ -119,6 +201,10 @@ export const DATASETS = freeze([
     movements: ['squat'],
     cache: 'squat-data',
     source: 'src/squat/assets/squat-manifest.json',
+    // Set 2026-11-25 (Scott, Gate 2 of #756, "approve all"): the manifest is
+    // gated like the bin now that it is registered. Measured 99,892 B; the
+    // data rule's proportionate headroom, ~5%, gives 105,000. Its bytes did
+    // not change.
     budgetBytes: 105_000,
     pending: null,
   },

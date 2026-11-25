@@ -26,7 +26,8 @@ export const manifestEntries = (manifest) =>
 const end = (e) => e.o + e.n * DTYPES[e.t].BYTES_PER_ELEMENT;
 
 // The ids of a well-formed lock: distinct non-empty string ids, a raw byte
-// count and a sha256 for each.
+// count and a sha256 for each. The sha's typeof is not redundant:
+// RegExp.test stringifies its argument, so ['<64 hex>'] passes the regex.
 function lockedIds(bins) {
   if (!Array.isArray(bins)) throw new Error('The bins lock is malformed.');
   const ids = new Set();
@@ -36,6 +37,7 @@ function lockedIds(bins) {
       typeof bin.id !== 'string' ||
       !bin.id ||
       !isCount(bin.rawBytes) ||
+      typeof bin.rawSha256 !== 'string' ||
       !SHA256.test(bin.rawSha256)
     ) {
       throw new Error('The bins lock is malformed.');

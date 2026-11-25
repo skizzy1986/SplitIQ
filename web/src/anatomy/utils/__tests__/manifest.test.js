@@ -224,6 +224,12 @@ describe('two bins (the Python form)', () => {
     ['an uppercase sha256', (m) => (m.bins[0].rawSha256 = 'A'.repeat(64))],
     ['a short sha256', (m) => (m.bins[0].rawSha256 = 'a'.repeat(63))],
     ['a missing sha256', (m) => delete m.bins[0].rawSha256],
+    // RegExp.test stringifies this to 64 hex digits: only the typeof stops it.
+    [
+      'a sha256 inside an array',
+      (m) => (m.bins[0].rawSha256 = ['a'.repeat(64)]),
+    ],
+    ['a numeric sha256', (m) => (m.bins[0].rawSha256 = 1234)],
   ])('fails a malformed lock: %s', (_, spoil) => {
     const m = twoBins();
     spoil(m);

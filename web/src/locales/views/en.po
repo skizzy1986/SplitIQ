@@ -439,6 +439,10 @@ msgstr "BODYWEIGHT — 14 DAYS (kg)"
 msgid "Build {APP_BUILD}"
 msgstr "Build {APP_BUILD}"
 
+#: src/live-erg/LiveErgSession.jsx
+msgid "Build your intervals here. Every change saves on this phone. Connect the PM5 when you are ready, then Start."
+msgstr "Build your intervals here. Every change saves on this phone. Connect the PM5 when you are ready, then Start."
+
 #: src/views/mobile/MobileTrain.jsx
 msgid "Build your intervals now, no PM5 needed"
 msgstr "Build your intervals now, no PM5 needed"
@@ -572,6 +576,14 @@ msgstr "Connect Strava to import rowing and cycling activities into the training
 msgid "Connect the PM5 and row against a watt band"
 msgstr "Connect the PM5 and row against a watt band"
 
+#: src/live-erg/LiveErgSession.jsx
+msgid "Connect the PM5 to start."
+msgstr "Connect the PM5 to start."
+
+#: src/live-erg/LiveErgSession.jsx
+msgid "Connect to PM5"
+msgstr "Connect to PM5"
+
 #. Button, all capitals; PM5 is the rowing machine's monitor
 #: src/views/ErgLiveView.jsx
 msgid "CONNECT TO PM5"
@@ -593,6 +605,7 @@ msgstr "Connecting to {name}…"
 
 #. On the list row of the monitor being connected
 #: src/components/PM5Picker.jsx
+#: src/live-erg/LiveErgSession.jsx
 msgid "Connecting…"
 msgstr "Connecting…"
 
@@ -1531,12 +1544,24 @@ msgid "PLANNED"
 msgstr "PLANNED"
 
 #: src/live-erg/LiveErgSession.jsx
+msgid "PM5 connected"
+msgstr "PM5 connected"
+
+#: src/live-erg/LiveErgSession.jsx
 msgid "PM5 connected. Build your intervals here. Set the same workout on the PM5 (Intervals, then Variable) and start rowing. SplitIQ follows each interval’s target here. Sending the workout from the phone comes next."
 msgstr "PM5 connected. Build your intervals here. Set the same workout on the PM5 (Intervals, then Variable) and start rowing. SplitIQ follows each interval’s target here. Sending the workout from the phone comes next."
 
 #: src/live-erg/LiveErgSession.jsx
 msgid "PM5 connected. Your saved plan is loaded; change it here if you need to. Set the same workout on the PM5 (Intervals, then Variable) and start rowing. SplitIQ follows each interval’s target here. Sending the workout from the phone comes next."
 msgstr "PM5 connected. Your saved plan is loaded; change it here if you need to. Set the same workout on the PM5 (Intervals, then Variable) and start rowing. SplitIQ follows each interval’s target here. Sending the workout from the phone comes next."
+
+#: src/live-erg/LiveErgSession.jsx
+msgid "PM5 connection"
+msgstr "PM5 connection"
+
+#: src/live-erg/LiveErgSession.jsx
+msgid "PM5 not connected"
+msgstr "PM5 not connected"
 
 #. Meal after the session
 #: src/components/WorkoutItem.jsx
@@ -1560,6 +1585,14 @@ msgstr "Power across {over}, between {lo} and {hi} W; average {avg} W."
 #: src/components/session/SessionTrace.jsx
 msgid "Power across {over}, between {lo} and {hi} W."
 msgstr "Power across {over}, between {lo} and {hi} W."
+
+#: src/live-erg/LiveErgSession.jsx
+msgid "Power on your PM5, then tap Connect to PM5 and choose your monitor from the list."
+msgstr "Power on your PM5, then tap Connect to PM5 and choose your monitor from the list."
+
+#: src/live-erg/LiveErgSession.jsx
+msgid "Power on your PM5, then tap Connect to PM5. Your browser will ask you to pick the device."
+msgstr "Power on your PM5, then tap Connect to PM5. Your browser will ask you to pick the device."
 
 #. PM5 is the rowing machine's monitor: keep it. Connect is the button below. The tags are line breaks
 #: src/views/ErgLiveView.jsx
@@ -1794,6 +1827,7 @@ msgstr "Scored on the readings that arrived — some were missing."
 
 #. Shown while the app searches for nearby PM5 rowing monitors
 #: src/components/PM5Picker.jsx
+#: src/live-erg/LiveErgSession.jsx
 msgid "Searching for PM5s…"
 msgstr "Searching for PM5s…"
 
@@ -1963,6 +1997,10 @@ msgstr "sRPE SCALE · TALK-TEST ANCHORED (asked every session)"
 #: src/components/WorkoutTarget.jsx
 msgid "sRPE target:"
 msgstr "sRPE target:"
+
+#: src/live-erg/LiveErgSession.jsx
+msgid "Start"
+msgstr "Start"
 
 #. Heading, all capitals
 #: src/views/mobile/MobileTrain.jsx

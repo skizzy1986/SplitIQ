@@ -7,6 +7,7 @@ vi.mock('../../supabaseClient.js', () => ({ supabase: {} }));
 
 import { LiveErgPlannerView, LiveErgSessionView } from '../LiveErgSession.jsx';
 import { LIVE_ERG_WORKOUT_KEY, readSavedWorkout } from '../liveErgFlag.js';
+import PM5Picker from '../../components/PM5Picker.jsx';
 import { intervalsOf } from '../intervalModel.js';
 
 function memory() {
@@ -118,5 +119,91 @@ describe('LiveErgPlannerView', () => {
     render(<LiveErgSessionView storage={storage} />);
     expect(screen.queryByText(/Your saved plan is loaded/)).toBeNull();
     expect(screen.getByText(/Build your intervals here/)).toBeVisible();
+  });
+
+  it('with a PM5 area, Start stays disabled until the monitor is connected', async () => {
+    const user = userEvent.setup();
+    const onStart = vi.fn();
+    const onConnect = vi.fn();
+    const storage = memory();
+    const { rerender } = render(
+      <LiveErgPlannerView
+        storage={storage}
+        onStart={onStart}
+        pm5={{ status: 'idle', onConnect }}
+      />
+    );
+    expect(screen.getByTestId('live-erg-connect')).toHaveAttribute(
+      'data-status',
+      'idle'
+    );
+    expect(
+      screen.getByRole('button', { name: 'Connect to PM5' })
+    ).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Start' })).toBeDisabled();
+    expect(screen.getByText(/Connect the PM5 to start/)).toBeVisible();
+    await user.click(screen.getByRole('button', { name: 'Connect to PM5' }));
+    expect(onConnect).toHaveBeenCalledTimes(1);
+    expect(onStart).not.toHaveBeenCalled();
+
+    rerender(
+      <LiveErgPlannerView
+        storage={storage}
+        onStart={onStart}
+        pm5={{ status: 'connected' }}
+      />
+    );
+    expect(screen.getByText('PM5 connected')).toBeVisible();
+    expect(screen.queryByRole('button', { name: 'Connect to PM5' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Start' })).toBeEnabled();
+    await user.click(screen.getByRole('button', { name: 'Start' }));
+    expect(onStart).toHaveBeenCalledTimes(1);
+    expect(readSavedWorkout(storage)).toMatchObject({ type: 'int' });
+  });
+
+  it('shows a connection error inline and keeps Start disabled', () => {
+    render(
+      <LiveErgPlannerView
+        storage={memory()}
+        onStart={() => {}}
+        pm5={{
+          status: 'error',
+          error: 'Nothing found nearby.',
+          onConnect: () => {},
+        }}
+      />
+    );
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Nothing found nearby.'
+    );
+    expect(screen.getByRole('button', { name: 'Start' })).toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: 'Connect to PM5' })
+    ).toBeEnabled();
+  });
+
+  it('embeds the PM5 list in the planner while choosing', () => {
+    render(
+      <LiveErgPlannerView
+        storage={memory()}
+        onStart={() => {}}
+        pm5={{
+          status: 'choosing',
+          picker: (
+            <PM5Picker
+              embedded
+              monitors={[{ id: 'aa', name: 'PM5 431719123 Row' }]}
+              phase="searching"
+              onChoose={() => {}}
+              onRetry={() => {}}
+              onCancel={() => {}}
+            />
+          ),
+        }}
+      />
+    );
+    expect(screen.getByText('Choose your PM5')).toBeVisible();
+    expect(screen.getByTestId('live-erg-interval-builder')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Start' })).toBeDisabled();
   });
 });

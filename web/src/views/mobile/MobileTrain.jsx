@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { msg } from '@lingui/core/macro';
 import ErgLiveView from '../ErgLiveView.jsx';
@@ -11,12 +11,6 @@ import { RADIUS, SPACE, TYPE } from '../../constants/tokens.js';
 import { useSessions } from '../../hooks/useSessions.js';
 import { PLANNED_STATUS } from '../../constants/sessionStatus.js';
 import { readLiveErgFlag } from '../../live-erg/liveErgFlag.js';
-import { loadLiveErgPlanner } from '../../live-erg/loadLiveErgSession.js';
-
-// Plan an interval workout with no PM5 connected (#774). It lives in the v10
-// live screen's chunk, loaded only when the planner opens, and feeds that
-// screen, so the entry shows only while its Labs switch is on.
-const LiveErgPlanner = lazy(loadLiveErgPlanner);
 
 // Train is the doing: the session in front of you. It absorbs what were the
 // separate "Live" and "Strength" tabs — DESIGN_BRIEF.md §2.2.
@@ -100,12 +94,11 @@ export default function MobileTrain({ mode, onMode, planExitTo = 'train' }) {
     );
   if (mode === 'plan')
     return (
-      <>
-        <SessionExitBar to={planExitTo} onExit={() => onMode(null)} />
-        <Suspense fallback={null}>
-          <LiveErgPlanner onStart={() => onMode('erg')} />
-        </Suspense>
-      </>
+      <ErgLiveView
+        onExit={() => onMode(null)}
+        plannedSessions={plannedSessions}
+        exitTo={planExitTo}
+      />
     );
   if (mode === 'strength')
     return (

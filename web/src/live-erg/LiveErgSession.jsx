@@ -5,6 +5,8 @@ import { FONT } from '../constants/type.js';
 import { RADIUS, SPACE, TYPE } from '../constants/tokens.js';
 import { useAnchors } from '../hooks/useAnchors.js';
 import Button from '../components/Button.jsx';
+import PM5Picker from '../components/PM5Picker.jsx';
+import { PM5_ERROR_MESSAGES } from '../constants/pm5ErrorMessages.js';
 import IntervalBuilder from './IntervalBuilder.jsx';
 import SplitTable from './SplitTable.jsx';
 import {
@@ -312,6 +314,118 @@ const planNoteStyle = {
   color: THEME.muted,
 };
 
+function PlannerConnect({
+  status = 'idle',
+  error = null,
+  errorCode = null,
+  onConnect,
+  native = false,
+  monitors = [],
+  scanPhase,
+  connectingId,
+  locationOff,
+  onChoose,
+  onRetry,
+  onCancel,
+}) {
+  const { t, i18n } = useLingui();
+  const errorText =
+    errorCode && Object.hasOwn(PM5_ERROR_MESSAGES, errorCode)
+      ? i18n._(PM5_ERROR_MESSAGES[errorCode])
+      : error;
+  const connected = status === 'connected';
+  const connecting = status === 'connecting';
+  const choosing = status === 'choosing';
+  let stateLabel;
+  if (connected) stateLabel = t`PM5 connected`;
+  else if (connecting) stateLabel = t`Connecting…`;
+  else if (choosing) stateLabel = t`Searching for PM5s…`;
+  else stateLabel = t`PM5 not connected`;
+
+  return (
+    <section
+      data-testid="live-erg-connect"
+      data-status={status}
+      aria-label={t`PM5 connection`}
+      style={{
+        background: THEME.surface,
+        borderRadius: RADIUS.md,
+        padding: SPACE.lg,
+        marginBottom: SPACE.md,
+      }}
+    >
+      <div
+        style={{
+          fontFamily: FONT.sans,
+          fontSize: TYPE.label.size,
+          fontWeight: TYPE.label.weight,
+          letterSpacing: TYPE.label.letterSpacing,
+          lineHeight: TYPE.label.lineHeight,
+          textTransform: 'uppercase',
+          color: THEME.muted,
+          marginBottom: SPACE.sm,
+        }}
+      >
+        {stateLabel}
+      </div>
+      {!connected && !choosing && (
+        <p
+          style={{
+            ...planNoteStyle,
+            color: THEME.text,
+            marginBottom: SPACE.md,
+          }}
+        >
+          {native
+            ? t`Power on your PM5, then tap Connect to PM5 and choose your monitor from the list.`
+            : t`Power on your PM5, then tap Connect to PM5. Your browser will ask you to pick the device.`}
+        </p>
+      )}
+      {errorText && !choosing && (
+        <div
+          role="alert"
+          style={{
+            background:
+              'color-mix(in srgb, var(--color-critical) 12%, var(--color-bg))',
+            border: `1px solid ${THEME.critical}`,
+            borderRadius: RADIUS.md,
+            padding: `${SPACE.md}px ${SPACE.lg}px`,
+            marginBottom: SPACE.md,
+            fontFamily: FONT.sans,
+            fontSize: TYPE.body.size,
+            lineHeight: TYPE.body.lineHeight,
+            color: THEME.critical,
+          }}
+        >
+          {errorText}
+        </div>
+      )}
+      {choosing && (
+        <PM5Picker
+          embedded
+          monitors={monitors}
+          phase={scanPhase}
+          connectingId={connectingId}
+          errorCode={errorCode}
+          locationOff={locationOff}
+          onChoose={onChoose}
+          onRetry={onRetry}
+          onCancel={onCancel}
+        />
+      )}
+      {!connected && !choosing && (
+        <Button
+          variant="primary"
+          onClick={connecting ? undefined : onConnect}
+          disabled={connecting || !onConnect}
+        >
+          {connecting ? t`Connecting…` : t`Connect to PM5`}
+        </Button>
+      )}
+    </section>
+  );
+}
+
 // Plan a piece with no PM5 in range. Every change is saved on this phone under
 // the key the live screen loads from, so connecting at the gym opens the same
 // plan. Nothing here touches Bluetooth or Supabase.
@@ -320,6 +434,8 @@ export function LiveErgPlannerView({
   cp = null,
   termsMode = 'rowing',
   storage,
+  pm5 = null,
+  native = false,
 }) {
   const { t } = useLingui();
   const [workout, setWorkout] = useState(() => initialWorkout(cp, storage));
@@ -381,7 +497,9 @@ export function LiveErgPlannerView({
         }}
       >
         <p style={{ ...planNoteStyle, color: THEME.text }}>
-          {t`No PM5 needed. Every change saves on this phone, and the live screen opens with this plan when you connect.`}
+          {pm5
+            ? t`Build your intervals here. Every change saves on this phone. Connect the PM5 when you are ready, then Start.`
+            : t`No PM5 needed. Every change saves on this phone, and the live screen opens with this plan when you connect.`}
         </p>
         {placeholder && (
           <p style={{ ...planNoteStyle, marginTop: SPACE.sm }}>
@@ -389,6 +507,7 @@ export function LiveErgPlannerView({
           </p>
         )}
       </section>
+      {pm5 && <PlannerConnect {...pm5} native={native} />}
       <IntervalBuilder
         workout={workout}
         onChange={change}
@@ -396,9 +515,20 @@ export function LiveErgPlannerView({
       />
       {onStart && (
         <div style={{ marginTop: SPACE.md }}>
-          <Button variant="primary" onClick={start} disabled={invalid}>
-            {t`Start on PM5`}
+          <Button
+            variant={
+              pm5 && pm5.status !== 'connected' ? 'secondary' : 'primary'
+            }
+            onClick={start}
+            disabled={invalid || (pm5 != null && pm5.status !== 'connected')}
+          >
+            {pm5 ? t`Start` : t`Start on PM5`}
           </Button>
+          {pm5 && pm5.status !== 'connected' && !invalid && (
+            <p style={{ ...planNoteStyle, marginTop: SPACE.sm }}>
+              {t`Connect the PM5 to start.`}
+            </p>
+          )}
         </div>
       )}
     </div>

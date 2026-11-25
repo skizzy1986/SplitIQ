@@ -5,8 +5,8 @@ import { FONT } from '../constants/type.js';
 import { RADIUS, SPACE } from '../constants/tokens.js';
 import { PM5_ERROR_MESSAGES } from '../constants/pm5ErrorMessages.js';
 
-// The Android list of PM5s in range (#696). Full screen, not a modal: the
-// erg screen has nothing else to show while it is open.
+// The Android list of PM5s in range (#696). Full screen on the classic
+// connect page; `embedded` sits it inside the v10 planner's connect card.
 export default function PM5Picker({
   monitors,
   phase,
@@ -16,6 +16,7 @@ export default function PM5Picker({
   onChoose,
   onRetry,
   onCancel,
+  embedded = false,
 }) {
   const { t, i18n } = useLingui();
   const headingId = useId();
@@ -72,11 +73,11 @@ export default function PM5Picker({
     <section
       aria-labelledby={headingId}
       style={{
-        minHeight: 'calc(100vh - 80px)',
+        minHeight: embedded ? undefined : 'calc(100vh - 80px)',
         display: 'flex',
         flexDirection: 'column',
         gap: SPACE.lg,
-        padding: SPACE.xl,
+        padding: embedded ? 0 : SPACE.xl,
         boxSizing: 'border-box',
         maxWidth: 480,
         margin: '0 auto',

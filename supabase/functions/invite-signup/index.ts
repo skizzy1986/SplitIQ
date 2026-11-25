@@ -104,13 +104,25 @@ Deno.serve(async (req: Request) => {
         if (error) throw error;
       },
       createUser: async ({ email, password, appMetadata }) => {
-        const { error } = await admin.auth.admin.createUser({
+        const { data, error } = await admin.auth.admin.createUser({
           email,
           password,
           email_confirm: true,
           app_metadata: appMetadata,
         });
-        return error ? { ok: false, code: (error as { code?: string }).code } : { ok: true };
+        return error
+          ? { ok: false, code: (error as { code?: string }).code }
+          : { ok: true, userId: data.user?.id };
+      },
+      // Made-up sample sessions so the tester's first screens are not blank
+      // (#799, migration 024). Off with INVITE_SAMPLE_DATA=false.
+      loadSampleData: Deno.env.get("INVITE_SAMPLE_DATA") === "false" ? undefined : async (userId) => {
+        const { data, error } = await admin.rpc("sample_data_load", { p_user_id: userId });
+        if (error) throw error;
+        const status = (data as { status?: string } | null)?.status;
+        if (status !== "loaded" && status !== "already_loaded") {
+          throw new Error(`sample_data_load returned ${status ?? "nothing"}`);
+        }
       },
       // Identifiers and the step only: never the email, the code or the password.
       onError: (where, error) => captureFunctionError(FN, error, { where }),

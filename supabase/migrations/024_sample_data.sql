@@ -1,8 +1,8 @@
 -- 024_sample_data.sql
--- DRAFT — not applied. Additive + reversible (#799). SplitIQ DEV ONLY.
--- Do not apply until Scott gives an explicit yes for this file, and never to
--- production: testers never get a production account (D32), and this file only
--- makes sense where testers exist.
+-- Additive + reversible (#799). SplitIQ DEV ONLY.
+-- Applied to SplitIQ dev only, 25 Nov 2026 about 6:30 PM Perth (AWST), after 022,
+-- on Scott's yes at 6:28 PM. Never apply it to production: testers never get a
+-- production account (D32), and this file only makes sense where testers exist.
 --
 -- WHY: a new tester account is empty, so every page a tester opens is blank.
 -- This loads clearly labelled, made-up sessions into ONE tester's own account so

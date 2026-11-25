@@ -155,4 +155,15 @@ describe('024 sample data', () => {
     expect(sql).toContain("errcode = 'sf024'");
     expect(sql).toContain("exception when sqlstate 'sf024'");
   });
+
+  // Retro Gate 3 (#812, RC 3): the record must say where 024 runs today.
+  it('records the dev apply in the manifest and header, while production stays unapplied', () => {
+    const entry = manifest.files.find((f) => f.file === '024_sample_data.sql');
+    expect(entry.status).toBe('unapplied');
+    expect(entry.reason).not.toMatch(/not applied to either project/i);
+    expect(entry.reason).toMatch(/applied to SplitIQ dev/i);
+    expect(entry.reason).toMatch(/25 Nov 2026/);
+    expect(raw).not.toMatch(/DRAFT — not applied/);
+    expect(raw).toMatch(/Applied to SplitIQ dev only, 25 Nov 2026/);
+  });
 });

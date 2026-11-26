@@ -82,7 +82,8 @@ Access level **Limited**, with the package-manager defaults, plus:
 
 | Host | Why |
 |---|---|
-| `swdrueaserjzhuxnzmeu.supabase.co` | Project API, for `npm run dev` against real data |
+| `swdrueaserjzhuxnzmeu.supabase.co` | Production project API (Scott's private data; not for sessions by default) |
+| `niytwgtsclzuhyggvbhd.supabase.co` | SplitIQ dev project API, for `npm run dev`, previews and testers (see `docs/DEV_DATABASE.md`) |
 | `deno.land`, `dl.deno.land` | The setup script's Deno install |
 | `de.sentry.io`, `*.ingest.de.sentry.io` | Sentry; the org is EU-region |
 | `api.vercel.com` | Vercel API |
@@ -91,7 +92,8 @@ Access level **Limited**, with the package-manager defaults, plus:
 ## Environment variables
 
 Empty, or only `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`. Both are public client
-values; set them only if a session should run `npm run dev` against real data.
+values; set them only if a session should run `npm run dev` against a backend, and point
+them at the SplitIQ dev project (`docs/DEV_DATABASE.md`), not production.
 
 **Never** set the Supabase service-role key, `SENTRY_AUTH_TOKEN`, or `VITE_SENTRY_DSN`.
 

@@ -483,6 +483,84 @@ describe('captureError redaction (#819)', () => {
       );
     });
 
+    // Walk a captured cause chain. Stops on a cycle so a broken cap cannot
+    // hang the test.
+    const walkCauses = (error) => {
+      const messages = [];
+      const seen = new Set();
+      for (let cur = error; cur && !seen.has(cur); cur = cur.cause) {
+        seen.add(cur);
+        messages.push(cur instanceof Error ? cur.message : String(cur));
+      }
+      return messages;
+    };
+
+    it('enforces a cause-chain depth cap of 5', () => {
+      // Root plus seven further errors. The cap is 5 cause steps from the
+      // root (depth < 5 in redactError), so a limit of 2 or 6, or no limit,
+      // changes the length of the captured chain and fails this test.
+      let error = new Error('leaf 99');
+      for (let i = 7; i >= 0; i -= 1) {
+        const next = new Error(`level ${i} has ${10 + i}`);
+        next.cause = error;
+        error = next;
+      }
+
+      captureError(error);
+
+      const captured = Sentry.captureException.mock.calls[0][0];
+      const walk = walkCauses(captured);
+      expect(walk).toHaveLength(6);
+      expect(walk).toEqual([
+        'level # has #',
+        'level # has #',
+        'level # has #',
+        'level # has #',
+        'level # has #',
+        'level # has #',
+      ]);
+      expect(captured.cause.cause.cause.cause.cause.cause).toBeUndefined();
+      expect(JSON.stringify(captured, ['message', 'cause'])).not.toMatch(
+        /16|17|99/
+      );
+      // The caller's chain past the cap is untouched.
+      expect(error.cause.cause.cause.cause.cause.cause.message).toBe(
+        'level 6 has 16'
+      );
+    });
+
+    it('does not throw on a self-referencing or circular cause, and still redacts', () => {
+      const self = new Error('payload 44 rejected');
+      self.cause = self;
+      expect(() => captureError(self)).not.toThrow();
+
+      const capturedSelf = Sentry.captureException.mock.calls[0][0];
+      expect(capturedSelf).not.toBe(self);
+      expect(self.cause).toBe(self);
+      expect(self.message).toBe('payload 44 rejected');
+      const selfWalk = walkCauses(capturedSelf);
+      expect(selfWalk.length).toBeGreaterThanOrEqual(1);
+      expect(selfWalk.length).toBeLessThanOrEqual(6);
+      expect(selfWalk.every((m) => m === 'payload # rejected')).toBe(true);
+      expect(JSON.stringify(capturedSelf, ['message', 'cause'])).not.toContain(
+        '44'
+      );
+
+      const a = new Error('payload 44 rejected');
+      const b = new Error('payload 55 rejected');
+      a.cause = b;
+      b.cause = a;
+      expect(() => captureError(a)).not.toThrow();
+
+      const capturedCycle = Sentry.captureException.mock.calls[1][0];
+      const dump = JSON.stringify(capturedCycle, ['message', 'cause']);
+      expect(dump).not.toContain('44');
+      expect(dump).not.toContain('55');
+      expect(a.cause).toBe(b);
+      expect(b.cause).toBe(a);
+      expect(a.message).toBe('payload 44 rejected');
+    });
+
     it('adds no fingerprint, so default stacktrace grouping is unchanged', () => {
       captureError(new Error('value 237 rejected'));
 

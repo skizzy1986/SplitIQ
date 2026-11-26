@@ -6,6 +6,10 @@
 // Needs 025 applied on the project this build talks to (dev only).
 import { supabase } from '../supabaseClient.js';
 import { parseRowingCp } from './firstRunGuide.js';
+import { captureError } from './sentry.js';
+
+// What a failed save reports: the call, never the watts.
+const SAVE_CONTEXT = { where: 'setRowingCp', rpc: 'set_my_rowing_cp' };
 
 export async function setRowingCp(raw) {
   const watts = parseRowingCp(raw);
@@ -14,7 +18,19 @@ export async function setRowingCp(raw) {
   const { data, error } = await supabase.rpc('set_my_rowing_cp', {
     p_watts: watts,
   });
-  if (error || data?.status !== 'saved') return { ok: false, cause: 'error' };
+  // Reported so a missing 025 (PGRST202) or a refused save shows up in
+  // Sentry, not only as a tester seeing "Could not save that. Try again."
+  if (error) {
+    captureError(error, SAVE_CONTEXT);
+    return { ok: false, cause: 'error' };
+  }
+  if (data?.status !== 'saved') {
+    captureError(
+      new Error('set_my_rowing_cp did not report saved'),
+      SAVE_CONTEXT
+    );
+    return { ok: false, cause: 'error' };
+  }
   return { ok: true, watts };
 }
 

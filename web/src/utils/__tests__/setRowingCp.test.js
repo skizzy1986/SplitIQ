@@ -5,12 +5,17 @@ import { fileURLToPath } from 'node:url';
 
 const fromMock = vi.fn();
 const rpcMock = vi.fn();
+const captureMock = vi.fn();
 
 vi.mock('../../supabaseClient.js', () => ({
   supabase: {
     from: (...args) => fromMock(...args),
     rpc: (...args) => rpcMock(...args),
   },
+}));
+
+vi.mock('../sentry.js', () => ({
+  captureError: (...args) => captureMock(...args),
 }));
 
 import { setRowingCp, clearSampleData } from '../setRowingCp.js';
@@ -22,6 +27,7 @@ const srcDir = resolve(here, '../..');
 beforeEach(() => {
   fromMock.mockReset();
   rpcMock.mockReset();
+  captureMock.mockReset();
 });
 
 // One-step save through migration 025's set_my_rowing_cp() (#797, Gate 1
@@ -54,6 +60,42 @@ describe('setRowingCp', () => {
   it('criterion 4: a reply without status saved counts as a failure', async () => {
     rpcMock.mockResolvedValue({ data: null, error: null });
     expect(await setRowingCp('220')).toEqual({ ok: false, cause: 'error' });
+  });
+
+  // Gate 3 round 3 (#811 CR suggestion 1, Scott 26 Nov): a failed save is
+  // reported, so a missing 025 on dev (PGRST202) or a lock surprise (23505)
+  // shows up in Sentry, not only as testers saying "Could not save that".
+  // The context names the call, never the watts.
+  it('reports a failed save to Sentry with the database error', async () => {
+    const error = { code: 'PGRST202', message: 'not found' };
+    rpcMock.mockResolvedValue({ data: null, error });
+    await setRowingCp('230');
+    expect(captureMock).toHaveBeenCalledTimes(1);
+    expect(captureMock).toHaveBeenCalledWith(error, {
+      where: 'setRowingCp',
+      rpc: 'set_my_rowing_cp',
+    });
+    expect(JSON.stringify(captureMock.mock.calls[0][1])).not.toContain('230');
+  });
+
+  it('reports a reply that is not saved, and reports nothing for a save or a typo', async () => {
+    rpcMock.mockResolvedValue({ data: { status: 'odd' }, error: null });
+    await setRowingCp('230');
+    expect(captureMock).toHaveBeenCalledTimes(1);
+    expect(captureMock.mock.calls[0][0]).toBeInstanceOf(Error);
+    expect(captureMock.mock.calls[0][1]).toEqual({
+      where: 'setRowingCp',
+      rpc: 'set_my_rowing_cp',
+    });
+
+    captureMock.mockReset();
+    rpcMock.mockResolvedValue({
+      data: { status: 'saved', watts: 230, replaced: true },
+      error: null,
+    });
+    await setRowingCp('230');
+    await setRowingCp('12');
+    expect(captureMock).not.toHaveBeenCalled();
   });
 
   it('criterion 5: an out-of-range value is refused before any call', async () => {

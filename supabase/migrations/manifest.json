@@ -280,6 +280,13 @@
       "reason": "SplitIQ dev only, never production (D32), so production stays unapplied by design (#799). This manifest tracks production. Needs 022 (#790) applied first; refuses to apply without it. Applied to SplitIQ dev only, after 022, 25 Nov 2026 about 6:30 PM Perth (AWST), on Scott's yes at 6:28 PM.",
       "note": "Sample-data ledger plus service_role sample_data_load / sample_data_clear and signed-in load_my_sample_data / clear_my_sample_data: about 8 weeks of deterministic, labelled, made-up erg and strength sessions for one tester's own account.",
       "issue": 799
+    },
+    {
+      "file": "025_set_my_rowing_cp.sql",
+      "status": "unapplied",
+      "reason": "Dev only, tester client, not for production. This manifest tracks production, so production stays unapplied by design (#797). Not applied to SplitIQ dev yet either; needs Scott's yes after Gate 3.",
+      "note": "set_my_rowing_cp(p_watts): the signed-in tester saves their rowing CP in one step (retire the live rowing_cp anchor, insert the new one as W, unvalidated, tester) under anchors RLS, with a per-user transaction lock. Replaces the two-request save in #811.",
+      "issue": 797
     }
   ],
   "liveOnly": [

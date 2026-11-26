@@ -38,10 +38,41 @@ Scott confirmed this order on 25 November 2026 at 10:48 Perth:
 |---|---|---|
 | Claude Code | Pipeline slices [#755](https://github.com/skizzy1986/SplitIQ/issues/755)–[#761](https://github.com/skizzy1986/SplitIQ/issues/761); seat sensor [#731](https://github.com/skizzy1986/SplitIQ/issues/731)–[#738](https://github.com/skizzy1986/SplitIQ/issues/738) | Live erg, home, v10 design, and bundle headroom |
 | Grok bots (Orchestrator files the PRs; Live Session, Sound, Data & Modelling, Release, Product) | Live erg, home and v10 design, bundle headroom. Product owns input on `VISION.md` | `pipeline/` (including the squat goldens and `pipeline/squat-anatomy/row/`), `hardware/seat-sensor/` |
+| SplitIQ bot team, led by the Orchestrator (decision 14, #819) | The #819 package: hidden CP, base block, CP tests and adaptive calibration, as scoped in the ops Gate 2 brief. Slices S0–S9, S4b, S6b, SL, A1, A3r and A6 | Slice S2b (the live-erg lane builds it), `ErgLiveView.jsx`, `pm5Bluetooth.js` and `usePM5.js`; the held slices A2, A3m, A4 and the rest of A5 until series capture |
 | Scott only | Strava issues #632, #639, #644, #660–#666, #668, #669, #673 | — |
 
 Do not rewrite Claude's issues. Do not start a second branch for work Claude already
 owns. Do not read Strava data; query `public.sessions_no_strava`.
+
+## #819 lane call (decision 14)
+
+Recorded 27 November 2026, Perth (UTC+8). Scott gave his Gate 2 yes to all 14
+decisions of the ops brief at 12:21 AM, and confirmed the builder at 1:12 AM.
+The brief is `history/cp-onboarding-819/gate2-brief.md` in the private ops repo
+([ops #12](https://github.com/skizzy1986/SplitIQ-ops/pull/12), merged). The
+package is tracked on [#819](https://github.com/skizzy1986/SplitIQ/issues/819).
+
+- **Builder:** the SplitIQ bot team, led by the Orchestrator, builds the #819
+  package. Claude Code does not. Claude helped shape the spec only.
+  Each slice is its own PR, with Gate 3 and Scott's explicit yes before merge.
+- **Scoped exception, not a general change of lanes.** The exception covers the
+  #819 package only:
+  - `web/src/views/mobile/MobileToday.jsx` and `web/src/views/OverviewView.jsx`:
+    targeted insertions only (an import plus one element) and the copy lines
+    the brief lists. Check open home-lane PRs first.
+  - Session-page components (#646 epic) get the S2 copy edits and slice SL's
+    zone-logic changes: per-date zones in `web/src/views/SessionView.jsx`, the
+    per-date CP and `date_iso` select in `web/src/hooks/useErgSessions.js`,
+    and the value `web/src/components/session/ZoneBar.jsx` states. This is
+    logic, not copy only.
+  - **`ErgLiveView.jsx` is untouched by this package**, and so are
+    `pm5Bluetooth.js` and `usePM5.js`. The live-erg lane owns slice S2b
+    (`web/src/live-erg/*`). The legacy PM5 logger keeps its RPE default of 5
+    until it is retired (decision 10(c), chosen by Scott).
+  - No budget raise without Scott's OK in the PR body.
+- **Migrations 026 to 031 are dev only.** Each needs Scott's explicit yes before
+  it is applied, and 026 and 031 never go to production.
+- **#646 owner:** the epic has no assignee, so the notice goes on #646 itself.
 
 ## VISION.md
 
@@ -111,6 +142,10 @@ in this file and open a PR. Do not silently edit `main`.
 As of 25 November 2026, 23:34 Perth (UTC+8), queried with `gh`. An item marked
 "as of 11:09" was not re-checked.
 
+- Gate 2 for the #819 package (hidden CP, base block, CP tests, adaptive
+  calibration) cleared on 27 November 2026, Perth. The lane call is recorded in
+  "#819 lane call (decision 14)" above. The first slices are this note and S0
+  (Sentry redaction); neither has a migration.
 - Main is `ef08928`, after [#814](https://github.com/skizzy1986/SplitIQ/pull/814)
   merged at 23:23 Perth. That was #756: one movement registry, `/row` as a
   `noindex` placeholder, and the squat byte-identical. The row's three data

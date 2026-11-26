@@ -1,6 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import * as trainingConfig from '../trainingConfig.js';
+import { THEME } from '../theme.js';
+import { ZONE_POWER_PCT } from '../zonePowerPct.js';
 import { FTP_TEST, derivePaceZones } from '../trainingConfig.js';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 // Names built by concatenation so this file does not trip noCulledCode.test.js.
 const REMOVED = [
@@ -59,9 +63,78 @@ describe('derivePaceZones', () => {
     expect(band('AT')).toEqual([164, 185]);
   });
 
-  it('derivePaceZones(205) is byte-identical to the pre-#422 output', () => {
-    expect(JSON.stringify(derivePaceZones(205))).toBe(
-      '[{"zone":"Recovery","color":"#666","wattsLow":0,"wattsHigh":113,"paceFloor":145.7683373800698,"paceCeil":300},{"zone":"UT2","color":"var(--color-accent)","wattsLow":113,"wattsHigh":144,"paceFloor":134.452387168712,"paceCeil":145.7683373800698},{"zone":"UT1","color":"var(--color-positive)","wattsLow":144,"wattsHigh":164,"paceFloor":128.74826901045958,"paceCeil":134.452387168712},{"zone":"AT","color":"var(--color-caution)","wattsLow":164,"wattsHigh":185,"paceFloor":123.67979934387759,"paceCeil":128.74826901045958},{"zone":"TR","color":"var(--color-warning)","wattsLow":185,"wattsHigh":215,"paceFloor":117.6367980107184,"paceCeil":123.67979934387759},{"zone":"AN","color":"var(--color-critical)","wattsLow":215,"wattsHigh":267,"paceFloor":109.44239648589375,"paceCeil":117.6367980107184}]'
+  it('keeps the pre-#422 watt and pace bands at 205 W', () => {
+    const zones = derivePaceZones(205);
+    expect(zones.map(({ color: _c, ...rest }) => rest)).toEqual([
+      {
+        zone: 'Recovery',
+        wattsLow: 0,
+        wattsHigh: 113,
+        paceFloor: 145.7683373800698,
+        paceCeil: 300,
+      },
+      {
+        zone: 'UT2',
+        wattsLow: 113,
+        wattsHigh: 144,
+        paceFloor: 134.452387168712,
+        paceCeil: 145.7683373800698,
+      },
+      {
+        zone: 'UT1',
+        wattsLow: 144,
+        wattsHigh: 164,
+        paceFloor: 128.74826901045958,
+        paceCeil: 134.452387168712,
+      },
+      {
+        zone: 'AT',
+        wattsLow: 164,
+        wattsHigh: 185,
+        paceFloor: 123.67979934387759,
+        paceCeil: 128.74826901045958,
+      },
+      {
+        zone: 'TR',
+        wattsLow: 185,
+        wattsHigh: 215,
+        paceFloor: 117.6367980107184,
+        paceCeil: 123.67979934387759,
+      },
+      {
+        zone: 'AN',
+        wattsLow: 215,
+        wattsHigh: 267,
+        paceFloor: 109.44239648589375,
+        paceCeil: 117.6367980107184,
+      },
+    ]);
+  });
+
+  it('derivePaceZones reads colours and bounds from ZONE_POWER_PCT', () => {
+    const zones = derivePaceZones(200);
+    expect(zones.map((z) => z.zone)).toEqual(ZONE_POWER_PCT.map((z) => z.zone));
+    expect(zones.map((z) => z.color)).toEqual(
+      ZONE_POWER_PCT.map((z) => z.color)
     );
+  });
+});
+
+describe('Recovery colour is a THEME token (#819)', () => {
+  it('ZONE_POWER_PCT Recovery uses THEME.zoneRecovery, not a hex', () => {
+    const recovery = ZONE_POWER_PCT.find((z) => z.zone === 'Recovery');
+    expect(recovery.color).toBe(THEME.zoneRecovery);
+    expect(recovery.color).toBe('var(--color-zone-recovery)');
+    expect(recovery.color).not.toMatch(/#/);
+  });
+
+  it('trainingConfig.js no longer writes the Recovery hex or the zone table', () => {
+    const src = readFileSync(
+      join(import.meta.dirname, '../trainingConfig.js'),
+      'utf8'
+    );
+    expect(src).not.toMatch(/#666/);
+    expect(src).not.toMatch(/const ZONE_POWER_PCT/);
+    expect(src).toMatch(/from '\.\/zonePowerPct\.js'/);
   });
 });

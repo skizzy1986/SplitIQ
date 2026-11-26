@@ -44,4 +44,6 @@ export const THEME = {
   onAccent: 'var(--color-on-accent)',
   bandAmber: 'var(--color-band-amber)',
   bandCoral: 'var(--color-band-coral)',
+  // Recovery pace-zone swatch. Was a raw '#666' in trainingConfig.js (#819).
+  zoneRecovery: 'var(--color-zone-recovery)',
 };

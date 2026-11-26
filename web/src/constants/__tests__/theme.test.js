@@ -43,6 +43,7 @@ const EXPECTED_KEYS = [
   'onAccent',
   'bandAmber',
   'bandCoral',
+  'zoneRecovery',
 ];
 
 // The activation ramp is geometry paint, not ink anyone reads, and starts on
@@ -53,12 +54,15 @@ const SHARED_BY_DESIGN = [
   'anatomyHeatMid',
   'anatomyHeatHigh',
   'anatomyHeatPeak',
+  // The Recovery band was a raw '#666' on both themes. Keep the source hex
+  // until design sets a distinct light value (#819).
+  'zoneRecovery',
 ];
 
 describe('THEME', () => {
-  it('has exactly the 39 expected keys (no more, no fewer)', () => {
+  it('has exactly the 40 expected keys (no more, no fewer)', () => {
     const keys = Object.keys(THEME);
-    expect(keys).toHaveLength(39);
+    expect(keys).toHaveLength(40);
     expect(keys.sort()).toEqual([...EXPECTED_KEYS].sort());
   });
 
@@ -74,9 +78,9 @@ describe('THEME', () => {
 });
 
 describe('DARK — the palette values THEME resolves to', () => {
-  it('has exactly the 39 expected keys (no more, no fewer)', () => {
+  it('has exactly the 40 expected keys (no more, no fewer)', () => {
     const keys = Object.keys(DARK);
-    expect(keys).toHaveLength(39);
+    expect(keys).toHaveLength(40);
     expect(keys.sort()).toEqual([...EXPECTED_KEYS].sort());
   });
 
@@ -121,6 +125,7 @@ describe('DARK — the palette values THEME resolves to', () => {
     expect(DARK.onAccent).toBe('#06222c');
     expect(DARK.bandAmber).toBe('#e8b45c');
     expect(DARK.bandCoral).toBe('#e87a5c');
+    expect(DARK.zoneRecovery).toBe('#666666');
   });
 });
 

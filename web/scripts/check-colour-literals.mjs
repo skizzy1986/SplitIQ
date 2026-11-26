@@ -69,15 +69,12 @@ const ALLOWED = {
     reason:
       'between DARK.muted #7e7e9a and DARK.textSubtle #aaaacc; neither is exact.',
   },
-  'web/src/constants/trainingConfig.js': {
-    hexes: ['#666'],
-    reason:
-      'Recovery band colour; no HR row behind it since #422. Wants a token ' +
-      'decision, not a nearest-token guess.',
-  },
   'web/src/views/ErgView.jsx': {
     hexes: ['#666'],
-    reason: 'as trainingConfig.js.',
+    reason:
+      'fallback when a pace zone has no colour. The Recovery band itself is ' +
+      'THEME.zoneRecovery as of #819; this fallback is the same hex, still a ' +
+      'token decision for the miss path.',
   },
 };
 

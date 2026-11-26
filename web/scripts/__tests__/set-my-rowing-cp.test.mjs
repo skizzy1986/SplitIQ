@@ -41,16 +41,33 @@ describe('025 set_my_rowing_cp', () => {
 
   it('1. saving retires the live row and inserts one new live row: value, W, unvalidated, tester', () => {
     expect(fn).toMatch(
-      /update public\.anchors set superseded_at = pg_catalog\.clock_timestamp\(\) where user_id = v_uid and key = 'rowing_cp' and superseded_at is null;/
+      /update public\.anchors set superseded_at = v_now where user_id = v_uid and key = 'rowing_cp' and superseded_at is null;/
     );
     expect(fn).toContain(
-      "insert into public.anchors (user_id, key, value, unit, status, source) values (v_uid, 'rowing_cp', p_watts::text, 'w', 'unvalidated', 'tester');"
+      "insert into public.anchors (user_id, key, value, unit, status, source, created_at) values (v_uid, 'rowing_cp', p_watts::text, 'w', 'unvalidated', 'tester', v_now);"
     );
     // Retire before insert, or the one-live-per-key index refuses the insert.
     expect(fn.indexOf('update public.anchors')).toBeLessThan(
       fn.indexOf('insert into public.anchors')
     );
     expect(selfTest).toContain('c1: one live row');
+  });
+
+  // Gate 3 round 3 (#817 CR suggestion 1, Scott 26 Nov): one clock reading,
+  // taken after the lock, stamps both the retirement and the new row, so each
+  // hand-off is an exact tie and created_at order matches live order in a race.
+  it('1. the new row is stamped with the same time that retires the old one', () => {
+    expect(fn).toContain('v_now timestamptz;');
+    expect(fn).toContain('v_now := pg_catalog.clock_timestamp();');
+    expect(
+      fn.indexOf('v_now := pg_catalog.clock_timestamp();')
+    ).toBeGreaterThan(fn.indexOf('pg_advisory_xact_lock'));
+    expect(fn.indexOf('v_now := pg_catalog.clock_timestamp();')).toBeLessThan(
+      fn.indexOf('update public.anchors')
+    );
+    expect(fn.match(/clock_timestamp\(\)/g)).toHaveLength(1);
+    expect(fn).not.toMatch(/\bnow\(\)/);
+    expect(selfTest).toContain('c1: hand-off stamp');
   });
 
   it('2. history is kept: the old row is retired, never deleted', () => {

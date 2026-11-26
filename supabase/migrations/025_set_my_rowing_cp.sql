@@ -31,6 +31,7 @@ as $fn$
 declare
   v_uid uuid := auth.uid();
   v_retired integer;
+  v_now timestamptz;
 begin
   if v_uid is null then
     raise exception 'set_my_rowing_cp: not signed in' using errcode = '28000';
@@ -42,16 +43,24 @@ begin
 
   -- One save at a time per user. A second save waits here until the first
   -- commits, then retires the row the first one inserted.
+  -- The lock relies on READ COMMITTED, PostgREST's default: once the first
+  -- save commits, the second one's update sees the row it inserted. Under
+  -- REPEATABLE READ or SERIALIZABLE the second save fails with 23505 instead,
+  -- which is safe (nothing changes) but shows the tester an error.
   perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('rowing_cp:' || v_uid::text, 0));
 
-  -- clock_timestamp(), not now(): a save that waited on the lock must not
-  -- record a retirement earlier than the row it retires was created.
-  update public.anchors set superseded_at = pg_catalog.clock_timestamp()
+  -- One clock reading, taken after the lock, stamps both the retirement and
+  -- the new row, so each hand-off is an exact tie and created_at order matches
+  -- live order even after a lock wait. clock_timestamp(), not now(): now() is
+  -- the transaction start, which can be earlier than the row being retired.
+  v_now := pg_catalog.clock_timestamp();
+
+  update public.anchors set superseded_at = v_now
    where user_id = v_uid and key = 'rowing_cp' and superseded_at is null;
   get diagnostics v_retired = row_count;
 
-  insert into public.anchors (user_id, key, value, unit, status, source)
-  values (v_uid, 'rowing_cp', p_watts::text, 'W', 'unvalidated', 'tester');
+  insert into public.anchors (user_id, key, value, unit, status, source, created_at)
+  values (v_uid, 'rowing_cp', p_watts::text, 'W', 'unvalidated', 'tester', v_now);
 
   return pg_catalog.jsonb_build_object('status', 'saved', 'watts', p_watts, 'replaced', v_retired > 0);
 end;
@@ -114,6 +123,15 @@ begin
          where user_id = ua and key = 'rowing_cp' and value = '210' and superseded_at is not null) <> 1
        or (select count(*) from public.anchors where user_id = ua and key = 'rowing_cp') <> 2 then
       raise exception '025 self-test c2: history was not kept';
+    end if;
+
+    -- c1: the new row's created_at is exactly the old row's superseded_at.
+    if (select superseded_at from public.anchors
+         where user_id = ua and key = 'rowing_cp' and value = '210')
+       is distinct from
+       (select created_at from public.anchors
+         where user_id = ua and key = 'rowing_cp' and superseded_at is null) then
+      raise exception '025 self-test c1: hand-off stamp differs between the retired and the new row';
     end if;
 
     -- c5: refused values change nothing.

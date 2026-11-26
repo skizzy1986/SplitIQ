@@ -12,6 +12,11 @@ msgstr ""
 msgid "＋ ADD TO HOME SCREEN"
 msgstr "＋ ADD TO HOME SCREEN"
 
+#. Link back to the sign-in form from the invite form
+#: src/components/InviteSignupForm.jsx
+msgid "Back to sign in"
+msgstr "Back to sign in"
+
 #. Splash word cycle, one discipline, all capitals
 #: src/components/SplashScreen.jsx
 msgid "BIKE"
@@ -27,18 +32,52 @@ msgstr "Body"
 msgid "Build {APP_BUILD}"
 msgstr "Build {APP_BUILD}"
 
+#. Invite sign-up error, for a malformed email or code.
+#: src/components/InviteSignupForm.jsx
+msgid "Check the email and the code and try again."
+msgstr "Check the email and the code and try again."
+
+#. Invite sign-up error. {min} is the minimum length.
+#: src/components/InviteSignupForm.jsx
+msgid "Choose a longer password: at least {min} characters."
+msgstr "Choose a longer password: at least {min} characters."
+
+#. Invite form field label, all capitals
+#: src/components/InviteSignupForm.jsx
+msgid "CHOOSE A PASSWORD"
+msgstr "CHOOSE A PASSWORD"
+
 #. Login error. Only shown in Spanish; English shows the server message.
 #: src/utils/authError.js
 msgid "Confirm your email address before signing in."
 msgstr "Confirm your email address before signing in."
 
+#. Invite sign-up error when the device is offline.
 #. Login error when the device is offline. Only shown in Spanish.
+#: src/components/InviteSignupForm.jsx
 #: src/utils/authError.js
 msgid "Could not reach the server. Check your connection and try again."
 msgstr "Could not reach the server. Check your connection and try again."
 
+#. Invite sign-up button
+#: src/components/InviteSignupForm.jsx
+msgid "CREATE ACCOUNT"
+msgstr "CREATE ACCOUNT"
+
+#. Heading on the invite sign-up form
+#: src/components/InviteSignupForm.jsx
+msgid "Create your test account"
+msgstr "Create your test account"
+
+#. Invite sign-up button while the request is in flight
+#: src/components/InviteSignupForm.jsx
+msgid "CREATING…"
+msgstr "CREATING…"
+
+#. Login form field label, all capitals
 #. Login form field label, all capitals
 #: src/AuthGate.jsx
+#: src/components/InviteSignupForm.jsx
 msgid "EMAIL"
 msgstr "EMAIL"
 
@@ -55,6 +94,21 @@ msgstr "Erg"
 #: src/components/SplashScreen.jsx
 msgid "ERG"
 msgstr "ERG"
+
+#. Invite sign-up error.
+#: src/components/InviteSignupForm.jsx
+msgid "Fill in every field."
+msgstr "Fill in every field."
+
+#. Link on the testers sign-in form to the invite form
+#: src/AuthGate.jsx
+msgid "Have an invite code?"
+msgstr "Have an invite code?"
+
+#. Invite form field label, all capitals
+#: src/components/InviteSignupForm.jsx
+msgid "INVITE CODE"
+msgstr "INVITE CODE"
 
 #. Shown while the session or the app is loading
 #: src/AuthGate.jsx
@@ -81,6 +135,11 @@ msgstr "PASSWORD"
 msgid "Progress"
 msgstr "Progress"
 
+#. Invite form field label, all capitals
+#: src/components/InviteSignupForm.jsx
+msgid "REPEAT THE PASSWORD"
+msgstr "REPEAT THE PASSWORD"
+
 #. Login button
 #: src/AuthGate.jsx
 msgid "SIGN IN"
@@ -95,6 +154,11 @@ msgstr "Sign in to continue"
 #: src/AuthGate.jsx
 msgid "Sign out"
 msgstr "Sign out"
+
+#. Invite sign-up error for any other cause.
+#: src/components/InviteSignupForm.jsx
+msgid "Sign-up isn't available right now. Message whoever invited you."
+msgstr "Sign-up isn't available right now. Message whoever invited you."
 
 #. Login button while the request is in flight
 #: src/AuthGate.jsx
@@ -115,22 +179,39 @@ msgstr "STRENGTH"
 msgid "SYNCING TRAINING LOG"
 msgstr "SYNCING TRAINING LOG"
 
+#. Invite sign-up error. Deliberately says nothing more specific.
+#: src/components/InviteSignupForm.jsx
+msgid "That code and email did not work. Check them, or ask whoever invited you for a new code."
+msgstr "That code and email did not work. Check them, or ask whoever invited you for a new code."
+
 #. Login error. Only shown in Spanish; English shows the server message.
 #: src/utils/authError.js
 msgid "The server took too long to answer. Try again."
 msgstr "The server took too long to answer. Try again."
+
+#. Invite sign-up error.
+#: src/components/InviteSignupForm.jsx
+msgid "The two passwords don't match."
+msgstr "The two passwords don't match."
 
 #. Login error. Only shown in Spanish; English shows the server message.
 #: src/utils/authError.js
 msgid "This account cannot sign in."
 msgstr "This account cannot sign in."
 
+#. Invite sign-up error, when the consent tick is empty.
+#: src/components/InviteSignupForm.jsx
+msgid "Tick the box to carry on."
+msgstr "Tick the box to carry on."
+
 #. Mobile tab bar
 #: src/constants/destinations.js
 msgid "Today"
 msgstr "Today"
 
+#. Invite sign-up error.
 #. Login error. Only shown in Spanish; English shows the server message.
+#: src/components/InviteSignupForm.jsx
 #: src/utils/authError.js
 msgid "Too many attempts. Wait a few minutes and try again."
 msgstr "Too many attempts. Wait a few minutes and try again."

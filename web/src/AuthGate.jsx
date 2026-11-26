@@ -25,6 +25,7 @@ import LanguageToggle, {
   LanguageStatus,
 } from './components/LanguageToggle.jsx';
 import { authErrorText } from './utils/authError.js';
+import { isTestersBuild } from './utils/testersBuild.js';
 
 // A device renders one shell, never both. Statically importing the pair put
 // the desktop dashboard's thirteen tabs and the whole mobile app in the same
@@ -32,6 +33,11 @@ import { authErrorText } from './utils/authError.js';
 // and every desktop downloaded a phone app it cannot reach.
 const App = lazy(() => import('./App.jsx'));
 const MobileApp = lazy(() => import('./views/mobile/MobileApp.jsx'));
+// The testers' invite form: its own chunk, fetched only when the link on a
+// testers build is pressed (#791).
+const InviteSignupForm = lazy(
+  () => import('./components/InviteSignupForm.jsx')
+);
 
 const MISSING_FIELDS = msg({
   message: 'Enter email and password.',
@@ -45,6 +51,7 @@ function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
+  const [inviting, setInviting] = useState(false);
   // The cause, not its text: rendered in whichever language is active, so a
   // switch mid-error re-reads it instead of leaving the old language behind.
   const [err, setErr] = useState(null);
@@ -70,6 +77,14 @@ function Login() {
   const errText = err?.missing
     ? t(MISSING_FIELDS)
     : authErrorText(err?.error, i18n.locale);
+
+  if (inviting) {
+    return (
+      <Suspense fallback={<LoadingPane />}>
+        <InviteSignupForm onBack={() => setInviting(false)} />
+      </Suspense>
+    );
+  }
 
   const inp = {
     background: THEME.field,
@@ -231,6 +246,27 @@ function Login() {
               })
             : t({ message: 'SIGN IN', comment: 'Login button' })}
         </button>
+        {isTestersBuild() && (
+          <button
+            type="button"
+            onClick={() => setInviting(true)}
+            style={{
+              width: '100%',
+              marginTop: 10,
+              background: 'none',
+              border: 'none',
+              padding: 6,
+              fontSize: 11,
+              color: THEME.muted,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            <Trans comment="Link on the testers sign-in form to the invite form">
+              Have an invite code?
+            </Trans>
+          </button>
+        )}
       </form>
     </div>
   );

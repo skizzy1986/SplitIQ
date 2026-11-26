@@ -39,14 +39,15 @@ check("guard: empty URL refused", isProductionUrl(""));
 
 // ---- the handler, against fakes ----
 
-type Calls = { claim: unknown[][]; release: string[]; create: unknown[]; errors: string[] };
+type Calls = { claim: unknown[][]; release: string[]; create: unknown[]; errors: string[]; sample: string[] };
 
 function setup(opts: {
   enabled?: boolean;
   claim?: Claim | (() => Claim | never);
   create?: CreateResult | (() => CreateResult | never);
+  sample?: "ok" | "throws" | "off";
 } = {}) {
-  const calls: Calls = { claim: [], release: [], create: [], errors: [] };
+  const calls: Calls = { claim: [], release: [], create: [], errors: [], sample: [] };
   const deps: Deps = {
     enabled: opts.enabled ?? true,
     claim: (h, e, ip) => {
@@ -62,6 +63,11 @@ function setup(opts: {
       calls.create.push(u);
       const c = opts.create ?? { ok: true };
       return Promise.resolve(typeof c === "function" ? c() : c);
+    },
+    loadSampleData: opts.sample === "off" ? undefined : (userId) => {
+      calls.sample.push(userId);
+      if (opts.sample === "throws") throw new Error("sample down");
+      return Promise.resolve();
     },
     ipHash: (ip) => Promise.resolve(`h(${ip})`),
     now: () => new Date("2026-11-25T10:00:00Z"),
@@ -87,6 +93,39 @@ const good = { email: " Tester@Example.com ", password: "correct horse", code: "
       meta.consented_at === "2026-11-25T10:00:00.000Z" && meta.age_declared_18_plus === true, meta);
   check("valid code: consent version is the dated sign-off", CONSENT_VERSION === "2026-11-25", CONSENT_VERSION);
   check("valid code: nothing released", calls.release.length === 0, calls.release);
+}
+
+// ---- sample data after the account exists (#799) ----
+
+{
+  const { deps, calls } = setup({ create: { ok: true, userId: "user-1" } });
+  const r = await handleSignup(good, "ip", deps);
+  check("sample data: loaded for the new account, sign-up still ok", r.ok === true && calls.sample.join() === "user-1", { r, calls });
+}
+{
+  const { deps, calls } = setup({ create: { ok: true, userId: "user-1" }, sample: "throws" });
+  const r = await handleSignup(good, "ip", deps);
+  check("sample data: a failure is reported once and does not fail the sign-up", r.ok === true && calls.errors.join() === "sampleData" && calls.release.length === 0, { r, calls });
+}
+{
+  const { deps, calls } = setup({ create: { ok: true, userId: "user-1" }, sample: "off" });
+  const r = await handleSignup(good, "ip", deps);
+  check("sample data: switched off, nothing is loaded", r.ok === true && calls.sample.length === 0, { r, calls });
+}
+{
+  const { deps, calls } = setup({ create: { ok: true } });
+  const r = await handleSignup(good, "ip", deps);
+  check("sample data: no user id back, nothing is loaded", r.ok === true && calls.sample.length === 0, { r, calls });
+}
+for (const create of [{ ok: false, code: "email_exists" }, { ok: false, code: "weak_password" }, { ok: false }] as CreateResult[]) {
+  const { deps, calls } = setup({ create });
+  await handleSignup(good, "ip", deps);
+  check(`sample data: not loaded when the account was not made (${JSON.stringify(create)})`, calls.sample.length === 0, calls);
+}
+{
+  const { deps, calls } = setup({ claim: { status: "invalid" } });
+  await handleSignup(good, "ip", deps);
+  check("sample data: not loaded for a bad code", calls.sample.length === 0, calls);
 }
 
 const invalidReply = await handleSignup(good, "ip", setup({ claim: { status: "invalid" } }).deps);
@@ -197,5 +236,10 @@ check("index.ts: needs INVITE_SIGNUP_ENABLED=true", src.includes('Deno.env.get("
 check("index.ts: refuses the production project", src.includes("!isProductionUrl(url)"));
 check("index.ts: users are created with the admin API, confirmed, no email sent", src.includes("auth.admin.createUser") && src.includes("email_confirm: true"));
 check("index.ts: never reports the email, the code or the password to Sentry", !/captureFunctionError\([^)]*(email|password|code\b)/.test(src.replace(/where: "[a-zA-Z]+"/g, "")));
+
+check("index.ts: sample data goes through the service-role sample_data_load RPC", src.includes('admin.rpc("sample_data_load", { p_user_id: userId })'));
+check("index.ts: INVITE_SAMPLE_DATA=false switches the sample load off", src.includes('Deno.env.get("INVITE_SAMPLE_DATA") === "false"'));
+const sampleBlock = src.slice(src.indexOf("loadSampleData:"), src.indexOf("// Identifiers and the step only"));
+check("index.ts: the sample load never touches the email, password or code", !/email|password|code\b/.test(sampleBlock), sampleBlock);
 
 finish();

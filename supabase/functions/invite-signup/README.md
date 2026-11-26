@@ -29,6 +29,11 @@ says which.
 2. It creates a confirmed user with the Auth admin API. The consent record and
    the invite id go in `app_metadata`, which the user cannot edit.
 3. If the account could not be made, `invite_signup_release` gives the use back.
+4. Once the account exists, it calls `sample_data_load` (migration
+   `024_sample_data.sql`, #799) to stage about 8 weeks of made-up, labelled
+   sessions in that account so the first screens are not blank. A failure there
+   is reported and swallowed: the sign-up still succeeds. Set the secret
+   `INVITE_SAMPLE_DATA=false` to switch this off.
 
 The code itself is never stored; only its hash. Callers are recorded only as an
 HMAC of their address, keyed with the service key.
@@ -53,6 +58,15 @@ makes its own checks (see above).
 
 `node web/scripts/mint-invite-code.mjs --uses 1 --days 14 [--email x@y.z] [--note "Paul"]`
 prints the code once, and the SQL to insert its hash. Run that SQL on dev only.
+
+## Sample data (#799)
+
+Every staged row is labelled `[Sample] ...`, carries `source = 'sample'` where
+the table has one, and is listed in `public.sample_data_rows`. A tester clears
+exactly those rows with `select clear_my_sample_data()` (a Settings button can
+call it later); from SQL, `select sample_data_clear('<user id>')`. To load again
+for an existing account: `select sample_data_load('<user id>')` as service_role
+(add `, null, true` to force it into an account that already has sessions).
 
 ## Tests
 

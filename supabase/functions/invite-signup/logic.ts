@@ -40,7 +40,7 @@ export type Reply = { ok: true } | { ok: false; error: ErrorCode };
 
 export type Claim = { status: "ok"; id: string } | { status: "invalid" | "rate_limited" };
 
-export type CreateResult = { ok: true } | { ok: false; code?: string };
+export type CreateResult = { ok: true; userId?: string } | { ok: false; code?: string };
 
 export type Deps = {
   enabled: boolean;
@@ -49,6 +49,9 @@ export type Deps = {
   createUser(
     user: { email: string; password: string; appMetadata: Record<string, unknown> },
   ): Promise<CreateResult>;
+  /** Stages the made-up sample sessions in the new account (#799). Optional:
+   *  absent when INVITE_SAMPLE_DATA=false. A failure never fails the sign-up. */
+  loadSampleData?(userId: string): Promise<void>;
   ipHash(ip: string): Promise<string>;
   now(): Date;
   onError(where: string, error: unknown): Promise<void> | void;
@@ -143,7 +146,19 @@ export async function handleSignup(body: unknown, ip: string, deps: Deps): Promi
     await deps.onError("createUser", error);
   }
 
-  if (created.ok) return { ok: true };
+  if (created.ok) {
+    // The account exists and the tester can sign in, so a failure here is
+    // reported and swallowed: an empty account is a nuisance, a refused
+    // sign-up with a spent code is worse.
+    if (deps.loadSampleData && created.userId) {
+      try {
+        await deps.loadSampleData(created.userId);
+      } catch (error) {
+        await deps.onError("sampleData", error);
+      }
+    }
+    return { ok: true };
+  }
 
   // The account was not made, so the code gets its use back.
   try {

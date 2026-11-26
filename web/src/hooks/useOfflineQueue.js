@@ -44,8 +44,9 @@ function readQueue() {
   }
 }
 
-// Postgres unique_violation on sessions' UNIQUE(date, label): the row is
-// already in the table, so a retry can never succeed — treat it as delivered.
+// Postgres unique_violation on sessions' UNIQUE(user_id, date, label): this
+// owner already has the row, so a retry can never succeed — treat it as
+// delivered. The key is per owner (#790); another account's row cannot cause it.
 function isDuplicate(error) {
   return error?.code === '23505' || /duplicate key/i.test(error?.message || '');
 }

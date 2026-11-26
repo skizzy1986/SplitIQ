@@ -59,6 +59,10 @@ export const DARK = {
   onAccent: '#06222c',
   bandAmber: '#e8b45c',
   bandCoral: '#e87a5c',
+  // Recovery pace-zone swatch. The source literal was '#666'; both palettes
+  // keep #666666 so neither theme changes colour until design sets a light
+  // value. See SHARED_BY_DESIGN in theme.test.js.
+  zoneRecovery: '#666666',
 };
 
 // The light palette. Values are conventions.md's, which is design-owned and
@@ -121,6 +125,9 @@ export const LIGHT = {
   onAccent: '#ffffff',
   bandAmber: '#c08810',
   bandCoral: '#c86838',
+  // Same source hex as DARK: the Recovery band was a raw literal, so it
+  // already painted this on light. A distinct light value is a design call.
+  zoneRecovery: '#666666',
 };
 
 // The palette the document boots on. Dark is the signed-in dashboard's only

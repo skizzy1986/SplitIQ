@@ -1,4 +1,7 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { ZONE_POWER_PCT } from '../../constants/zonePowerPct.js';
 import {
   wattsToPace500,
   pace500ToWatts,
@@ -82,5 +85,32 @@ describe('classifyZone', () => {
   });
   it('classifies AN above 105%', () => {
     expect(classifyZone(220, cp)).toBe('AN');
+  });
+});
+
+describe('classifyZone reads ZONE_POWER_PCT (#819)', () => {
+  const cp = 200;
+
+  it('classifies each half-open band from the shared table', () => {
+    for (let i = 0; i < ZONE_POWER_PCT.length; i++) {
+      const band = ZONE_POWER_PCT[i];
+      const next = ZONE_POWER_PCT[i + 1];
+      const mid = ((band.pctLow + band.pctHigh) / 2) * cp;
+      expect(classifyZone(mid, cp), band.zone).toBe(band.zone);
+      if (next) {
+        expect(classifyZone(band.pctHigh * cp, cp), `${band.zone} high`).toBe(
+          next.zone
+        );
+      } else {
+        expect(classifyZone(band.pctHigh * cp, cp)).toBe(band.zone);
+        expect(classifyZone((band.pctHigh + 0.5) * cp, cp)).toBe(band.zone);
+      }
+    }
+  });
+
+  it('pace.js does not hard-code the zone fractions', () => {
+    const src = readFileSync(join(import.meta.dirname, '../pace.js'), 'utf8');
+    expect(src).toMatch(/ZONE_POWER_PCT/);
+    expect(src).not.toMatch(/0\.55|0\.7|0\.8|0\.9|1\.05/);
   });
 });

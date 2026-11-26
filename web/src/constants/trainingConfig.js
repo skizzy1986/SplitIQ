@@ -3,6 +3,7 @@
 
 import { wattsToPace500 } from '../utils/pace.js';
 import { THEME } from './theme.js';
+import { ZONE_POWER_PCT } from './zonePowerPct.js';
 
 export const SRPE_GUIDE = [
   {
@@ -52,15 +53,6 @@ export const FTP_TEST = {
   unlocks:
     'A measured CP recalibrates the load model (TSS/CTL/ATL/TSB) and the pace zones.',
 };
-
-const ZONE_POWER_PCT = [
-  { zone: 'Recovery', color: '#666', pctLow: 0, pctHigh: 0.55 },
-  { zone: 'UT2', color: THEME.accent, pctLow: 0.55, pctHigh: 0.7 },
-  { zone: 'UT1', color: THEME.positive, pctLow: 0.7, pctHigh: 0.8 },
-  { zone: 'AT', color: THEME.caution, pctLow: 0.8, pctHigh: 0.9 },
-  { zone: 'TR', color: THEME.warning, pctLow: 0.9, pctHigh: 1.05 },
-  { zone: 'AN', color: THEME.critical, pctLow: 1.05, pctHigh: 1.3 },
-];
 
 // Derive the power/pace zone bands from a Critical Power value. Pure — callers
 // pass the current `anchors.rowing_cp` (see ErgView). There is deliberately no

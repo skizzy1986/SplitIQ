@@ -1,3 +1,5 @@
+import { ZONE_POWER_PCT } from '../constants/zonePowerPct.js';
+
 export function wattsToPace500(watts) {
   return 500 * (2.8 / watts) ** (1 / 3);
 }
@@ -17,10 +19,8 @@ export function classifyZone(watts, cp) {
   if (watts == null) return null;
   if (!Number.isFinite(cp) || cp <= 0) return null;
   const pct = watts / cp;
-  if (pct < 0.55) return 'Recovery';
-  if (pct < 0.7) return 'UT2';
-  if (pct < 0.8) return 'UT1';
-  if (pct < 0.9) return 'AT';
-  if (pct < 1.05) return 'TR';
-  return 'AN';
+  for (const band of ZONE_POWER_PCT) {
+    if (pct < band.pctHigh) return band.zone;
+  }
+  return ZONE_POWER_PCT[ZONE_POWER_PCT.length - 1].zone;
 }

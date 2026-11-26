@@ -21,6 +21,7 @@ import { useAnchors } from '../hooks/useAnchors.js';
 import { THEME } from '../constants/theme.js';
 import { FONT } from '../constants/type.js';
 import { RADIUS } from '../constants/tokens.js';
+import { isTestersBuild } from '../utils/testersBuild.js';
 
 // Desktop says more than mobile about the same band, so the copy stays here
 // while the thresholds come from tsbBand(). Keyed off band.key so the two can
@@ -86,55 +87,59 @@ export default function OverviewView({
           </div>
         </div>
       )}
-      <section
-        aria-label={t`Readiness`}
-        style={{
-          background: `linear-gradient(135deg,${THEME.surfaceAlt},${THEME.raised})`,
-          border: `1px solid ${THEME.border}`,
-          borderRadius: 8,
-          padding: '14px 16px',
-          marginBottom: 14,
-        }}
-      >
-        <div
+      {/* No vitals sync on a testers build (#793), so no readiness card or
+          Open Body prompt points at one. Same rule as mobile Today. */}
+      {!isTestersBuild() && (
+        <section
+          aria-label={t`Readiness`}
           style={{
-            fontSize: 9,
-            color: THEME.muted,
-            letterSpacing: 2,
-            fontWeight: 700,
+            background: `linear-gradient(135deg,${THEME.surfaceAlt},${THEME.raised})`,
+            border: `1px solid ${THEME.border}`,
+            borderRadius: 8,
+            padding: '14px 16px',
+            marginBottom: 14,
           }}
         >
-          <Trans comment="Card heading, all capitals">READINESS</Trans>
-        </div>
-        {/* Pending, failed and empty are three states (#616), the same split
-            the training-load card already makes. A refetch that still has a
-            score keeps it: isPending is only true before the first result. */}
-        <div style={{ fontSize: 22, fontWeight: 700, color: THEME.text }}>
-          {vitalsPending ? (
-            <span style={{ color: THEME.muted }}>
-              <Trans>Reading…</Trans>
-            </span>
-          ) : vitalsFailed && readiness?.score == null ? (
-            <span style={{ color: THEME.muted }}>
-              <Trans>VITALS UNAVAILABLE</Trans>
-            </span>
-          ) : readiness?.score != null ? (
-            readiness.score
-          ) : (
-            <Trans>No reading this morning</Trans>
-          )}
-        </div>
-        {!vitalsPending && !vitalsFailed && readiness?.score == null && (
-          <Button onClick={() => onOpenBody?.()}>
-            <Trans>Open Body</Trans>
-          </Button>
-        )}
-        {readiness?.score != null && (
-          <div style={{ fontSize: 10, color: THEME.textSubtle }}>
-            {readinessStatusText(i18n, readiness.status)}
+          <div
+            style={{
+              fontSize: 9,
+              color: THEME.muted,
+              letterSpacing: 2,
+              fontWeight: 700,
+            }}
+          >
+            <Trans comment="Card heading, all capitals">READINESS</Trans>
           </div>
-        )}
-      </section>
+          {/* Pending, failed and empty are three states (#616), the same split
+              the training-load card already makes. A refetch that still has a
+              score keeps it: isPending is only true before the first result. */}
+          <div style={{ fontSize: 22, fontWeight: 700, color: THEME.text }}>
+            {vitalsPending ? (
+              <span style={{ color: THEME.muted }}>
+                <Trans>Reading…</Trans>
+              </span>
+            ) : vitalsFailed && readiness?.score == null ? (
+              <span style={{ color: THEME.muted }}>
+                <Trans>VITALS UNAVAILABLE</Trans>
+              </span>
+            ) : readiness?.score != null ? (
+              readiness.score
+            ) : (
+              <Trans>No reading this morning</Trans>
+            )}
+          </div>
+          {!vitalsPending && !vitalsFailed && readiness?.score == null && (
+            <Button onClick={() => onOpenBody?.()}>
+              <Trans>Open Body</Trans>
+            </Button>
+          )}
+          {readiness?.score != null && (
+            <div style={{ fontSize: 10, color: THEME.textSubtle }}>
+              {readinessStatusText(i18n, readiness.status)}
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Stats */}
       <div

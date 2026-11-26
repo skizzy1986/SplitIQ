@@ -14,6 +14,7 @@ import { useVitalsSync } from '../../hooks/useVitalsSync.js';
 import { useTSSHistory } from '../../hooks/useTSSHistory.js';
 import { calcTrainingLoad, tsbBand } from '../../utils/trainingLoad.js';
 import { THEME } from '../../constants/theme.js';
+import { isTestersBuild } from '../../utils/testersBuild.js';
 import ScreenHeader from '../../components/ScreenHeader.jsx';
 import Button from '../../components/Button.jsx';
 import { FONT } from '../../constants/type.js';
@@ -128,27 +129,30 @@ export default function MobileRecovery({ onOpenSettings }) {
           title={<Trans comment="Screen heading, all capitals">RECOVERY</Trans>}
         />
         <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button
-            onClick={() => syncVitals()}
-            disabled={isSyncing}
-            aria-label={t`Sync now`}
-            style={{
-              background: 'none',
-              border: 'none',
-              minWidth: 44,
-              minHeight: 44,
-              cursor: isSyncing ? 'default' : 'pointer',
-              color: isSyncing
-                ? THEME.muted
-                : syncFailed
-                  ? THEME.critical
-                  : THEME.positive,
-              fontSize: 16,
-              lineHeight: 1,
-            }}
-          >
-            {isSyncing ? '…' : '↻'}
-          </button>
+          {/* The sync reads the owner's own source: not on a testers build (#793). */}
+          {!isTestersBuild() && (
+            <button
+              onClick={() => syncVitals()}
+              disabled={isSyncing}
+              aria-label={t`Sync now`}
+              style={{
+                background: 'none',
+                border: 'none',
+                minWidth: 44,
+                minHeight: 44,
+                cursor: isSyncing ? 'default' : 'pointer',
+                color: isSyncing
+                  ? THEME.muted
+                  : syncFailed
+                    ? THEME.critical
+                    : THEME.positive,
+                fontSize: 16,
+                lineHeight: 1,
+              }}
+            >
+              {isSyncing ? '…' : '↻'}
+            </button>
+          )}
           <span style={{ fontSize: 11, color: THEME.muted }}>{todayStr}</span>
         </span>
       </div>
@@ -171,16 +175,20 @@ export default function MobileRecovery({ onOpenSettings }) {
           <div style={{ fontSize: 13, color: THEME.muted }}>
             <Trans>No vitals recorded yet</Trans>
           </div>
-          <div style={{ fontSize: 11, color: THEME.muted, marginTop: 8 }}>
-            <Trans comment="Google Health is a brand name: keep it">
-              Connect Google Health to populate this view
-            </Trans>
-          </div>
-          <div style={{ marginTop: 16 }}>
-            <Button onClick={() => onOpenSettings?.()}>
-              <Trans>Open Settings</Trans>
-            </Button>
-          </div>
+          {!isTestersBuild() && (
+            <>
+              <div style={{ fontSize: 11, color: THEME.muted, marginTop: 8 }}>
+                <Trans comment="Google Health is a brand name: keep it">
+                  Connect Google Health to populate this view
+                </Trans>
+              </div>
+              <div style={{ marginTop: 16 }}>
+                <Button onClick={() => onOpenSettings?.()}>
+                  <Trans>Open Settings</Trans>
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       )}
 

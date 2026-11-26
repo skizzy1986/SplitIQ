@@ -105,14 +105,17 @@ export default function SettingsView({ onSynced, notice, heading = true }) {
           </Suspense>
         </section>
       )}
-      <section aria-labelledby="settings-integrations" style={sectionStyle}>
-        <h2 id="settings-integrations" style={headingStyle}>
-          <Trans comment="Settings section heading above the Strava panel">
-            Integrations
-          </Trans>
-        </h2>
-        <StravaConnectPanel onSynced={onSynced} />
-      </section>
+      {/* Strava is the owner's own account: not on a testers build (#793). */}
+      {!isTestersBuild() && (
+        <section aria-labelledby="settings-integrations" style={sectionStyle}>
+          <h2 id="settings-integrations" style={headingStyle}>
+            <Trans comment="Settings section heading above the Strava panel">
+              Integrations
+            </Trans>
+          </h2>
+          <StravaConnectPanel onSynced={onSynced} />
+        </section>
+      )}
       <section aria-labelledby="settings-about" style={sectionStyle}>
         <h2 id="settings-about" style={headingStyle}>
           <Trans comment="Settings section heading for the app version">

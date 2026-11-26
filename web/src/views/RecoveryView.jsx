@@ -11,6 +11,7 @@ import { Trans, useLingui } from '@lingui/react/macro';
 import { msg } from '@lingui/core/macro';
 import { LIPID_REF } from '../constants/logs.js';
 import { useVitals } from '../hooks/useVitals.js';
+import { isTestersBuild } from '../utils/testersBuild.js';
 import { useBpReadings } from '../hooks/useBpReadings.js';
 import { useLabResults } from '../hooks/useLabResults.js';
 import { useInjuries } from '../hooks/useInjuries.js';
@@ -608,7 +609,8 @@ export default function RecoveryView({ isWide, onOpenSettings }) {
           </>
         );
       })()}
-      <HealthSections />
+      {/* Blood pressure, bloods, injuries: not on a testers build (#793). */}
+      {!isTestersBuild() && <HealthSections />}
       <Button onClick={() => onOpenSettings?.()}>
         <Trans>Open Settings</Trans>
       </Button>

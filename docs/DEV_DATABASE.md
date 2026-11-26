@@ -16,7 +16,7 @@ No key, token or password belongs in this file. The dev project URL is public.
 At the build (below): production's structure and the public exercise
 catalogue only. No sessions, vitals, health records, anchors, coach log, Strava
 data, backups, templates, strength logs, accounts or secrets. Since then, dev
-also has the tester-launch migrations 022 to 024 and the `invite-signup`
+also has the tester-launch migrations 022 to 025 and the `invite-signup`
 function (see [Changes since the build](#changes-since-the-build)), so it can
 now hold invite codes, tester accounts, and the rows testers create, including
 labelled sample data. Personal rows are never copied from production, and tester
@@ -89,16 +89,17 @@ line for each new one: what, when (Perth time), who approved it, and the PR.
 | Migration `023_invite_codes` (invite tables and claim/release functions) | 25 Nov 2026, about 6:30 PM | Scott, 6:28 PM | #808 |
 | Migration `024_sample_data` (sample-data ledger and load/clear functions) | 25 Nov 2026, about 6:30 PM | Scott, 6:28 PM | #812 |
 | Edge function `invite-signup` v1, `verify_jwt` off, built from #812's branch | 25 Nov 2026, about 6:30 PM | Scott, 6:28 PM | #812 (code in #808) |
+| Migration `025_set_my_rowing_cp` (`set_my_rowing_cp` for testers) | 26 Nov 2026, 11:49 AM | Scott, 11:48 AM | #817 |
 
 Each migration ran its own self-test on apply. `INVITE_SIGNUP_ENABLED` is not
 set yet, so `invite-signup` answers `disabled` until it is. These are on dev
-only; production has none of them (023, 024 and `invite-signup` never go there,
+only; production has none of them (023, 024, 025 and `invite-signup` never go there,
 D32).
 
 Counts after these changes (catalogue only, 26 Nov 2026): 24 public tables,
 all with row-level security on; 23 policies; 8 views. The build's 21 tables and
 22 policies plus `invite_codes`, `invite_attempts`, `sample_data_rows` and its
-one owner-select policy. By the migration files, 023 and 024 add 6 functions to
+one owner-select policy. By the migration files, 023, 024 and 025 add 7 functions to
 the build's 18.
 
 ## Vercel
@@ -134,7 +135,7 @@ separate secrets (#794).
 - To refresh dev after a production migration, apply the same migration file to
   dev, then re-run the fidelity comparison. Do not copy rows. Log every apply or
   deploy in [Changes since the build](#changes-since-the-build). The fidelity
-  comparison will now also show 022 to 024 as dev-only differences, until 022
+  comparison will now also show 022 to 025 as dev-only differences, until 022
   reaches production.
 
 ## Still open on #716

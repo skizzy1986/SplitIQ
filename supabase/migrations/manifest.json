@@ -1,5 +1,5 @@
 {
-  "$comment": "Reconciles every file in supabase/migrations/ against production: applied (with its live version), mirror (repo reconstruction of live state built outside tracked migrations), unapplied (intentionally not applied, with a reason) or pending (merged, awaiting apply). liveOnly lists live rows with no file. Checked by web/scripts/check-migrations.mjs; see WORKFLOW.md § Database migrations.",
+  "$comment": "Reconciles every file in supabase/migrations/ against production: applied (with its live version), mirror (repo reconstruction of live state built outside tracked migrations), unapplied (intentionally not applied, with a reason) or pending (merged, awaiting apply). liveOnly lists live rows with no file. Checked by web/scripts/check-migrations.mjs; see WORKFLOW.md \u00a7 Database migrations.",
   "schemaVersion": 1,
   "project": "swdrueaserjzhuxnzmeu",
   "files": [
@@ -7,13 +7,17 @@
       "file": "000_initial_schema.sql",
       "status": "mirror",
       "note": "Reconstruction of the pre-tracking base tables (sessions, vitals, exercises). sessions/exercises predate migration tracking; vitals was created live by create_vitals_table. exercises block corrected to the live shape (#435), matching 018. Still not faithful: sessions.id is uuid (live bigint) and sessions.date is date (live text M/D/YY), so a from-zero replay still fails at 007:64 (session_id bigint references sessions.id) and 008:53 (session_date_to_iso(text) on a date column) [reproduced in a local PGlite replay with auth stubbed; not run on a Supabase stack].",
-      "related": ["20260621115135"]
+      "related": [
+        "20260621115135"
+      ]
     },
     {
       "file": "001_enable_rls.sql",
       "status": "mirror",
       "note": "Owner RLS on sessions/vitals plus the exercises read policy; the live sessions/vitals equivalents were built under other names. The exercises policy name now matches live exercises_read (#435).",
-      "related": ["20260619235836"]
+      "related": [
+        "20260619235836"
+      ]
     },
     {
       "file": "002_coach_messages.sql",
@@ -35,13 +39,19 @@
       "file": "004_vitals_column_renames.sql",
       "status": "mirror",
       "note": "Syncs the repo to the live vitals unit-suffix renames, readiness/soreness/notes and the 7-arg upsert_vital. Live upsert_vital has 11 args (see liveOnly 005_vitals_activity_columns).",
-      "related": ["20260621115135", "20260622031616", "20260622031638"]
+      "related": [
+        "20260621115135",
+        "20260622031616",
+        "20260622031638"
+      ]
     },
     {
       "file": "005_rename_sessions_columns.sql",
       "status": "mirror",
-      "note": "watts→avg_watts, distance→distance_m. NOT the live row named 005_vitals_activity_columns, which is unrelated and has no file.",
-      "related": ["20260619235836"]
+      "note": "watts\u2192avg_watts, distance\u2192distance_m. NOT the live row named 005_vitals_activity_columns, which is unrelated and has no file.",
+      "related": [
+        "20260619235836"
+      ]
     },
     {
       "file": "006_context_store.sql",
@@ -284,7 +294,7 @@
     {
       "file": "025_set_my_rowing_cp.sql",
       "status": "unapplied",
-      "reason": "Dev only, tester client, not for production. This manifest tracks production, so production stays unapplied by design (#797). Not applied to SplitIQ dev yet either; needs Scott's yes after Gate 3.",
+      "reason": "Dev only, tester client, never production, so production stays unapplied by design (#797). This manifest tracks production. Applied to SplitIQ dev only, 26 Nov 2026 11:49 AM Perth (AWST), on Scott's yes at 11:48 AM.",
       "note": "set_my_rowing_cp(p_watts): the signed-in tester saves their rowing CP in one step (retire the live rowing_cp anchor, insert the new one as W, unvalidated, tester) under anchors RLS, with a per-user transaction lock. Replaces the two-request save in #811.",
       "issue": 797
     }

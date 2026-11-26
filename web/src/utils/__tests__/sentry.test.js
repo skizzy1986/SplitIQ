@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import * as Sentry from '@sentry/react';
-import { initSentry, captureError } from '../sentry.js';
+import {
+  initSentry,
+  captureError,
+  redactMessage,
+  redactQueryKey,
+} from '../sentry.js';
 
 vi.mock('@sentry/react', () => ({
   init: vi.fn(),
@@ -166,11 +171,9 @@ describe('captureError', () => {
     expect(captured.message).toBe('permission denied for table sessions');
     expect(captured.message).not.toBe('[object Object]');
     expect(options.extra.source).toBe('useSessions');
-    expect(options.extra.originalError).toMatchObject({
-      code: '42501',
-      details: 'row violates policy',
-      hint: 'check RLS',
-    });
+    // #819: only the code reaches Sentry. `details` and `hint` carry the values
+    // Postgres objected to, so they stay out (see "captureError redaction").
+    expect(options.extra.originalError).toEqual({ code: '42501' });
   });
 
   it('namespaces the original fields so they cannot collide with context keys', () => {
@@ -267,5 +270,398 @@ describe('captureError', () => {
     captureError({ message: 'denied' });
 
     expect(Sentry.captureException.mock.calls[0][0].name).toBe('Error');
+  });
+});
+
+// #819, slice S0 (brief §6, §6a: H 42, A 54). A failed write to anchors, sessions
+// or the training settings must not send a watt figure, a heart rate, a year of
+// birth or a dated session label to Sentry, by any path: the original fields,
+// the wrapped message, the fingerprint, a real Error, or a query key.
+describe('captureError redaction (#819)', () => {
+  const PAYLOAD = ['237', '172', '1986', '11/26/26'];
+
+  // Everything Sentry would be handed for the call, as one string.
+  function sent() {
+    return JSON.stringify(
+      Sentry.captureException.mock.calls.map(([captured, options]) => ({
+        message: captured.message,
+        name: captured.name,
+        stack: captured.stack,
+        cause: captured.cause && captured.cause.message,
+        options,
+      }))
+    );
+  }
+
+  function expectNoPayload() {
+    const out = sent();
+    for (const value of PAYLOAD) expect(out).not.toContain(value);
+  }
+
+  const postgrest = {
+    code: '23505',
+    details: 'Key (date, label)=(11/26/26, Base 237 W) already exists.',
+    hint: 'HR 172 bpm, born 1986',
+  };
+
+  it('H42/A54: no payload number survives originalFields, toError or the fingerprint', () => {
+    // Variant 1: a message naming a constraint, plus details and hint.
+    captureError({
+      ...postgrest,
+      message:
+        'duplicate key value violates unique constraint "sessions_date_label_key"',
+    });
+    // Variant 2: no message at all, the toError JSON-fallback path.
+    captureError({ ...postgrest });
+    // Variant 3: Postgres quoting the value inside the message.
+    captureError({
+      code: '22P02',
+      details: 'HR 172 bpm',
+      hint: 'born 1986',
+      message: 'invalid input syntax for type integer: "237"',
+    });
+    // The same three with no code, so the fingerprint falls back to the message.
+    captureError({
+      message: 'invalid input syntax for type integer: "237"',
+      details: 'on 11/26/26',
+    });
+
+    expect(Sentry.captureException).toHaveBeenCalledTimes(4);
+    expectNoPayload();
+  });
+
+  it('keeps the constraint name and the code, so issues still group', () => {
+    captureError({
+      ...postgrest,
+      message:
+        'duplicate key value violates unique constraint "sessions_date_label_key"',
+    });
+
+    const [captured, options] = Sentry.captureException.mock.calls[0];
+    expect(captured.message).toBe(
+      'duplicate key value violates unique constraint "sessions_date_label_key"'
+    );
+    expect(options.fingerprint).toEqual(['{{ default }}', '23505']);
+    expect(options.extra.originalError).toEqual({ code: '23505' });
+  });
+
+  it('originalFields allows code and name only, never details, hint or message', () => {
+    captureError({
+      name: 'PostgrestError',
+      code: 'PGRST202',
+      message: 'Could not find the function save_my_cp(p_watts)',
+      details: 'watts 237',
+      hint: 'born 1986',
+      srpe: 9,
+    });
+
+    const { extra } = Sentry.captureException.mock.calls[0][1];
+    expect(extra.originalError).toEqual({
+      name: 'PostgrestError',
+      code: 'PGRST202',
+    });
+  });
+
+  it('a code or name that does not look like one is dropped', () => {
+    captureError({
+      code: 'value 237 bpm',
+      name: '1986',
+      message: 'denied',
+    });
+
+    const { extra, fingerprint } = Sentry.captureException.mock.calls[0][1];
+    expect(extra.originalError).toEqual({});
+    expect(fingerprint).toEqual(['{{ default }}', 'denied']);
+    expect(Sentry.captureException.mock.calls[0][0].name).toBe('Error');
+  });
+
+  it('toError with no message names the code and the fields, never JSON.stringify', () => {
+    captureError({
+      code: '23505',
+      details: 'Key (date)=(11/26/26) already exists.',
+      hint: '237',
+    });
+
+    const captured = Sentry.captureException.mock.calls[0][0];
+    expect(captured.message).toBe(
+      'Error object without a message (code 23505; fields: code, details, hint)'
+    );
+    expect(captured.message).not.toContain('{');
+    expect(captured.message).not.toContain('already exists');
+  });
+
+  it('toError with no code still lists the field names only', () => {
+    captureError({ details: '237', hint: '172' });
+
+    expect(Sentry.captureException.mock.calls[0][0].message).toBe(
+      'Error object without a message (fields: details, hint)'
+    );
+  });
+
+  it('a thrown string is redacted too, in the message and in originalError', () => {
+    captureError('save failed for 237 W on "11/26/26"');
+
+    const [captured, options] = Sentry.captureException.mock.calls[0];
+    expect(captured.message).toBe('save failed for # W on "<redacted>"');
+    expect(options.extra.originalError).toEqual({
+      value: 'save failed for # W on "<redacted>"',
+    });
+    expectNoPayload();
+  });
+
+  it('A54: no RHR, HRV or HR value reaches the error path', () => {
+    captureError(new Error('resting HR 172 bpm and HRV 237 ms rejected'));
+    captureError({
+      code: '23514',
+      message:
+        'new row for relation "vitals" violates check constraint "vitals_rhr_bpm_check"',
+      details: 'Failing row contains (2026-11-26, 172, 237, 1986).',
+    });
+
+    expectNoPayload();
+    const out = sent();
+    expect(out).not.toContain('Failing row contains (2026');
+    // Identifier names without digits are kept, so the issue stays useful.
+    expect(out).toContain('vitals_rhr_bpm_check');
+  });
+
+  describe('a real Error', () => {
+    it('is passed through untouched when it carries no value', () => {
+      const error = new Error('permission denied for table anchors');
+      captureError(error);
+
+      expect(Sentry.captureException.mock.calls[0][0]).toBe(error);
+    });
+
+    it("is captured as a redacted copy, and the caller's Error is not mutated", () => {
+      const error = new Error('invalid input syntax for type integer: "237"');
+      const before = { message: error.message, stack: error.stack };
+
+      captureError(error);
+
+      const captured = Sentry.captureException.mock.calls[0][0];
+      expect(captured).not.toBe(error);
+      expect(captured.message).toBe(
+        'invalid input syntax for type integer: "<redacted>"'
+      );
+      expect(captured.stack).not.toContain('237');
+      expect(error.message).toBe(before.message);
+      expect(error.stack).toBe(before.stack);
+      expectNoPayload();
+    });
+
+    it('drops PostgREST details and hint properties carried on an Error', () => {
+      const error = Object.assign(new Error('denied'), {
+        code: '42501',
+        details: 'watts 237',
+        hint: 'born 1986',
+      });
+
+      captureError(error);
+
+      const captured = Sentry.captureException.mock.calls[0][0];
+      expect(captured).not.toBe(error);
+      expect(captured).not.toHaveProperty('details');
+      expect(captured).not.toHaveProperty('hint');
+      expectNoPayload();
+    });
+
+    it('redacts the cause chain as well', () => {
+      const error = new Error('save failed', {
+        cause: new Error('HR 172 bpm rejected', {
+          cause: new Error('born 1986'),
+        }),
+      });
+
+      captureError(error);
+
+      const captured = Sentry.captureException.mock.calls[0][0];
+      expect(captured.cause.message).toBe('HR # bpm rejected');
+      expect(captured.cause.cause.message).toBe('born #');
+      expect(JSON.stringify(captured, ['message', 'cause'])).not.toContain(
+        '1986'
+      );
+    });
+
+    // Walk a captured cause chain. Stops on a cycle so a broken cap cannot
+    // hang the test.
+    const walkCauses = (error) => {
+      const messages = [];
+      const seen = new Set();
+      for (let cur = error; cur && !seen.has(cur); cur = cur.cause) {
+        seen.add(cur);
+        messages.push(cur instanceof Error ? cur.message : String(cur));
+      }
+      return messages;
+    };
+
+    it('enforces a cause-chain depth cap of 5', () => {
+      // Root plus seven further errors. The cap is 5 cause steps from the
+      // root (depth < 5 in redactError), so a limit of 2 or 6, or no limit,
+      // changes the length of the captured chain and fails this test.
+      let error = new Error('leaf 99');
+      for (let i = 7; i >= 0; i -= 1) {
+        const next = new Error(`level ${i} has ${10 + i}`);
+        next.cause = error;
+        error = next;
+      }
+
+      captureError(error);
+
+      const captured = Sentry.captureException.mock.calls[0][0];
+      const walk = walkCauses(captured);
+      expect(walk).toHaveLength(6);
+      expect(walk).toEqual([
+        'level # has #',
+        'level # has #',
+        'level # has #',
+        'level # has #',
+        'level # has #',
+        'level # has #',
+      ]);
+      expect(captured.cause.cause.cause.cause.cause.cause).toBeUndefined();
+      expect(JSON.stringify(captured, ['message', 'cause'])).not.toMatch(
+        /16|17|99/
+      );
+      // The caller's chain past the cap is untouched.
+      expect(error.cause.cause.cause.cause.cause.cause.message).toBe(
+        'level 6 has 16'
+      );
+    });
+
+    it('does not throw on a self-referencing or circular cause, and still redacts', () => {
+      const self = new Error('payload 44 rejected');
+      self.cause = self;
+      expect(() => captureError(self)).not.toThrow();
+
+      const capturedSelf = Sentry.captureException.mock.calls[0][0];
+      expect(capturedSelf).not.toBe(self);
+      expect(self.cause).toBe(self);
+      expect(self.message).toBe('payload 44 rejected');
+      const selfWalk = walkCauses(capturedSelf);
+      expect(selfWalk.length).toBeGreaterThanOrEqual(1);
+      expect(selfWalk.length).toBeLessThanOrEqual(6);
+      expect(selfWalk.every((m) => m === 'payload # rejected')).toBe(true);
+      expect(JSON.stringify(capturedSelf, ['message', 'cause'])).not.toContain(
+        '44'
+      );
+
+      const a = new Error('payload 44 rejected');
+      const b = new Error('payload 55 rejected');
+      a.cause = b;
+      b.cause = a;
+      expect(() => captureError(a)).not.toThrow();
+
+      const capturedCycle = Sentry.captureException.mock.calls[1][0];
+      const dump = JSON.stringify(capturedCycle, ['message', 'cause']);
+      expect(dump).not.toContain('44');
+      expect(dump).not.toContain('55');
+      expect(a.cause).toBe(b);
+      expect(b.cause).toBe(a);
+      expect(a.message).toBe('payload 44 rejected');
+    });
+
+    it('adds no fingerprint, so default stacktrace grouping is unchanged', () => {
+      captureError(new Error('value 237 rejected'));
+
+      expect(Sentry.captureException.mock.calls[0][1]).toBeUndefined();
+    });
+  });
+
+  describe('query and mutation keys in context', () => {
+    it('a value-free key passes through unchanged', () => {
+      captureError(new Error('boom'), {
+        source: 'react-query',
+        kind: 'query',
+        queryKey: ['strava', 'connection'],
+      });
+
+      expect(Sentry.captureException.mock.calls[0][1].extra.queryKey).toEqual([
+        'strava',
+        'connection',
+      ]);
+    });
+
+    it('numbers, dates, ids and objects in a key become *', () => {
+      captureError(new Error('boom'), {
+        queryKey: ['sessions', 237, '1986-11-26', { hr: 172 }, 'detail'],
+        mutationKey: ['anchors', 'save', 172],
+      });
+
+      const { extra } = Sentry.captureException.mock.calls[0][1];
+      expect(extra.queryKey).toEqual(['sessions', '*', '*', '*', 'detail']);
+      expect(extra.mutationKey).toEqual(['anchors', 'save', '*']);
+      expectNoPayload();
+    });
+
+    it('a key that is not an array is dropped, not forwarded', () => {
+      captureError(new Error('boom'), { queryKey: 'sessions-237' });
+
+      expect(
+        Sentry.captureException.mock.calls[0][1].extra.queryKey
+      ).toBeUndefined();
+    });
+
+    it('the wrapped-object path redacts keys too', () => {
+      captureError(
+        { code: '42501', message: 'denied' },
+        {
+          queryKey: ['vitals', 172],
+        }
+      );
+
+      expect(Sentry.captureException.mock.calls[0][1].extra.queryKey).toEqual([
+        'vitals',
+        '*',
+      ]);
+    });
+  });
+});
+
+describe('redactMessage', () => {
+  it('turns digit runs into #', () => {
+    expect(redactMessage('237 W at 172 bpm')).toBe('# W at # bpm');
+  });
+
+  it('redacts quoted literals that carry a digit and keeps identifiers without one', () => {
+    expect(
+      redactMessage('constraint "anchors_status_check" value "1986"')
+    ).toBe('constraint "anchors_status_check" value "<redacted>"');
+    expect(redactMessage("date '2026-11-26' bad")).toBe(
+      'date "<redacted>" bad'
+    );
+  });
+
+  it('redacts the tuples after "Key (" and "Failing row contains"', () => {
+    expect(
+      redactMessage('Key (date, label)=(11/26/26, Base) already exists.')
+    ).toBe('Key (<redacted>)=(<redacted>) already exists.');
+    expect(redactMessage('Failing row contains (a, b, c).')).toBe(
+      'Failing row contains (<redacted>).'
+    );
+  });
+
+  it('is idempotent and leaves non-strings alone', () => {
+    const once = redactMessage('Key (a)=(237)');
+    expect(redactMessage(once)).toBe(once);
+    expect(redactMessage(undefined)).toBeUndefined();
+  });
+});
+
+describe('redactQueryKey', () => {
+  it('keeps plain words, hyphens and underscores', () => {
+    expect(redactQueryKey(['erg-sessions'])).toEqual(['erg-sessions']);
+    expect(redactQueryKey(['lab_results'])).toEqual(['lab_results']);
+    expect(redactQueryKey(['strengthPRs'])).toEqual(['strengthPRs']);
+  });
+
+  it('replaces anything else with *', () => {
+    expect(redactQueryKey(['a', 'u-1', null, undefined, 5])).toEqual([
+      'a',
+      '*',
+      '*',
+      '*',
+      '*',
+    ]);
   });
 });

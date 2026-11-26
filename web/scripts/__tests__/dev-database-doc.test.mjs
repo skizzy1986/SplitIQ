@@ -21,18 +21,19 @@ const section = (heading) => {
 };
 
 describe('DEV_DATABASE.md', () => {
-  it('logs 022, 023, 024 and the invite-signup deploy, each with time, approver and PR', () => {
+  it('logs every post-build apply to dev, each with time, approver and PR', () => {
     const log = section('Changes since the build');
-    for (const [name, pr] of [
-      ['022_sessions_unique_per_user', '#807'],
-      ['023_invite_codes', '#808'],
-      ['024_sample_data', '#812'],
-      ['invite-signup', '#812'],
+    for (const [name, pr, when] of [
+      ['022_sessions_unique_per_user', '#807', '25 Nov 2026'],
+      ['023_invite_codes', '#808', '25 Nov 2026'],
+      ['024_sample_data', '#812', '25 Nov 2026'],
+      ['invite-signup', '#812', '25 Nov 2026'],
+      ['025_set_my_rowing_cp', '#817', '26 Nov 2026'],
     ]) {
       const line = log.split('\n').find((l) => l.includes(name));
       expect(line, name).toBeTruthy();
       expect(line).toContain(pr);
-      expect(line).toMatch(/25 Nov 2026/);
+      expect(line).toMatch(new RegExp(when));
       expect(line).toMatch(/Scott/);
     }
   });

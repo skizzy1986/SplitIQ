@@ -8,6 +8,7 @@ import { displayLogDate } from '../utils/displayLocale.js';
 import { canOpenSessionPage, sessionHref } from '../utils/sessionPage.js';
 import { isCancelledStatus } from '../utils/sessionStatus.js';
 import { PLANNED_STATUS } from '../constants/sessionStatus.js';
+import SampleDataBadge from './SampleDataBadge.jsx';
 
 export default function LogEntry({ entry, done = false }) {
   const { t, i18n } = useLingui();
@@ -96,6 +97,7 @@ export default function LogEntry({ entry, done = false }) {
                 }}
               >
                 {entry.label}
+                <SampleDataBadge session={entry} locale={i18n.locale} />
                 {done && (
                   <span
                     style={{

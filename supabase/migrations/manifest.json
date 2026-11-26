@@ -297,6 +297,13 @@
       "reason": "Dev only, tester client, not for production, so production stays unapplied by design (#797). This manifest tracks production. Applied to SplitIQ dev only, 26 Nov 2026 11:49 AM Perth (AWST), on Scott's yes at 11:48 AM.",
       "note": "set_my_rowing_cp(p_watts): the signed-in tester saves their rowing CP in one step (retire the live rowing_cp anchor, insert the new one as W, unvalidated, tester) under anchors RLS, with a per-user transaction lock. Replaces the two-request save in #811.",
       "issue": 797
+    },
+    {
+      "file": "026_sample_data_no_cp_anchor.sql",
+      "status": "unapplied",
+      "reason": "Dev only until Scott says otherwise; this manifest tracks production. Dev only, never production; 026 never goes to production (#819). Not applied to either project yet.",
+      "note": "create or replace sample_data_load without 024's 200 W rowing_cp placeholder. The clear function is unchanged and still removes ledgered anchors from earlier loads. Existing sample CP anchors on dev are left untouched.",
+      "issue": 819
     }
   ],
   "liveOnly": [

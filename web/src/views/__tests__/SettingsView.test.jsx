@@ -22,6 +22,10 @@ vi.mock('../../hooks/useTrainingSettings.js', () => ({
   }),
 }));
 
+// Settings > Advanced reads anchors only at expert depth; these accounts are
+// simple depth, so the client is never called.
+vi.mock('../../supabaseClient.js', () => ({ supabase: {} }));
+
 vi.mock('../../components/StravaConnectPanel.jsx', () => ({
   default: (props) => {
     panelMock(props);

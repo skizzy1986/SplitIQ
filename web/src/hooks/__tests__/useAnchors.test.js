@@ -36,6 +36,30 @@ beforeEach(() => {
 });
 
 describe('useAnchors', () => {
+  it('A32: exposes the live rowing_cp row id, so a save can name the row it replaces', async () => {
+    let cols = null;
+    const chain = {
+      select: (c) => {
+        cols = c;
+        return chain;
+      },
+      is: () =>
+        Promise.resolve({
+          data: [{ id: 'live-1', key: 'rowing_cp', value: '215', unit: 'W' }],
+          error: null,
+        }),
+    };
+    fromMock.mockReturnValue(chain);
+    const { result } = renderHook(() => useAnchors(), {
+      wrapper: makeWrapper(),
+    });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(cols.split(', ')).toContain('id');
+    // Only columns that exist without 028, so production reads are unchanged.
+    expect(cols).not.toMatch(/reason|provenance|locked|rule_/);
+    expect(result.current.rowingCpId).toBe('live-1');
+  });
+
   it('resolves live cp/status and ftp from the current rows', async () => {
     mockAnchors([
       { key: 'rowing_cp', value: '205', unit: 'W', status: 'provisional' },

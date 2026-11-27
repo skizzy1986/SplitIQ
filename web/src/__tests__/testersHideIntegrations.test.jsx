@@ -13,6 +13,9 @@ const mocks = vi.hoisted(() => ({
   vitals: null,
   settled: null,
 }));
+vi.mock('../views/AdvancedSettingsSection.jsx', () => ({
+  default: () => null,
+}));
 vi.mock('../views/TrainingSettingsSection.jsx', () => ({
   default: () => null,
 }));

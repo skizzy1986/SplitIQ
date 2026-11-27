@@ -6,6 +6,7 @@ import { render, screen } from '@testing-library/react';
 // build, absent on the owner's.
 const mocks = vi.hoisted(() => ({ testers: false }));
 vi.mock('../TrainingSettingsSection.jsx', () => ({ default: () => null }));
+vi.mock('../AdvancedSettingsSection.jsx', () => ({ default: () => null }));
 vi.mock('../../utils/testersBuild.js', () => ({
   isTestersBuild: () => mocks.testers,
 }));

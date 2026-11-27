@@ -1,0 +1,843 @@
+{
+  "note": "Source-map attribution on a local sourcemap:true build of main at 93a8a54. gzipEst is pro-rata within each chunk (module raw / chunk raw * official-style chunk gzip). These are estimates for \"what is inside\"; official ENTRY/TOTAL figures are in the sibling measurement JSON files from `npm run size`.",
+  "packageTotalsKb": [
+    {
+      "pkg": "npm:three",
+      "gzip_est_kb": 97.5,
+      "chunks": [
+        {
+          "file": "squat-createAnatomyScene-CumlXeKd.js",
+          "gzip_est_kb": 97.5
+        }
+      ]
+    },
+    {
+      "pkg": "npm:recharts",
+      "gzip_est_kb": 71.9,
+      "chunks": [
+        {
+          "file": "CartesianChart-B34nf2pi.js",
+          "gzip_est_kb": 50.8
+        },
+        {
+          "file": "YAxis-DZ4Kr9ph.js",
+          "gzip_est_kb": 11.7
+        },
+        {
+          "file": "MobileAnalytics-CIpaLV8Q.js",
+          "gzip_est_kb": 6.2
+        },
+        {
+          "file": "ReferenceLine-C0LSQKcq.js",
+          "gzip_est_kb": 1.6
+        },
+        {
+          "file": "ComposedChart-AXb7wuMo.js",
+          "gzip_est_kb": 1.4
+        }
+      ]
+    },
+    {
+      "pkg": "npm:react-dom",
+      "gzip_est_kb": 64.7,
+      "chunks": [
+        {
+          "file": "index-U7PyPhsl.js",
+          "gzip_est_kb": 64.7
+        }
+      ]
+    },
+    {
+      "pkg": "other:(unmapped)",
+      "gzip_est_kb": 55.3,
+      "chunks": [
+        {
+          "file": "squat-createAnatomyScene-CumlXeKd.js",
+          "gzip_est_kb": 37.5
+        },
+        {
+          "file": "index-U7PyPhsl.js",
+          "gzip_est_kb": 1.3
+        },
+        {
+          "file": "CartesianChart-B34nf2pi.js",
+          "gzip_est_kb": 1.1
+        },
+        {
+          "file": "AuthGate-CCwh5M3k.js",
+          "gzip_est_kb": 1.7
+        },
+        {
+          "file": "SessionView-gcbutMnO.js",
+          "gzip_est_kb": 1.0
+        },
+        {
+          "file": "StrengthLogger-D4_FsYKG.js",
+          "gzip_est_kb": 4.4
+        },
+        {
+          "file": "ErgLiveView-BoEuzVIG.js",
+          "gzip_est_kb": 0.5
+        },
+        {
+          "file": "MobileApp-C_bd6Ri-.js",
+          "gzip_est_kb": 0.7
+        },
+        {
+          "file": "SettingsView-CmmlpvsT.js",
+          "gzip_est_kb": 0.5
+        },
+        {
+          "file": "App-DxGDUS61.js",
+          "gzip_est_kb": 0.6
+        }
+      ]
+    },
+    {
+      "pkg": "npm:@sentry/core",
+      "gzip_est_kb": 29.3,
+      "chunks": [
+        {
+          "file": "index-U7PyPhsl.js",
+          "gzip_est_kb": 29.3
+        }
+      ]
+    },
+    {
+      "pkg": "npm:@supabase/auth-js",
+      "gzip_est_kb": 25.5,
+      "chunks": [
+        {
+          "file": "AuthGate-CCwh5M3k.js",
+          "gzip_est_kb": 25.5
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/locales/views/es.po",
+      "gzip_est_kb": 11.7,
+      "chunks": [
+        {
+          "file": "i18n-es-CBCEuCYa.js",
+          "gzip_est_kb": 11.7
+        }
+      ]
+    },
+    {
+      "pkg": "npm:@tanstack/query-core",
+      "gzip_est_kb": 10.9,
+      "chunks": [
+        {
+          "file": "index-U7PyPhsl.js",
+          "gzip_est_kb": 7.8
+        },
+        {
+          "file": "views-_-bcpo-z.js",
+          "gzip_est_kb": 2.4
+        },
+        {
+          "file": "useMutation-D94HMiuD.js",
+          "gzip_est_kb": 0.7
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/locales/views/en.po",
+      "gzip_est_kb": 10.7,
+      "chunks": [
+        {
+          "file": "views-_-bcpo-z.js",
+          "gzip_est_kb": 10.7
+        }
+      ]
+    },
+    {
+      "pkg": "npm:@sentry/browser",
+      "gzip_est_kb": 9.0,
+      "chunks": [
+        {
+          "file": "index-U7PyPhsl.js",
+          "gzip_est_kb": 9.0
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/StrengthLogger.jsx",
+      "gzip_est_kb": 8.2,
+      "chunks": [
+        {
+          "file": "StrengthLogger-D4_FsYKG.js",
+          "gzip_est_kb": 8.2
+        }
+      ]
+    },
+    {
+      "pkg": "npm:@supabase/realtime-js",
+      "gzip_est_kb": 8.1,
+      "chunks": [
+        {
+          "file": "AuthGate-CCwh5M3k.js",
+          "gzip_est_kb": 8.1
+        }
+      ]
+    },
+    {
+      "pkg": "npm:@sentry/browser-utils",
+      "gzip_est_kb": 7.7,
+      "chunks": [
+        {
+          "file": "index-U7PyPhsl.js",
+          "gzip_est_kb": 7.7
+        }
+      ]
+    },
+    {
+      "pkg": "npm:@supabase/phoenix",
+      "gzip_est_kb": 6.6,
+      "chunks": [
+        {
+          "file": "AuthGate-CCwh5M3k.js",
+          "gzip_est_kb": 6.6
+        }
+      ]
+    },
+    {
+      "pkg": "npm:@capgo/capacitor-bluetooth-low-energy",
+      "gzip_est_kb": 6.1,
+      "chunks": [
+        {
+          "file": "index-U7PyPhsl.js",
+          "gzip_est_kb": 4.6
+        },
+        {
+          "file": "web-BIcLMWI6.js",
+          "gzip_est_kb": 1.5
+        }
+      ]
+    },
+    {
+      "pkg": "npm:@supabase/storage-js",
+      "gzip_est_kb": 5.8,
+      "chunks": [
+        {
+          "file": "AuthGate-CCwh5M3k.js",
+          "gzip_est_kb": 5.8
+        }
+      ]
+    },
+    {
+      "pkg": "npm:@supabase/postgrest-js",
+      "gzip_est_kb": 4.3,
+      "chunks": [
+        {
+          "file": "AuthGate-CCwh5M3k.js",
+          "gzip_est_kb": 4.3
+        }
+      ]
+    },
+    {
+      "pkg": "npm:d3-scale",
+      "gzip_est_kb": 4.1,
+      "chunks": [
+        {
+          "file": "CartesianChart-B34nf2pi.js",
+          "gzip_est_kb": 4.1
+        }
+      ]
+    },
+    {
+      "pkg": "npm:decimal.js-light",
+      "gzip_est_kb": 3.8,
+      "chunks": [
+        {
+          "file": "CartesianChart-B34nf2pi.js",
+          "gzip_est_kb": 3.8
+        }
+      ]
+    },
+    {
+      "pkg": "npm:es-toolkit",
+      "gzip_est_kb": 3.7,
+      "chunks": [
+        {
+          "file": "CartesianChart-B34nf2pi.js",
+          "gzip_est_kb": 1.5
+        },
+        {
+          "file": "YAxis-DZ4Kr9ph.js",
+          "gzip_est_kb": 2.3
+        }
+      ]
+    },
+    {
+      "pkg": "npm:d3-shape",
+      "gzip_est_kb": 3.5,
+      "chunks": [
+        {
+          "file": "CartesianChart-B34nf2pi.js",
+          "gzip_est_kb": 3.5
+        }
+      ]
+    },
+    {
+      "pkg": "npm:@reduxjs/toolkit",
+      "gzip_est_kb": 3.2,
+      "chunks": [
+        {
+          "file": "CartesianChart-B34nf2pi.js",
+          "gzip_est_kb": 3.2
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/App.jsx",
+      "gzip_est_kb": 3.0,
+      "chunks": [
+        {
+          "file": "App-DxGDUS61.js",
+          "gzip_est_kb": 3.0
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/views/ErgLiveView.jsx",
+      "gzip_est_kb": 3.0,
+      "chunks": [
+        {
+          "file": "ErgLiveView-BoEuzVIG.js",
+          "gzip_est_kb": 3.0
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/views/ErgView.jsx",
+      "gzip_est_kb": 2.9,
+      "chunks": [
+        {
+          "file": "ErgView-HJ0oXrCd.js",
+          "gzip_est_kb": 2.9
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/constants/mobility.js",
+      "gzip_est_kb": 2.9,
+      "chunks": [
+        {
+          "file": "MobilityView-6SCQEl7Z.js",
+          "gzip_est_kb": 2.9
+        }
+      ]
+    },
+    {
+      "pkg": "npm:immer",
+      "gzip_est_kb": 2.8,
+      "chunks": [
+        {
+          "file": "CartesianChart-B34nf2pi.js",
+          "gzip_est_kb": 2.8
+        }
+      ]
+    },
+    {
+      "pkg": "npm:@supabase/supabase-js",
+      "gzip_est_kb": 2.7,
+      "chunks": [
+        {
+          "file": "AuthGate-CCwh5M3k.js",
+          "gzip_est_kb": 2.7
+        }
+      ]
+    },
+    {
+      "pkg": "npm:web-vitals",
+      "gzip_est_kb": 2.7,
+      "chunks": [
+        {
+          "file": "index-U7PyPhsl.js",
+          "gzip_est_kb": 2.7
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/squat/SquatApp.jsx",
+      "gzip_est_kb": 2.7,
+      "chunks": [
+        {
+          "file": "squat-SquatApp-CHMzqGJf.js",
+          "gzip_est_kb": 2.7
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/live-erg/intervalModel.js",
+      "gzip_est_kb": 2.6,
+      "chunks": [
+        {
+          "file": "LiveErgSession-DgvFW9Bc.js",
+          "gzip_est_kb": 2.6
+        }
+      ]
+    },
+    {
+      "pkg": "npm:d3-time-format",
+      "gzip_est_kb": 2.6,
+      "chunks": [
+        {
+          "file": "CartesianChart-B34nf2pi.js",
+          "gzip_est_kb": 2.6
+        }
+      ]
+    },
+    {
+      "pkg": "npm:react",
+      "gzip_est_kb": 2.5,
+      "chunks": [
+        {
+          "file": "index-U7PyPhsl.js",
+          "gzip_est_kb": 2.5
+        }
+      ]
+    },
+    {
+      "pkg": "npm:@capacitor/core",
+      "gzip_est_kb": 2.4,
+      "chunks": [
+        {
+          "file": "index-U7PyPhsl.js",
+          "gzip_est_kb": 2.4
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/views/RecoveryView.jsx",
+      "gzip_est_kb": 2.4,
+      "chunks": [
+        {
+          "file": "RecoveryView-DTd_WPI-.js",
+          "gzip_est_kb": 2.4
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/squat/constants/guide.js",
+      "gzip_est_kb": 2.2,
+      "chunks": [
+        {
+          "file": "squat-SquatApp-CHMzqGJf.js",
+          "gzip_est_kb": 2.2
+        }
+      ]
+    },
+    {
+      "pkg": "npm:@lingui/core",
+      "gzip_est_kb": 2.2,
+      "chunks": [
+        {
+          "file": "locale-JpHviaTi.js",
+          "gzip_est_kb": 2.2
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/views/SessionView.jsx",
+      "gzip_est_kb": 2.1,
+      "chunks": [
+        {
+          "file": "SessionView-gcbutMnO.js",
+          "gzip_est_kb": 2.1
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/utils/sessionSeries.js",
+      "gzip_est_kb": 2.1,
+      "chunks": [
+        {
+          "file": "SessionView-gcbutMnO.js",
+          "gzip_est_kb": 2.1
+        }
+      ]
+    },
+    {
+      "pkg": "npm:d3-color",
+      "gzip_est_kb": 2.1,
+      "chunks": [
+        {
+          "file": "CartesianChart-B34nf2pi.js",
+          "gzip_est_kb": 2.1
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/anatomy/scene/createAnatomyScene.js",
+      "gzip_est_kb": 2.1,
+      "chunks": [
+        {
+          "file": "squat-createAnatomyScene-CumlXeKd.js",
+          "gzip_est_kb": 2.1
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/views/mobile/MobileRecovery.jsx",
+      "gzip_est_kb": 2.0,
+      "chunks": [
+        {
+          "file": "MobileApp-C_bd6Ri-.js",
+          "gzip_est_kb": 2.0
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/components/LogSessionForm.jsx",
+      "gzip_est_kb": 2.0,
+      "chunks": [
+        {
+          "file": "LogSessionForm-C-Z8HZMf.js",
+          "gzip_est_kb": 2.0
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/components/LogEntry.jsx",
+      "gzip_est_kb": 2.0,
+      "chunks": [
+        {
+          "file": "LogEntry-B3OZwFrf.js",
+          "gzip_est_kb": 2.0
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/squat/components/GuidePanes.jsx",
+      "gzip_est_kb": 2.0,
+      "chunks": [
+        {
+          "file": "squat-SquatApp-CHMzqGJf.js",
+          "gzip_est_kb": 2.0
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/views/mobile/MobileToday.jsx",
+      "gzip_est_kb": 1.9,
+      "chunks": [
+        {
+          "file": "MobileApp-C_bd6Ri-.js",
+          "gzip_est_kb": 1.9
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/live-erg/IntervalBuilder.jsx",
+      "gzip_est_kb": 1.9,
+      "chunks": [
+        {
+          "file": "LiveErgSession-DgvFW9Bc.js",
+          "gzip_est_kb": 1.9
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/hooks/usePM5.js",
+      "gzip_est_kb": 1.8,
+      "chunks": [
+        {
+          "file": "ErgLiveView-BoEuzVIG.js",
+          "gzip_est_kb": 1.8
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/components/session/SessionTrace.jsx",
+      "gzip_est_kb": 1.8,
+      "chunks": [
+        {
+          "file": "SessionView-gcbutMnO.js",
+          "gzip_est_kb": 1.8
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/views/mobile/MobileAnalytics.jsx",
+      "gzip_est_kb": 1.8,
+      "chunks": [
+        {
+          "file": "MobileAnalytics-CIpaLV8Q.js",
+          "gzip_est_kb": 1.8
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/views/OverviewView.jsx",
+      "gzip_est_kb": 1.6,
+      "chunks": [
+        {
+          "file": "OverviewView-c85MRy4q.js",
+          "gzip_est_kb": 1.6
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/components/StravaConnectPanel.jsx",
+      "gzip_est_kb": 1.6,
+      "chunks": [
+        {
+          "file": "SettingsView-CmmlpvsT.js",
+          "gzip_est_kb": 1.6
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/squat/constants/references.js",
+      "gzip_est_kb": 1.6,
+      "chunks": [
+        {
+          "file": "squat-SquatApp-CHMzqGJf.js",
+          "gzip_est_kb": 1.6
+        }
+      ]
+    },
+    {
+      "pkg": "npm:d3-format",
+      "gzip_est_kb": 1.4,
+      "chunks": [
+        {
+          "file": "CartesianChart-B34nf2pi.js",
+          "gzip_est_kb": 1.4
+        }
+      ]
+    },
+    {
+      "pkg": "npm:iceberg-js",
+      "gzip_est_kb": 1.4,
+      "chunks": [
+        {
+          "file": "AuthGate-CCwh5M3k.js",
+          "gzip_est_kb": 1.4
+        }
+      ]
+    },
+    {
+      "pkg": "npm:@capacitor/local-notifications",
+      "gzip_est_kb": 1.4,
+      "chunks": [
+        {
+          "file": "web-BkGpyr6Q.js",
+          "gzip_est_kb": 1.3
+        }
+      ]
+    },
+    {
+      "pkg": "npm:d3-time",
+      "gzip_est_kb": 1.3,
+      "chunks": [
+        {
+          "file": "CartesianChart-B34nf2pi.js",
+          "gzip_est_kb": 1.3
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/live-erg/LiveErgSession.jsx",
+      "gzip_est_kb": 1.3,
+      "chunks": [
+        {
+          "file": "LiveErgSession-DgvFW9Bc.js",
+          "gzip_est_kb": 1.3
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/services/pm5Bluetooth.js",
+      "gzip_est_kb": 1.3,
+      "chunks": [
+        {
+          "file": "ErgLiveView-BoEuzVIG.js",
+          "gzip_est_kb": 1.3
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/squat/constants/method.js",
+      "gzip_est_kb": 1.3,
+      "chunks": [
+        {
+          "file": "squat-SquatApp-CHMzqGJf.js",
+          "gzip_est_kb": 1.3
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/AuthGate.jsx",
+      "gzip_est_kb": 1.3,
+      "chunks": [
+        {
+          "file": "AuthGate-CCwh5M3k.js",
+          "gzip_est_kb": 1.3
+        }
+      ]
+    },
+    {
+      "pkg": "npm:@lingui/react",
+      "gzip_est_kb": 1.2,
+      "chunks": [
+        {
+          "file": "dist-DJaYvAMf.js",
+          "gzip_est_kb": 1.2
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/views/StrengthView.jsx",
+      "gzip_est_kb": 1.2,
+      "chunks": [
+        {
+          "file": "StrengthView-DKoMNnaq.js",
+          "gzip_est_kb": 1.2
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/squat/components/GuideDialog.jsx",
+      "gzip_est_kb": 1.2,
+      "chunks": [
+        {
+          "file": "squat-SquatApp-CHMzqGJf.js",
+          "gzip_est_kb": 1.2
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/squat/components/TimeControls.jsx",
+      "gzip_est_kb": 1.2,
+      "chunks": [
+        {
+          "file": "squat-SquatApp-CHMzqGJf.js",
+          "gzip_est_kb": 1.2
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/components/WorkoutItem.jsx",
+      "gzip_est_kb": 1.2,
+      "chunks": [
+        {
+          "file": "CalendarView-yf4JP7T2.js",
+          "gzip_est_kb": 1.2
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/squat/components/SquatHeader.jsx",
+      "gzip_est_kb": 1.2,
+      "chunks": [
+        {
+          "file": "squat-SquatApp-CHMzqGJf.js",
+          "gzip_est_kb": 1.2
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/views/MobilityView.jsx",
+      "gzip_est_kb": 1.2,
+      "chunks": [
+        {
+          "file": "MobilityView-6SCQEl7Z.js",
+          "gzip_est_kb": 1.2
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/squat/constants/metricsTable.js",
+      "gzip_est_kb": 1.1,
+      "chunks": [
+        {
+          "file": "squat-SquatApp-CHMzqGJf.js",
+          "gzip_est_kb": 1.1
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/utils/stravaStatus.js",
+      "gzip_est_kb": 1.1,
+      "chunks": [
+        {
+          "file": "SettingsView-CmmlpvsT.js",
+          "gzip_est_kb": 1.1
+        }
+      ]
+    },
+    {
+      "pkg": "npm:scheduler",
+      "gzip_est_kb": 1.1,
+      "chunks": [
+        {
+          "file": "index-U7PyPhsl.js",
+          "gzip_est_kb": 1.1
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/squat/utils/repSummary.js",
+      "gzip_est_kb": 1.1,
+      "chunks": [
+        {
+          "file": "squat-SquatApp-CHMzqGJf.js",
+          "gzip_est_kb": 1.1
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/utils/sessionAnalysis.js",
+      "gzip_est_kb": 1.1,
+      "chunks": [
+        {
+          "file": "SessionView-gcbutMnO.js",
+          "gzip_est_kb": 1.1
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/views/CalendarView.jsx",
+      "gzip_est_kb": 1.1,
+      "chunks": [
+        {
+          "file": "CalendarView-yf4JP7T2.js",
+          "gzip_est_kb": 1.1
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/constants/trainingConfig.js",
+      "gzip_est_kb": 1.1,
+      "chunks": [
+        {
+          "file": "trainingConfig-CkdyYtbz.js",
+          "gzip_est_kb": 1.1
+        }
+      ]
+    },
+    {
+      "pkg": "app:src/views/mobile/MobileSessionLog.jsx",
+      "gzip_est_kb": 1.0,
+      "chunks": [
+        {
+          "file": "MobileApp-C_bd6Ri-.js",
+          "gzip_est_kb": 1.0
+        }
+      ]
+    },
+    {
+      "pkg": "npm:d3-array",
+      "gzip_est_kb": 1.0,
+      "chunks": [
+        {
+          "file": "CartesianChart-B34nf2pi.js",
+          "gzip_est_kb": 1.0
+        }
+      ]
+    }
+  ]
+}

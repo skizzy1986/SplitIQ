@@ -1,0 +1,114 @@
+{
+  "name": "exp-a-no-tracing",
+  "entry_kb": 181.6,
+  "total_kb": 409.4,
+  "entry_spare_kb": 26.4,
+  "total_spare_kb": 23.6,
+  "squat_entry_kb": 148.1,
+  "dash_es_kb": 12.4,
+  "entry_bytes": 185923,
+  "total_bytes": 419181,
+  "top_assets": [
+    {
+      "file": "index-3LDtTFMk.js",
+      "gzip_kb": 115.4,
+      "in_entry": true
+    },
+    {
+      "file": "CartesianChart-DIpl6D1g.js",
+      "gzip_kb": 84.1,
+      "in_entry": false
+    },
+    {
+      "file": "AuthGate-BwUaELUJ.js",
+      "gzip_kb": 60.9,
+      "in_entry": true
+    },
+    {
+      "file": "views-BKXJ_CKA.js",
+      "gzip_kb": 19.2,
+      "in_entry": false
+    },
+    {
+      "file": "SessionView-D79XenuZ.js",
+      "gzip_kb": 14.8,
+      "in_entry": false
+    },
+    {
+      "file": "YAxis-rro5W8L_.js",
+      "gzip_kb": 14.3,
+      "in_entry": false
+    },
+    {
+      "file": "StrengthLogger-CsPd_bLI.js",
+      "gzip_kb": 12.8,
+      "in_entry": false
+    },
+    {
+      "file": "ErgLiveView-DQJb6lW2.js",
+      "gzip_kb": 10.7,
+      "in_entry": false
+    },
+    {
+      "file": "MobileApp-UkS9y76G.js",
+      "gzip_kb": 9.1,
+      "in_entry": false
+    },
+    {
+      "file": "MobileAnalytics-Df-l6Xly.js",
+      "gzip_kb": 8.4,
+      "in_entry": false
+    },
+    {
+      "file": "LiveErgSession-Bo_y246W.js",
+      "gzip_kb": 7.0,
+      "in_entry": false
+    },
+    {
+      "file": "SettingsView-nAiUA5z3.js",
+      "gzip_kb": 4.9,
+      "in_entry": false
+    },
+    {
+      "file": "ErgView-Dq84vMQH.js",
+      "gzip_kb": 4.7,
+      "in_entry": false
+    },
+    {
+      "file": "App-D4MIYtut.js",
+      "gzip_kb": 4.7,
+      "in_entry": false
+    },
+    {
+      "file": "RecoveryView-C6cXU_-e.js",
+      "gzip_kb": 4.0,
+      "in_entry": false
+    }
+  ],
+  "entry_assets": [
+    {
+      "file": "index-3LDtTFMk.js",
+      "gzip_kb": 115.4
+    },
+    {
+      "file": "AuthGate-BwUaELUJ.js",
+      "gzip_kb": 60.9
+    },
+    {
+      "file": "locale-u3nWJcxr.js",
+      "gzip_kb": 3.1
+    },
+    {
+      "file": "dist-BwGtF1gv.js",
+      "gzip_kb": 1.6
+    },
+    {
+      "file": "index-AgTDnBZY.css",
+      "gzip_kb": 0.3
+    },
+    {
+      "file": "tokens-BevhCKGY.js",
+      "gzip_kb": 0.3
+    }
+  ]
+}

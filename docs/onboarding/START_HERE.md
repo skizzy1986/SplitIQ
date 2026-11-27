@@ -53,6 +53,9 @@ project folder, and Claude will pick up the project's ground rules for you.
 
 ## How you and Scott talk
 
+Day-to-day chat is in the SplitIQ Slack workspace; the channel conventions are in
+[`SLACK.md`](SLACK.md). Ideas and the lasting record stay on GitHub.
+
 Discussions live at <https://github.com/skizzy1986/SplitIQ/discussions>. Post
 there in your browser, or have Claude Code post for you.
 

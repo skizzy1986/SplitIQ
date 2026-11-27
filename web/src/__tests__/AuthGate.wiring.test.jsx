@@ -48,6 +48,9 @@ vi.mock('../App.jsx', () => ({ default: () => <div>App-stub</div> }));
 vi.mock('../views/mobile/MobileApp.jsx', () => ({
   default: () => <div>MobileApp-stub</div>,
 }));
+// AuthGate mounts the path prompt lazily for a signed-in user. Left real, it
+// needs a QueryClient and races the test's end: AuthGate.test.jsx stubs it too.
+vi.mock('../views/TrainingPathPrompt.jsx', () => ({ default: () => null }));
 vi.mock('../utils/sentry.js', () => ({
   captureError: (...a) => mocks.captureError(...a),
 }));

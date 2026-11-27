@@ -56,8 +56,8 @@ describe('026 sample data no cp anchor', () => {
     );
     expect(entry?.reason).toMatch(/never production/i);
     expect(entry?.reason).toMatch(/026 never goes to production/i);
-    expect(entry?.reason).toMatch(/not applied to either project yet/i);
-    expect(entry?.reason).not.toMatch(/applied to splitiq dev/i);
+    expect(entry?.reason).toMatch(/applied to splitiq dev only/i);
+    expect(entry?.reason).toMatch(/not applied to production/i);
   });
 
   it('header says NOT auto-applied, never production, and does not delete existing sample CPs', () => {
@@ -97,7 +97,7 @@ describe('026 sample data no cp anchor', () => {
   // 026 is a create-or-replace of 024's SECURITY DEFINER, service_role-only
   // loader. The common-pattern INVOKER rule is for new user RPCs (027+), not
   // a silent security flip of this loader. Wrappers stay owner-only as in 024.
-  it('H41: SECURITY INVOKER, owner-only, other user, anon and signed-out denied', () => {
+  it('H41 (amended): SECURITY DEFINER with an empty search_path, service_role-only loaders, owner-only wrappers, anon and signed-out denied', () => {
     expect(loader).toContain('security definer');
     expect(loader).toContain("set search_path = ''");
     expect(sql).toContain(

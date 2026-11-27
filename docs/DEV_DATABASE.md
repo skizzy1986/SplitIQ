@@ -16,7 +16,7 @@ No key, token or password belongs in this file. The dev project URL is public.
 At the build (below): production's structure and the public exercise
 catalogue only. No sessions, vitals, health records, anchors, coach log, Strava
 data, backups, templates, strength logs, accounts or secrets. Since then, dev
-also has the tester-launch migrations 022 to 025 and the `invite-signup`
+also has the tester-launch migrations 022 to 026 and the `invite-signup`
 function (see [Changes since the build](#changes-since-the-build)), so it can
 now hold invite codes, tester accounts, and the rows testers create, including
 labelled sample data. Personal rows are never copied from production, and tester
@@ -90,11 +90,37 @@ line for each new one: what, when (Perth time), who approved it, and the PR.
 | Migration `024_sample_data` (sample-data ledger and load/clear functions) | 25 Nov 2026, about 6:30 PM | Scott, 6:28 PM | #812 |
 | Edge function `invite-signup` v1, `verify_jwt` off, built from #812's branch | 25 Nov 2026, about 6:30 PM | Scott, 6:28 PM | #812 (code in #808) |
 | Migration `025_set_my_rowing_cp` (`set_my_rowing_cp` for testers) | 26 Nov 2026, 11:49 AM | Scott, 11:48 AM | #817 |
+| Migration `026_sample_data_no_cp_anchor` (`sample_data_load` no longer inserts the 200 W `rowing_cp` placeholder) | 27 Nov 2026, 8:40 AM | Scott, 8:38 AM | #825 |
 
 Each migration ran its own self-test on apply. `INVITE_SIGNUP_ENABLED` is not
 set yet, so `invite-signup` answers `disabled` until it is. These are on dev
-only; production has none of them (023, 024, 025 and `invite-signup` never go there,
+only; production has none of them (023, 024, 025, 026 and `invite-signup` never go there,
 D32).
+
+### Apply record: 026 (27 Nov 2026, 8:40 AM AWST)
+
+Applied to dev only (`niytwgtsclzuhyggvbhd`), never production, with the Supabase
+connector's `apply_migration` (name `026_sample_data_no_cp_anchor`, version
+`20261127004011`), sending `026_sample_data_no_cp_anchor.sql` from #825's head
+`9b9f783` byte for byte (20,704 bytes). Scott's yes: 8:38 AM AWST, 27 Nov 2026.
+Existing sample CP anchors on dev were left in place. No rows were read from
+`sessions`, `strava_*` or `backup_snapshots`, and no rows were deleted.
+
+Read-back, catalogue only:
+
+| Check | Before | After |
+|---|---|---|
+| `sample_data_load(uuid,date,boolean)` mentions `rowing_cp` or inserts into `public.anchors` | yes | **no** (also no `v_aid`) |
+| Still has `c_cp := 200` (scale for sample session watts) | yes | yes |
+| `prosecdef`, `proconfig` | true, `search_path=""` | true, `search_path=""` (unchanged, H 41 amendment) |
+| ACL | `postgres`, `service_role` execute | `postgres`, `service_role` execute |
+| `anon`, `authenticated` can execute the loader and `sample_data_clear` | no | no |
+| `authenticated` can execute `load_my_sample_data` and `clear_my_sample_data`; `anon` cannot | yes, no | yes, no |
+| `sample_data_clear`, `load_my_sample_data`, `clear_my_sample_data` definition md5 | `cdf05bea…`, `7a0cda55…`, `bb79c66e…` | identical |
+| Loader definition md5 | `2930f6c4…` | `0101f2d9…` |
+| Function comment | 024's | 026's ("Does not insert a rowing_cp anchor") |
+| Migration listed | no | `026_sample_data_no_cp_anchor`, `20261127004011` |
+| SF026 self-test | not run | ran inside the migration transaction and passed (the apply would have failed otherwise); it ends in a rolled-back sentinel, and a count-only check afterwards found 0 synthetic users, anchors, ledger rows or workouts |
 
 Counts after these changes (catalogue only, 26 Nov 2026): 24 public tables,
 all with row-level security on; 23 policies; 8 views. The build's 21 tables and
@@ -135,7 +161,7 @@ separate secrets (#794).
 - To refresh dev after a production migration, apply the same migration file to
   dev, then re-run the fidelity comparison. Do not copy rows. Log every apply or
   deploy in [Changes since the build](#changes-since-the-build). The fidelity
-  comparison will now also show 022 to 025 as dev-only differences, until 022
+  comparison will now also show 022 to 026 as dev-only differences, until 022
   reaches production.
 
 ## Still open on #716

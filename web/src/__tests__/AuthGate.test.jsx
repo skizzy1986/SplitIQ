@@ -21,6 +21,7 @@ const mocks = vi.hoisted(() => ({
   captureError: null,
 }));
 
+vi.mock('../views/TrainingPathPrompt.jsx', () => ({ default: () => null }));
 vi.mock('../supabaseClient.js', () => ({
   supabase: {
     auth: {

@@ -39,6 +39,8 @@ const InviteSignupForm = lazy(
   () => import('./components/InviteSignupForm.jsx')
 );
 const FirstRunGuide = lazy(() => import('./components/FirstRunGuide.jsx'));
+// The one-time strap question (#819). Its own chunk, so it is off first paint.
+const TrainingPathPrompt = lazy(() => import('./views/TrainingPathPrompt.jsx'));
 
 const MISSING_FIELDS = msg({
   message: 'Enter email and password.',
@@ -451,6 +453,11 @@ function Gate() {
         {!showSplash && isTestersBuild() && (
           <Suspense fallback={null}>
             <FirstRunGuide userId={session.user?.id} />
+          </Suspense>
+        )}
+        {!showSplash && (
+          <Suspense fallback={null}>
+            <TrainingPathPrompt userId={session.user?.id} />
           </Suspense>
         )}
       </SessionOwnerContext.Provider>

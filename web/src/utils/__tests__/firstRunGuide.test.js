@@ -9,6 +9,7 @@ import {
   dismissWelcomeCard,
   requestGuideOpen,
   onGuideOpenRequest,
+  onGuideClosed,
   guideStorageKey,
   SAMPLE_SOURCE,
   MIN_CP,
@@ -115,5 +116,26 @@ describe('guide copy', () => {
     }
     expect(GUIDE.en.welcomeCard.sampleBadge).toMatch(/sample/i);
     expect(GUIDE.es.welcomeCard.sampleBadge).toMatch(/ejemplo/i);
+  });
+});
+
+describe('onGuideClosed', () => {
+  it('tells a listener when the guide is finished, until it stops listening', () => {
+    const store = new Map();
+    const s = {
+      getItem: (k) => store.get(k) ?? null,
+      setItem: (k, v) => store.set(k, v),
+    };
+    let closed = 0;
+    const stop = onGuideClosed(() => {
+      closed += 1;
+    });
+    dismissGuide('user-a', s);
+    expect(closed).toBe(1);
+    dismissGuide(null, s);
+    expect(closed).toBe(1);
+    stop();
+    dismissGuide('user-a', s);
+    expect(closed).toBe(1);
   });
 });

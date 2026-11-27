@@ -40,8 +40,24 @@ describe('DEV_DATABASE.md', () => {
 
   it('gives the current counts, and keeps the build counts as history', () => {
     const now = section('Changes since the build');
-    expect(now).toMatch(/24 public tables/);
-    expect(now).toMatch(/23 policies/);
+    expect(now).toMatch(/25 public tables/);
+    expect(now).toMatch(/24 policies/);
     expect(section('What dev holds')).not.toMatch(/and nothing else\./);
+  });
+  it('logs the 027 apply with time, approver, PR and the rolled-back first attempt', () => {
+    const log = section('Changes since the build');
+    const line = log
+      .split('\n')
+      .find((l) => l.includes('027_user_training_settings'));
+    expect(line).toBeTruthy();
+    expect(line).toContain('#826');
+    expect(line).toMatch(/27 Nov 2026/);
+    expect(line).toMatch(/Scott/);
+    expect(line).toMatch(/rolled back/);
+    expect(log).toMatch(/Apply record: 027/);
+    expect(log).toMatch(/20261127060130/);
+    expect(log).toMatch(/25 public tables/);
+    expect(log).toMatch(/24 policies/);
+    expect(doc).not.toMatch(/Pending, not applied yet/);
   });
 });

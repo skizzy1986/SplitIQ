@@ -649,6 +649,15 @@ msgstr "No pudimos conectarnos con el servidor. Revisa tu conexión e inténtalo
 msgid "Could not read the Strava connection status"
 msgstr "No pudimos leer el estado de la conexión con Strava"
 
+#. Error: a save did not go through
+#. Error: a save did not go through
+#. Error: a save did not go through
+#: src/components/BirthYearForm.jsx
+#: src/views/TrainingPathPrompt.jsx
+#: src/views/TrainingSettingsSection.jsx
+msgid "Could not save that. Try again."
+msgstr "No se pudo guardar. Inténtalo de nuevo."
+
 #. Error after pressing Connect Strava
 #: src/components/StravaConnectPanel.jsx
 msgid "Could not start the Strava connection. Try again."
@@ -785,6 +794,11 @@ msgstr "Distancia"
 msgid "DISTANCE"
 msgstr "DISTANCIA"
 
+#. Heading of the one-time strap question after the first-run guide
+#: src/views/TrainingPathPrompt.jsx
+msgid "Do you have a heart-rate strap?"
+msgstr "¿Tienes una banda de frecuencia cardíaca?"
+
 #. Button that closes the summary, all capitals
 #: src/views/ErgLiveView.jsx
 msgid "DONE"
@@ -846,6 +860,11 @@ msgstr "TERMINAR"
 #: src/components/session/zoneLabels.js
 msgid "Endurance"
 msgstr "Resistencia"
+
+#. Error: the year of birth is not a four-digit year
+#: src/components/BirthYearForm.jsx
+msgid "Enter a four-digit year, such as 1985."
+msgstr "Escribe un año de cuatro dígitos, por ejemplo 1985."
 
 #. Desktop Progress pane
 #. Progress sub-tab: rowing
@@ -990,6 +1009,11 @@ msgstr "Frecuencia cardíaca durante {over}, entre {lo} y {hi} bpm; promedio {av
 msgid "Heart rate across {over}, between {lo} and {hi} bpm."
 msgstr "Frecuencia cardíaca durante {over}, entre {lo} y {hi} bpm."
 
+#. Settings sub-heading: how the user tracks effort, with or without a heart-rate strap
+#: src/views/TrainingSettingsSection.jsx
+msgid "Heart-rate strap"
+msgstr "Banda de frecuencia cardíaca"
+
 #. Training form (TSB) band
 #: src/utils/trainingLoad.js
 msgid "High fatigue — recent load well above fitness"
@@ -1022,6 +1046,16 @@ msgstr "¿QUÉ TAN DURO SE SINTIÓ? (sRPE)"
 #: src/views/mobile/MobileRecovery.jsx
 msgid "HRV TREND — 14 DAYS"
 msgstr "TENDENCIA DE HRV — 14 DÍAS"
+
+#. Button: the user has no heart-rate strap or arm band
+#: src/components/TrainingPathChoice.jsx
+msgid "I don't have one"
+msgstr "No tengo una"
+
+#. Button: the user has a heart-rate strap or arm band
+#: src/components/TrainingPathChoice.jsx
+msgid "I have a strap or arm band"
+msgstr "Tengo una banda de pecho o de brazo"
 
 #. Session page provenance
 #: src/components/session/sourceCopy.js
@@ -1768,6 +1802,16 @@ msgstr "RECUPERACIÓN"
 msgid "ref"
 msgstr "ref."
 
+#. Button: remove the saved year of birth
+#: src/components/BirthYearForm.jsx
+msgid "Remove"
+msgstr "Quitar"
+
+#. Confirmation after removing the year of birth
+#: src/components/BirthYearForm.jsx
+msgid "Removed."
+msgstr "Quitado."
+
 #. Change-password field label, all capitals
 #: src/components/ChangePasswordPanel.jsx
 msgid "REPEAT THE NEW PASSWORD"
@@ -1824,6 +1868,11 @@ msgstr "CP de remo {cp}W"
 msgid "Rowing CP {cp}W · bike FTP {ftp}W"
 msgstr "CP de remo {cp}W · FTP de bici {ftp}W"
 
+#. Button: save the year of birth
+#: src/components/BirthYearForm.jsx
+msgid "Save"
+msgstr "Guardar"
+
 #. The session could not be saved anywhere; all capitals
 #: src/views/ErgLiveView.jsx
 msgid "SAVE FAILED — NOT STORED"
@@ -1852,6 +1901,10 @@ msgstr "GUARDADA EN EL HISTORIAL"
 #: src/components/LogSessionForm.jsx
 msgid "Saved! Session added to your log."
 msgstr "¡Guardado! La sesión se agregó a tu historial."
+
+#: src/components/BirthYearForm.jsx
+msgid "Saved."
+msgstr "Guardado."
 
 #. Button, busy, all capitals
 #: src/components/LogSessionForm.jsx
@@ -1975,6 +2028,11 @@ msgstr "Cerrar sesión"
 msgid "since {date}"
 msgstr "desde el {date}"
 
+#. Button: skip the strap question and go by effort. Skipping is the same as having no strap.
+#: src/components/TrainingPathChoice.jsx
+msgid "Skip, and go by effort"
+msgstr "Omitir y guiarme por el esfuerzo"
+
 #. All capitals
 #. All capitals
 #: src/views/mobile/MobileRecovery.jsx
@@ -2024,6 +2082,11 @@ msgstr "Distancia del parcial"
 #: src/constants/pm5ErrorMessages.js
 msgid "SplitIQ can't use Bluetooth. In Settings › Apps › SplitIQ › Permissions, allow Nearby devices (Location on Android 11 and older), then tap Connect again."
 msgstr "SplitIQ no puede usar el Bluetooth. En Configuración › Aplicaciones › SplitIQ › Permisos, permite Dispositivos cercanos (Ubicación en Android 11 y versiones anteriores) y vuelve a tocar Conectar."
+
+#. Error: the app is for people 18 or over
+#: src/components/BirthYearForm.jsx
+msgid "SplitIQ is for people 18 or over."
+msgstr "SplitIQ es para personas de 18 años o más."
 
 #: src/utils/stravaDisconnect.js
 msgid "SplitIQ's access at Strava had already ended."
@@ -2474,6 +2537,16 @@ msgstr "Entrena, pero vigílate: considera bajar la intensidad"
 msgid "Train but monitor closely"
 msgstr "Entrena, pero vigílate de cerca"
 
+#. Settings section heading above the training options
+#: src/views/TrainingSettingsSection.jsx
+msgid "Training"
+msgstr "Entrenamiento"
+
+#. Strap choice. Plain words, no brand, no shop. A wrist watch does not count as a strap.
+#: src/components/TrainingPathChoice.jsx
+msgid "Training is easier with a heart-rate chest strap or an optical arm band. A wrist watch does not count here. If a watch is all you have, choose the second option."
+msgstr "Entrenar es más fácil con una banda de pecho para la frecuencia cardíaca o una banda óptica de brazo. Aquí un reloj de muñeca no cuenta. Si solo tienes un reloj, elige la segunda opción."
+
 #. Card heading, all capitals
 #: src/views/OverviewView.jsx
 msgid "TRAINING LOAD"
@@ -2532,6 +2605,11 @@ msgstr "PRÓXIMAS"
 #: src/views/PlanView.jsx
 msgid "Upcoming planned sessions (today forward). A dashed border marks a planned session; tap any card for the targets. Cards mark ✓ done once you log the matching session."
 msgstr "Sesiones planificadas de hoy en adelante. Un borde discontinuo indica una sesión planificada; toca cualquier tarjeta para ver los objetivos. Las tarjetas muestran ✓ cuando registras la sesión correspondiente."
+
+#. Privacy note under the year-of-birth field. Backups: an earlier backup copy can still hold a removed value.
+#: src/components/BirthYearForm.jsx
+msgid "Used only to estimate your maximum heart rate. You can remove it at any time. A backup made earlier can still hold it until that backup is retired."
+msgstr "Se usa solo para estimar tu frecuencia cardíaca máxima. Puedes quitarlo cuando quieras. Una copia de seguridad anterior puede conservarlo hasta que se elimine."
 
 #. Rowing zone; keep as is
 #: src/components/session/zoneLabels.js
@@ -2638,6 +2716,32 @@ msgstr "potencia promedio de trabajo"
 #: src/utils/stravaStatus.js
 msgid "Working backwards from {from}."
 msgstr "Importando hacia atrás desde {from}."
+
+#. Accessible name of the year-of-birth field
+#. Label above the year-of-birth field
+#: src/components/BirthYearForm.jsx
+msgid "Year of birth"
+msgstr "Año de nacimiento"
+
+#. Settings: current path is the no-strap path, rating effort by feel
+#: src/views/TrainingSettingsSection.jsx
+msgid "You are on the no-strap path. You rate effort by feel."
+msgstr "Estás en el camino sin banda. Calificas el esfuerzo a tu sensación."
+
+#. Settings: current path is the strap path
+#: src/views/TrainingSettingsSection.jsx
+msgid "You are on the strap path."
+msgstr "Estás en el camino con banda."
+
+#. Reassurance under the strap question
+#: src/views/TrainingPathPrompt.jsx
+msgid "You can change this later in Settings."
+msgstr "Puedes cambiar esto más tarde en Configuración."
+
+#. Settings: nothing chosen yet
+#: src/views/TrainingSettingsSection.jsx
+msgid "You have not chosen yet."
+msgstr "Aún no has elegido."
 
 #. Followed by a number: your own average
 #. Followed by a number: your own average

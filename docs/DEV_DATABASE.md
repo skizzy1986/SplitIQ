@@ -16,7 +16,7 @@ No key, token or password belongs in this file. The dev project URL is public.
 At the build (below): production's structure and the public exercise
 catalogue only. No sessions, vitals, health records, anchors, coach log, Strava
 data, backups, templates, strength logs, accounts or secrets. Since then, dev
-also has the tester-launch migrations 022 to 026 and the `invite-signup`
+also has the tester-launch migrations 022 to 027 and the `invite-signup`
 function (see [Changes since the build](#changes-since-the-build)), so it can
 now hold invite codes, tester accounts, and the rows testers create, including
 labelled sample data. Personal rows are never copied from production, and tester
@@ -91,11 +91,12 @@ line for each new one: what, when (Perth time), who approved it, and the PR.
 | Edge function `invite-signup` v1, `verify_jwt` off, built from #812's branch | 25 Nov 2026, about 6:30 PM | Scott, 6:28 PM | #812 (code in #808) |
 | Migration `025_set_my_rowing_cp` (`set_my_rowing_cp` for testers) | 26 Nov 2026, 11:49 AM | Scott, 11:48 AM | #817 |
 | Migration `026_sample_data_no_cp_anchor` (`sample_data_load` no longer inserts the 200 W `rowing_cp` placeholder) | 27 Nov 2026, 8:40 AM | Scott, 8:38 AM | #825 |
+| Migration `027_user_training_settings` (`user_training_settings`, `log_my_resting_hr`, `rate_my_session`, depth backfill) | 27 Nov 2026, 2:01 PM | Scott, 2:00 PM (a first attempt at about 11:03 AM, on his 11:01 AM yes, rolled back on a self-test bug) | #826 |
 
 Each migration ran its own self-test on apply. `INVITE_SIGNUP_ENABLED` is not
 set yet, so `invite-signup` answers `disabled` until it is. These are on dev
 only; production has none of them (023, 024, 025, 026 and `invite-signup` never go there,
-D32).
+D32; 027 is dev only so far and goes to production only on Scott's separate yes, after 022).
 
 ### Apply record: 026 (27 Nov 2026, 8:40 AM AWST)
 
@@ -127,6 +128,45 @@ all with row-level security on; 23 policies; 8 views. The build's 21 tables and
 22 policies plus `invite_codes`, `invite_attempts`, `sample_data_rows` and its
 one owner-select policy. By the migration files, 023, 024 and 025 add 7 functions to
 the build's 18.
+
+### Apply record: 027 (27 Nov 2026, 2:01 PM AWST)
+
+Applied to dev only (`niytwgtsclzuhyggvbhd`), never production, with the Supabase
+connector's `apply_migration` (name `027_user_training_settings`, version
+`20261127060130`), sending `027_user_training_settings.sql` from #826's head
+`9de1809` byte for byte (31,059 bytes). Scott's yes: 2:00 PM AWST, 27 Nov 2026.
+No rows were read from `sessions`, `strava_*` or `backup_snapshots`, and no rows
+were deleted. The only row the migration wrote is the depth backfill (below).
+
+**Earlier attempt, rolled back.** The first apply, at about 11:03 AM AWST on
+Scott's 11:01 AM yes, sent #826's head `0165b9b`. Its self-test stopped it with
+`027 self-test rate: sRPE alone on a linked row failed`, and the whole
+transaction rolled back. Read back afterwards: no `user_training_settings`, 24
+tables, 23 policies, 26 functions, 8 migrations and no synthetic users, the same
+as before. The fault was in the self-test, not the migration: a count in the same
+SQL expression as the `rate_my_session` call reads the statement's snapshot and
+cannot see the call's own write. `9de1809` gives each call its own statement
+and changes self-test lines only.
+
+Read-back, catalogue only (row contents were not read):
+
+| Check | Before | After |
+|---|---|---|
+| Pre-check: `rowing_cp` anchors, with no user or an orphaned user | 2 anchors, 0 and 0 | not rerun |
+| `public.user_training_settings` | absent | present: `user_id` (uuid, not null, default `auth.uid()`, primary key, foreign key to `auth.users` on delete cascade), `hr_path`, `hr_path_chosen_on`, `birth_year` (smallint), `time_zone`, `base_block_started_on`, `screening_completed_on`, `hr_caution` (not null, false), `depth` (not null, 'simple'), `created_at` and `updated_at` (not null, now()) |
+| Check constraints | none | `hr_path` in ('strap','rpe'); `depth` in ('simple','expert'); `birth_year` 1900 to 2100; `time_zone` matches `^[A-Za-z0-9_+/-]{1,64}$` |
+| Row-level security | none | on (not forced); one policy, `user_training_settings_owner`, `ALL` to `authenticated`, `user_id = (select auth.uid())` for both `using` and `with check` |
+| Table grants | none | `authenticated`: select, delete. `service_role`: select, insert, update, delete. `anon` and `public`: none. |
+| Column grants (insert and update) | none | `authenticated` on the eight settings columns and `updated_at`. Not `user_id`, not `created_at`. |
+| `log_my_resting_hr(date,integer)`, `rate_my_session(bigint,integer,integer)` | absent | `prosecdef = false`, `search_path=""`, ACL `postgres`, `authenticated`; execute: `authenticated` yes, `anon` no, `service_role` no |
+| Depth backfill ('expert' rows, count only) | 0 (expected 1 from the pre-check) | 1; the table holds 1 row in total |
+| Migration listed | no | `027_user_training_settings`, `20261127060130` |
+| SF027 self-test | not run | ran inside the migration transaction and passed (the apply would have failed otherwise); a count-only check afterwards found 0 `f0270000` synthetic users |
+| Public tables, policies, functions | 24, 23, 26 | 25, 24, 28 (+2); row-level security off on 0 tables |
+
+Counts now (catalogue only, 27 Nov 2026): 25 public tables, all with row-level
+security on; 24 policies. The 023 to 026 counts above are the history; 027 adds
+`user_training_settings`, its one owner policy and two functions.
 
 ## Vercel
 
@@ -161,7 +201,7 @@ separate secrets (#794).
 - To refresh dev after a production migration, apply the same migration file to
   dev, then re-run the fidelity comparison. Do not copy rows. Log every apply or
   deploy in [Changes since the build](#changes-since-the-build). The fidelity
-  comparison will now also show 022 to 026 as dev-only differences, until 022
+  comparison will now also show 022 to 027 as dev-only differences, until 022
   reaches production.
 
 ## Still open on #716

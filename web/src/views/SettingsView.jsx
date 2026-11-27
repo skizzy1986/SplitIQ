@@ -5,6 +5,7 @@ import ThemeControl from '../components/ThemeControl.jsx';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { THEME } from '../constants/theme.js';
 import ScreenHeader from '../components/ScreenHeader.jsx';
+import TrainingSettingsSection from './TrainingSettingsSection.jsx';
 import { FONT } from '../constants/type.js';
 import { RADIUS, SPACE, TYPE } from '../constants/tokens.js';
 import { APP_BUILD } from '../utils/appBuild.js';
@@ -93,6 +94,7 @@ export default function SettingsView({ onSynced, notice, heading = true }) {
           <LanguageToggle />
         </div>
       </section>
+      <TrainingSettingsSection />
       {isTestersBuild() && (
         <section aria-labelledby="settings-password" style={sectionStyle}>
           <h2 id="settings-password" style={headingStyle}>

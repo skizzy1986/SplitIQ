@@ -44,4 +44,13 @@ describe('DEV_DATABASE.md', () => {
     expect(now).toMatch(/23 policies/);
     expect(section('What dev holds')).not.toMatch(/and nothing else\./);
   });
+  it('lists 027 as pending, not applied, and keeps it out of the applied log and counts', () => {
+    const pending = section('Pending, not applied yet');
+    expect(pending).toMatch(/027_user_training_settings/);
+    expect(pending).toMatch(/Not applied yet/);
+    expect(pending).toMatch(/25 public tables and 24 policies/);
+    const log = section('Changes since the build');
+    expect(log).not.toMatch(/027_user_training_settings/);
+    expect(log).toMatch(/24 public tables/);
+  });
 });

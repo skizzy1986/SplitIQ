@@ -15,6 +15,11 @@ export const VIEWS_SOURCES = [
   'src/views/mobile/MobileSettings.jsx',
   'src/components/StravaConnectPanel.jsx',
   'src/components/ThemeControl.jsx',
+  // Settings > Training and the strap question after the first-run guide (#819).
+  'src/views/TrainingSettingsSection.jsx',
+  'src/views/TrainingPathPrompt.jsx',
+  'src/components/TrainingPathChoice.jsx',
+  'src/components/BirthYearForm.jsx',
   // Testers' change-password form, Settings > Password (#792).
   'src/components/ChangePasswordPanel.jsx',
   'src/views/OverviewView.jsx',

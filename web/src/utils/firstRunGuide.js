@@ -28,6 +28,15 @@ export function isGuideDismissed(userId, storage = localStorage) {
   }
 }
 
+const closeListeners = new Set();
+
+// Told when the guide is finished or skipped, so the strap-or-RPE screen
+// (#819) can follow it without the guide knowing about that screen.
+export function onGuideClosed(fn) {
+  closeListeners.add(fn);
+  return () => closeListeners.delete(fn);
+}
+
 export function dismissGuide(userId, storage = localStorage) {
   if (!userId) return;
   try {
@@ -35,6 +44,7 @@ export function dismissGuide(userId, storage = localStorage) {
   } catch {
     // Private mode can refuse writes; the guide will simply show again.
   }
+  closeListeners.forEach((fn) => fn());
 }
 
 export function reopenGuide(userId, storage = localStorage) {

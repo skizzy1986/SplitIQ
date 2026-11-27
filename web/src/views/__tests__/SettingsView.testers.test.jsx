@@ -5,6 +5,7 @@ import { render, screen } from '@testing-library/react';
 // Settings > Password is a testers-build section (#792): there on a testers
 // build, absent on the owner's.
 const mocks = vi.hoisted(() => ({ testers: false }));
+vi.mock('../TrainingSettingsSection.jsx', () => ({ default: () => null }));
 vi.mock('../../utils/testersBuild.js', () => ({
   isTestersBuild: () => mocks.testers,
 }));

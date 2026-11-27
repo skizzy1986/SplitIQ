@@ -128,6 +128,18 @@ all with row-level security on; 23 policies; 8 views. The build's 21 tables and
 one owner-select policy. By the migration files, 023, 024 and 025 add 7 functions to
 the build's 18.
 
+## Pending, not applied yet
+
+| What | Status | PR |
+|---|---|---|
+| Migration `027_user_training_settings` (`user_training_settings`, `log_my_resting_hr`, `rate_my_session`, depth backfill) | **Not applied yet.** Waiting for Gate 3 and Scott's separate yes. Not applied to dev or to production. | #819 S3 |
+
+When it is applied, the counts above become 25 public tables and 24 policies,
+and the functions go up by 2. The backfill writes an `expert` depth row for each
+account with a live, non-sample `rowing_cp`; Scott's yes on the apply covers
+that write. This section moves into the log above, with the time and the
+read-back, in the PR that records the apply.
+
 ## Vercel
 
 On the `splitiq` project, `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are

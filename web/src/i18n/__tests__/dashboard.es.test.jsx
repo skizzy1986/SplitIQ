@@ -25,6 +25,19 @@ const mocks = vi.hoisted(() => ({
   connection: null,
 }));
 
+vi.mock('../../hooks/useTrainingSettings.js', () => ({
+  useTrainingSettings: () => ({
+    loaded: true,
+    available: true,
+    hasRow: true,
+    hrPath: 'rpe',
+    birthYear: null,
+  }),
+  useUpdateTrainingSettings: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+  }),
+}));
 vi.mock('@capacitor/core', () => ({
   Capacitor: { isNativePlatform: () => mocks.native },
 }));
@@ -362,6 +375,30 @@ describe('Settings in Spanish', () => {
       'aria-pressed',
       'true'
     );
+  });
+
+  it('H43: Settings > Training reads in Spanish, with a tú voice and no brand', async () => {
+    mocks.connection = { connected: false };
+    await mountSettings();
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Entrenamiento' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: 'Tengo una banda de pecho o de brazo',
+      })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'No tengo una' })
+    ).toHaveAttribute('aria-pressed', 'true');
+    expect(
+      screen.getByText('Año de nacimiento', { selector: 'label' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Estás en el camino sin banda. Calificas el esfuerzo a tu sensación.'
+      )
+    ).toBeInTheDocument();
   });
 
   it('renders the Strava panel and its states in Spanish', async () => {

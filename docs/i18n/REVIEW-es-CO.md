@@ -58,7 +58,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `hdxhKx` | We could not sign you in. Try again. | No pudimos iniciar sesión. Inténtalo de nuevo. | Login error for any unrecognised cause. Only shown in Spanish. · src/utils/authError.js |
 | `y1oEoC` | Wrong email or password. | Correo o contraseña incorrectos. | Login error. Only shown in Spanish; English shows the server message. · src/utils/authError.js |
 
-## Dashboard views (src/locales/views, 570 strings)
+## Dashboard views (src/locales/views, 590 strings)
 
 | Row | English | Español | Where / note |
 |---|---|---|---|
@@ -200,6 +200,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `2xL2US` | Could not count the Strava data in your log. Try again. | No se pudieron contar los datos de Strava de tu registro. Inténtalo de nuevo. | Error when the disconnect preview could not be loaded · src/components/StravaConnectPanel.jsx |
 | `qGBulj` | Could not reach the server. Check your connection and try again. | No pudimos conectarnos con el servidor. Revisa tu conexión e inténtalo de nuevo. | Change-password error when the device is offline. · src/components/ChangePasswordPanel.jsx |
 | `stSfoD` | Could not read the Strava connection status | No pudimos leer el estado de la conexión con Strava | Error state heading · src/components/StravaConnectPanel.jsx |
+| `ttgl-o` | Could not save that. Try again. | No se pudo guardar. Inténtalo de nuevo. | Error: a save did not go through · Error: a save did not go through · Error: a save did not go through · src/components/BirthYearForm.jsx · src/views/TrainingPathPrompt.jsx · src/views/TrainingSettingsSection.jsx |
 | `pSobqw` | Could not start the Strava connection. Try again. | No pudimos iniciar la conexión con Strava. Inténtalo de nuevo. | Error after pressing Connect Strava · src/components/StravaConnectPanel.jsx |
 | `hNVOGX` | Couldn't connect to that PM5. Check it's awake and not connected to another phone, then tap it again. | No pudimos conectarnos con ese PM5. Revisa que esté activo y que no esté conectado a otro teléfono, y vuelve a tocarlo. | Shown above the list of nearby PM5 monitors after the chosen one failed to connect; "it" is that monitor in the list · src/constants/pm5ErrorMessages.js |
 | `NVdgu4` | Couldn't load {what}. | No se pudo cargar: {what}. | {what} is the card's title in lower case, e.g. blood pressure · src/components/HealthRecordCard.jsx |
@@ -228,6 +229,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `bDkZ8F` | distance | distancia | Session caption list item · src/components/session/ProvenanceNote.jsx |
 | `GPeIuw` | Distance | Distancia | src/components/session/RangeSummary.jsx · src/components/session/SessionSummary.jsx · src/components/session/SplitsTable.jsx |
 | `0-AhBt` | DISTANCE | DISTANCIA | All capitals · Metric, all capitals · src/components/LogEntry.jsx · src/views/ErgLiveView.jsx |
+| `mTxNVH` | Do you have a heart-rate strap? | ¿Tienes una banda de frecuencia cardíaca? | Heading of the one-time strap question after the first-run guide · src/views/TrainingPathPrompt.jsx |
 | `MI1emd` | DONE | LISTO | Button that closes the summary, all capitals · src/views/ErgLiveView.jsx |
 | `HtAyVo` | Drift | Deriva | src/components/session/MoreDetail.jsx |
 | `lkz6PL` | Duration | Duración | src/components/session/SessionSummary.jsx |
@@ -241,6 +243,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `c3aKIi` | Elevation gain | Desnivel positivo | src/components/session/SessionSummary.jsx |
 | `OY_ODX` | END | TERMINAR | Button that ends the live session, all capitals · src/views/ErgLiveView.jsx |
 | `nhCuze` | Endurance | Resistencia | Cycling power level (Coggan Z2) · src/components/session/zoneLabels.js |
+| `cHrCpZ` | Enter a four-digit year, such as 1985. | Escribe un año de cuatro dígitos, por ejemplo 1985. | Error: the year of birth is not a four-digit year · src/components/BirthYearForm.jsx |
 | `cFg0mZ` | Erg | Ergómetro | Desktop Progress pane · Progress sub-tab: rowing · Session filter chip · src/App.jsx · src/views/mobile/MobileProgress.jsx · src/views/mobile/MobileSessionLog.jsx |
 | `qfFW0N` | erg + strength | ergómetro + fuerza | src/views/OverviewView.jsx |
 | `xYJEnn` | ERG DISTANCE | DISTANCIA EN ERGÓMETRO | Stat tile, all capitals · src/views/OverviewView.jsx |
@@ -270,12 +273,15 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `bcsF7s` | Heart rate | Frecuencia cardíaca | src/components/session/SplitsTable.jsx · src/components/session/TraceTooltip.jsx |
 | `8HLv9p` | Heart rate across {over}, between {lo} and {hi} bpm; average {avg} bpm. | Frecuencia cardíaca durante {over}, entre {lo} y {hi} bpm; promedio {avg} bpm. | src/components/session/SessionTrace.jsx |
 | `K7-s0i` | Heart rate across {over}, between {lo} and {hi} bpm. | Frecuencia cardíaca durante {over}, entre {lo} y {hi} bpm. | src/components/session/SessionTrace.jsx |
+| `1HtHAQ` | Heart-rate strap | Banda de frecuencia cardíaca | Settings sub-heading: how the user tracks effort, with or without a heart-rate strap · src/views/TrainingSettingsSection.jsx |
 | `qGrPbG` | High fatigue — recent load well above fitness | Fatiga alta: la carga reciente supera de lejos tu estado físico | Training form (TSB) band · src/utils/trainingLoad.js |
 | `0caMy7` | History | Historial | Desktop Progress pane · Progress sub-tab: past sessions · src/App.jsx · src/views/LogView.jsx · src/views/mobile/MobileProgress.jsx |
 | `qsHYae` | HORMONE PANEL | PERFIL HORMONAL | Card title, all capitals · src/views/RecoveryView.jsx |
 | `TKR8aY` | How did it feel? Technique notes… | ¿Cómo te sentiste? Notas de técnica… | Placeholder in the session notes box · src/views/ErgLiveView.jsx |
 | `fjjOZc` | HOW HARD DID IT FEEL? (sRPE) | ¿QUÉ TAN DURO SE SINTIÓ? (sRPE) | All capitals; sRPE stays as is · src/views/ErgLiveView.jsx |
 | `6NloOG` | HRV TREND — 14 DAYS | TENDENCIA DE HRV — 14 DÍAS | Chart title, all capitals; HRV stays as is · src/views/mobile/MobileRecovery.jsx |
+| `4oukq_` | I don't have one | No tengo una | Button: the user has no heart-rate strap or arm band · src/components/TrainingPathChoice.jsx |
+| `D5UC52` | I have a strap or arm band | Tengo una banda de pecho o de brazo | Button: the user has a heart-rate strap or arm band · src/components/TrainingPathChoice.jsx |
 | `MQAH8I` | Imported from Strava. | Importado de Strava. | Session page provenance · src/components/session/sourceCopy.js |
 | `KpFRBw` | Importing history — {imported} imported, {adopted} matched to existing sessions. Continuing automatically. | Importando historial: {imported} importadas, {adopted} vinculadas a sesiones existentes. Sigue automáticamente. | src/utils/stravaStatus.js |
 | `FLn-wp` | INJURY WATCH | SEGUIMIENTO DE LESIONES | Card title, all capitals · src/views/RecoveryView.jsx |
@@ -438,6 +444,8 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `P9wzG_` | Recovery | Recuperación | Rowing training zone · Training zone name · src/components/session/zoneLabels.js · src/constants/srpeGuideMessages.js |
 | `cwpus4` | RECOVERY | RECUPERACIÓN | Screen heading, all capitals · src/views/mobile/MobileRecovery.jsx |
 | `2t2fqH` | ref | ref. | Short for "reference range" before a lab range, e.g. "ref 0.5–1.0" · src/utils/healthRecords.js |
+| `t_YqKh` | Remove | Quitar | Button: remove the saved year of birth · src/components/BirthYearForm.jsx |
+| `VxEByY` | Removed. | Quitado. | Confirmation after removing the year of birth · src/components/BirthYearForm.jsx |
 | `l0DqF2` | REPEAT THE NEW PASSWORD | REPITE LA CONTRASEÑA NUEVA | Change-password field label, all capitals · src/components/ChangePasswordPanel.jsx |
 | `9i9Bip` | resolved {date} | resuelta el {date} | Injury resolved date · src/views/RecoveryView.jsx |
 | `BPmK5_` | RESTING HR | FC EN REPOSO | All capitals · All capitals · src/views/mobile/MobileRecovery.jsx · src/views/RecoveryView.jsx |
@@ -449,12 +457,14 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `9iZxB0` | ROWING | REMANDO | Live status, all capitals · src/views/ErgLiveView.jsx |
 | `cJp6m0` | Rowing CP {cp}W | CP de remo {cp}W | src/views/OverviewView.jsx |
 | `kBKd0c` | Rowing CP {cp}W · bike FTP {ftp}W | CP de remo {cp}W · FTP de bici {ftp}W | src/views/OverviewView.jsx |
+| `tfDRzk` | Save | Guardar | Button: save the year of birth · src/components/BirthYearForm.jsx |
 | `pUNql9` | SAVE FAILED — NOT STORED | NO SE PUDO GUARDAR: NO QUEDÓ ALMACENADA | The session could not be saved anywhere; all capitals · src/views/ErgLiveView.jsx |
 | `zG0ocl` | Save failed: {detail} | No se pudo guardar: {detail} | {detail} is the server error message, shown as it came · src/components/LogSessionForm.jsx |
 | `EBshvt` | SAVE SESSION | GUARDAR SESIÓN | Button, all capitals · src/views/ErgLiveView.jsx |
 | `t4-fKq` | SAVED LOCALLY — WILL SYNC | GUARDADA EN EL DISPOSITIVO: SE SINCRONIZARÁ | Saved on the device while offline, uploads later; all capitals · src/views/ErgLiveView.jsx |
 | `Wr4ung` | SAVED TO LOG | GUARDADA EN EL HISTORIAL | Save succeeded, all capitals; Log is the session history · src/views/ErgLiveView.jsx |
 | `wEEld0` | Saved! Session added to your log. | ¡Guardado! La sesión se agregó a tu historial. | src/components/LogSessionForm.jsx |
+| `mmYVfA` | Saved. | Guardado. | src/components/BirthYearForm.jsx |
 | `I4hZK1` | SAVING… | GUARDANDO… | Button, busy, all capitals · src/components/LogSessionForm.jsx · src/views/ErgLiveView.jsx |
 | `IGtO85` | Scored from average power {watts} W against your bike FTP {threshold} W (intensity {factor}). | Puntuado con la potencia promedio de {watts} W frente a tu FTP de bici de {threshold} W (intensidad {factor}). | src/components/session/SessionSummary.jsx |
 | `J6bV0E` | Scored from average power {watts} W against your rowing CP {threshold} W (intensity {factor}). | Puntuado con la potencia promedio de {watts} W frente a tu CP de remo de {threshold} W (intensidad {factor}). | src/components/session/SessionSummary.jsx |
@@ -480,6 +490,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `FFnAXK` | Sign in again, then try once more. | Inicia sesión de nuevo e inténtalo otra vez. | Change-password error when there is no session. · src/components/ChangePasswordPanel.jsx |
 | `fcWrnU` | Sign out | Cerrar sesión | src/views/mobile/MobileSettings.jsx |
 | `aHb3Mx` | since {date} | desde el {date} | Injury onset date · src/views/RecoveryView.jsx |
+| `7ES24E` | Skip, and go by effort | Omitir y guiarme por el esfuerzo | Button: skip the strap question and go by effort. Skipping is the same as having no strap. · src/components/TrainingPathChoice.jsx |
 | `Z4Vby7` | SLEEP | SUEÑO | All capitals · All capitals · src/views/mobile/MobileRecovery.jsx · src/views/RecoveryView.jsx |
 | `Jrane6` | SLEEP — 14 DAYS | SUEÑO — 14 DÍAS | Chart title, all capitals · src/views/mobile/MobileRecovery.jsx |
 | `jI9fA1` | SLEEP SCORE | PUNTAJE DE SUEÑO | All capitals · All capitals · src/views/mobile/MobileRecovery.jsx · src/views/RecoveryView.jsx |
@@ -490,6 +501,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `I6SWEy` | Split | Parcial | src/components/session/SplitsTable.jsx |
 | `PfQ5ex` | Split distance | Distancia del parcial | src/components/session/SplitsTable.jsx |
 | `FxzkbD` | SplitIQ can't use Bluetooth. In Settings › Apps › SplitIQ › Permissions, allow Nearby devices (Location on Android 11 and older), then tap Connect again. | SplitIQ no puede usar el Bluetooth. En Configuración › Aplicaciones › SplitIQ › Permisos, permite Dispositivos cercanos (Ubicación en Android 11 y versiones anteriores) y vuelve a tocar Conectar. | Android app error. Settings › Apps › SplitIQ › Permissions, Nearby devices and Location are Android's own menu and permission names: use the names Android shows in Spanish · src/constants/pm5ErrorMessages.js |
+| `zAw4Kz` | SplitIQ is for people 18 or over. | SplitIQ es para personas de 18 años o más. | Error: the app is for people 18 or over · src/components/BirthYearForm.jsx |
 | `a8VA-2` | SplitIQ's access at Strava had already ended. | El acceso de SplitIQ en Strava ya había terminado. | src/utils/stravaDisconnect.js |
 | `1CJQmA` | Splits | Parciales | src/views/SessionView.jsx |
 | `VNbzs6` | Sprint | Sprint | Training zone name · src/constants/srpeGuideMessages.js |
@@ -587,6 +599,8 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `V2Ca9q` | Train as planned | Entrena según lo planeado | src/views/mobile/MobileRecovery.jsx · src/views/RecoveryView.jsx |
 | `83DQKX` | Train but monitor — consider easing intensity | Entrena, pero vigílate: considera bajar la intensidad | src/views/RecoveryView.jsx |
 | `elbm-V` | Train but monitor closely | Entrena, pero vigílate de cerca | src/views/mobile/MobileRecovery.jsx |
+| `y8le-Z` | Training | Entrenamiento | Settings section heading above the training options · src/views/TrainingSettingsSection.jsx |
+| `uiurly` | Training is easier with a heart-rate chest strap or an optical arm band. A wrist watch does not count here. If a watch is all you have, choose the second option. | Entrenar es más fácil con una banda de pecho para la frecuencia cardíaca o una banda óptica de brazo. Aquí un reloj de muñeca no cuenta. Si solo tienes un reloj, elige la segunda opción. | Strap choice. Plain words, no brand, no shop. A wrist watch does not count as a strap. · src/components/TrainingPathChoice.jsx |
 | `hF3AVO` | TRAINING LOAD | CARGA DE ENTRENAMIENTO | Card heading, all capitals · src/views/OverviewView.jsx |
 | `ouzTMv` | TRAINING LOAD UNAVAILABLE | CARGA DE ENTRENAMIENTO NO DISPONIBLE | All capitals · All capitals · src/views/mobile/MobileAnalytics.jsx · src/views/OverviewView.jsx |
 | `V1yilb` | Training phase | Fase de entrenamiento | src/views/OverviewView.jsx |
@@ -599,6 +613,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `1ikfyP` | unvalidated | sin validar | Anchor status · src/components/session/ZoneBar.jsx |
 | `zSzBX4` | UPCOMING | PRÓXIMAS | Section heading, all capitals · src/views/mobile/MobileAnalytics.jsx |
 | `qDKS2V` | Upcoming planned sessions (today forward). A dashed border marks a planned session; tap any card for the targets. Cards mark ✓ done once you log the matching session. | Sesiones planificadas de hoy en adelante. Un borde discontinuo indica una sesión planificada; toca cualquier tarjeta para ver los objetivos. Las tarjetas muestran ✓ cuando registras la sesión correspondiente. | src/views/PlanView.jsx |
+| `Wd0hvv` | Used only to estimate your maximum heart rate. You can remove it at any time. A backup made earlier can still hold it until that backup is retired. | Se usa solo para estimar tu frecuencia cardíaca máxima. Puedes quitarlo cuando quieras. Una copia de seguridad anterior puede conservarlo hasta que se elimine. | Privacy note under the year-of-birth field. Backups: an earlier backup copy can still hold a removed value. · src/components/BirthYearForm.jsx |
 | `Nmm6Hl` | UT1 | UT1 | Rowing zone; keep as is · src/components/session/zoneLabels.js |
 | `95Fy2-` | UT2 | UT2 | Rowing zone; keep as is · src/components/session/zoneLabels.js |
 | `FeCf8C` | Variability | Variabilidad | src/components/session/MoreDetail.jsx |
@@ -622,6 +637,11 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `qRILxq` | Work | Trabajo | src/components/session/SessionSummary.jsx |
 | `0qdR_Q` | working avg power | potencia promedio de trabajo | src/views/OverviewView.jsx |
 | `3_fJQg` | Working backwards from {from}. | Importando hacia atrás desde {from}. | src/utils/stravaStatus.js |
+| `PuEn8k` | Year of birth | Año de nacimiento | Accessible name of the year-of-birth field · Label above the year-of-birth field · src/components/BirthYearForm.jsx |
+| `5stnf9` | You are on the no-strap path. You rate effort by feel. | Estás en el camino sin banda. Calificas el esfuerzo a tu sensación. | Settings: current path is the no-strap path, rating effort by feel · src/views/TrainingSettingsSection.jsx |
+| `0CxgJ1` | You are on the strap path. | Estás en el camino con banda. | Settings: current path is the strap path · src/views/TrainingSettingsSection.jsx |
+| `79xNkx` | You can change this later in Settings. | Puedes cambiar esto más tarde en Configuración. | Reassurance under the strap question · src/views/TrainingPathPrompt.jsx |
+| `JEmBPE` | You have not chosen yet. | Aún no has elegido. | Settings: nothing chosen yet · src/views/TrainingSettingsSection.jsx |
 | `nU3Bjh` | your avg | tu promedio | Followed by a number: your own average · Followed by a number: your own average · src/views/mobile/MobileRecovery.jsx · src/views/RecoveryView.jsx |
 | `-UYlA5` | Your training load will be recalculated. This cannot be undone. | Tu carga de entrenamiento se volverá a calcular. Esto no se puede deshacer. | src/utils/stravaDisconnect.js |
 | `ylVnB_` | zones from your bike FTP anchor | zonas a partir de tu referencia de FTP de bici | Session caption list item · src/components/session/ProvenanceNote.jsx |

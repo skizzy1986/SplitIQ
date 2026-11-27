@@ -44,6 +44,10 @@ const EXPECTED_KEYS = [
   'bandAmber',
   'bandCoral',
   'zoneRecovery',
+  'sceneSkin',
+  'sceneClothes',
+  'sceneClothesAlt',
+  'sceneErg',
 ];
 
 // The activation ramp is geometry paint, not ink anyone reads, and starts on
@@ -60,9 +64,9 @@ const SHARED_BY_DESIGN = [
 ];
 
 describe('THEME', () => {
-  it('has exactly the 40 expected keys (no more, no fewer)', () => {
+  it('has exactly the 44 expected keys (no more, no fewer)', () => {
     const keys = Object.keys(THEME);
-    expect(keys).toHaveLength(40);
+    expect(keys).toHaveLength(44);
     expect(keys.sort()).toEqual([...EXPECTED_KEYS].sort());
   });
 
@@ -78,9 +82,9 @@ describe('THEME', () => {
 });
 
 describe('DARK — the palette values THEME resolves to', () => {
-  it('has exactly the 40 expected keys (no more, no fewer)', () => {
+  it('has exactly the 44 expected keys (no more, no fewer)', () => {
     const keys = Object.keys(DARK);
-    expect(keys).toHaveLength(40);
+    expect(keys).toHaveLength(44);
     expect(keys.sort()).toEqual([...EXPECTED_KEYS].sort());
   });
 
@@ -126,6 +130,10 @@ describe('DARK — the palette values THEME resolves to', () => {
     expect(DARK.bandAmber).toBe('#e8b45c');
     expect(DARK.bandCoral).toBe('#e87a5c');
     expect(DARK.zoneRecovery).toBe('#666666');
+    expect(DARK.sceneSkin).toBe('#c98f6f');
+    expect(DARK.sceneClothes).toBe('#2f8196');
+    expect(DARK.sceneClothesAlt).toBe('#0b0e16');
+    expect(DARK.sceneErg).toBe('#cdd3de');
   });
 });
 

@@ -63,6 +63,16 @@ export const DARK = {
   // keep #666666 so neither theme changes colour until design sets a light
   // value. See SHARED_BY_DESIGN in theme.test.js.
   zoneRecovery: '#666666',
+  // The rower's scene (#827; #757 wires the erg, #761 the skin and clothes).
+  // Named for what they paint, like the anatomy* tokens, and additive: nothing
+  // above moved. sceneClothesAlt is the ground the SplitIQ mark sits on, so
+  // accent (the mark) and positive (the wordmark) must clear AA on it; the
+  // erg and the clothes must hold 3:1 against the stage. DESIGN.md has the
+  // measured ratios.
+  sceneSkin: '#c98f6f',
+  sceneClothes: '#2f8196',
+  sceneClothesAlt: '#0b0e16',
+  sceneErg: '#cdd3de',
 };
 
 // The light palette. Values are conventions.md's, which is design-owned and
@@ -128,6 +138,13 @@ export const LIGHT = {
   // Same source hex as DARK: the Recovery band was a raw literal, so it
   // already painted this on light. A distinct light value is a design call.
   zoneRecovery: '#666666',
+  // Rower's scene (#827). Skin and erg sit deeper than dark's so they hold on
+  // the pale stage; clothes are a deep teal, and the mark's ground is near
+  // white so the light accent reads on it.
+  sceneSkin: '#d29c78',
+  sceneClothes: '#0b5d7a',
+  sceneClothesAlt: '#f4f7fc',
+  sceneErg: '#6b748a',
 };
 
 // The palette the document boots on. Dark is the signed-in dashboard's only

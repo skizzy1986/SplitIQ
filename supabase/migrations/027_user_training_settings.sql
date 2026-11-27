@@ -511,24 +511,32 @@ begin
          where id = s_done and srpe = 5 and avg_hr = 148) <> 1 then
       raise exception '027 self-test rate: a refused value changed the row';
     end if;
-    -- Planned and cancelled rows are refused and unchanged.
-    if public.rate_my_session(s_plan, 5)->>'status' <> 'not_completed'
-       or public.rate_my_session(s_cancel, 5, 120)->>'status' <> 'not_completed'
+    -- Planned and cancelled rows are refused and unchanged. Each call goes
+    -- into a variable first: a count in the same expression as the call reads
+    -- the statement's snapshot and cannot see the call's own write.
+    r := public.rate_my_session(s_plan, 5);
+    if r->>'status' <> 'not_completed' then
+      raise exception '027 self-test rate: a planned row was rated (%)', r;
+    end if;
+    r := public.rate_my_session(s_cancel, 5, 120);
+    if r->>'status' <> 'not_completed'
        or (select count(*) from public.sessions
             where id in (s_plan, s_cancel) and (srpe is not null or avg_hr is not null)) <> 0 then
-      raise exception '027 self-test rate: a planned or cancelled row was rated';
+      raise exception '027 self-test rate: a planned or cancelled row was rated (%)', r;
     end if;
     -- A Strava-linked row: an average HR is refused and nothing changes; an
     -- sRPE alone is allowed and leaves the imported average HR alone.
-    if public.rate_my_session(s_link, 6, 150)->>'status' <> 'linked'
+    r := public.rate_my_session(s_link, 6, 150);
+    if r->>'status' <> 'linked'
        or (select count(*) from public.sessions
             where id = s_link and srpe is null and avg_hr = 140) <> 1 then
-      raise exception '027 self-test rate: a linked row accepted an average HR';
+      raise exception '027 self-test rate: a linked row accepted an average HR (%)', r;
     end if;
-    if public.rate_my_session(s_link, 6)->>'status' <> 'saved'
+    r := public.rate_my_session(s_link, 6);
+    if r->>'status' <> 'saved'
        or (select count(*) from public.sessions
             where id = s_link and srpe = 6 and avg_hr = 140) <> 1 then
-      raise exception '027 self-test rate: sRPE alone on a linked row failed';
+      raise exception '027 self-test rate: sRPE alone on a linked row failed (%)', r;
     end if;
     -- Another user's row looks missing, and is not changed.
     if public.rate_my_session(s_other, 9, 100)->>'status' <> 'not_found' then

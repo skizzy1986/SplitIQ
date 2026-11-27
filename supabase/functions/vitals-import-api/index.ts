@@ -7,7 +7,7 @@
 //
 // Required env (Edge Function secrets): GOOGLE_HEALTH_CLIENT_ID, GOOGLE_HEALTH_CLIENT_SECRET,
 //   GOOGLE_HEALTH_REFRESH_TOKEN, VITALS_USER_ID, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY,
-//   CRON_SECRET. Optional: SLACK_BUILD_WEBHOOK_URL.
+//   CRON_SECRET. Optional: SLACK_VITALS_WEBHOOK_URL.
 // Sleep additionally requires the googlehealth.sleep.readonly OAuth scope on the refresh token.
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { exchangeToken, listDataPoints } from "./client.ts";
@@ -26,7 +26,7 @@ Deno.serve(async (req: Request) => {
     new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 
   // best-effort Slack post — never throws, never blocks the job
-  const webhookUrl = Deno.env.get("SLACK_BUILD_WEBHOOK_URL");
+  const webhookUrl = Deno.env.get("SLACK_VITALS_WEBHOOK_URL");
   const slack = async (text: string): Promise<void> => {
     if (!webhookUrl) return;
     try {

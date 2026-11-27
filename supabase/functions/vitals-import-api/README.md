@@ -24,7 +24,7 @@ On each run the function:
    the others still upsert. (`dailyRollUp` is unsupported for the daily-* and sleep
    types; `list` is the correct method for all four.)
 5. Maps responses to a `VitalRecord` (`mapper.ts`) and calls `upsert_vital`.
-6. Posts a best-effort `#build` Slack notification.
+6. Posts a best-effort status line (no readings) to the private `#vitals-feed` Slack channel.
 
 Returns `200` when all four metrics are present, `207` on partial data.
 
@@ -48,7 +48,7 @@ Set in Supabase dashboard → Edge Functions → Secrets.
 | `CRON_SECRET` | Shared secret for the `x-cron-secret` header guard |
 | `SUPABASE_URL` | Auto-injected by the Edge Function runtime |
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role — bypasses RLS; required to write via `upsert_vital` |
-| `SLACK_BUILD_WEBHOOK_URL` | `#build` webhook for best-effort notifications |
+| `SLACK_VITALS_WEBHOOK_URL` | `#vitals-feed` webhook for best-effort status posts (optional) |
 
 > The service role bypasses RLS, so `auth.uid()` is null in this function. It sets
 > `user_id` explicitly to `VITALS_USER_ID` on every `upsert_vital` call, or rows

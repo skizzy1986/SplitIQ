@@ -18,6 +18,10 @@
 //     erg, StrengthLogger entirely, and every hover, focus and expanded
 //     state.
 //
+// The public movement tools, /squat and /row, are at the foot of the file (#828).
+// They are not the dashboard: no fixtures, no pinned clock, and the canvas on
+// /squat is masked (see the note there).
+//
 // WHY THE CLOCK IS PINNED: OverviewView, CalendarView, MobileAnalytics and
 // MobileRecovery all render `new Date()`. Unpinned, every baseline rots at
 // midnight.
@@ -244,4 +248,157 @@ test.describe('login', () => {
     await expect(page.getByRole('button', { name: 'SIGN IN' })).toBeVisible();
     await shot(page, 'login');
   });
+});
+
+// The movement tools (#828): /squat once its status reads "3D model ready", and
+// the /row placeholder, at the three viewports every rowing slice reports its
+// evidence at. Like the tool specs these use no fixtures, because the tools have
+// no auth gate and must never touch Supabase; each shot fails on any request
+// that is not to the preview's own origin.
+// Service workers are blocked so every request is the page's own and visible to
+// page.on('request'). The clock is not pinned: neither page renders a date.
+//
+// WHY THE /squat CANVAS IS MASKED, NOT TOLERATED: the model is drawn through
+// SwiftShader, a software rasteriser whose output is a property of the runner's
+// CPU and driver build, not of this repo. Byte-identical on one machine (PR #814)
+// does not promise byte-identical on the next CI host. A tolerance is the wrong
+// tool for that: toHaveScreenshot's threshold and maxDiffPixels are per-shot, so
+// one wide enough to absorb a rasteriser difference is just as wide over the
+// page chrome beside the canvas, and #291 is the record of a loose comparator
+// silently admitting a whole-viewport repaint. A mask costs nothing else: the
+// comparator stays at threshold 0 for every pixel outside the canvas (the
+// header, the muscle list, the controls, the footer), and what the canvas itself
+// draws is covered by assertions that do not read pixels (the load status, the
+// scene host holding one visible canvas) here and by squat.spec.js.
+// The mask tracks the canvas's bounding box, so the stage's geometry is still
+// pinned.
+const TOOL_SHOTS = [
+  {
+    label: 'desktop light 1440x900',
+    name: 'desktop-light',
+    viewport: { width: 1440, height: 900 },
+    colorScheme: 'light',
+  },
+  {
+    label: 'desktop dark 1280x820',
+    name: 'desktop-dark',
+    viewport: { width: 1280, height: 820 },
+    colorScheme: 'dark',
+  },
+  {
+    label: 'phone light 390x844',
+    name: 'phone-light',
+    viewport: { width: 390, height: 844 },
+    colorScheme: 'light',
+  },
+];
+
+// Fails the shot if the page made a request that left its own origin, which
+// covers Supabase as well as fonts, analytics and anything else.
+function recordRequests(page) {
+  const urls = [];
+  page.on('request', (req) => urls.push(req.url()));
+  return urls;
+}
+
+function offOrigin(page, urls) {
+  const origin = new URL(page.url()).origin;
+  return urls.filter((u) => /^https?:/.test(u) && new URL(u).origin !== origin);
+}
+
+const supabaseHits = (urls) =>
+  urls.filter((u) => /(^|\.)supabase\.co(:\d+)?$/.test(new URL(u).hostname));
+
+// Headless Chromium has no GPU; WebGL falls back to SwiftShader only when this
+// flag allows it. The same flag squat.spec.js launches with. Playwright refuses
+// launchOptions inside a describe (it forces a new worker), so it is file-wide
+// and the dashboard shots launch with it too. It only permits a WebGL fallback,
+// which the dashboard never asks for; the dashboard baselines are compared at
+// threshold 0 on CI, so any effect would show there.
+test.use({ launchOptions: { args: ['--enable-unsafe-swiftshader'] } });
+
+const TOOL_LOAD_TIMEOUT = 45_000;
+
+test.describe('/squat', () => {
+  test.use({ serviceWorkers: 'block' });
+  test.setTimeout(90_000);
+
+  for (const shotSpec of TOOL_SHOTS) {
+    test.describe(shotSpec.label, () => {
+      test.use({
+        viewport: shotSpec.viewport,
+        colorScheme: shotSpec.colorScheme,
+      });
+
+      test('squat', async ({ page }) => {
+        const urls = recordRequests(page);
+        const errors = [];
+        page.on('pageerror', (err) => errors.push(String(err)));
+        await page.goto('/squat', { timeout: TOOL_LOAD_TIMEOUT });
+        await expect(
+          page.getByRole('heading', { level: 1, name: 'High-bar back squat' })
+        ).toBeVisible({ timeout: TOOL_LOAD_TIMEOUT });
+        // Fetch, gunzip, three.js chunk, scene build, first frame. The status
+        // region stays mounted, visually hidden, once the model is drawn.
+        await expect(page.getByTestId('load-status')).toHaveText(
+          /3D model ready/,
+          { timeout: TOOL_LOAD_TIMEOUT }
+        );
+        // The progress bar is gone once the model is drawn: nothing is mid-
+        // transition under the mask.
+        await expect(page.getByTestId('load-bar')).toHaveCount(0);
+        // Stable assertions on the page around the canvas.
+        const canvas = page.locator('[data-testid="scene-host"] canvas');
+        await expect(canvas).toHaveCount(1);
+        await expect(canvas).toBeVisible();
+        await expect(page.locator('[data-theme]').first()).toHaveAttribute(
+          'data-theme',
+          shotSpec.colorScheme
+        );
+
+        await expect(page).toHaveScreenshot(`squat-${shotSpec.name}.png`, {
+          mask: [canvas],
+        });
+
+        expect(supabaseHits(urls)).toEqual([]);
+        expect(offOrigin(page, urls)).toEqual([]);
+        expect(errors).toEqual([]);
+      });
+    });
+  }
+});
+
+test.describe('/row', () => {
+  test.use({ serviceWorkers: 'block' });
+
+  for (const shotSpec of TOOL_SHOTS) {
+    test.describe(shotSpec.label, () => {
+      test.use({
+        viewport: shotSpec.viewport,
+        colorScheme: shotSpec.colorScheme,
+      });
+
+      // /row is static today, so the whole page is compared, nothing masked.
+      // When #760 replaces the placeholder, that PR refreshes these baselines.
+      test('row', async ({ page }) => {
+        const urls = recordRequests(page);
+        const errors = [];
+        page.on('pageerror', (err) => errors.push(String(err)));
+        await page.goto('/row', { timeout: TOOL_LOAD_TIMEOUT });
+        await expect(
+          page.getByRole('heading', { level: 1, name: 'Rowing stroke' })
+        ).toBeVisible({ timeout: TOOL_LOAD_TIMEOUT });
+        await expect(page.getByTestId('row-root')).toHaveAttribute(
+          'data-theme',
+          shotSpec.colorScheme
+        );
+
+        await expect(page).toHaveScreenshot(`row-${shotSpec.name}.png`);
+
+        expect(supabaseHits(urls)).toEqual([]);
+        expect(offOrigin(page, urls)).toEqual([]);
+        expect(errors).toEqual([]);
+      });
+    });
+  }
 });

@@ -5,7 +5,7 @@ before starting work. The official decision log is the private ops repo's
 `docs/ROADMAP.md` (D30, D31, D32). `VISION.md` still wins where docs disagree;
 see the VISION.md rule below.
 
-Last updated: 25 November 2026, 23:34 Perth (UTC+8). Re-query GitHub
+Last updated: 27 November 2026, 14:12 Perth (UTC+8). Re-query GitHub
 before treating the status section as live.
 
 ## Roadmap order (D31)
@@ -24,6 +24,16 @@ Scott confirmed this order on 25 November 2026 at 10:48 Perth:
 - Hold [#757](https://github.com/skizzy1986/SplitIQ/issues/757)–[#761](https://github.com/skizzy1986/SplitIQ/issues/761)
   and the squat H1 product work until the first gym-backed live slice is through.
   Held, not dropped.
+- **D33** (Scott, 27 November, 14:12 Perth) hands two rowing pieces to the Grok
+  bots, plus a third later:
+  - [#827](https://github.com/skizzy1986/SplitIQ/issues/827): the SplitIQ mark
+    as vector paths, and the rower's skin, clothing and erg scene tokens. This is
+    the design part of #761.
+  - [#828](https://github.com/skizzy1986/SplitIQ/issues/828): visual baselines
+    for `/squat` and `/row`.
+  - Later, once the row page (#760) exists: its Spanish.
+
+  #827 and #828 need no unmerged rowing work and are not held.
 - `/row` is the second flagship movement after the live loop, per
   [#753](https://github.com/skizzy1986/SplitIQ/issues/753) (D30, which supersedes
   D2 and D5). Epics [#646](https://github.com/skizzy1986/SplitIQ/issues/646)
@@ -36,8 +46,8 @@ Scott confirmed this order on 25 November 2026 at 10:48 Perth:
 
 | Owner | Owns | Leaves alone |
 |---|---|---|
-| Claude Code | Pipeline slices [#755](https://github.com/skizzy1986/SplitIQ/issues/755)–[#761](https://github.com/skizzy1986/SplitIQ/issues/761); seat sensor [#731](https://github.com/skizzy1986/SplitIQ/issues/731)–[#738](https://github.com/skizzy1986/SplitIQ/issues/738) | Live erg, home, v10 design, and bundle headroom |
-| Grok bots (Orchestrator files the PRs; Live Session, Sound, Data & Modelling, Release, Product) | Live erg, home and v10 design, bundle headroom. Product owns input on `VISION.md` | `pipeline/` (including the squat goldens and `pipeline/squat-anatomy/row/`), `hardware/seat-sensor/` |
+| Claude Code | Pipeline slices [#755](https://github.com/skizzy1986/SplitIQ/issues/755)–[#761](https://github.com/skizzy1986/SplitIQ/issues/761), except #761's design part (#827); seat sensor [#731](https://github.com/skizzy1986/SplitIQ/issues/731)–[#738](https://github.com/skizzy1986/SplitIQ/issues/738) | Live erg, home, v10 design, and bundle headroom |
+| Grok bots (Orchestrator files the PRs; Live Session, Sound, Data & Modelling, Release, Product) | Live erg, home and v10 design, bundle headroom. Product owns input on `VISION.md`. From D33: [#827](https://github.com/skizzy1986/SplitIQ/issues/827) (the mark and the rower's scene tokens) and [#828](https://github.com/skizzy1986/SplitIQ/issues/828) (the tool visual baselines) | `pipeline/` (including the squat goldens and `pipeline/squat-anatomy/row/`), `hardware/seat-sensor/`; and the rowing slices' files: `web/src/anatomy/scene/`, `web/src/row/`, `web/src/movements/` and `web/scripts/movementAssets.mjs` |
 | SplitIQ bot team, led by the Orchestrator (decision 14, #819) | The #819 package: hidden CP, base block, CP tests and adaptive calibration, as scoped in the ops Gate 2 brief. Slices S0–S9, S4b, S6b, SL, A1, A3r and A6 | Slice S2b (the live-erg lane builds it), `ErgLiveView.jsx`, `pm5Bluetooth.js` and `usePM5.js`; the held slices A2, A3m, A4 and the rest of A5 until series capture |
 | Scott only | Strava issues #632, #639, #644, #660–#666, #668, #669, #673 | — |
 

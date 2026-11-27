@@ -400,7 +400,7 @@ describe('027 user_training_settings', () => {
     expect(rollback).not.toMatch(/public\.(vitals|sessions|anchors)/);
   });
 
-  it('is recorded in the manifest as unapplied, dev first, for #819', () => {
+  it('is recorded in the manifest as applied to dev, not production, for #819', () => {
     const entry = manifest.files.find(
       (f) => f.file === '027_user_training_settings.sql'
     );
@@ -409,7 +409,7 @@ describe('027 user_training_settings', () => {
     expect(entry?.reason).toMatch(
       /dev only until scott says otherwise; this manifest tracks production/i
     );
-    expect(entry?.reason).toMatch(/not applied to either project yet/i);
+    expect(entry?.reason).toMatch(/applied to dev, not production/i);
     expect(entry?.note).toMatch(/backfills depth 'expert'/i);
   });
 

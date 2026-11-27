@@ -192,7 +192,15 @@ const MAX_TOTAL_GZIP_KB = 433;
 // gained the Android PM5 list's Spanish and its five connect errors, 16
 // messages. Measured 12.0 KB. Fetched only by a visitor who chose Spanish,
 // never precached. Rule: 12.0 + 2 = 14.0, to the nearest whole KB: 14.
-const MAX_DASH_ES_GZIP_KB = 14;
+//
+// Raised 14 -> 14.1 on 2026-11-27 (Scott's OK for a per-PR raise, by the
+// smallest amount needed, #819 slice S2): the views catalog gained the
+// no-CP wording on Today, Progress and the session page, 4 messages in place of
+// 4. Measured 14,382 bytes by this gate (Node's default gzip), against the old
+// 14,336-byte limit (main measures 14,322). The new 14.1 KB limit is 14,438.4
+// bytes, so 56 bytes of headroom remain. Fetched only by a visitor who chose
+// Spanish, never precached.
+const MAX_DASH_ES_GZIP_KB = 14.1;
 const MAX_PRECACHE_FILE_BYTES = 2 * 1024 * 1024;
 
 // main.jsx renders RouteRoot, which lazy-loads the dashboard or one tool.

@@ -15,6 +15,7 @@ vi.mock('../../hooks/useAnchors.js', () => ({
 }));
 
 import ErgView from '../ErgView.jsx';
+import { spacedText } from '../../test/spacedText.js';
 
 function renderView(props = {}) {
   const client = new QueryClient({
@@ -118,7 +119,7 @@ describe('ErgView', () => {
     expect(container.textContent).toContain('provisional');
   });
 
-  it('shows "CP unavailable" when the anchor is missing (no stale 190)', () => {
+  it("H3: no 'CP unavailable', 'anchor unreachable' or 'cannot be read' without a CP", () => {
     useErgSessionsMock.mockReturnValue({ data: [], isLoading: false });
     useAnchorsMock.mockReturnValue({
       cp: null,
@@ -126,9 +127,12 @@ describe('ErgView', () => {
       cpAvailable: false,
     });
     const { container } = renderView();
-    // The CP card degrades explicitly instead of showing a resolved wattage.
-    expect(container.textContent).toContain('CP unavailable');
-    expect(container.textContent).toContain('anchor unreachable');
+    // Absence is a normal state: no CP card, no CP test card, no fault words,
+    // and no resolved wattage (no stale 190).
+    expect(spacedText(container)).not.toMatch(
+      /\bCP\b|critical power|unavailable|unreachable|cannot be read/i
+    );
+    expect(spacedText(container)).not.toMatch(/190 ?W|205 ?W/);
   });
 
   it('renders without crashing with a session', () => {
@@ -234,19 +238,6 @@ describe('ErgView', () => {
       const card = getByText('CRITICAL POWER').parentElement;
       expect(card.textContent).toContain('212W');
       expect(card.textContent).toContain('confirmed');
-    });
-
-    it('says the anchor is unavailable instead of falling back silently', () => {
-      useAnchorsMock.mockReturnValue({
-        cp: null,
-        cpStatus: null,
-        cpAvailable: false,
-      });
-      const { getByText } = renderView();
-      const card = getByText('CRITICAL POWER').parentElement;
-      expect(card.textContent).toContain('CP unavailable');
-      expect(card.textContent).toContain('anchor unreachable');
-      expect(card.textContent).not.toMatch(/\d+W/);
     });
 
     it('does not show a past-dated CP test window', () => {

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useLingui } from '@lingui/react';
-import { useAnchors } from '../hooks/useAnchors.js';
 import { THEME } from '../constants/theme.js';
 import { FONT } from '../constants/type.js';
 import { RADIUS, SPACE, TYPE } from '../constants/tokens.js';
@@ -12,15 +11,13 @@ import {
 } from '../utils/firstRunGuide.js';
 import { isTestersBuild } from '../utils/testersBuild.js';
 import { useSessionOwner } from '../hooks/useSessionOwner.js';
-import SetRowingCpForm from './SetRowingCpForm.jsx';
 
 // Compact card on Today / Overview for testers (#797). Hidden on the owner's
-// build, and after the tester hides it.
+// build, and after the tester hides it. No CP field (#819 H 1, H 2).
 export default function TestersWelcomeCard() {
   const { i18n } = useLingui();
   const userId = useSessionOwner();
   const copy = guideFor(i18n.locale);
-  const { cp, cpAvailable } = useAnchors();
   const [hidden, setHidden] = useState(() => isWelcomeCardDismissed(userId));
 
   if (!isTestersBuild() || hidden || !userId) return null;
@@ -51,12 +48,6 @@ export default function TestersWelcomeCard() {
       <p style={{ margin: '0 0 10px', fontSize: 13, lineHeight: 1.5 }}>
         {card.body}
       </p>
-      {!cpAvailable && (
-        <div style={{ fontSize: 12, color: THEME.muted, marginBottom: 4 }}>
-          {card.notSet}
-        </div>
-      )}
-      <SetRowingCpForm copy={card} currentCp={cp} />
       <div
         style={{
           display: 'flex',

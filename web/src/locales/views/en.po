@@ -408,6 +408,10 @@ msgstr "Baselines are your own rolling 28-day trimmed mean."
 msgid "Below 7h target"
 msgstr "Below 7h target"
 
+#: src/views/OverviewView.jsx
+msgid "Bike FTP {ftp}W"
+msgstr "Bike FTP {ftp}W"
+
 #. Card title, all capitals
 #: src/views/RecoveryView.jsx
 msgid "BLOOD PRESSURE"
@@ -690,10 +694,6 @@ msgstr "Couldn't start searching for PM5s. Tap Connect to try again."
 #: src/components/StravaConnectPanel.jsx
 msgid "Counting the Strava data in your log…"
 msgstr "Counting the Strava data in your log…"
-
-#: src/views/OverviewView.jsx
-msgid "CP unavailable"
-msgstr "CP unavailable"
 
 #: src/views/OverviewView.jsx
 msgid "CTL builds over 42 days — values will be underestimated until ~6 weeks of data."
@@ -1167,6 +1167,10 @@ msgstr "LIVE ROWING"
 msgid "Load"
 msgstr "Load"
 
+#: src/views/OverviewView.jsx
+msgid "Load comes from your effort ratings. Rate a session after you finish and it counts here."
+msgstr "Load comes from your effort ratings. Rate a session after you finish and it counts here."
+
 #. Session caption list item
 #: src/components/session/ProvenanceNote.jsx
 msgid "load from average power against your anchor"
@@ -1436,6 +1440,11 @@ msgstr "No upcoming sessions"
 msgid "No vitals recorded yet"
 msgstr "No vitals recorded yet"
 
+#. Session page zones
+#: src/components/session/ZoneBar.jsx
+msgid "No zones are drawn yet. They appear once a rowing test has set your power zones."
+msgstr "No zones are drawn yet. They appear once a rowing test has set your power zones."
+
 #: src/components/session/SessionSummary.jsx
 msgid "Not scored: no duration is recorded."
 msgstr "Not scored: no duration is recorded."
@@ -1445,12 +1454,12 @@ msgid "Not scored: no sRPE and no average power are recorded."
 msgstr "Not scored: no sRPE and no average power are recorded."
 
 #: src/components/session/SessionSummary.jsx
-msgid "Not scored: no sRPE, and no bike FTP anchor to measure power against."
-msgstr "Not scored: no sRPE, and no bike FTP anchor to measure power against."
+msgid "Not scored: no sRPE was recorded. A session you rate by effort is scored from that rating."
+msgstr "Not scored: no sRPE was recorded. A session you rate by effort is scored from that rating."
 
 #: src/components/session/SessionSummary.jsx
-msgid "Not scored: no sRPE, and no rowing CP anchor to measure power against."
-msgstr "Not scored: no sRPE, and no rowing CP anchor to measure power against."
+msgid "Not scored: no sRPE, and no bike FTP anchor to measure power against."
+msgstr "Not scored: no sRPE, and no bike FTP anchor to measure power against."
 
 #: src/components/session/SessionSummary.jsx
 msgid "Not scored: no sRPE, and this session type has no power model."
@@ -1694,10 +1703,6 @@ msgstr "Power-derived load is measured against rowing CP {cp}W and bike FTP {ftp
 #: src/views/OverviewView.jsx
 msgid "Power-derived load is measured against rowing CP {cp}W; revalidate with a test to sharpen it."
 msgstr "Power-derived load is measured against rowing CP {cp}W; revalidate with a test to sharpen it."
-
-#: src/views/OverviewView.jsx
-msgid "Power-derived load is unavailable while the CP anchor cannot be read."
-msgstr "Power-derived load is unavailable while the CP anchor cannot be read."
 
 #. Meal before the session
 #: src/components/WorkoutItem.jsx
@@ -2784,8 +2789,3 @@ msgstr "Zones from your rowing CP, {value} W."
 #: src/components/session/ZoneBar.jsx
 msgid "Zones need a bike FTP anchor, and none is set, so no zones are drawn."
 msgstr "Zones need a bike FTP anchor, and none is set, so no zones are drawn."
-
-#. Session page zones
-#: src/components/session/ZoneBar.jsx
-msgid "Zones need a rowing CP anchor, and none is set, so no zones are drawn."
-msgstr "Zones need a rowing CP anchor, and none is set, so no zones are drawn."

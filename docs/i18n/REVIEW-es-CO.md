@@ -150,6 +150,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `moKkl9` | baseline | línea base | After "vs": compared with the baseline · Chart reference line label · src/views/mobile/MobileRecovery.jsx · src/views/RecoveryView.jsx |
 | `LxO1i3` | Baselines are your own rolling 28-day trimmed mean. | Las líneas base son tu propio promedio recortado de los últimos 28 días. | src/views/RecoveryView.jsx |
 | `qFXVm_` | Below 7h target | Por debajo de la meta de 7h | src/views/mobile/MobileRecovery.jsx |
+| `OYenWT` | Bike FTP {ftp}W | FTP de bici {ftp}W | src/views/OverviewView.jsx |
 | `ZP9mWc` | BLOOD PRESSURE | PRESIÓN ARTERIAL | Card title, all capitals · src/views/RecoveryView.jsx |
 | `eEV8x8` | BLOODS · LIPID PANEL | EXÁMENES DE SANGRE · PERFIL LIPÍDICO | Card title, all capitals: blood test, cholesterol panel · src/views/RecoveryView.jsx |
 | `qkgdaf` | Bluetooth is off. Turn it on in your phone's settings, then tap Connect again. | El Bluetooth está apagado. Actívalo en la configuración del teléfono y vuelve a tocar Conectar. | Android app error. Connect is the CONNECT TO PM5 button: match its translation · src/constants/pm5ErrorMessages.js |
@@ -208,7 +209,6 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `bbVCmK` | Couldn't refresh, showing earlier data. | No se pudo actualizar; se muestran datos anteriores. | src/components/HealthRecordCard.jsx |
 | `ocK4b6` | Couldn't start searching for PM5s. Tap Connect to try again. | No pudimos empezar a buscar PM5. Toca Conectar para volver a intentarlo. | Android app error. Connect is the CONNECT TO PM5 button: match its translation · src/constants/pm5ErrorMessages.js |
 | `trK-Ln` | Counting the Strava data in your log… | Contando los datos de Strava de tu registro… | Loading state while counting Strava-sourced sessions before a disconnect · src/components/StravaConnectPanel.jsx |
-| `rQjZxs` | CP unavailable | CP no disponible | src/views/OverviewView.jsx |
 | `DUMjBi` | CTL builds over 42 days — values will be underestimated until ~6 weeks of data. | La CTL se construye en 42 días: los valores quedarán subestimados hasta tener ~6 semanas de datos. | src/views/OverviewView.jsx |
 | `Y-2Bh2` | CURRENT PASSWORD | CONTRASEÑA ACTUAL | Change-password field label, all capitals · src/components/ChangePasswordPanel.jsx |
 | `pvnfJD` | Dark | Oscuro | src/components/ThemeControl.jsx |
@@ -305,6 +305,7 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `dF6vP6` | Live | En vivo | Desktop live erg pane · src/App.jsx |
 | `CRKVYp` | LIVE ROWING | REMO EN VIVO | Screen eyebrow, all capitals · src/views/ErgLiveView.jsx |
 | `axf51R` | Load | Carga | Desktop Progress pane · Progress sub-tab: training load · src/App.jsx · src/components/session/SessionSummary.jsx · src/views/mobile/MobileAnalytics.jsx · src/views/mobile/MobileProgress.jsx |
+| `ZXzuxF` | Load comes from your effort ratings. Rate a session after you finish and it counts here. | La carga sale de tus valoraciones de esfuerzo. Valora una sesión al terminarla y se suma aquí. | src/views/OverviewView.jsx |
 | `lyexpf` | load from average power against your anchor | carga a partir de la potencia promedio frente a tu referencia | Session caption list item · src/components/session/ProvenanceNote.jsx |
 | `sXjbU3` | load from your sRPE and duration | carga a partir de tu sRPE y la duración | Session caption list item · src/components/session/ProvenanceNote.jsx |
 | `SxT-I_` | Loading sessions… | Cargando sesiones… | src/views/CalendarView.jsx |
@@ -366,10 +367,11 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `WUxHQb` | No upcoming planned sessions. | No hay sesiones planificadas próximas. | src/views/PlanView.jsx |
 | `3jc046` | No upcoming sessions | No hay sesiones próximas | src/views/mobile/MobileAnalytics.jsx |
 | `GDcDFt` | No vitals recorded yet | Todavía no hay signos vitales registrados | src/views/mobile/MobileRecovery.jsx |
+| `qaVWRK` | No zones are drawn yet. They appear once a rowing test has set your power zones. | Todavía no se dibujan zonas. Aparecen cuando una prueba de remo define tus zonas de potencia. | Session page zones · src/components/session/ZoneBar.jsx |
 | `UDSQoS` | Not scored: no duration is recorded. | Sin puntuar: no hay duración registrada. | src/components/session/SessionSummary.jsx |
 | `idOGFH` | Not scored: no sRPE and no average power are recorded. | Sin puntuar: no hay sRPE ni potencia promedio registrados. | src/components/session/SessionSummary.jsx |
+| `PzkBa_` | Not scored: no sRPE was recorded. A session you rate by effort is scored from that rating. | Sin puntuar: no se registró sRPE. Una sesión que valoras por esfuerzo se puntúa con esa valoración. | src/components/session/SessionSummary.jsx |
 | `8Kmmv4` | Not scored: no sRPE, and no bike FTP anchor to measure power against. | Sin puntuar: no hay sRPE ni una referencia de FTP de bici con la cual medir la potencia. | src/components/session/SessionSummary.jsx |
-| `-KHRA3` | Not scored: no sRPE, and no rowing CP anchor to measure power against. | Sin puntuar: no hay sRPE ni una referencia de CP de remo con la cual medir la potencia. | src/components/session/SessionSummary.jsx |
 | `P1LWZ9` | Not scored: no sRPE, and this session type has no power model. | Sin puntuar: no hay sRPE, y este tipo de sesión no tiene modelo de potencia. | src/components/session/SessionSummary.jsx |
 | `mI1GAI` | Not scored: rated, but no duration is recorded. | Sin puntuar: hay una valoración, pero no hay duración registrada. | src/components/session/SessionSummary.jsx |
 | `ypi6T8` | NOTES (optional) | NOTAS (opcional) | Field label; NOTES in capitals, optional in lower case · src/views/ErgLiveView.jsx |
@@ -423,7 +425,6 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `3STn-x` | Power over the moving time, averaged over each 30 s, each value raised to the fourth power, those averaged, then the fourth root taken. Hard stretches count for more than their share of the time. | La potencia durante el tiempo en movimiento, promediada cada 30 s; cada valor se eleva a la cuarta potencia, se promedian y se saca la raíz cuarta. Los tramos intensos pesan más que su parte del tiempo. | src/components/session/MoreDetail.jsx |
 | `K9Pm4P` | Power-derived load is measured against rowing CP {cp}W and bike FTP {ftp}W; revalidate with a test to sharpen it. | La carga derivada de la potencia se mide frente a la CP de remo de {cp}W y el FTP de bici de {ftp}W; vuelve a validarla con una prueba para afinarla. | src/views/OverviewView.jsx |
 | `S4k530` | Power-derived load is measured against rowing CP {cp}W; revalidate with a test to sharpen it. | La carga derivada de la potencia se mide frente a la CP de remo de {cp}W; vuelve a validarla con una prueba para afinarla. | src/views/OverviewView.jsx |
-| `dCOvJh` | Power-derived load is unavailable while the CP anchor cannot be read. | La carga derivada de la potencia no está disponible mientras no se pueda leer el ancla de CP. | src/views/OverviewView.jsx |
 | `lb62Hm` | Pre: | Antes: | Meal before the session · src/components/WorkoutItem.jsx |
 | `iG7qUe` | Prescription — targets below. | Prescripción: objetivos abajo. | src/components/LogEntry.jsx |
 | `xkKuw9` | Prioritise recovery — reduce or rest | Prioriza la recuperación: reduce o descansa | src/views/RecoveryView.jsx |
@@ -651,7 +652,6 @@ may change. To correct a line, reply with its **row** id and the new Spanish.
 | `9MN8Gi` | Zones from your rowing CP, {value} W ({status}). | Zonas a partir de tu CP de remo, {value} W ({status}). | src/components/session/ZoneBar.jsx |
 | `RGdSv3` | Zones from your rowing CP, {value} W. | Zonas a partir de tu CP de remo, {value} W. | src/components/session/ZoneBar.jsx |
 | `PEv1c1` | Zones need a bike FTP anchor, and none is set, so no zones are drawn. | Las zonas necesitan una referencia de FTP de bici, y no hay ninguna, así que no se dibujan zonas. | Session page zones · src/components/session/ZoneBar.jsx |
-| `AYaKhM` | Zones need a rowing CP anchor, and none is set, so no zones are drawn. | Las zonas necesitan una referencia de CP de remo, y no hay ninguna, así que no se dibujan zonas. | Session page zones · src/components/session/ZoneBar.jsx |
 
 ## /squat (src/squat/locales)
 

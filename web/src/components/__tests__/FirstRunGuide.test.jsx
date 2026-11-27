@@ -9,6 +9,7 @@ import TestersWelcomeCard from '../TestersWelcomeCard.jsx';
 import { SessionOwnerContext } from '../../hooks/useSessionOwner.js';
 import { dismissGuide, guideStorageKey } from '../../utils/firstRunGuide.js';
 import { GUIDE } from '../../constants/firstRunGuide.js';
+import { spacedText } from '../../test/spacedText.js';
 
 vi.mock('../../supabaseClient.js', () => ({
   supabase: { from: () => ({}) },
@@ -64,13 +65,32 @@ describe('FirstRunGuide', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('offers a CP field on the CP step, and stays out of the message catalogs', () => {
+  it('H2: page 3 describes the base block and asks for no CP', () => {
     wrap(<FirstRunGuide userId="user-a" />);
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-    expect(screen.getByText('Your rowing CP')).toBeInTheDocument();
-    expect(screen.getByLabelText('Rowing CP (watts)')).toBeInTheDocument();
-    expect(screen.getByText('Rowing CP not set yet.')).toBeInTheDocument();
+    const dialog = screen.getByRole('dialog');
+    expect(screen.getByText('Start with easy rowing')).toBeInTheDocument();
+    expect(dialog).toHaveTextContent(/easy base rowing/);
+    expect(dialog).toHaveTextContent(/heart-rate strap/);
+    // No field, no button to save one, no label, and no placeholder.
+    expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(spacedText(dialog)).not.toMatch(
+      /\bCP\b|critical power|200 ?W|placeholder|watts/i
+    );
+  });
+
+  it('H1: no page of the guide, in either language, names a CP or the 200 W placeholder', () => {
+    for (const locale of ['en', 'es']) {
+      expect(JSON.stringify(GUIDE[locale])).not.toMatch(
+        /\bCP\b|critical power|potencia crítica|200 ?W|placeholder|provisional de 200/i
+      );
+    }
+    expect(GUIDE.en.steps.map((s) => s.id)).toEqual(
+      GUIDE.es.steps.map((s) => s.id)
+    );
+    expect(GUIDE.en.steps.some((s) => s.hasCp)).toBe(false);
   });
 });
 
@@ -90,13 +110,15 @@ describe('SampleDataBadge', () => {
 });
 
 describe('TestersWelcomeCard', () => {
-  it('invites the tester to open the guide and set CP', () => {
+  it('invites the tester to open the guide, with no CP field (H1, H2)', () => {
     wrap(<TestersWelcomeCard />);
-    expect(screen.getByText('Welcome')).toBeInTheDocument();
+    const card = screen.getByRole('region', { name: 'Welcome' });
     expect(
       screen.getByRole('button', { name: 'Open the guide' })
     ).toBeInTheDocument();
-    expect(screen.getByLabelText('Rowing CP (watts)')).toBeInTheDocument();
+    expect(screen.queryByLabelText(/CP/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument();
+    expect(spacedText(card)).not.toMatch(/\bCP\b|critical power|200 ?W/i);
   });
 });
 
@@ -115,10 +137,10 @@ describe('guide copy', () => {
     expect(text('es')).toContain('Usa Entrenar para planificar una sesión');
   });
 
-  it('calls it sample data, including the 200 W placeholder CP', () => {
+  it('calls it sample data, with no CP or 200 W placeholder in it', () => {
     for (const locale of ['en', 'es']) {
       const samples = GUIDE[locale].steps.find((s) => s.id === 'samples');
-      expect(samples.body).toContain('200 W');
+      expect(samples.body).not.toMatch(/200 ?W|\bCP\b/);
       expect(samples.body).not.toMatch(/A later change|Un cambio posterior/);
     }
     expect(GUIDE.en.steps.find((s) => s.id === 'samples').title).toBe(

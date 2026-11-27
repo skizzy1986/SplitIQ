@@ -79,7 +79,7 @@ describe('ZoneBar', () => {
     ).toBeInTheDocument();
   });
 
-  it('with no anchor says zones need one and draws no bar', () => {
+  it("H3: no 'CP unavailable', 'anchor unreachable' or 'cannot be read' without a CP", () => {
     render(
       <ZoneBar
         result={null}
@@ -87,11 +87,14 @@ describe('ZoneBar', () => {
         hasPower
       />
     );
-    expect(
-      screen.getByText(
-        'Zones need a rowing CP anchor, and none is set, so no zones are drawn.'
-      )
-    ).toBeInTheDocument();
+    // Plain words that say what comes next, with no CP and no fault wording.
+    const note = screen.getByText(
+      'No zones are drawn yet. They appear once a rowing test has set your power zones.'
+    );
+    expect(note).toBeInTheDocument();
+    expect(note.textContent).not.toMatch(
+      /\bCP\b|critical power|anchor|unavailable|unreachable|cannot be read/i
+    );
     expect(screen.queryByRole('img')).toBeNull();
     render(<ZoneBar result={null} anchor={{ kind: 'ftp' }} hasPower />);
     expect(screen.getByText(/bike FTP anchor/)).toBeInTheDocument();

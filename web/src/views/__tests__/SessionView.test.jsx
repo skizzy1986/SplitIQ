@@ -349,14 +349,17 @@ describe('SessionView — states, none drawing a chart', () => {
     ).toBeInTheDocument();
   });
 
-  it('no anchor: zones need one, and none are drawn', () => {
+  it('no CP: the page says no zones are drawn yet and names no CP anywhere (H1, H3)', () => {
     mocks.anchors = { cp: null, cpStatus: null, ftp: null, ftpStatus: null };
-    view();
+    const { container } = view();
     expect(
       screen.getByText(
-        'Zones need a rowing CP anchor, and none is set, so no zones are drawn.'
+        'No zones are drawn yet. They appear once a rowing test has set your power zones.'
       )
     ).toBeInTheDocument();
+    expect(container.textContent).not.toMatch(
+      /\bCP\b|critical power|unreachable|cannot be read/i
+    );
     expect(screen.queryByTestId('band')).toBeNull();
   });
 });

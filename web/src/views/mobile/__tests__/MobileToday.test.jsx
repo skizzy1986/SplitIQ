@@ -302,3 +302,18 @@ describe('the header', () => {
     expect(screen.queryByRole('button', { name: 'Settings' })).toBeNull();
   });
 });
+
+describe('no CP (#819 H 1, H 3)', () => {
+  it('H1: Today names no CP and no fault wording for an account with no rowing_cp anchor', () => {
+    mockAnchors.mockReturnValue({
+      anchors: {},
+      cp: null,
+      ftp: null,
+      cpAvailable: false,
+    });
+    const { container } = render(<MobileToday />);
+    expect(container.textContent).not.toMatch(
+      /\bCP\b|critical power|anchor|unreachable|cannot be read|\b200 ?W\b/i
+    );
+  });
+});

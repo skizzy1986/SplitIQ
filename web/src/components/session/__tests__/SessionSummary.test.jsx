@@ -73,7 +73,7 @@ describe('SessionSummary', () => {
       'no_anchor (rowing)',
       ergRow({ srpe: null, avg_watts: 180 }),
       'erg',
-      'Not scored: no sRPE, and no rowing CP anchor to measure power against.',
+      'Not scored: no sRPE was recorded. A session you rate by effort is scored from that rating.',
       { cp: null, ftp: 250 },
     ],
     [
@@ -105,6 +105,22 @@ describe('SessionSummary', () => {
       />
     );
     expect(within(tile('load')).getByText(text)).toBeInTheDocument();
+  });
+
+  it("H3: no 'CP unavailable', 'anchor unreachable' or 'cannot be read' without a CP", () => {
+    const session = ergRow({ srpe: null, avg_watts: 180 });
+    const { container } = render(
+      <SessionSummary
+        session={session}
+        sport="erg"
+        summary={storedSummary(session, 'erg')}
+        load={sessionLoadBasis(session, { cp: null, ftp: null })}
+      />
+    );
+    expect(container.textContent).toMatch(/Not scored: no sRPE was recorded/);
+    expect(container.textContent).not.toMatch(
+      /\bCP\b|critical power|anchor|unreachable|cannot be read/i
+    );
   });
 
   it('shows cycling speed, not pace', () => {

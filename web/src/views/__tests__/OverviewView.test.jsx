@@ -211,16 +211,35 @@ describe('OverviewView', () => {
     expect(screen.queryByText(/bike FTP/)).not.toBeInTheDocument();
   });
 
-  it('says CP is unavailable rather than showing a stale threshold', () => {
+  it('H1: no CP label or CP-derived watts without a rowing_cp anchor', () => {
     useAnchorsMock.mockReturnValue({
       anchors: {},
       cp: null,
       ftp: null,
       cpAvailable: false,
     });
-    render(<OverviewView {...baseProps} />);
-    expect(screen.getByText('CP unavailable')).toBeInTheDocument();
-    expect(screen.queryByText(/190W/)).not.toBeInTheDocument();
+    const { container } = render(<OverviewView {...baseProps} />);
+    // No CP wording, no stale threshold, and nothing that reads as a fault.
+    expect(container.textContent).not.toMatch(
+      /\bCP\b|critical power|anchor|unavailable while/i
+    );
+    expect(container.textContent).not.toMatch(/190W|200W/);
+    // The footnote says where the load comes from and what to do next.
+    expect(
+      screen.getByText(/Load comes from your effort ratings\. Rate a session/)
+    ).toBeInTheDocument();
+  });
+
+  it('H1: a bike FTP alone is named without a CP beside it', () => {
+    useAnchorsMock.mockReturnValue({
+      anchors: {},
+      cp: null,
+      ftp: 250,
+      cpAvailable: false,
+    });
+    const { container } = render(<OverviewView {...baseProps} />);
+    expect(screen.getByText('Bike FTP 250W')).toBeInTheDocument();
+    expect(container.textContent).not.toMatch(/\bCP\b|critical power/i);
   });
 
   it('says the training load is unavailable rather than showing a zero', () => {
@@ -352,7 +371,7 @@ describe('OverviewView', () => {
     expect(tile('TSB').getByText('-5')).toBeInTheDocument();
   });
 
-  it('(e) shows both unavailable states together when CP and load are null', () => {
+  it('(e) the load-unavailable state names no CP when there is none', () => {
     useAnchorsMock.mockReturnValue({
       anchors: {},
       cp: null,
@@ -363,8 +382,7 @@ describe('OverviewView', () => {
       <OverviewView {...baseProps} latest={null} loadUnavailable={true} />
     );
     expect(screen.getByText('TRAINING LOAD UNAVAILABLE')).toBeInTheDocument();
-    expect(screen.getByText('CP unavailable')).toBeInTheDocument();
-    expect(screen.getByText(/CP anchor cannot be read/)).toBeInTheDocument();
+    expect(screen.queryByText(/CP/)).not.toBeInTheDocument();
   });
 
   it('(f) scores readiness off population defaults below 14 samples', () => {

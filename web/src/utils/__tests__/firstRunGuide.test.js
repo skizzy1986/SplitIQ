@@ -105,7 +105,7 @@ describe('guide copy', () => {
       expect(ids).toEqual([
         'welcome',
         'today',
-        'cp',
+        'base-block',
         'plan-log',
         'progress-body',
         'squat',

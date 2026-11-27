@@ -245,7 +245,9 @@ export default function OverviewView({
               ? ftp != null
                 ? t`Rowing CP ${cp}W · bike FTP ${ftp}W`
                 : t`Rowing CP ${cp}W`
-              : t`CP unavailable`}
+              : ftp != null
+                ? t`Bike FTP ${ftp}W`
+                : null}
           </div>
         </div>
         {loadUnavailable && (
@@ -426,7 +428,7 @@ export default function OverviewView({
             ? ftp != null
               ? t`Power-derived load is measured against rowing CP ${cp}W and bike FTP ${ftp}W; revalidate with a test to sharpen it.`
               : t`Power-derived load is measured against rowing CP ${cp}W; revalidate with a test to sharpen it.`
-            : t`Power-derived load is unavailable while the CP anchor cannot be read.`}
+            : t`Load comes from your effort ratings. Rate a session after you finish and it counts here.`}
         </div>
       </div>
 

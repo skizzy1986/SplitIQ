@@ -3,6 +3,7 @@ import SessionSummary from '../SessionSummary.jsx';
 import { storedSummary } from '../../../utils/sessionPage.js';
 import { sessionLoadBasis } from '../../../utils/trainingLoad.js';
 import { ergRow } from '../../../test/sessionFixtures.js';
+import { spacedText } from '../../../test/spacedText.js';
 
 const ANCHORS = { cp: 200, ftp: 250 };
 
@@ -118,7 +119,7 @@ describe('SessionSummary', () => {
       />
     );
     expect(container.textContent).toMatch(/Not scored: no sRPE was recorded/);
-    expect(container.textContent).not.toMatch(
+    expect(spacedText(container)).not.toMatch(
       /\bCP\b|critical power|anchor|unreachable|cannot be read/i
     );
   });

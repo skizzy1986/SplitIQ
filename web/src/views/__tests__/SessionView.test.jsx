@@ -32,6 +32,7 @@ vi.mock('../../hooks/useSessions.js', () => ({
 }));
 
 import SessionView from '../SessionView.jsx';
+import { spacedText } from '../../test/spacedText.js';
 
 const detail = (data, over = {}) => ({
   data,
@@ -357,7 +358,7 @@ describe('SessionView — states, none drawing a chart', () => {
         'No zones are drawn yet. They appear once a rowing test has set your power zones.'
       )
     ).toBeInTheDocument();
-    expect(container.textContent).not.toMatch(
+    expect(spacedText(container)).not.toMatch(
       /\bCP\b|critical power|unreachable|cannot be read/i
     );
     expect(screen.queryByTestId('band')).toBeNull();

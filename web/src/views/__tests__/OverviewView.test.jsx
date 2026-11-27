@@ -22,6 +22,7 @@ vi.mock('../../hooks/useAnchors.js', () => ({
 
 import OverviewView from '../OverviewView.jsx';
 import { THEME } from '../../constants/theme.js';
+import { spacedText } from '../../test/spacedText.js';
 
 const vitalsRow = {
   date: '2026-08-21',
@@ -220,10 +221,10 @@ describe('OverviewView', () => {
     });
     const { container } = render(<OverviewView {...baseProps} />);
     // No CP wording, no stale threshold, and nothing that reads as a fault.
-    expect(container.textContent).not.toMatch(
+    expect(spacedText(container)).not.toMatch(
       /\bCP\b|critical power|anchor|unavailable while/i
     );
-    expect(container.textContent).not.toMatch(/190W|200W/);
+    expect(spacedText(container)).not.toMatch(/190 ?W|200 ?W/);
     // The footnote says where the load comes from and what to do next.
     expect(
       screen.getByText(/Load comes from your effort ratings\. Rate a session/)
@@ -239,7 +240,7 @@ describe('OverviewView', () => {
     });
     const { container } = render(<OverviewView {...baseProps} />);
     expect(screen.getByText('Bike FTP 250W')).toBeInTheDocument();
-    expect(container.textContent).not.toMatch(/\bCP\b|critical power/i);
+    expect(spacedText(container)).not.toMatch(/\bCP\b|critical power/i);
   });
 
   it('says the training load is unavailable rather than showing a zero', () => {

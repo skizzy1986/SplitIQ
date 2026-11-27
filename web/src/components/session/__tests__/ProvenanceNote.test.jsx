@@ -6,6 +6,7 @@ import ProvenanceNote from '../ProvenanceNote.jsx';
 import { THEME } from '../../../constants/theme.js';
 import { seriesFromStrava } from '../../../utils/stravaSeries.js';
 import { ACTIVITY_URL, stravaOkBody } from '../../../test/sessionFixtures.js';
+import { spacedText } from '../../../test/spacedText.js';
 
 const read = (rel) => readFileSync(join(process.cwd(), rel), 'utf8');
 
@@ -53,7 +54,7 @@ describe('ProvenanceNote', () => {
       />
     );
     expect(container.textContent).toMatch(/Derived here: pace from power/);
-    expect(container.textContent).not.toMatch(
+    expect(spacedText(container)).not.toMatch(
       /\bCP\b|critical power|unavailable|unreachable|cannot be read/i
     );
   });

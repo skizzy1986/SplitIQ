@@ -196,8 +196,10 @@ const MAX_TOTAL_GZIP_KB = 433;
 // Raised 14 -> 14.1 on 2026-11-27 (Scott's OK for a per-PR raise, by the
 // smallest amount needed, #819 slice S2): the views catalog gained the
 // no-CP wording on Today, Progress and the session page, 4 messages in place of
-// 4. Measured 14.0 KB (14,407 bytes by gzip -9) against the 14,336-byte limit.
-// Fetched only by a visitor who chose Spanish, never precached.
+// 4. Measured 14,382 bytes by this gate (Node's default gzip), against the old
+// 14,336-byte limit (main measures 14,322). The new 14.1 KB limit is 14,438.4
+// bytes, so 56 bytes of headroom remain. Fetched only by a visitor who chose
+// Spanish, never precached.
 const MAX_DASH_ES_GZIP_KB = 14.1;
 const MAX_PRECACHE_FILE_BYTES = 2 * 1024 * 1024;
 

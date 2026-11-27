@@ -15,6 +15,7 @@ vi.mock('../../hooks/useAnchors.js', () => ({
 }));
 
 import ErgView from '../ErgView.jsx';
+import { spacedText } from '../../test/spacedText.js';
 
 function renderView(props = {}) {
   const client = new QueryClient({
@@ -128,10 +129,10 @@ describe('ErgView', () => {
     const { container } = renderView();
     // Absence is a normal state: no CP card, no CP test card, no fault words,
     // and no resolved wattage (no stale 190).
-    expect(container.textContent).not.toMatch(
+    expect(spacedText(container)).not.toMatch(
       /\bCP\b|critical power|unavailable|unreachable|cannot be read/i
     );
-    expect(container.textContent).not.toMatch(/190W|205W/);
+    expect(spacedText(container)).not.toMatch(/190 ?W|205 ?W/);
   });
 
   it('renders without crashing with a session', () => {

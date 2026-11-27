@@ -9,6 +9,7 @@ import TestersWelcomeCard from '../TestersWelcomeCard.jsx';
 import { SessionOwnerContext } from '../../hooks/useSessionOwner.js';
 import { dismissGuide, guideStorageKey } from '../../utils/firstRunGuide.js';
 import { GUIDE } from '../../constants/firstRunGuide.js';
+import { spacedText } from '../../test/spacedText.js';
 
 vi.mock('../../supabaseClient.js', () => ({
   supabase: { from: () => ({}) },
@@ -75,7 +76,7 @@ describe('FirstRunGuide', () => {
     // No field, no button to save one, no label, and no placeholder.
     expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument();
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
-    expect(dialog.textContent).not.toMatch(
+    expect(spacedText(dialog)).not.toMatch(
       /\bCP\b|critical power|200 ?W|placeholder|watts/i
     );
   });
@@ -117,7 +118,7 @@ describe('TestersWelcomeCard', () => {
     ).toBeInTheDocument();
     expect(screen.queryByLabelText(/CP/)).not.toBeInTheDocument();
     expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument();
-    expect(card.textContent).not.toMatch(/\bCP\b|critical power|200 ?W/i);
+    expect(spacedText(card)).not.toMatch(/\bCP\b|critical power|200 ?W/i);
   });
 });
 

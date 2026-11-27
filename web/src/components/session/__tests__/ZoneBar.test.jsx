@@ -6,6 +6,7 @@ import {
   deriveCyclingZones,
   derivePaceZones,
 } from '../../../constants/trainingConfig.js';
+import { spacedText } from '../../../test/spacedText.js';
 
 const series = (watts) =>
   createSeries({
@@ -92,7 +93,7 @@ describe('ZoneBar', () => {
       'No zones are drawn yet. They appear once a rowing test has set your power zones.'
     );
     expect(note).toBeInTheDocument();
-    expect(note.textContent).not.toMatch(
+    expect(spacedText(note)).not.toMatch(
       /\bCP\b|critical power|anchor|unavailable|unreachable|cannot be read/i
     );
     expect(screen.queryByRole('img')).toBeNull();

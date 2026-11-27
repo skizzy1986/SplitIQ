@@ -21,10 +21,12 @@ vi.mock('../../../hooks/useAnchors.js', () => ({
 }));
 
 import MobileToday from '../MobileToday.jsx';
+import { SessionOwnerContext } from '../../../hooks/useSessionOwner.js';
 import {
   LIVE_ERG_FLAG_KEY,
   LIVE_ERG_FLAG_ON,
 } from '../../../live-erg/liveErgFlag.js';
+import { spacedText } from '../../../test/spacedText.js';
 
 const iso = (d) => d.toISOString().slice(0, 10);
 const mdy = (d) =>
@@ -304,15 +306,28 @@ describe('the header', () => {
 });
 
 describe('no CP (#819 H 1, H 3)', () => {
-  it('H1: Today names no CP and no fault wording for an account with no rowing_cp anchor', () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  // Today as a tester sees it: the testers build mounts the welcome card, which
+  // is where the CP field used to sit. The card is lazy and needs a signed-in
+  // owner, so the test waits for it and then checks the whole page.
+  it('H1: Today names no CP and no fault wording for an account with no rowing_cp anchor', async () => {
+    vi.stubEnv('VITE_TESTERS_BUILD', 'true');
     mockAnchors.mockReturnValue({
       anchors: {},
       cp: null,
       ftp: null,
       cpAvailable: false,
     });
-    const { container } = render(<MobileToday />);
-    expect(container.textContent).not.toMatch(
+    const { container } = render(
+      <SessionOwnerContext.Provider value="user-1">
+        <MobileToday />
+      </SessionOwnerContext.Provider>
+    );
+    expect(
+      await screen.findByRole('region', { name: 'Welcome' })
+    ).toBeInTheDocument();
+    expect(spacedText(container)).not.toMatch(
       /\bCP\b|critical power|anchor|unreachable|cannot be read|\b200 ?W\b/i
     );
   });

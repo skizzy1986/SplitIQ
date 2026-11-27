@@ -84,7 +84,7 @@ export default function SessionSummary({
     basis =
       sport === 'cycling'
         ? t`Not scored: no sRPE, and no bike FTP anchor to measure power against.`
-        : t`Not scored: no sRPE, and no rowing CP anchor to measure power against.`;
+        : t`Not scored: no sRPE was recorded. A session you rate by effort is scored from that rating.`;
   } else {
     basis = t`Not scored: no sRPE, and this session type has no power model.`;
   }

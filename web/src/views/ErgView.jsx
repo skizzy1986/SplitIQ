@@ -503,118 +503,123 @@ export default function ErgView({ tsbNow, ctlNow, onLog, heading = true }) {
         )}
       </div>
 
+      {/* No CP, no CP card: absence is normal, not an error (#819 H 1, H 3). */}
       {/* CP Test plan */}
-      <div
-        style={{
-          background: `linear-gradient(135deg,${alpha(THEME.accent, '15')},${THEME.surfaceAlt})`,
-          border: `1px solid ${alpha(THEME.accent, '50')}`,
-          borderRadius: 6,
-          padding: '14px 16px',
-          marginBottom: 12,
-        }}
-      >
+      {cpAvailable && (
         <div
           style={{
-            fontSize: 9,
-            letterSpacing: 3,
-            color: THEME.accent,
-            marginBottom: 6,
-          }}
-        >
-          ⏱️ CRITICAL POWER TEST · HIGHEST-VALUE CALIBRATION
-        </div>
-        <div
-          style={{
-            fontSize: 11,
-            color: THEME.textSubtle,
-            lineHeight: 1.6,
-            marginBottom: 8,
-          }}
-        >
-          <span style={{ color: THEME.accent }}>When: </span>
-          {FTP_TEST.when}
-        </div>
-        <div
-          style={{
-            fontSize: 10,
-            color: THEME.textSubtle,
-            lineHeight: 1.6,
-            marginBottom: 6,
-          }}
-        >
-          <span style={{ color: THEME.accent }}>Protocol: </span>
-          {FTP_TEST.protocol}
-        </div>
-        <div
-          style={{
-            fontSize: 10,
-            color: THEME.textSubtle,
-            lineHeight: 1.6,
-            marginBottom: 6,
-          }}
-        >
-          <span style={{ color: THEME.accent }}>Prereq: </span>
-          {FTP_TEST.prereq}
-        </div>
-        <div
-          style={{
-            fontSize: 10,
-            color: THEME.muted,
-            lineHeight: 1.6,
-            borderTop: `1px solid ${THEME.divider}`,
-            paddingTop: 8,
-          }}
-        >
-          🔓 {FTP_TEST.unlocks}
-        </div>
-      </div>
-
-      {/* Rowing metrics — critical power */}
-      <div
-        style={{
-          background: THEME.raised,
-          border: `1px solid ${alpha(THEME.accentAlt, '30')}`,
-          borderLeft: `3px solid ${THEME.accentAlt}`,
-          borderRadius: 6,
-          padding: '14px 16px',
-          marginBottom: 12,
-        }}
-      >
-        <div
-          style={{
-            fontSize: 9,
-            letterSpacing: 3,
-            color: THEME.accentAlt,
-            marginBottom: 10,
-          }}
-        >
-          ROWING METRICS · CRITICAL POWER
-        </div>
-        <div
-          style={{
-            background: THEME.field,
-            borderRadius: 4,
-            padding: '8px 9px',
+            background: `linear-gradient(135deg,${alpha(THEME.accent, '15')},${THEME.surfaceAlt})`,
+            border: `1px solid ${alpha(THEME.accent, '50')}`,
+            borderRadius: 6,
+            padding: '14px 16px',
+            marginBottom: 12,
           }}
         >
           <div
             style={{
-              fontSize: 8,
-              color: THEME.muted,
-              letterSpacing: 1,
-              marginBottom: 2,
+              fontSize: 9,
+              letterSpacing: 3,
+              color: THEME.accent,
+              marginBottom: 6,
             }}
           >
-            CRITICAL POWER
+            ⏱️ CRITICAL POWER TEST · HIGHEST-VALUE CALIBRATION
           </div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: THEME.accent }}>
-            {cpAvailable ? cp + 'W' : 'CP unavailable'}
+          <div
+            style={{
+              fontSize: 11,
+              color: THEME.textSubtle,
+              lineHeight: 1.6,
+              marginBottom: 8,
+            }}
+          >
+            <span style={{ color: THEME.accent }}>When: </span>
+            {FTP_TEST.when}
           </div>
-          <div style={{ fontSize: 8, color: THEME.textFaint, marginTop: 1 }}>
-            {cpAvailable ? cpStatus : 'anchor unreachable'}
+          <div
+            style={{
+              fontSize: 10,
+              color: THEME.textSubtle,
+              lineHeight: 1.6,
+              marginBottom: 6,
+            }}
+          >
+            <span style={{ color: THEME.accent }}>Protocol: </span>
+            {FTP_TEST.protocol}
+          </div>
+          <div
+            style={{
+              fontSize: 10,
+              color: THEME.textSubtle,
+              lineHeight: 1.6,
+              marginBottom: 6,
+            }}
+          >
+            <span style={{ color: THEME.accent }}>Prereq: </span>
+            {FTP_TEST.prereq}
+          </div>
+          <div
+            style={{
+              fontSize: 10,
+              color: THEME.muted,
+              lineHeight: 1.6,
+              borderTop: `1px solid ${THEME.divider}`,
+              paddingTop: 8,
+            }}
+          >
+            🔓 {FTP_TEST.unlocks}
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Rowing metrics — critical power */}
+      {cpAvailable && (
+        <div
+          style={{
+            background: THEME.raised,
+            border: `1px solid ${alpha(THEME.accentAlt, '30')}`,
+            borderLeft: `3px solid ${THEME.accentAlt}`,
+            borderRadius: 6,
+            padding: '14px 16px',
+            marginBottom: 12,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 9,
+              letterSpacing: 3,
+              color: THEME.accentAlt,
+              marginBottom: 10,
+            }}
+          >
+            ROWING METRICS · CRITICAL POWER
+          </div>
+          <div
+            style={{
+              background: THEME.field,
+              borderRadius: 4,
+              padding: '8px 9px',
+            }}
+          >
+            <div
+              style={{
+                fontSize: 8,
+                color: THEME.muted,
+                letterSpacing: 1,
+                marginBottom: 2,
+              }}
+            >
+              CRITICAL POWER
+            </div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: THEME.accent }}>
+              {cp + 'W'}
+            </div>
+            <div style={{ fontSize: 8, color: THEME.textFaint, marginTop: 1 }}>
+              {cpStatus}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── SECTION 5 · SESSION HISTORY ── */}
       <div

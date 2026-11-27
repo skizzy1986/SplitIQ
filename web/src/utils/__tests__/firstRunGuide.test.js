@@ -105,7 +105,7 @@ describe('guide copy', () => {
       expect(ids).toEqual([
         'welcome',
         'today',
-        'cp',
+        'base-block',
         'plan-log',
         'progress-body',
         'squat',
@@ -114,6 +114,16 @@ describe('guide copy', () => {
       const blob = JSON.stringify(pack);
       expect(blob).not.toMatch(/Scott/i);
     }
+    // Page 3 describes only what is built (#833): no weekly build-up and no
+    // heart-rate following, in either language.
+    const baseBlock = (pack) =>
+      pack.steps.find((step) => step.id === 'base-block').body;
+    expect(baseBlock(GUIDE.en)).not.toMatch(
+      /builds up|each week|heart rate|heart-rate|strap/i
+    );
+    expect(baseBlock(GUIDE.es)).not.toMatch(
+      /cada semana|frecuencia cardíaca|pulso|banda/i
+    );
     expect(GUIDE.en.welcomeCard.sampleBadge).toMatch(/sample/i);
     expect(GUIDE.es.welcomeCard.sampleBadge).toMatch(/ejemplo/i);
   });

@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useLingui } from '@lingui/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSessions } from '../hooks/useSessions.js';
-import { useAnchors } from '../hooks/useAnchors.js';
 import { THEME } from '../constants/theme.js';
 import { FONT } from '../constants/type.js';
 import { RADIUS, SPACE, TYPE } from '../constants/tokens.js';
@@ -15,17 +14,16 @@ import {
 } from '../utils/firstRunGuide.js';
 import { clearSampleData } from '../utils/setRowingCp.js';
 import { invalidateSessionQueries } from '../utils/invalidateSessionQueries.js';
-import SetRowingCpForm from './SetRowingCpForm.jsx';
 
 // Testers-only walkthrough (#797). Copy lives in firstRunGuide.js, not the
-// catalogs, so dash es does not grow. Lazy-loaded from AuthGate.
+// catalogs, so dash es does not grow. Lazy-loaded from AuthGate. It asks for no
+// CP (#819 H 2); page 3 describes the base block instead.
 export default function FirstRunGuide({ userId }) {
   const { i18n } = useLingui();
   const copy = guideFor(i18n.locale);
   const [open, setOpen] = useState(() => !isGuideDismissed(userId));
   const [step, setStep] = useState(0);
   const queryClient = useQueryClient();
-  const { cp, cpAvailable } = useAnchors();
   const sessions = useSessions({ mode: 'recent' });
   const [clearStatus, setClearStatus] = useState(null);
   const [clearing, setClearing] = useState(false);
@@ -121,19 +119,6 @@ export default function FirstRunGuide({ userId }) {
         <p style={{ margin: '0 0 12px', fontSize: 13, lineHeight: 1.5 }}>
           {current.body}
         </p>
-
-        {current.hasCp && (
-          <>
-            {!cpAvailable && (
-              <div
-                style={{ fontSize: 12, color: THEME.muted, marginBottom: 4 }}
-              >
-                {copy.welcomeCard.notSet}
-              </div>
-            )}
-            <SetRowingCpForm copy={copy.welcomeCard} currentCp={cp} />
-          </>
-        )}
 
         {current.hasSquat && (
           <a

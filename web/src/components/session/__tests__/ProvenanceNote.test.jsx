@@ -6,6 +6,7 @@ import ProvenanceNote from '../ProvenanceNote.jsx';
 import { THEME } from '../../../constants/theme.js';
 import { seriesFromStrava } from '../../../utils/stravaSeries.js';
 import { ACTIVITY_URL, stravaOkBody } from '../../../test/sessionFixtures.js';
+import { spacedText } from '../../../test/spacedText.js';
 
 const read = (rel) => readFileSync(join(process.cwd(), rel), 'utf8');
 
@@ -41,6 +42,21 @@ describe('ProvenanceNote', () => {
         'Derived here: pace from power, zones from your rowing CP anchor, and load from your sRPE and duration.'
       )
     ).toBeInTheDocument();
+  });
+
+  it("H3: no 'CP unavailable', 'anchor unreachable' or 'cannot be read' without a CP", () => {
+    // With no CP the page never asks for the CP line, so the note names none.
+    const { container } = render(
+      <ProvenanceNote
+        source="strava"
+        measured={['power', 'hr']}
+        derived={['pacePower', 'loadSrpe']}
+      />
+    );
+    expect(container.textContent).toMatch(/Derived here: pace from power/);
+    expect(spacedText(container)).not.toMatch(
+      /\bCP\b|critical power|unavailable|unreachable|cannot be read/i
+    );
   });
 
   it('says an imported session came from the import even with no trace', () => {

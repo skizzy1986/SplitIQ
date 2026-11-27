@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import SetRowingCpForm from '../SetRowingCpForm.jsx';
-import { GUIDE } from '../../constants/firstRunGuide.js';
+import { CP_FORM } from '../../constants/cpFormCopy.js';
 
 const rpcMock = vi.fn();
 const fromMock = vi.fn(() => {
@@ -21,7 +21,7 @@ function setup(currentCp = 215) {
   const invalidate = vi.spyOn(client, 'invalidateQueries');
   render(
     <QueryClientProvider client={client}>
-      <SetRowingCpForm copy={GUIDE.en.welcomeCard} currentCp={currentCp} />
+      <SetRowingCpForm copy={CP_FORM.en} currentCp={currentCp} />
     </QueryClientProvider>
   );
   const input = screen.getByLabelText('Rowing CP (watts)');

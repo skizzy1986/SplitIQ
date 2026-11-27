@@ -48,7 +48,7 @@ export default function ZoneBar({ result, anchor, hasPower }) {
             })
           : t({
               message:
-                'Zones need a rowing CP anchor, and none is set, so no zones are drawn.',
+                'No zones are drawn yet. They appear once a rowing test has set your power zones.',
               comment: 'Session page zones',
             })}
       </p>

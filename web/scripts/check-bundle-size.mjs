@@ -193,8 +193,8 @@ const MAX_TOTAL_GZIP_KB = 433;
 // messages. Measured 12.0 KB. Fetched only by a visitor who chose Spanish,
 // never precached. Rule: 12.0 + 2 = 14.0, to the nearest whole KB: 14.
 //
-// Raised 14 -> 14.1 on 2026-11-27 (Scott, 11:01 AM AWST: raise it per PR as
-// needed, by the smallest amount, #819 slice S2): the views catalog gained the
+// Raised 14 -> 14.1 on 2026-11-27 (Scott's OK for a per-PR raise, by the
+// smallest amount needed, #819 slice S2): the views catalog gained the
 // no-CP wording on Today, Progress and the session page, 4 messages in place of
 // 4. Measured 14.0 KB (14,407 bytes by gzip -9) against the 14,336-byte limit.
 // Fetched only by a visitor who chose Spanish, never precached.

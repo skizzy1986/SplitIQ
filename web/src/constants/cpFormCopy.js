@@ -3,8 +3,8 @@
 // dashboard's Spanish budget. Informal es-CO, no usted.
 //
 // Nothing mounts the form right now (#819 H 1, H 2): a new tester is never
-// asked for a CP. Slice S4's AdvancedCpForm brings it back, behind the expert
-// depth, and takes these words with it.
+// asked for a CP. A later #819 slice brings the form back, and takes these
+// words with it.
 
 export const CP_FORM = {
   en: {

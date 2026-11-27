@@ -1,6 +1,6 @@
 // @vitest-environment node
 //
-// #819 slice S2, Gate 2 brief §6 "CP scan" and §6a rows 1 and 3. The app must
+// #819 slice S2 (H 1 and H 3). The app must
 // not show "CP" or "critical power" to an account that has no rowing CP.
 // This reads every source file under web/src, parses it, and collects the
 // string literals, template text and JSX text that name a CP. Every file with
@@ -108,7 +108,7 @@ const GATED = {
     "H3: no 'CP unavailable', 'anchor unreachable' or 'cannot be read' without a CP",
   ],
   'constants/cpFormCopy.js': [
-    // Mounted nowhere until S4's expert-depth form; the guide and welcome card
+    // Mounted nowhere until a later slice brings the form back; the guide and welcome card
     // tests prove neither shows a CP field.
     'components/__tests__/FirstRunGuide.test.jsx',
     'H2: page 3 describes the base block and asks for no CP',

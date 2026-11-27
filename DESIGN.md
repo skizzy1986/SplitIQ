@@ -65,6 +65,87 @@ recorded — the importer, later). Both clear AA on `surface`, `raised` and `fie
 No existing value moved. Scene colours for the 3D view land with it (PR2).
 `check:colours` also rejects three.js `0xRRGGBB` literals under `web/src/squat/`.
 
+## The rower's scene tokens and the SplitIQ mark
+
+Four **additive** tokens, in both palettes, paint the `/row` scene (#827; #757 wires
+the erg, #761 the skin and clothes). Like the `anatomy*` tokens they are named for what
+they colour and read through `THEME`; no existing value moved, and the squat is
+unchanged. Raw channels for three.js come from `hexToRaw01` on the palette value.
+
+| Token | CSS variable | Paints | Dark | Light |
+|---|---|---|---|---|
+| `sceneSkin` | `--color-scene-skin` | the skin mesh | `#c98f6f` | `#d29c78` |
+| `sceneClothes` | `--color-scene-clothes` | the shirt and shorts | `#2f8196` | `#0b5d7a` |
+| `sceneClothesAlt` | `--color-scene-clothes-alt` | the ground the mark sits on (the chest decal) | `#0b0e16` | `#f4f7fc` |
+| `sceneErg` | `--color-scene-erg` | the erg's primitives | `#cdd3de` | `#6b748a` |
+
+`sceneSkin` is one neutral default tone, not a fit to anyone. The scene's lights shade
+all four, so these are base colours, as `anatomyMuscle` is.
+
+Measured WCAG ratios (`web/src/constants/__tests__/sceneTokens.test.js` pins every row):
+
+| Pair | Dark | Light | Floor |
+|---|---|---|---|
+| Mark ink (`accent`) on `sceneClothesAlt` | 10.00 | 5.21 | ≥ 4.5 |
+| Wordmark ink (`positive`) on `sceneClothesAlt` | 10.80 | 5.01 | ≥ 4.5 |
+| `sceneClothes` on `surface` | 4.00 | 7.34 | ≥ 3 |
+| `sceneClothes` on `surfaceAlt` | 4.15 | 6.63 | ≥ 3 |
+| `sceneErg` on `surface` | 11.89 | 4.68 | ≥ 3 |
+| `sceneErg` on `surfaceAlt` | 12.34 | 4.22 | ≥ 3 |
+| `sceneSkin` on `surface` | 6.51 | 2.40 | ≥ 2 |
+| `sceneSkin` on `surfaceAlt` | 6.75 | 2.16 | ≥ 2 |
+| `sceneSkin` vs `sceneClothes` | 1.63 | 3.06 | ≥ 1.5 |
+| `sceneSkin` vs `sceneErg` | 1.83 | 1.95 | ≥ 1.5 |
+| `sceneClothes` vs `sceneErg` | 2.97 | 1.57 | ≥ 1.5 |
+| `sceneClothes` vs `sceneClothesAlt` | 4.32 | 6.84 | ≥ 1.5 |
+
+The stage is the `/squat` stage card, a gradient from `surface` to `surfaceAlt`, so the
+clothes and the erg are held 3:1 (WCAG 1.4.11) against both ends. Skin is a lit surface
+rather than a control, and the palest tone that still reads as skin on the light stage
+is 2.2:1, so it is held to 2:1. The mark's thinnest stroke is 6 of 192 units, so its
+ink is held to the 4.5 of body text, not the 3 a graphic needs.
+
+**The mark** is two files, kept apart from the Creative Commons anatomy data (#753
+section 9). `web/src/constants/markPaths.js` is data only: the rounded square, the
+"S" and the SPLITIQ wordmark as path strings, with their viewBoxes, converted from
+`web/public/icons/icon-192.svg` (the "S" was `<text>` in `monospace`, which a texture
+cannot rely on). `web/src/utils/markSvg.js` returns it as an SVG string in the colours
+passed in: `markSvg({ ink, ground, size })` and `wordmarkSvg({ ink, size })`. A
+colour must be a hex or a `var(--color-*)` pointer; anything else throws, because it
+is written into an attribute.
+
+### Chest decal: placement note for #761
+
+Where the shirt mesh does not exist yet these are proposals in body-relative units,
+for #761 to check against the shirt's UV chest region. The model stands about 1.72 m.
+
+- **Position.** Centred on the midline, on the sternum. Centre at 74% of standing
+  height (about 1.27 m), roughly 0.14 m below the shoulder line. The mark is
+  symmetric, so no left or right is chosen, and the mirrored half-mesh needs no flip.
+- **Size.** A square 0.10 m a side (about a third of the chest width, 6% of
+  height). The rounded square is the decal's own edge, so no margin is added.
+  Do not scale it past 0.14 m: the chest curves and the stroke would wrap at the
+  edges.
+- **Texture.** Rasterise `markSvg` at 256 × 256 px with mipmaps on. That is about
+  2.5 px per mm, enough that the 3 mm stroke survives at the `/row` camera distance
+  on a 3x phone. At 390 px wide the decal is a few pixels across: it reads as a
+  colour patch, and the "S" is a desktop detail.
+- **Colours and theme.** `ground` is `sceneClothesAlt` and `ink` is `accent`, both
+  from the active palette (`DARK` or `LIGHT` in `themeValues.js`). A texture cannot
+  resolve a `var(--color-*)` pointer, so pass resolved hexes and redraw the texture
+  when the theme changes. Dark puts a cyan mark on a near-black tile; light puts a
+  deep teal mark on a near-white tile. Both clear 4.5:1 and both sit on the shirt
+  colour (`sceneClothes`), which they clear 4.3:1 or better.
+- **Wordmark.** If it appears on the shirt it goes below the mark in `positive` ink
+  on the same ground, as wide as the tile. It is optional and not part of the chest
+  decal.
+- **Mock.** The decal on its ground, dark and light, at 1x and 3x:
+  [`dark`](docs/design/rower-mark/mark-dark-3x.png),
+  [`light`](docs/design/rower-mark/mark-light-3x.png). The source icon beside its
+  path render is [`source-vs-paths-3x.png`](docs/design/rower-mark/source-vs-paths-3x.png).
+- **Licence.** The decal texture is generated at runtime and never written into the
+  skin or clothing data.
+
 ## Shared destinations, layouts suited to the screen
 
 The 2026-11-13 vision amendment (#511/#515) supersedes the earlier platform split:

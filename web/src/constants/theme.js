@@ -46,4 +46,9 @@ export const THEME = {
   bandCoral: 'var(--color-band-coral)',
   // Recovery pace-zone swatch. Was a raw '#666' in trainingConfig.js (#819).
   zoneRecovery: 'var(--color-zone-recovery)',
+  // The rower's scene (#827).
+  sceneSkin: 'var(--color-scene-skin)',
+  sceneClothes: 'var(--color-scene-clothes)',
+  sceneClothesAlt: 'var(--color-scene-clothes-alt)',
+  sceneErg: 'var(--color-scene-erg)',
 };

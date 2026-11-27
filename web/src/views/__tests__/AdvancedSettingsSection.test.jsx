@@ -149,6 +149,24 @@ describe('Settings > Advanced (#819 S4)', () => {
     expect(db.writes).toBe(0);
   });
 
+  it('A32: a stale save refetches anchors and history so the next save names the new live row', async () => {
+    db.rpc = vi.fn().mockResolvedValue({
+      data: { status: 'stale' },
+      error: null,
+    });
+    const { invalidate } = renderSection();
+    const input = await screen.findByLabelText('Rowing CP (watts)');
+    fireEvent.change(input, { target: { value: '230' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save CP' }));
+    await waitFor(() =>
+      expect(invalidate).toHaveBeenCalledWith({ queryKey: ['anchors'] })
+    );
+    expect(invalidate).toHaveBeenCalledWith({
+      queryKey: ['anchorHistory', 'rowing_cp'],
+    });
+    expect(db.writes).toBe(0);
+  });
+
   it('a failed save refetches nothing', async () => {
     db.rpc = vi.fn().mockResolvedValue({
       data: null,

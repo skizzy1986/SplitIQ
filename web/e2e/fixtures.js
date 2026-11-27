@@ -50,6 +50,30 @@ export async function stubSupabase(context) {
       body: '[]',
     });
   });
+  // A signed-in tester who has already chosen a heart-rate path. Without a row
+  // the app asks the new-account question (#819), over every screen the specs
+  // photograph. The route added last wins, so this sits after the catch-all.
+  await context.route(
+    /test-project\.supabase\.co\/rest\/v1\/user_training_settings/,
+    (route) => {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        headers: { 'access-control-allow-origin': '*' },
+        body: JSON.stringify({
+          user_id: '00000000-0000-0000-0000-000000000000',
+          hr_path: 'rpe',
+          hr_path_chosen_on: '2026-01-01',
+          birth_year: null,
+          time_zone: null,
+          base_block_started_on: null,
+          screening_completed_on: null,
+          hr_caution: false,
+          depth: 'simple',
+        }),
+      });
+    }
+  );
 }
 
 // Seed the fake session before any app code runs so the auth gate passes.

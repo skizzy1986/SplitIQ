@@ -32,7 +32,7 @@ export const GUIDE = {
       {
         id: 'base-block',
         title: 'Start with easy rowing',
-        body: 'SplitIQ starts new rowers with a few weeks of easy base rowing, then builds up a little each week. With a heart-rate strap you follow your heart rate; without one you follow how hard it feels. You do not need to know any numbers or enter anything to begin.',
+        body: 'SplitIQ starts new rowers with easy base rowing, at an effort that feels comfortable. You do not need to know any numbers or enter anything to begin.',
       },
       {
         id: 'plan-log',
@@ -93,7 +93,7 @@ export const GUIDE = {
       {
         id: 'base-block',
         title: 'Empieza con remo suave',
-        body: 'SplitIQ empieza a quienes son nuevos en el remo con unas semanas de remo suave de base, y luego sube un poco cada semana. Con una banda de frecuencia cardíaca sigues tu pulso; sin ella, sigues qué tan duro se siente. No necesitas saber ningún número ni introducir nada para empezar.',
+        body: 'SplitIQ empieza a quienes son nuevos en el remo con remo suave de base, a un esfuerzo que se sienta cómodo. No necesitas saber ningún número ni introducir nada para empezar.',
       },
       {
         id: 'plan-log',

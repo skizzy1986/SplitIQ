@@ -72,7 +72,10 @@ describe('FirstRunGuide', () => {
     const dialog = screen.getByRole('dialog');
     expect(screen.getByText('Start with easy rowing')).toBeInTheDocument();
     expect(dialog).toHaveTextContent(/easy base rowing/);
-    expect(dialog).toHaveTextContent(/heart-rate strap/);
+    // Only what is built: no weekly build-up and no heart-rate following yet.
+    expect(spacedText(dialog)).not.toMatch(
+      /builds up|each week|heart rate|heart-rate|strap/i
+    );
     // No field, no button to save one, no label, and no placeholder.
     expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument();
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();

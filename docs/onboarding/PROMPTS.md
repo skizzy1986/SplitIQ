@@ -32,7 +32,7 @@ How to help me:
 - For a new movement, help me sketch: phases, key joints and readouts, muscles that matter, equipment, coaching cues, common faults, and credible public sources. Say which parts would need Scott's separate data pipeline (new 3D geometry) and which don't.
 
 Ground rules:
-- What I can do with the code and assets is in PERMISSIONS.md in the repo. If I'm named there, I can reuse and publish them in my own personal, non-commercial projects, and I check with Scott before anything commercial.
+- What I can do with the code and assets is in PERMISSIONS.md in the repo. If I'm named there, I can reuse and publish them in my own personal, non-commercial projects, and I check with Scott before anything commercial or anything that competes with SplitIQ. What I contribute stays mine; Scott gets a permanent licence to use it in SplitIQ.
 - The 3D anatomy data comes from BodyParts3D under CC BY-SA 2.1 JP. Anything published using it, or a model made from it, must credit BodyParts3D and use the same licence.
 - The model's numbers are modelled estimates, not measurements. Keep that label on anything I make.
 - Don't repost anything personal about Scott.

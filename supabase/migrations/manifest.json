@@ -311,6 +311,13 @@
       "reason": "Dev only until Scott says otherwise; this manifest tracks production. Dev first (#819); production only on Scott's separate yes, after 022 (#790). Applied to dev, not production: SplitIQ dev only (niytwgtsclzuhyggvbhd), version 20261127060130, 27 Nov 2026 2:01 PM Perth (AWST), on Scott's yes at 2:00 PM. A first attempt at about 11:03 AM rolled back on a self-test bug, fixed in 9de1809.",
       "note": "user_training_settings (strap or RPE path, year of birth, time zone, base-block and screening dates, HR caution, depth) under one owner policy, with column-level INSERT and UPDATE only, plus log_my_resting_hr and rate_my_session (SECURITY INVOKER). Backfills depth 'expert' for accounts with a live non-sample rowing_cp; Scott's yes on applying it covers that write.",
       "issue": 819
+    },
+    {
+      "file": "028_anchor_provenance.sql",
+      "status": "unapplied",
+      "reason": "Dev only until Scott says otherwise; this manifest tracks production. Dev first (#819 S4); not applied to any project yet. The dev apply needs Scott's separate yes after Gate 3; production only on a later yes, after 022 (#790) and 027.",
+      "note": "anchors gains reason (allow-list, no age_estimate), rule_id, rule_version, provenance (object or null) and locked, plus the anchors_history index; save_my_cp and save_my_hr_anchor (SECURITY INVOKER) retire and insert in one step behind a per-user lock, with a valid_from clamp, stale and locked answers. Writes no rows. Leaves 025's set_my_rowing_cp in place (S4b drops it).",
+      "issue": 819
     }
   ],
   "liveOnly": [

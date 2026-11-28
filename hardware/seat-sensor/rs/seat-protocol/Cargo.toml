@@ -1,0 +1,9 @@
+[package]
+name = "seat-protocol"
+version = "1.0.0"
+edition = "2024"
+description = "Wire formats and count scaling for the SplitIQ seat sensor (BLE protocol version 1)"
+license = "UNLICENSED"
+publish = false
+
+[dependencies]

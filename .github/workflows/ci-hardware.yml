@@ -1,0 +1,66 @@
+name: CI — Hardware (Rust)
+
+# Host crates for the seat sensor under hardware/seat-sensor/rs (#842). The
+# Xtensa firmware build joins this file in #844.
+#
+# Job-level path filtering via the `changes` job, never workflow-level
+# `on.paths`, for the reason ci-web.yml:1-7 gives: a skipped job reports
+# "skipped", which branch protection counts as passing.
+#
+# No toolchain action: the runner image ships rustup, and rust-toolchain.toml
+# pins the channel, components and the bare-metal target, which rustup installs
+# on the first cargo call.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-hardware-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    name: Detect hardware changes
+    runs-on: ubuntu-latest
+    # paths-filter lists a PR's changed files through the REST API (dorny/paths-filter README)
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      rust: ${{ steps.filter.outputs.rust }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        id: filter
+        with:
+          filters: |
+            rust:
+              - 'hardware/seat-sensor/rs/**'
+              - '.github/workflows/ci-hardware.yml'
+
+  seat-protocol:
+    name: seat-protocol (fmt, clippy, test, no_std build)
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: hardware/seat-sensor/rs/seat-protocol
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Toolchain (from rust-toolchain.toml)
+        run: rustup toolchain install
+      - name: Format
+        run: cargo fmt --check
+      - name: Clippy
+        run: cargo clippy --all-targets --locked -- -D warnings
+      - name: Test
+        run: cargo test --locked
+      - name: Build with no std library (bare-metal target)
+        run: cargo build --release --locked --target riscv32imc-unknown-none-elf

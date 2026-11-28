@@ -1,0 +1,8 @@
+# Host crates only. The ESP32-S3 is an Xtensa core, so the firmware crate (#844)
+# will build on Espressif's `esp` toolchain from its own folder, not this one.
+[toolchain]
+channel = "1.97.0"
+components = ["rustfmt", "clippy"]
+# A bare-metal target, so CI proves the crate builds with no std library. Upstream
+# rustc has no Xtensa target; riscv32imc is the ESP32-C3 core.
+targets = ["riscv32imc-unknown-none-elf"]

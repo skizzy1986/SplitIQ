@@ -309,7 +309,7 @@ describe('028 anchor provenance', () => {
     expect(rollbackRaw).toMatch(/EXPORT FIRST/);
   });
 
-  it('is recorded in the manifest as unapplied, dev first, for #819', () => {
+  it('is recorded in the manifest as applied to dev, not production, for #819', () => {
     const entry = manifest.files.find(
       (f) => f.file === '028_anchor_provenance.sql'
     );
@@ -318,7 +318,8 @@ describe('028 anchor provenance', () => {
     expect(entry?.reason).toMatch(
       /^Dev only until Scott says otherwise; this manifest tracks production\./
     );
-    expect(entry?.reason).toMatch(/not applied to any project yet/);
+    expect(entry?.reason).toMatch(/applied to dev, not production/i);
+    expect(entry?.reason).toMatch(/20261128010235/);
     expect(entry?.live).toBeUndefined();
   });
 

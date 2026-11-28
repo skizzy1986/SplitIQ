@@ -146,6 +146,7 @@ describe('025 set_my_rowing_cp', () => {
     expect(entry?.reason).toMatch(
       /dev only, tester client, not for production/i
     );
+    expect(entry?.reason).toMatch(/superseded on dev by 028's `save_my_cp`/i);
     expect(rollback).toContain(
       'drop function if exists public.set_my_rowing_cp(integer);'
     );

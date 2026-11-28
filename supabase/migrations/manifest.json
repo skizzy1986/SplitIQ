@@ -322,7 +322,7 @@
     {
       "file": "031_drop_set_my_rowing_cp.sql",
       "status": "unapplied",
-      "reason": "Dev only until Scott says otherwise; this manifest tracks production. Dev only, never production; 031 never goes to production (#819 S4b). Not applied to any project yet; the dev apply needs Scott's separate yes after Gate 3. Not applied to production.",
+      "reason": "Dev only until Scott says otherwise; this manifest tracks production. Dev only, never production; 031 never goes to production (#819 S4b). Applied to SplitIQ dev only (niytwgtsclzuhyggvbhd), version 20261128184158, 29 Nov 2026 2:41 AM Perth (AWST), on Scott's yes at 2:38 AM. Not applied to production.",
       "note": "Drops 025's set_my_rowing_cp(integer) only, with no cascade. Refuses to run unless that function and 028's save_my_cp and save_my_hr_anchor are present, so it cannot run on production, which never had 025. Writes no rows. The rollback recreates 025's function verbatim.",
       "issue": 819
     }

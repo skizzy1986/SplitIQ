@@ -60,6 +60,7 @@ describe('migration self-tests: no call-and-count in one statement', () => {
   it('covers 027 onwards, including 028', () => {
     expect(files).toContain('027_user_training_settings.sql');
     expect(files).toContain('028_anchor_provenance.sql');
+    expect(files).toContain('031_drop_set_my_rowing_cp.sql');
   });
 
   it.each(files)('%s calls and reads in separate statements', (file) => {

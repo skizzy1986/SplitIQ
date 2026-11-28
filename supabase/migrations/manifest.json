@@ -318,6 +318,13 @@
       "reason": "Dev only until Scott says otherwise; this manifest tracks production. Dev first (#819 S4); production only on Scott's later yes, after 022 (#790) and 027. Applied to dev, not production: SplitIQ dev only (niytwgtsclzuhyggvbhd), version 20261128010235, 28 Nov 2026 9:02 AM Perth (AWST), on Scott's yes at 9:00 AM.",
       "note": "anchors gains reason (allow-list, no age_estimate), rule_id, rule_version, provenance (object or null) and locked, plus the anchors_history index; save_my_cp and save_my_hr_anchor (SECURITY INVOKER) retire and insert in one step behind a per-user lock, with a valid_from clamp, stale and locked answers. Writes no rows. Leaves 025's set_my_rowing_cp in place (S4b drops it).",
       "issue": 819
+    },
+    {
+      "file": "031_drop_set_my_rowing_cp.sql",
+      "status": "unapplied",
+      "reason": "Dev only until Scott says otherwise; this manifest tracks production. Dev only, never production; 031 never goes to production (#819 S4b). Not applied to any project yet; the dev apply needs Scott's separate yes after Gate 3. Not applied to production.",
+      "note": "Drops 025's set_my_rowing_cp(integer) only, with no cascade. Refuses to run unless that function and 028's save_my_cp and save_my_hr_anchor are present, so it cannot run on production, which never had 025. Writes no rows. The rollback recreates 025's function verbatim.",
+      "issue": 819
     }
   ],
   "liveOnly": [

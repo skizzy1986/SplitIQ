@@ -16,7 +16,7 @@ No key, token or password belongs in this file. The dev project URL is public.
 At the build (below): production's structure and the public exercise
 catalogue only. No sessions, vitals, health records, anchors, coach log, Strava
 data, backups, templates, strength logs, accounts or secrets. Since then, dev
-also has the tester-launch migrations 022 to 027 and the `invite-signup`
+also has the tester-launch migrations 022 to 028 and the `invite-signup`
 function (see [Changes since the build](#changes-since-the-build)), so it can
 now hold invite codes, tester accounts, and the rows testers create, including
 labelled sample data. Personal rows are never copied from production, and tester
@@ -92,11 +92,12 @@ line for each new one: what, when (Perth time), who approved it, and the PR.
 | Migration `025_set_my_rowing_cp` (`set_my_rowing_cp` for testers) | 26 Nov 2026, 11:49 AM | Scott, 11:48 AM | #817 |
 | Migration `026_sample_data_no_cp_anchor` (`sample_data_load` no longer inserts the 200 W `rowing_cp` placeholder) | 27 Nov 2026, 8:40 AM | Scott, 8:38 AM | #825 |
 | Migration `027_user_training_settings` (`user_training_settings`, `log_my_resting_hr`, `rate_my_session`, depth backfill) | 27 Nov 2026, 2:01 PM | Scott, 2:00 PM (a first attempt at about 11:03 AM, on his 11:01 AM yes, rolled back on a self-test bug) | #826 |
+| Migration `028_anchor_provenance` (`save_my_cp`, `save_my_hr_anchor`, provenance columns and a lock on `anchors`) | 28 Nov 2026, 9:02 AM | Scott, 9:00 AM | #840 |
 
 Each migration ran its own self-test on apply. `INVITE_SIGNUP_ENABLED` is not
 set yet, so `invite-signup` answers `disabled` until it is. These are on dev
 only; production has none of them (023, 024, 025, 026 and `invite-signup` never go there,
-D32; 027 is dev only so far and goes to production only on Scott's separate yes, after 022).
+D32; 027 and 028 are dev only so far and go to production only on Scott's separate yes, after 022).
 
 ### Apply record: 026 (27 Nov 2026, 8:40 AM AWST)
 
@@ -164,9 +165,38 @@ Read-back, catalogue only (row contents were not read):
 | SF027 self-test | not run | ran inside the migration transaction and passed (the apply would have failed otherwise); a count-only check afterwards found 0 `f0270000` synthetic users |
 | Public tables, policies, functions | 24, 23, 26 | 25, 24, 28 (+2); row-level security off on 0 tables |
 
-Counts now (catalogue only, 27 Nov 2026): 25 public tables, all with row-level
+Counts after 027 (catalogue only, 27 Nov 2026): 25 public tables, all with row-level
 security on; 24 policies. The 023 to 026 counts above are the history; 027 adds
 `user_training_settings`, its one owner policy and two functions.
+
+### Apply record: 028 (28 Nov 2026, 9:02 AM AWST)
+
+Applied to dev only (`niytwgtsclzuhyggvbhd`), never production, with the Supabase
+connector's `apply_migration` (name `028_anchor_provenance`, version
+`20261128010235`), sending `028_anchor_provenance.sql` from #840's head
+`5f5d47b` byte for byte (32,044 bytes, md5 `9f2c2d0a164b5edd01764d0260f9b641`).
+Scott's yes: 9:00 AM AWST, 28 Nov 2026. No rows were read from `sessions`,
+`strava_*` or `backup_snapshots`, and no rows were deleted. 028 writes no
+rows: the only writes are the self-test's, and they roll back.
+
+Read-back, catalogue only (row contents were not read):
+
+| Check | Before | After |
+|---|---|---|
+| `anchors` rows (count only) | 2 | 2 (unchanged) |
+| `public.save_my_cp(...)`, `public.save_my_hr_anchor(...)` | absent | present: `prosecdef = false`, `search_path=""`, ACL `postgres`, `authenticated`; execute: `authenticated` yes, `anon` no, `service_role` no, `public` no |
+| `public.set_my_rowing_cp(integer)` | present: `prosecdef = false`, `search_path=""`, ACL `postgres`, `authenticated` | unchanged (same signature, invoker, empty search path and grants) |
+| New columns on `public.anchors` | absent | `reason` (text, null allowed, check `anchors_reason_check`: 14 codes, no `age_estimate`); `rule_id` (text); `rule_version` (integer); `provenance` (jsonb, check `anchors_provenance_object`: object or null); `locked` (boolean, not null, default false) |
+| Index `anchors_history` | absent | present: `(user_id, key, valid_from DESC, created_at DESC)` |
+| Policy on `anchors` | one, `anchors_owner`, `ALL` to `authenticated`, `user_id = auth.uid()` for both `using` and `with check` | unchanged |
+| Migration listed | no | `028_anchor_provenance`, `20261128010235` |
+| SF028 self-test | not run | ran inside the migration transaction and passed (the apply would have failed otherwise); a count-only check afterwards found 0 `f028` synthetic users |
+| Public tables, policies, functions | 25, 24, 28 | 25, 24, 30 (+2); row-level security off on 0 tables |
+
+Counts now (catalogue only, 28 Nov 2026): 25 public tables, all with row-level
+security on; 24 policies; 30 public functions. Tables and policies are
+unchanged from 027; 028 adds the two writers, five columns on `anchors` and
+the `anchors_history` index.
 
 ## Vercel
 
@@ -201,7 +231,7 @@ separate secrets (#794).
 - To refresh dev after a production migration, apply the same migration file to
   dev, then re-run the fidelity comparison. Do not copy rows. Log every apply or
   deploy in [Changes since the build](#changes-since-the-build). The fidelity
-  comparison will now also show 022 to 027 as dev-only differences, until 022
+  comparison will now also show 022 to 028 as dev-only differences, until 022
   reaches production.
 
 ## Still open on #716

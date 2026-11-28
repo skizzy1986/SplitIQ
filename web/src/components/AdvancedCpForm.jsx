@@ -1,15 +1,18 @@
 import { useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { THEME } from '../constants/theme.js';
 import { RADIUS, SPACE, TYPE } from '../constants/tokens.js';
 import { FONT } from '../constants/type.js';
-import { setRowingCp } from '../utils/setRowingCp.js';
 import { MIN_CP, MAX_CP } from '../utils/firstRunGuide.js';
 
-// Testers-only CP entry (#797). Copy is passed in so the form stays out of
-// the message catalogs.
-export default function SetRowingCpForm({ copy, currentCp }) {
-  const queryClient = useQueryClient();
+// The rowing CP form in Settings > Advanced (#819 S4, H 38). Props in, no
+// Supabase calls: onSave(raw) resolves to { ok, watts } or { ok: false,
+// cause: 'invalid' | 'stale' | 'error' }.
+//
+// Seeding: the parent mounts this only once the anchors read has loaded, so
+// the field starts from the saved CP rather than blank (the old form seeded
+// once at mount, before the read had answered). After that the field is the
+// user's: a background refetch never overwrites what they are typing.
+export default function AdvancedCpForm({ copy, currentCp, onSave }) {
   const [value, setValue] = useState(
     currentCp != null ? String(currentCp) : ''
   );
@@ -20,21 +23,26 @@ export default function SetRowingCpForm({ copy, currentCp }) {
     e.preventDefault();
     setBusy(true);
     setStatus(null);
-    const result = await setRowingCp(value);
+    const result = await onSave(value);
     setBusy(false);
     if (!result.ok) {
-      setStatus(result.cause === 'invalid' ? 'invalid' : 'error');
+      setStatus(result.cause ?? 'error');
       return;
     }
     setStatus('saved');
     setValue(String(result.watts));
-    queryClient.invalidateQueries({ queryKey: ['anchors'] });
   };
 
+  const message = {
+    invalid: copy.cpMissing,
+    stale: copy.cpStale,
+    error: copy.cpError,
+  }[status];
+
   return (
-    <form onSubmit={save} style={{ marginTop: SPACE.md }}>
+    <form onSubmit={save}>
       <label
-        htmlFor="testers-rowing-cp"
+        htmlFor="advanced-rowing-cp"
         style={{
           display: 'block',
           fontSize: TYPE.micro.size,
@@ -47,7 +55,7 @@ export default function SetRowingCpForm({ copy, currentCp }) {
       </label>
       <div style={{ display: 'flex', gap: SPACE.sm, alignItems: 'stretch' }}>
         <input
-          id="testers-rowing-cp"
+          id="advanced-rowing-cp"
           type="number"
           inputMode="numeric"
           min={MIN_CP}
@@ -57,6 +65,7 @@ export default function SetRowingCpForm({ copy, currentCp }) {
           onChange={(e) => setValue(e.target.value)}
           style={{
             flex: 1,
+            minWidth: 0,
             background: THEME.field,
             border: `1px solid ${THEME.textFaint}`,
             borderRadius: RADIUS.sm,
@@ -86,26 +95,26 @@ export default function SetRowingCpForm({ copy, currentCp }) {
           {copy.cpSave}
         </button>
       </div>
-      {status === 'invalid' && (
+      {message && (
         <div
           role="alert"
-          style={{ color: THEME.critical, fontSize: 11, marginTop: 6 }}
+          style={{
+            color: THEME.critical,
+            fontSize: TYPE.bodySm.size,
+            marginTop: 6,
+          }}
         >
-          {copy.cpMissing}
-        </div>
-      )}
-      {status === 'error' && (
-        <div
-          role="alert"
-          style={{ color: THEME.critical, fontSize: 11, marginTop: 6 }}
-        >
-          {copy.cpError}
+          {message}
         </div>
       )}
       {status === 'saved' && (
         <div
           role="status"
-          style={{ color: THEME.positive, fontSize: 11, marginTop: 6 }}
+          style={{
+            color: THEME.positive,
+            fontSize: TYPE.bodySm.size,
+            marginTop: 6,
+          }}
         >
           {copy.cpSaved}
         </div>

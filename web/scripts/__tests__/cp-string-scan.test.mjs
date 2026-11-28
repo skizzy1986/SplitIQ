@@ -108,10 +108,9 @@ const GATED = {
     "H3: no 'CP unavailable', 'anchor unreachable' or 'cannot be read' without a CP",
   ],
   'constants/cpFormCopy.js': [
-    // Mounted nowhere until a later slice brings the form back; the guide and welcome card
-    // tests prove neither shows a CP field.
-    'components/__tests__/FirstRunGuide.test.jsx',
-    'H2: page 3 describes the base block and asks for no CP',
+    // Settings > Advanced (#819 S4) mounts these words at expert depth only.
+    'views/__tests__/AdvancedSettingsSection.test.jsx',
+    'H5: nothing about CP at simple depth',
   ],
 };
 

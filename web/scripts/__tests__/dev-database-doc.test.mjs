@@ -60,4 +60,20 @@ describe('DEV_DATABASE.md', () => {
     expect(log).toMatch(/24 policies/);
     expect(doc).not.toMatch(/Pending, not applied yet/);
   });
+
+  it('logs the 028 apply with time, approver, PR and pinned counts', () => {
+    const log = section('Changes since the build');
+    const line = log
+      .split('\n')
+      .find((l) => l.includes('028_anchor_provenance'));
+    expect(line).toBeTruthy();
+    expect(line).toContain('#840');
+    expect(line).toMatch(/28 Nov 2026/);
+    expect(line).toMatch(/Scott/);
+    expect(log).toMatch(/Apply record: 028/);
+    expect(log).toMatch(/20261128010235/);
+    expect(log).toMatch(/25 public tables/);
+    expect(log).toMatch(/24 policies/);
+    expect(log).toMatch(/30 public functions/);
+  });
 });

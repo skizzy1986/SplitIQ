@@ -18,7 +18,7 @@ export function useAnchors() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('anchors')
-        .select('key, value, unit, status, source, valid_from, note')
+        .select('id, key, value, unit, status, source, valid_from, note')
         .is('superseded_at', null);
       if (error) throw error;
       const byKey = {};
@@ -39,6 +39,8 @@ export function useAnchors() {
     anchors,
     cp,
     cpStatus: rowingCp?.status ?? null,
+    // The live row's id, so a writer can say which row it is replacing (A 32).
+    rowingCpId: rowingCp?.id ?? null,
     cpAvailable: cp != null,
     ftp,
     ftpStatus: bikeFtp?.status ?? null,

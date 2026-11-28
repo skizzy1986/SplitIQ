@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 
 const backHandlers = [];
 vi.mock('../../TrainingSettingsSection.jsx', () => ({ default: () => null }));
+vi.mock('../../AdvancedSettingsSection.jsx', () => ({ default: () => null }));
 vi.mock('@capacitor/core', () => ({
   Capacitor: { isNativePlatform: () => true },
 }));

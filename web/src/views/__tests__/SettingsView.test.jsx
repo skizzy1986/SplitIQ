@@ -7,6 +7,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const panelMock = vi.fn();
 const training = vi.hoisted(() => ({
@@ -22,6 +23,39 @@ vi.mock('../../hooks/useTrainingSettings.js', () => ({
   }),
 }));
 
+// Settings > Advanced reads anchors only at expert depth. A small fake client
+// counts every read, so the simple-depth tests can prove nothing is asked.
+const db = vi.hoisted(() => ({ reads: [], live: null }));
+vi.mock('../../supabaseClient.js', () => ({
+  supabase: {
+    from: (table) => {
+      const chain = {
+        select: () => chain,
+        // useAnchors: .select(...).is('superseded_at', null)
+        is: () => {
+          db.reads.push(`${table}:live`);
+          return Promise.resolve({
+            data: db.live ? [db.live] : [],
+            error: null,
+          });
+        },
+        // useAnchorHistory: .select(...).eq(...).order(...).order(...)
+        eq: () => chain,
+        order: () => ({
+          order: () => {
+            db.reads.push(`${table}:history`);
+            return Promise.resolve({
+              data: db.live ? [{ ...db.live, superseded_at: null }] : [],
+              error: null,
+            });
+          },
+        }),
+      };
+      return chain;
+    },
+  },
+}));
+
 vi.mock('../../components/StravaConnectPanel.jsx', () => ({
   default: (props) => {
     panelMock(props);
@@ -32,6 +66,8 @@ vi.mock('../../components/StravaConnectPanel.jsx', () => ({
 import SettingsView from '../SettingsView.jsx';
 
 beforeEach(() => {
+  db.reads = [];
+  db.live = null;
   panelMock.mockReset();
   training.mutateAsync.mockReset();
   training.mutateAsync.mockResolvedValue();
@@ -152,5 +188,53 @@ describe('SettingsView', () => {
       expect(screen.queryByRole('heading', { name: 'Training' })).toBeNull();
       unmount();
     }
+  });
+});
+
+// #819 S4: SettingsView itself mounts Settings > Advanced. The section is
+// real here (not mocked), so dropping the mount from SettingsView fails.
+describe('SettingsView: Settings > Advanced (#819 S4)', () => {
+  function renderWithQuery() {
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    return render(
+      <QueryClientProvider client={client}>
+        <SettingsView />
+      </QueryClientProvider>
+    );
+  }
+
+  it('H5: shows the Advanced CP form and its origin at expert depth', async () => {
+    training.settings = { ...training.settings, depth: 'expert' };
+    db.live = {
+      id: '00000000-0000-4000-8000-0000000000a1',
+      key: 'rowing_cp',
+      value: '215',
+      unit: 'W',
+      status: 'unvalidated',
+      source: 'manual',
+      valid_from: '2026-11-20',
+      reason: 'manual',
+    };
+    renderWithQuery();
+    expect(
+      screen.getByRole('heading', { name: 'Advanced' })
+    ).toBeInTheDocument();
+    expect(await screen.findByLabelText('Rowing CP (watts)')).toHaveValue(215);
+    expect(await screen.findByText('Typed in')).toBeInTheDocument();
+    expect(db.reads).toContain('anchors:history');
+  });
+
+  it('H5: nothing about CP at simple depth, and no anchor read', () => {
+    training.settings = { ...training.settings, depth: 'simple' };
+    renderWithQuery();
+    // Settings itself rendered (the Integrations heading is there) ...
+    expect(screen.getByText('Integrations')).toBeInTheDocument();
+    // ... but no Advanced block, no CP words and no anchors or history read.
+    expect(screen.queryByRole('heading', { name: 'Advanced' })).toBeNull();
+    expect(screen.queryByText(/\bCP\b/)).toBeNull();
+    expect(screen.queryByLabelText('Rowing CP (watts)')).toBeNull();
+    expect(db.reads).toEqual([]);
   });
 });

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { dirname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -30,26 +30,76 @@ beforeEach(() => {
   captureMock.mockReset();
 });
 
-// One-step save through migration 025's set_my_rowing_cp() (#797, Gate 1
-// criteria in the PR body). The database retires the old row and inserts the
-// new one in one statement, so the client never writes anchors itself.
+// One-step save through migration 028's save_my_cp() (#819 S4). The
+// database retires the old row and inserts the new one in one step, so the
+// client never writes anchors itself. 025's set_my_rowing_cp stays on dev
+// until S4b drops it, but nothing in the app calls it any more.
+const SAVED = {
+  status: 'saved',
+  id: '00000000-0000-4000-8000-0000000000aa',
+  replaced: true,
+  valid_from: '2026-11-28',
+  clamped: false,
+};
+
 describe('setRowingCp', () => {
-  it('criteria 1 and 3: calls set_my_rowing_cp once with the watts and never writes anchors', async () => {
-    rpcMock.mockResolvedValue({
-      data: { status: 'saved', watts: 210, replaced: false },
-      error: null,
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2026, 10, 28, 7, 30));
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('H38: calls save_my_cp once as manual, unvalidated, reason manual, today local, and never writes anchors', async () => {
+    rpcMock.mockResolvedValue({ data: SAVED, error: null });
+    const result = await setRowingCp('210', {
+      expectedLiveId: '00000000-0000-4000-8000-000000000001',
     });
-    const result = await setRowingCp('210');
     expect(result).toEqual({ ok: true, watts: 210 });
     expect(rpcMock).toHaveBeenCalledTimes(1);
-    expect(rpcMock).toHaveBeenCalledWith('set_my_rowing_cp', { p_watts: 210 });
+    expect(rpcMock).toHaveBeenCalledWith('save_my_cp', {
+      p_watts: 210,
+      p_source: 'manual',
+      p_status: 'unvalidated',
+      p_reason: 'manual',
+      p_valid_from: '2026-11-28',
+      p_rule_id: null,
+      p_rule_version: null,
+      p_provenance: null,
+      p_expected_live_id: '00000000-0000-4000-8000-000000000001',
+      p_locked: null,
+    });
     expect(fromMock).not.toHaveBeenCalled();
   });
 
-  it('criterion 4: a failed save makes no follow-up writes to put a row back', async () => {
+  it('with no live row it expects none', async () => {
+    rpcMock.mockResolvedValue({ data: SAVED, error: null });
+    await setRowingCp('210');
+    expect(rpcMock.mock.calls[0][1].p_expected_live_id).toBeNull();
+  });
+
+  it('A32: a stale answer is its own cause and is not reported as an error', async () => {
+    rpcMock.mockResolvedValue({
+      data: { status: 'stale', id: null, replaced: false },
+      error: null,
+    });
+    expect(await setRowingCp('220')).toEqual({ ok: false, cause: 'stale' });
+    expect(captureMock).not.toHaveBeenCalled();
+  });
+
+  it('an unchanged answer (same CP again) counts as saved', async () => {
+    rpcMock.mockResolvedValue({
+      data: { status: 'unchanged', id: SAVED.id, replaced: false },
+      error: null,
+    });
+    expect(await setRowingCp('220')).toEqual({ ok: true, watts: 220 });
+  });
+
+  it('a failed save makes no follow-up writes to put a row back', async () => {
     rpcMock.mockResolvedValue({
       data: null,
-      error: { code: '23514', message: 'check' },
+      error: { code: '22023', message: 'check' },
     });
     const result = await setRowingCp('220');
     expect(result).toEqual({ ok: false, cause: 'error' });
@@ -57,23 +107,23 @@ describe('setRowingCp', () => {
     expect(fromMock).not.toHaveBeenCalled();
   });
 
-  it('criterion 4: a reply without status saved counts as a failure', async () => {
+  it('a reply without a known status counts as a failure', async () => {
     rpcMock.mockResolvedValue({ data: null, error: null });
+    expect(await setRowingCp('220')).toEqual({ ok: false, cause: 'error' });
+    rpcMock.mockResolvedValue({ data: { status: 'bad_date' }, error: null });
     expect(await setRowingCp('220')).toEqual({ ok: false, cause: 'error' });
   });
 
-  // Gate 3 round 3 (#811 CR suggestion 1, Scott 26 Nov): a failed save is
-  // reported, so a missing 025 on dev (PGRST202) or a lock surprise (23505)
-  // shows up in Sentry, not only as testers saying "Could not save that".
-  // The context names the call, never the watts.
-  it('reports a failed save to Sentry with the database error', async () => {
+  // A failed save is reported, so a missing 028 (PGRST202) shows up in
+  // Sentry. The context names the call, never the watts (H 42).
+  it('H42: reports a failed save to Sentry with the call name only', async () => {
     const error = { code: 'PGRST202', message: 'not found' };
     rpcMock.mockResolvedValue({ data: null, error });
     await setRowingCp('230');
     expect(captureMock).toHaveBeenCalledTimes(1);
     expect(captureMock).toHaveBeenCalledWith(error, {
       where: 'setRowingCp',
-      rpc: 'set_my_rowing_cp',
+      rpc: 'save_my_cp',
     });
     expect(JSON.stringify(captureMock.mock.calls[0][1])).not.toContain('230');
   });
@@ -83,22 +133,20 @@ describe('setRowingCp', () => {
     await setRowingCp('230');
     expect(captureMock).toHaveBeenCalledTimes(1);
     expect(captureMock.mock.calls[0][0]).toBeInstanceOf(Error);
+    expect(captureMock.mock.calls[0][0].message).not.toContain('230');
     expect(captureMock.mock.calls[0][1]).toEqual({
       where: 'setRowingCp',
-      rpc: 'set_my_rowing_cp',
+      rpc: 'save_my_cp',
     });
 
     captureMock.mockReset();
-    rpcMock.mockResolvedValue({
-      data: { status: 'saved', watts: 230, replaced: true },
-      error: null,
-    });
+    rpcMock.mockResolvedValue({ data: SAVED, error: null });
     await setRowingCp('230');
     await setRowingCp('12');
     expect(captureMock).not.toHaveBeenCalled();
   });
 
-  it('criterion 5: an out-of-range value is refused before any call', async () => {
+  it('an out-of-range value is refused before any call', async () => {
     for (const raw of ['12', '49', '501', '', 'abc']) {
       expect(await setRowingCp(raw)).toEqual({ ok: false, cause: 'invalid' });
     }
@@ -106,12 +154,17 @@ describe('setRowingCp', () => {
     expect(fromMock).not.toHaveBeenCalled();
   });
 
-  it('criterion 5: the form bounds match set_my_rowing_cp in migration 025 (50 to 500 W)', () => {
+  it('the form bounds match save_my_cp in migration 028 (50 to 500 W)', () => {
+    const sql = readFileSync(
+      resolve(srcDir, '../../supabase/migrations/028_anchor_provenance.sql'),
+      'utf8'
+    );
     expect(MIN_CP).toBe(50);
     expect(MAX_CP).toBe(500);
+    expect(sql).toContain('p_watts < 50 or p_watts > 500');
   });
 
-  it('criterion 10: SetRowingCpForm is the only caller of setRowingCp', () => {
+  it('AdvancedSettingsSection is the only caller of setRowingCp', () => {
     const files = readdirSync(srcDir, { recursive: true })
       .filter((f) => /\.(js|jsx)$/.test(f) && !f.includes('__tests__'))
       .filter((f) =>
@@ -120,17 +173,17 @@ describe('setRowingCp', () => {
         )
       )
       .map((f) => f.split(sep).join('/'));
-    expect(files).toEqual(['components/SetRowingCpForm.jsx']);
+    expect(files).toEqual(['views/AdvancedSettingsSection.jsx']);
   });
 
-  it('criterion 10: only setRowingCp.js names set_my_rowing_cp', () => {
+  it('cutover: nothing in web/src names set_my_rowing_cp', () => {
     const files = readdirSync(srcDir, { recursive: true })
       .filter((f) => /\.(js|jsx)$/.test(f) && !f.includes('__tests__'))
       .filter((f) =>
         readFileSync(resolve(srcDir, f), 'utf8').includes('set_my_rowing_cp')
       )
       .map((f) => f.split(sep).join('/'));
-    expect(files).toEqual(['utils/setRowingCp.js']);
+    expect(files).toEqual([]);
   });
 });
 

@@ -294,7 +294,7 @@
     {
       "file": "025_set_my_rowing_cp.sql",
       "status": "unapplied",
-      "reason": "Dev only, tester client, not for production, so production stays unapplied by design (#797). This manifest tracks production. Applied to SplitIQ dev only, 26 Nov 2026 11:49 AM Perth (AWST), on Scott's yes at 11:48 AM.",
+      "reason": "Dev only, tester client, not for production, so production stays unapplied by design (#797). This manifest tracks production. Applied to SplitIQ dev only, 26 Nov 2026 11:49 AM Perth (AWST), on Scott's yes at 11:48 AM. Superseded on dev by 028's `save_my_cp`.",
       "note": "set_my_rowing_cp(p_watts): the signed-in tester saves their rowing CP in one step (retire the live rowing_cp anchor, insert the new one as W, unvalidated, tester) under anchors RLS, with a per-user transaction lock. Replaces the two-request save in #811.",
       "issue": 797
     },
@@ -310,6 +310,13 @@
       "status": "unapplied",
       "reason": "Dev only until Scott says otherwise; this manifest tracks production. Dev first (#819); production only on Scott's separate yes, after 022 (#790). Applied to dev, not production: SplitIQ dev only (niytwgtsclzuhyggvbhd), version 20261127060130, 27 Nov 2026 2:01 PM Perth (AWST), on Scott's yes at 2:00 PM. A first attempt at about 11:03 AM rolled back on a self-test bug, fixed in 9de1809.",
       "note": "user_training_settings (strap or RPE path, year of birth, time zone, base-block and screening dates, HR caution, depth) under one owner policy, with column-level INSERT and UPDATE only, plus log_my_resting_hr and rate_my_session (SECURITY INVOKER). Backfills depth 'expert' for accounts with a live non-sample rowing_cp; Scott's yes on applying it covers that write.",
+      "issue": 819
+    },
+    {
+      "file": "028_anchor_provenance.sql",
+      "status": "unapplied",
+      "reason": "Dev only until Scott says otherwise; this manifest tracks production. Dev first (#819 S4); production only on Scott's later yes, after 022 (#790) and 027. Applied to dev, not production: SplitIQ dev only (niytwgtsclzuhyggvbhd), version 20261128010235, 28 Nov 2026 9:02 AM Perth (AWST), on Scott's yes at 9:00 AM.",
+      "note": "anchors gains reason (allow-list, no age_estimate), rule_id, rule_version, provenance (object or null) and locked, plus the anchors_history index; save_my_cp and save_my_hr_anchor (SECURITY INVOKER) retire and insert in one step behind a per-user lock, with a valid_from clamp, stale and locked answers. Writes no rows. Leaves 025's set_my_rowing_cp in place (S4b drops it).",
       "issue": 819
     }
   ],

@@ -16,7 +16,7 @@ No key, token or password belongs in this file. The dev project URL is public.
 At the build (below): production's structure and the public exercise
 catalogue only. No sessions, vitals, health records, anchors, coach log, Strava
 data, backups, templates, strength logs, accounts or secrets. Since then, dev
-also has the tester-launch migrations 022 to 028 and the `invite-signup`
+also has the tester-launch migrations 022 to 031 and the `invite-signup`
 function (see [Changes since the build](#changes-since-the-build)), so it can
 now hold invite codes, tester accounts, and the rows testers create, including
 labelled sample data. Personal rows are never copied from production, and tester
@@ -93,10 +93,11 @@ line for each new one: what, when (Perth time), who approved it, and the PR.
 | Migration `026_sample_data_no_cp_anchor` (`sample_data_load` no longer inserts the 200 W `rowing_cp` placeholder) | 27 Nov 2026, 8:40 AM | Scott, 8:38 AM | #825 |
 | Migration `027_user_training_settings` (`user_training_settings`, `log_my_resting_hr`, `rate_my_session`, depth backfill) | 27 Nov 2026, 2:01 PM | Scott, 2:00 PM (a first attempt at about 11:03 AM, on his 11:01 AM yes, rolled back on a self-test bug) | #826 |
 | Migration `028_anchor_provenance` (`save_my_cp`, `save_my_hr_anchor`, provenance columns and a lock on `anchors`) | 28 Nov 2026, 9:02 AM | Scott, 9:00 AM | #840 |
+| Migration `031_drop_set_my_rowing_cp` (drops leftover `set_my_rowing_cp`; 028's writers stay) | 29 Nov 2026, 2:41 AM | Scott, 2:38 AM | #849 |
 
 Each migration ran its own self-test on apply. `INVITE_SIGNUP_ENABLED` is not
 set yet, so `invite-signup` answers `disabled` until it is. These are on dev
-only; production has none of them (023, 024, 025, 026 and `invite-signup` never go there,
+only; production has none of them (023, 024, 025, 026, 031 and `invite-signup` never go there,
 D32; 027 and 028 are dev only so far and go to production only on Scott's separate yes, after 022).
 
 ### Apply record: 026 (27 Nov 2026, 8:40 AM AWST)
@@ -197,6 +198,34 @@ Counts now (catalogue only, 28 Nov 2026): 25 public tables, all with row-level
 security on; 24 policies; 30 public functions. Tables and policies are
 unchanged from 027; 028 adds the two writers, five columns on `anchors` and
 the `anchors_history` index.
+
+
+### Apply record: 031 (29 Nov 2026, 2:41 AM AWST)
+
+Applied to SplitIQ dev only (`niytwgtsclzuhyggvbhd`), never production, with the Supabase
+connector's `apply_migration` (name `031_drop_set_my_rowing_cp`, version
+`20261128184158`), sending `031_drop_set_my_rowing_cp.sql` from #849's head
+`3d0819f` byte for byte (7,061 bytes, md5 `59c1e5ac277b98bffcb499d026a752f1`).
+Scott's yes: 2:38 AM AWST, 29 Nov 2026. No rows were read from `sessions`,
+`strava_*` or `backup_snapshots`, and no rows were deleted. 031 writes no
+rows: the self-test is catalogue only.
+
+Read-back, catalogue only (row contents were not read):
+
+| Check | Before | After |
+|---|---|---|
+| `public.set_my_rowing_cp(integer)` | present: `prosecdef = false`, `search_path=""`, ACL `postgres`, `authenticated`; definition md5 `0a1a4bec…` | **absent** |
+| `public.save_my_cp(...)`, `public.save_my_hr_anchor(...)` | present: `prosecdef = false`, `search_path=""`, execute: `authenticated` yes, `anon` no, `service_role` no; definition md5 `74ae4ba7…` and `89b1d5c1…` | unchanged (same definition md5, invoker, empty search path and grants) |
+| Columns on `public.anchors` (`reason`, `rule_id`, `rule_version`, `provenance`, `locked`) | present | unchanged |
+| Index `anchors_history` | present: `(user_id, key, valid_from DESC, created_at DESC)` | unchanged |
+| Policy on `anchors` | one, `anchors_owner`, `ALL` to `authenticated`, `user_id = auth.uid()` for both `using` and `with check` | unchanged |
+| Migration listed | no | `031_drop_set_my_rowing_cp`, `20261128184158` |
+| 031 self-test | not run | ran inside the migration transaction and passed (the apply would have failed otherwise); catalogue only, no sentinel |
+| Public tables, policies, functions | 25, 24, 30 | 25, 24, 29 (−1); row-level security off on 0 tables |
+
+Counts now (catalogue only, 29 Nov 2026): 25 public tables, all with row-level
+security on; 24 policies; 29 public functions. Tables and policies are
+unchanged from 028; 031 drops `set_my_rowing_cp` only.
 
 ## Vercel
 

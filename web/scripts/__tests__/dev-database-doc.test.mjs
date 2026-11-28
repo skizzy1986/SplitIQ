@@ -76,4 +76,21 @@ describe('DEV_DATABASE.md', () => {
     expect(log).toMatch(/24 policies/);
     expect(log).toMatch(/30 public functions/);
   });
+
+  it('logs the 031 apply with time, approver, PR and pinned counts', () => {
+    const log = section('Changes since the build');
+    const line = log
+      .split('\n')
+      .find((l) => l.includes('031_drop_set_my_rowing_cp'));
+    expect(line).toBeTruthy();
+    expect(line).toContain('#849');
+    expect(line).toMatch(/29 Nov 2026/);
+    expect(line).toMatch(/Scott/);
+    expect(log).toMatch(/Apply record: 031/);
+    expect(log).toMatch(/20261128184158/);
+    expect(log).toMatch(/25 public tables/);
+    expect(log).toMatch(/24 policies/);
+    expect(log).toMatch(/29 public functions/);
+    expect(log).toMatch(/applied to SplitIQ dev only/i);
+  });
 });
